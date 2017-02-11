@@ -1,0 +1,88 @@
+package be.nikiroo.fanfix.output;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
+import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.fanfix.data.Paragraph;
+import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.utils.IOUtils;
+
+class Cbz extends BasicOutput {
+	private File dir;
+
+	@Override
+	public File process(Story story, File targetDir, String targetName)
+			throws IOException {
+		String targetNameOrig = targetName;
+		targetName += getDefaultExtension();
+
+		File target = new File(targetDir, targetName);
+
+		dir = File.createTempFile("fanfic-reader-cbz-dir", ".wip");
+		dir.delete();
+		dir.mkdir();
+
+		// will also save the images!
+		new InfoText().process(story, dir, targetNameOrig);
+		IOUtils.writeSmallFile(dir, "version", "3.0");
+
+		try {
+			super.process(story, targetDir, targetNameOrig);
+		} finally {
+		}
+
+		IOUtils.zip(dir, target, true);
+		IOUtils.deltree(dir);
+
+		return target;
+	}
+
+	@Override
+	protected String getDefaultExtension() {
+		return ".cbz";
+	}
+
+	@Override
+	protected void writeStoryHeader(Story story) throws IOException {
+		MetaData meta = story.getMeta();
+
+		StringBuilder builder = new StringBuilder();
+		if (meta != null && meta.getResume() != null) {
+			for (Paragraph para : story.getMeta().getResume()) {
+				builder.append(para.getContent());
+				builder.append("\n");
+			}
+		}
+
+		FileWriter writer = new FileWriter(new File(dir, "URL"));
+		try {
+			if (meta != null) {
+				writer.write(meta.getUuid());
+			}
+			writer.write("\n\n");
+			writer.write(builder.toString());
+		} finally {
+			writer.close();
+		}
+
+		writer = new FileWriter(new File(dir, "SUMMARY"));
+		try {
+			String title = "";
+			if (meta != null && meta.getTitle() != null) {
+				title = meta.getTitle();
+			}
+
+			writer.write(title);
+			if (meta != null && meta.getAuthor() != null) {
+				writer.write("\n©");
+				writer.write(meta.getAuthor());
+			}
+			writer.write("\n\n");
+			writer.write(builder.toString());
+		} finally {
+			writer.close();
+		}
+	}
+}

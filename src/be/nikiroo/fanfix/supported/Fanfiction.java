@@ -1,0 +1,289 @@
+package be.nikiroo.fanfix.supported;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Scanner;
+
+import be.nikiroo.fanfix.Instance;
+import be.nikiroo.utils.StringUtils;
+
+/**
+ * Support class for <a href="http://www.fanfiction.net/">Faniction.net</a>
+ * stories, a website dedicated to fanfictions of many, many different
+ * universes, from TV shows to novels to games.
+ * 
+ * @author niki
+ */
+class Fanfiction extends BasicSupport {
+	@Override
+	protected boolean isHtml() {
+		return true;
+	}
+
+	@Override
+	public String getSourceName() {
+		return "Fanfiction.net";
+	}
+
+	@Override
+	protected String getSubject(URL source, InputStream in) {
+		String line = getLine(in, "id=pre_story_links", 0);
+		if (line != null) {
+			int pos = line.lastIndexOf('"');
+			if (pos >= 1) {
+				line = line.substring(pos + 1);
+				pos = line.indexOf('<');
+				if (pos >= 0) {
+					return line.substring(0, pos);
+				}
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	protected List<String> getTags(URL source, InputStream in)
+			throws IOException {
+		List<String> tags = super.getTags(source, in);
+
+		String key = "title=\"Send Private Message\"";
+		String line = getLine(in, key, 2);
+		if (line != null) {
+			key = "Rated:";
+			int pos = line.indexOf(key);
+			if (pos >= 0) {
+				line = line.substring(pos + key.length());
+				key = "Chapters:";
+				pos = line.indexOf(key);
+				if (pos >= 0) {
+					line = line.substring(0, pos);
+					line = StringUtils.unhtml(line).trim();
+					if (line.endsWith("-")) {
+						line = line.substring(0, line.length() - 1);
+					}
+
+					for (String tag : line.split("-")) {
+						tags.add(tag.trim());
+					}
+				}
+			}
+		}
+
+		return tags;
+	}
+
+	@Override
+	protected String getTitle(URL source, InputStream in) {
+		int i = 0;
+		@SuppressWarnings("resource")
+		Scanner scan = new Scanner(in, "UTF-8");
+		scan.useDelimiter("\\n");
+		while (scan.hasNext()) {
+			String line = scan.next();
+			if (line.contains("xcontrast_txt")) {
+				if ((++i) == 2) {
+					line = StringUtils.unhtml(line).trim();
+					if (line.startsWith("Follow/Fav")) {
+						line = line.substring("Follow/Fav".length()).trim();
+					}
+
+					return line;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	protected String getAuthor(URL source, InputStream in) {
+		int i = 0;
+		@SuppressWarnings("resource")
+		Scanner scan = new Scanner(in, "UTF-8");
+		scan.useDelimiter("\\n");
+		while (scan.hasNext()) {
+			String line = scan.next();
+			if (line.contains("xcontrast_txt")) {
+				if ((++i) == 3) {
+					return StringUtils.unhtml(line).trim();
+				}
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	protected String getDate(URL source, InputStream in) {
+		String key = "Published: <span data-xutime='";
+		String line = getLine(in, key, 0);
+		if (line != null) {
+			int pos = line.indexOf(key);
+			if (pos >= 0) {
+				line = line.substring(pos + key.length());
+				pos = line.indexOf('\'');
+				if (pos >= 0) {
+					line = line.substring(0, pos).trim();
+					try {
+						SimpleDateFormat sdf = new SimpleDateFormat(
+								"YYYY-MM-dd");
+						return sdf
+								.format(new Date(1000 * Long.parseLong(line)));
+					} catch (NumberFormatException e) {
+						Instance.syserr(new IOException(
+								"Cannot convert publication date: " + line, e));
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	protected String getDesc(URL source, InputStream in) {
+		return getLine(in, "title=\"Send Private Message\"", 1);
+	}
+
+	@Override
+	protected URL getCover(URL url, InputStream in) {
+		String key = "class='cimage";
+		String line = getLine(in, key, 0);
+		if (line != null) {
+			int pos = line.indexOf(key);
+			if (pos >= 0) {
+				line = line.substring(pos + key.length());
+				key = "src='";
+				pos = line.indexOf(key);
+				if (pos >= 0) {
+					line = line.substring(pos + key.length());
+					pos = line.indexOf('\'');
+					if (pos >= 0) {
+						line = line.substring(0, pos);
+						if (line.startsWith("//")) {
+							line = url.getProtocol() + "://"
+									+ line.substring(2);
+						} else if (line.startsWith("//")) {
+							line = url.getProtocol() + "://" + url.getHost()
+									+ "/" + line.substring(1);
+						} else {
+							line = url.getProtocol() + "://" + url.getHost()
+									+ "/" + url.getPath() + "/" + line;
+						}
+
+						try {
+							return new URL(line);
+						} catch (MalformedURLException e) {
+							Instance.syserr(e);
+						}
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	protected List<Entry<String, URL>> getChapters(URL source, InputStream in) {
+		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
+
+		String base = source.toString();
+		int pos = base.lastIndexOf('/');
+		String suffix = base.substring(pos); // including '/' at start
+		base = base.substring(0, pos);
+		if (base.endsWith("/1")) {
+			base = base.substring(0, base.length() - 1); // including '/' at end
+		}
+
+		String line = getLine(in, "id=chap_select", 0);
+		String key = "<option  value=";
+		int i = 1;
+		for (pos = line.indexOf(key); pos >= 0; pos = line.indexOf(key, pos), i++) {
+			pos = line.indexOf('>', pos);
+			if (pos >= 0) {
+				int endOfName = line.indexOf('<', pos);
+				if (endOfName >= 0) {
+					String name = line.substring(pos + 1, endOfName);
+					String chapNum = i + ".";
+					if (name.startsWith(chapNum)) {
+						name = name.substring(chapNum.length(), name.length());
+					}
+
+					try {
+						final String chapName = name.trim();
+						final URL chapURL = new URL(base + i + suffix);
+						urls.add(new Entry<String, URL>() {
+							public URL setValue(URL value) {
+								return null;
+							}
+
+							public URL getValue() {
+								return chapURL;
+							}
+
+							public String getKey() {
+								return chapName;
+							}
+						});
+					} catch (MalformedURLException e) {
+						Instance.syserr(new IOException("Cannot parse chapter "
+								+ i + " url: " + (base + i + suffix), e));
+					}
+				}
+			}
+		}
+
+		return urls;
+	}
+
+	@Override
+	protected String getChapterContent(URL source, InputStream in, int number) {
+		StringBuilder builder = new StringBuilder();
+		String startAt = "class='storytext ";
+		String endAt1 = "function review_init";
+		String endAt2 = "id=chap_select";
+		boolean ok = false;
+
+		@SuppressWarnings("resource")
+		Scanner scan = new Scanner(in, "UTF-8");
+		scan.useDelimiter("\\n");
+		while (scan.hasNext()) {
+			String line = scan.next();
+			if (!ok && line.contains(startAt)) {
+				ok = true;
+			} else if (ok && (line.contains(endAt1) || line.contains(endAt2))) {
+				ok = false;
+				break;
+			}
+
+			if (ok) {
+				// First line may contain the title and chap name again
+				if (builder.length() == 0) {
+					int pos = line.indexOf("<hr");
+					if (pos >= 0) {
+						line = line.substring(pos);
+					}
+				}
+
+				builder.append(line);
+			}
+		}
+
+		return builder.toString();
+	}
+
+	@Override
+	protected boolean supports(URL url) {
+		return "fanfiction.net".equals(url.getHost())
+				|| "www.fanfiction.net".equals(url.getHost());
+	}
+}
