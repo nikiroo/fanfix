@@ -302,7 +302,7 @@ public class Cache {
 		conn.setRequestProperty("User-Agent", UA);
 		conn.setRequestProperty("Cookie", generateCookies(support));
 		conn.setRequestProperty("Accept-Encoding", "gzip");
-		if (support != null) {
+		if (support != null && support.getCurrentReferer() != null) {
 			conn.setRequestProperty("Referer", support.getCurrentReferer()
 					.toString());
 			conn.setRequestProperty("Host", support.getCurrentReferer()
