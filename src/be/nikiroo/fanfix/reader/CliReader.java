@@ -1,4 +1,4 @@
-package be.nikiroo.fanfix.reader.cli;
+package be.nikiroo.fanfix.reader;
 
 import java.io.IOException;
 import java.util.List;
@@ -9,7 +9,6 @@ import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
-import be.nikiroo.fanfix.reader.FanfixReader;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 
 /**
@@ -19,14 +18,8 @@ import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
  * 
  * @author niki
  */
-public class CliReader extends FanfixReader {
-	/**
-	 * Start the {@link Story} Reading.
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error or if the {@link Story} was not
-	 *             previously set
-	 */
+class CliReader extends BasicReader {
+	@Override
 	public void read() throws IOException {
 		if (getStory() == null) {
 			throw new IOException("No story to read");
@@ -65,12 +58,7 @@ public class CliReader extends FanfixReader {
 		}
 	}
 
-	/**
-	 * Read the selected chapter (starting at 1).
-	 * 
-	 * @param chapter
-	 *            the chapter
-	 */
+	@Override
 	public void read(int chapter) {
 		if (chapter > getStory().getChapters().size()) {
 			System.err.println("Chapter " + chapter + ": no such chapter");

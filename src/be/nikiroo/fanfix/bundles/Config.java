@@ -10,8 +10,12 @@ import be.nikiroo.utils.resources.Meta;
 public enum Config {
 	@Meta(what = "language", where = "", format = "language (example: en-GB) or nothing for default system language", info = "Force the language (can be overwritten again with the env variable $LANG)")
 	LANG, //
+	@Meta(what = "reader type", where = "", format = "CLI or LOCAL", info = "Select the reader to use to read stories (CLI = simple output to console, LOCAL = use local system file handler)")
+	READER_TYPE, //
 	@Meta(what = "directory", where = "", format = "absolute path, $HOME variable supported, / is always accepted as dir separator", info = "The directory where to store temporary files, defaults to a directory 'fanfic-tmp' in the system default temporary directory")
 	CACHE_DIR, //
+	@Meta(what = "directory", where = "", format = "absolute path, $HOME variable supported, / is always accepted as dir separator", info = "The directory where to store temporary files, defaults to a directory 'fanfic-reader' in the system default temporary directory")
+	CACHE_DIR_LOCAL_READER, //
 	@Meta(what = "delay in hours", where = "", format = "integer | 0: no cache | -1: infinite time cache which is default", info = "The delay after which a cached resource that is thought to change ~often is considered too old and triggers a refresh")
 	CACHE_MAX_TIME_CHANGING, //
 	@Meta(what = "delay in hours", where = "", format = "integer | 0: no cache | -1: infinite time cache which is default", info = "The delay after which a cached resource that is thought to change rarely is considered too old and triggers a refresh")

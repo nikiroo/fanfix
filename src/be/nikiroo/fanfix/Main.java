@@ -10,8 +10,7 @@ import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
-import be.nikiroo.fanfix.reader.FanfixReader;
-import be.nikiroo.fanfix.reader.cli.CliReader;
+import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 
@@ -192,7 +191,7 @@ public class Main {
 			return 1;
 		}
 
-		new CliReader().start(type);
+		BasicReader.getReader().start(type);
 
 		return 0;
 	}
@@ -214,7 +213,7 @@ public class Main {
 	 */
 	private static int read(String story, String chap, boolean library) {
 		try {
-			FanfixReader reader = new CliReader();
+			BasicReader reader = BasicReader.getReader();
 			if (library) {
 				reader.setStory(story);
 			} else {

@@ -16,8 +16,41 @@ import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
  * 
  * @author niki
  */
-public abstract class FanfixReader {
+public abstract class BasicReader {
+	public enum ReaderType {
+		/** Simple reader that outputs everything on the console */
+		CLI,
+		/** Reader that starts local programs to handle the stories */
+		LOCAL
+	}
+
+	private static ReaderType defaultType;
 	private Story story;
+	private ReaderType type;
+
+	static {
+		// TODO: default type from config
+	}
+
+	/**
+	 * The type of this reader.
+	 * 
+	 * @return the type
+	 */
+	public ReaderType getType() {
+		return type;
+	}
+
+	/**
+	 * The type of this reader.
+	 * 
+	 * @param type
+	 *            the new type
+	 */
+	protected BasicReader setType(ReaderType type) {
+		this.type = type;
+		return this;
+	}
 
 	/**
 	 * Return the current {@link Story}.
@@ -29,7 +62,7 @@ public abstract class FanfixReader {
 	}
 
 	/**
-	 * Create a new {@link FanfixReader} for a {@link Story} in the
+	 * Create a new {@link BasicReader} for a {@link Story} in the
 	 * {@link Library} .
 	 * 
 	 * @param luid
@@ -45,7 +78,7 @@ public abstract class FanfixReader {
 	}
 
 	/**
-	 * Create a new {@link FanfixReader} for an external {@link Story}.
+	 * Create a new {@link BasicReader} for an external {@link Story}.
 	 * 
 	 * @param source
 	 *            the {@link Story} {@link URL}
@@ -93,4 +126,41 @@ public abstract class FanfixReader {
 	 *            all
 	 */
 	public abstract void start(SupportType type);
+
+	/**
+	 * Return a new {@link BasicReader} ready for use.
+	 * 
+	 * @return a {@link BasicReader}
+	 */
+	public static BasicReader getReader() {
+		switch (defaultType) {
+		// case LOCAL:
+		// return new LocalReader().setType(ReaderType.LOCAL);
+		case CLI:
+			return new CliReader().setType(ReaderType.CLI);
+		}
+
+		return null;
+	}
+
+	/**
+	 * The default {@link ReaderType} used when calling
+	 * {@link BasicReader#getReader()}.
+	 * 
+	 * @return the default type
+	 */
+	public static ReaderType getDefaultReaderType() {
+		return defaultType;
+	}
+
+	/**
+	 * The default {@link ReaderType} used when calling
+	 * {@link BasicReader#getReader()}.
+	 * 
+	 * @param defaultType
+	 *            the new default type
+	 */
+	public static void setDefaultReaderType(ReaderType defaultType) {
+		BasicReader.defaultType = defaultType;
+	}
 }

@@ -20,6 +20,7 @@ public class Instance {
 	private static Library lib;
 	private static boolean debug;
 	private static File coverDir;
+	private static File readerTmp;
 
 	static {
 		config = new ConfigBundle();
@@ -29,6 +30,23 @@ public class Instance {
 		lib = new Library(getFile(Config.LIBRARY_DIR));
 		debug = Instance.getConfig().getBoolean(Config.DEBUG_ERR, false);
 		coverDir = getFile(Config.DEFAULT_COVERS_DIR);
+		File tmp = getFile(Config.CACHE_DIR);
+		readerTmp = getFile(Config.CACHE_DIR_LOCAL_READER);
+
+		if (tmp == null || readerTmp == null) {
+			String tmpDir = System.getProperty("java.io.tmpdir");
+			if (tmpDir != null) {
+				if (tmp == null) {
+					tmp = new File(tmpDir, "fanfic-tmp");
+				}
+				if (readerTmp == null) {
+					tmp = new File(tmpDir, "fanfic-reader");
+				}
+			} else {
+				syserr(new IOException(
+						"The system does not have a default temporary directory"));
+			}
+		}
 
 		if (coverDir != null && !coverDir.exists()) {
 			syserr(new IOException(
@@ -71,21 +89,11 @@ public class Instance {
 		}
 
 		try {
-			File tmp = getFile(Config.CACHE_DIR);
+
 			String ua = config.getString(Config.USER_AGENT);
 			int hours = config.getInteger(Config.CACHE_MAX_TIME_CHANGING, -1);
 			int hoursLarge = config
 					.getInteger(Config.CACHE_MAX_TIME_STABLE, -1);
-
-			if (tmp == null) {
-				String tmpDir = System.getProperty("java.io.tmpdir");
-				if (tmpDir != null) {
-					tmp = new File(tmpDir, "fanfic-tmp");
-				} else {
-					syserr(new IOException(
-							"The system does not have a default temporary directory"));
-				}
-			}
 
 			cache = new Cache(tmp, ua, hours, hoursLarge);
 		} catch (IOException e) {
@@ -137,6 +145,15 @@ public class Instance {
 	 */
 	public static File getCoverDir() {
 		return coverDir;
+	}
+
+	/**
+	 * Return the directory where to store temporary files for the local reader.
+	 * 
+	 * @return the directory
+	 */
+	public static File getReaderDir() {
+		return readerTmp;
 	}
 
 	/**
