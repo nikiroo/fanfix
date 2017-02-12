@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,8 +19,8 @@ import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
-import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
+import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.StringUtils;
 
 /**
@@ -799,8 +798,7 @@ public abstract class BasicSupport {
 					"\n* * *\n");
 		}
 
-		InputStream in = new ByteArrayInputStream(
-				content.getBytes(StandardCharsets.UTF_8));
+		InputStream in = new ByteArrayInputStream(content.getBytes("UTF-8"));
 		try {
 			@SuppressWarnings("resource")
 			Scanner scan = new Scanner(in, "UTF-8");

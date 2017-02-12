@@ -15,7 +15,6 @@ import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.FileAlreadyExistsException;
 import java.util.Date;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -228,7 +227,7 @@ public class Cache {
 	 * @param uniqueID
 	 *            a unique ID for this resource
 	 * 
-	 * @return the resulting {@link FileAlreadyExistsException}
+	 * @return the resulting {@link File}
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
