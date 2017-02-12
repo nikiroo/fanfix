@@ -48,7 +48,7 @@ public class Instance {
 					tmp = new File(tmpDir, "fanfic-tmp");
 				}
 				if (readerTmp == null) {
-					tmp = new File(tmpDir, "fanfic-reader");
+					readerTmp = new File(tmpDir, "fanfic-reader");
 				}
 			} else {
 				syserr(new IOException(

@@ -230,12 +230,12 @@ class InfoText extends Text {
 			try {
 				String value = getLine(infoIn, key, 0);
 				if (value != null && !value.isEmpty()) {
-					value = value.trim().substring(key.length()).trim();
+					value = value.trim().substring(key.length() - 1).trim();
 					if (value.startsWith("'") && value.endsWith("'")
 							|| value.startsWith("\"") && value.endsWith("\"")) {
 						value = value.substring(1, value.length() - 1).trim();
 					}
-
+					
 					return value;
 				}
 			} finally {

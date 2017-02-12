@@ -62,7 +62,6 @@ public class Main {
 		String typeString = null;
 		String chapString = null;
 		String target = null;
-		String readerTypeString = null;
 		MainAction action = null;
 		Boolean plusInfo = null;
 
@@ -153,11 +152,7 @@ public class Main {
 				exitCode = 255;
 				break;
 			case SET_READER:
-				if (readerTypeString == null) {
-					readerTypeString = args[i];
-				} else {
-					exitCode = 255;
-				}
+				exitCode = setReaderType(args[i]);
 				break;
 			}
 		}
@@ -188,7 +183,6 @@ public class Main {
 				exitCode = 0;
 				break;
 			case SET_READER:
-				exitCode = setReaderType(readerTypeString);
 				break;
 			}
 		}
@@ -474,7 +468,8 @@ public class Main {
 	 */
 	private static int setReaderType(String readerTypeString) {
 		try {
-			ReaderType readerType = ReaderType.valueOf(readerTypeString);
+			ReaderType readerType = ReaderType.valueOf(readerTypeString
+					.toUpperCase());
 			BasicReader.setDefaultReaderType(readerType);
 			return 0;
 		} catch (IllegalArgumentException e) {
