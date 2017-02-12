@@ -9,7 +9,7 @@
 #SJAR_FLAGS += a list of things to pack, each usually prefixed with "-C src/", for *-sources.jar files
 
 JAVAC = javac
-JAVAC_FLAGS += -encoding UTF-8 -d ./bin/ -cp ./src/ -Xdiags:verbose
+JAVAC_FLAGS += -encoding UTF-8 -d ./bin/ -cp ./src/
 JAVA = java
 JAVA_FLAGS += -cp ./bin/
 JAR = jar
