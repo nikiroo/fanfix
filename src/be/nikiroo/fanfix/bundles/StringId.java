@@ -30,7 +30,9 @@ public enum StringId {
 	 * Use it when you need a real translation but still don't have a key.
 	 */
 	DUMMY, //
-	@Meta(what = "error message", where = "cli", format = "%s = supported input, %s = supported output", info = "syntax error message")
+	@Meta(what = "help message", where = "cli", format = "%s = supported input, %s = supported output", info = "help message for the syntax")
+	HELP_SYNTAX, //
+	@Meta(what = "error message", where = "cli", format = "", info = "syntax error message")
 	ERR_SYNTAX, //
 	@Meta(what = "error message", where = "cli", format = "%s = support name, %s = support desc", info = "an input or output support type description")
 	ERR_SYNTAX_TYPE, //

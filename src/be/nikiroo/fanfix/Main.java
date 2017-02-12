@@ -11,6 +11,7 @@ import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.BasicReader;
+import be.nikiroo.fanfix.reader.BasicReader.ReaderType;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 
@@ -20,68 +21,180 @@ import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
  * @author niki
  */
 public class Main {
+	private enum MainAction {
+		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER
+	}
+
 	/**
 	 * Main program entry point.
 	 * <p>
 	 * Known environment variables:
 	 * <ul>
-	 * <li>NOUTF: if set to 1, the program will prefer non-unicode
+	 * <li>NOUTF: if set to 1 or 'true', the program will prefer non-unicode
 	 * {@link String}s when possible</li>
 	 * <li>CONFIG_DIR: a path where to look for the <tt>.properties</tt> files
 	 * before taking the included ones; they will also be saved/updated into
 	 * this path when the program starts</li>
+	 * <li>DEBUG: if set to 1 or 'true', the program will override the DEBUG_ERR
+	 * configuration value with 'true'</li>
+	 * </ul>
+	 * <p>
+	 * <ul>
+	 * <li>--import [URL]: import into library</li>
+	 * <li>--export [id] [output_type] [target]: export story to target</li>
+	 * <li>--convert [URL] [output_type] [target] (+info): convert URL into
+	 * target</li>
+	 * <li>--read [id] ([chapter number]): read the given story from the library
+	 * </li>
+	 * <li>--read-url [URL] ([cahpter number]): convert on the fly and read the
+	 * story, without saving it</li>
+	 * <li>--list: list the stories present in the library</li>
+	 * <li>--set-reader [reader type]: set the reader type to CLI or LOCAL for
+	 * this command</li>
 	 * </ul>
 	 * 
 	 * @param args
-	 *            <ol>
-	 *            <li>--import [URL]: import into library</li> <li>--export [id]
-	 *            [output_type] [target]: export story to target</li> <li>
-	 *            --convert [URL] [output_type] [target]: convert URL into
-	 *            target</li> <li>--read [id]: read the given story from the
-	 *            library</li> <li>--read-url [URL]: convert on the fly and read
-	 *            the story, without saving it</li> <li>--list: list the stories
-	 *            present in the library</li>
-	 *            </ol>
+	 *            see method description
 	 */
 	public static void main(String[] args) {
-		int exitCode = 255;
+		String urlString = null;
+		String luid = null;
+		String typeString = null;
+		String chapString = null;
+		String target = null;
+		String readerTypeString = null;
+		MainAction action = null;
+		Boolean plusInfo = null;
 
-		if (args.length > 0) {
-			String action = args[0];
-			if (action.equals("--import")) {
-				if (args.length > 1) {
-					exitCode = imprt(args[1]);
+		boolean noMoreActions = false;
+
+		int exitCode = 0;
+		for (int i = 0; exitCode == 0 && i < args.length; i++) {
+			// Action (--) handling:
+			if (!noMoreActions && args[i].startsWith("--")) {
+				if (args[i].equals("--")) {
+					noMoreActions = true;
+				} else {
+					try {
+						action = MainAction.valueOf(args[i].substring(2)
+								.toUpperCase().replace("-", "_"));
+					} catch (Exception e) {
+						Instance.syserr(new IllegalArgumentException(
+								"Unknown action: " + args[i], e));
+						exitCode = 255;
+					}
 				}
-			} else if (action.equals("--export")) {
-				if (args.length > 3) {
-					exitCode = export(args[1], args[2], args[3]);
+
+				continue;
+			}
+
+			switch (action) {
+			case IMPORT:
+				if (urlString == null) {
+					urlString = args[i];
+				} else {
+					exitCode = 255;
 				}
-			} else if (action.equals("--convert")) {
-				if (args.length > 3) {
-					exitCode = convert(
-							args[1],
-							args[2],
-							args[3],
-							args.length > 4 ? args[4].toLowerCase().equals(
-									"+info") : false);
+				break;
+			case EXPORT:
+				if (luid == null) {
+					luid = args[i];
+				} else if (typeString == null) {
+					typeString = args[i];
+				} else if (target == null) {
+					target = args[i];
+				} else {
+					exitCode = 255;
 				}
-			} else if (action.equals("--list")) {
-				exitCode = list(args.length > 1 ? args[1] : null);
-			} else if (action.equals("--read-url")) {
-				if (args.length > 1) {
-					exitCode = read(args[1], args.length > 2 ? args[2] : null,
-							false);
+				break;
+			case CONVERT:
+				if (urlString == null) {
+					urlString = args[i];
+				} else if (typeString == null) {
+					typeString = args[i];
+				} else if (target == null) {
+					target = args[i];
+				} else if (plusInfo == null) {
+					if ("+info".equals(args[i])) {
+						plusInfo = true;
+					} else {
+						exitCode = 255;
+					}
+				} else {
+					exitCode = 255;
 				}
-			} else if (action.equals("--read")) {
-				if (args.length > 1) {
-					exitCode = read(args[1], args.length > 2 ? args[2] : null,
-							true);
+				break;
+			case LIST:
+				if (typeString == null) {
+					typeString = args[i];
+				} else {
+					exitCode = 255;
 				}
+				break;
+			case READ:
+				if (luid == null) {
+					luid = args[i];
+				} else if (chapString == null) {
+					chapString = args[i];
+				} else {
+					exitCode = 255;
+				}
+				break;
+			case READ_URL:
+				if (urlString == null) {
+					urlString = args[i];
+				} else if (chapString == null) {
+					chapString = args[i];
+				} else {
+					exitCode = 255;
+				}
+				break;
+			case HELP:
+				exitCode = 255;
+				break;
+			case SET_READER:
+				if (readerTypeString == null) {
+					readerTypeString = args[i];
+				} else {
+					exitCode = 255;
+				}
+				break;
+			}
+		}
+
+		if (exitCode != 255) {
+			switch (action) {
+			case IMPORT:
+				exitCode = imprt(urlString);
+				break;
+			case EXPORT:
+				exitCode = export(urlString, typeString, target);
+				break;
+			case CONVERT:
+				exitCode = convert(urlString, typeString, target,
+						plusInfo == null ? false : plusInfo);
+				break;
+			case LIST:
+				exitCode = list(typeString);
+				break;
+			case READ:
+				exitCode = read(luid, chapString, true);
+				break;
+			case READ_URL:
+				exitCode = read(urlString, chapString, false);
+				break;
+			case HELP:
+				syntax(true);
+				exitCode = 0;
+				break;
+			case SET_READER:
+				exitCode = setReaderType(readerTypeString);
+				break;
 			}
 		}
 
 		if (exitCode == 255) {
-			syntax();
+			syntax(false);
 		}
 
 		if (exitCode != 0) {
@@ -120,14 +233,14 @@ public class Main {
 	/**
 	 * Import the given resource into the {@link Library}.
 	 * 
-	 * @param sourceString
+	 * @param urlString
 	 *            the resource to import
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	private static int imprt(String sourceString) {
+	private static int imprt(String urlString) {
 		try {
-			Story story = Instance.getLibrary().imprt(getUrl(sourceString));
+			Story story = Instance.getLibrary().imprt(getUrl(urlString));
 			System.out.println(story.getMeta().getLuid() + ": \""
 					+ story.getMeta().getTitle() + "\" imported.");
 		} catch (IOException e) {
@@ -141,7 +254,7 @@ public class Main {
 	/**
 	 * Export the {@link Story} from the {@link Library} to the given target.
 	 * 
-	 * @param sourceString
+	 * @param urlString
 	 *            the story LUID
 	 * @param typeString
 	 *            the {@link OutputType} to use
@@ -150,8 +263,7 @@ public class Main {
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	private static int export(String sourceString, String typeString,
-			String target) {
+	private static int export(String urlString, String typeString, String target) {
 		OutputType type = OutputType.valueOfNullOkUC(typeString);
 		if (type == null) {
 			Instance.syserr(new Exception(trans(StringId.OUTPUT_DESC,
@@ -160,7 +272,7 @@ public class Main {
 		}
 
 		try {
-			Story story = Instance.getLibrary().imprt(new URL(sourceString));
+			Story story = Instance.getLibrary().imprt(new URL(urlString));
 			Instance.getLibrary().export(story.getMeta().getLuid(), type,
 					target);
 		} catch (IOException e) {
@@ -202,7 +314,7 @@ public class Main {
 	 * @param story
 	 *            the LUID of the {@link Story} in the {@link Library} <b>or</b>
 	 *            the {@link Story} {@link URL}
-	 * @param chap
+	 * @param chapString
 	 *            which {@link Chapter} to read (starting at 1), or NULL to get
 	 *            the {@link Story} description
 	 * @param library
@@ -211,7 +323,7 @@ public class Main {
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	private static int read(String story, String chap, boolean library) {
+	private static int read(String story, String chapString, boolean library) {
 		try {
 			BasicReader reader = BasicReader.getReader();
 			if (library) {
@@ -220,8 +332,14 @@ public class Main {
 				reader.setStory(getUrl(story));
 			}
 
-			if (chap != null) {
-				reader.read(Integer.parseInt(chap));
+			if (chapString != null) {
+				try {
+					reader.read(Integer.parseInt(chapString));
+				} catch (NumberFormatException e) {
+					Instance.syserr(new IOException(
+							"Chapter number cannot be parsed: " + chapString, e));
+					return 2;
+				}
 			} else {
 				reader.read();
 			}
@@ -236,11 +354,11 @@ public class Main {
 	/**
 	 * Convert the {@link Story} into another format.
 	 * 
-	 * @param sourceString
+	 * @param urlString
 	 *            the source {@link Story} to convert
 	 * @param typeString
 	 *            the {@link OutputType} to convert to
-	 * @param filename
+	 * @param target
 	 *            the target file
 	 * @param infoCover
 	 *            TRUE to also export the cover and info file, even if the given
@@ -248,13 +366,13 @@ public class Main {
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	private static int convert(String sourceString, String typeString,
-			String filename, boolean infoCover) {
+	private static int convert(String urlString, String typeString,
+			String target, boolean infoCover) {
 		int exitCode = 0;
 
-		String sourceName = sourceString;
+		String sourceName = urlString;
 		try {
-			URL source = getUrl(sourceString);
+			URL source = getUrl(urlString);
 			sourceName = source.toString();
 			if (source.toString().startsWith("file://")) {
 				sourceName = sourceName.substring("file://".length());
@@ -273,12 +391,12 @@ public class Main {
 						Story story = support.process(source);
 
 						try {
-							filename = new File(filename).getAbsolutePath();
+							target = new File(target).getAbsolutePath();
 							BasicOutput.getOutput(type, infoCover).process(
-									story, filename);
+									story, target);
 						} catch (IOException e) {
 							Instance.syserr(new IOException(trans(
-									StringId.ERR_SAVING, filename), e));
+									StringId.ERR_SAVING, target), e));
 							exitCode = 5;
 						}
 					} else {
@@ -315,27 +433,54 @@ public class Main {
 	}
 
 	/**
-	 * Display the correct syntax of the program to the user.
+	 * Display the correct syntax of the program to the user to stdout, or an
+	 * error message if the syntax used was wrong on stderr.
+	 * 
+	 * @param showHelp
+	 *            TRUE to show the syntax help, FALSE to show "syntax error"
 	 */
-	private static void syntax() {
-		StringBuilder builder = new StringBuilder();
-		for (SupportType type : SupportType.values()) {
-			builder.append(trans(StringId.ERR_SYNTAX_TYPE, type.toString(),
-					type.getDesc()));
-			builder.append('\n');
+	private static void syntax(boolean showHelp) {
+		if (showHelp) {
+			StringBuilder builder = new StringBuilder();
+			for (SupportType type : SupportType.values()) {
+				builder.append(trans(StringId.ERR_SYNTAX_TYPE, type.toString(),
+						type.getDesc()));
+				builder.append('\n');
+			}
+
+			String typesIn = builder.toString();
+			builder.setLength(0);
+
+			for (OutputType type : OutputType.values()) {
+				builder.append(trans(StringId.ERR_SYNTAX_TYPE, type.toString(),
+						type.getDesc()));
+				builder.append('\n');
+			}
+
+			String typesOut = builder.toString();
+
+			System.out.println(trans(StringId.HELP_SYNTAX, typesIn, typesOut));
+		} else {
+			System.err.println(trans(StringId.ERR_SYNTAX));
 		}
+	}
 
-		String typesIn = builder.toString();
-		builder.setLength(0);
-
-		for (OutputType type : OutputType.values()) {
-			builder.append(trans(StringId.ERR_SYNTAX_TYPE, type.toString(),
-					type.getDesc()));
-			builder.append('\n');
+	/**
+	 * Set the default reader type for this session only (it can be changed in
+	 * the configuration file, too, but this value will override it).
+	 * 
+	 * @param readerTypeString
+	 *            the type
+	 */
+	private static int setReaderType(String readerTypeString) {
+		try {
+			ReaderType readerType = ReaderType.valueOf(readerTypeString);
+			BasicReader.setDefaultReaderType(readerType);
+			return 0;
+		} catch (IllegalArgumentException e) {
+			Instance.syserr(new IOException("Unknown reader type: "
+					+ readerTypeString, e));
+			return 1;
 		}
-
-		String typesOut = builder.toString();
-
-		System.err.println(trans(StringId.ERR_SYNTAX, typesIn, typesOut));
 	}
 }

@@ -653,7 +653,9 @@ public abstract class BasicSupport {
 	 * @param in
 	 *            the input
 	 * @param needle
-	 *            a string that must be found inside the target line
+	 *            a string that must be found inside the target line (also
+	 *            supports "^" at start to say "only if it starts with" the
+	 *            needle)
 	 * @param relativeLine
 	 *            the line to return based upon the target line position (-1 =
 	 *            the line before, 0 = the target line...)
@@ -675,7 +677,9 @@ public abstract class BasicSupport {
 	 * @param in
 	 *            the input
 	 * @param needle
-	 *            a string that must be found inside the target line
+	 *            a string that must be found inside the target line (also
+	 *            supports "^" at start to say "only if it starts with" the
+	 *            needle)
 	 * @param relativeLine
 	 *            the line to return based upon the target line position (-1 =
 	 *            the line before, 0 = the target line...)
@@ -697,8 +701,18 @@ public abstract class BasicSupport {
 		while (scan.hasNext()) {
 			lines.add(scan.next());
 
-			if (index == -1 && lines.get(lines.size() - 1).contains(needle)) {
-				index = lines.size() - 1;
+			if (index == -1) {
+				if (needle.startsWith("^")) {
+					if (lines.get(lines.size() - 1).startsWith(
+							needle.substring(1))) {
+						index = lines.size() - 1;
+					}
+
+				} else {
+					if (lines.get(lines.size() - 1).contains(needle)) {
+						index = lines.size() - 1;
+					}
+				}
 			}
 
 			if (index >= 0 && index + relativeLine < lines.size()) {

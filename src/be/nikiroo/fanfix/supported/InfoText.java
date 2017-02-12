@@ -215,7 +215,7 @@ class InfoText extends Text {
 	 *             in case of I/O error
 	 */
 	private String getInfoTag(URL source, String key) throws IOException {
-		key += "=";
+		key = "^" + key + "=";
 
 		File file;
 		try {

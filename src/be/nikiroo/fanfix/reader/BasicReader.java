@@ -5,6 +5,7 @@ import java.net.URL;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.Library;
+import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
@@ -24,12 +25,23 @@ public abstract class BasicReader {
 		LOCAL
 	}
 
-	private static ReaderType defaultType;
+	private static ReaderType defaultType = ReaderType.CLI;
 	private Story story;
 	private ReaderType type;
 
+	/**
+	 * Take the default reader type configuration from the config file.
+	 */
 	static {
-		// TODO: default type from config
+		String typeString = Instance.getConfig().getString(Config.READER_TYPE);
+		if (typeString != null && !typeString.isEmpty()) {
+			try {
+				ReaderType type = ReaderType.valueOf(typeString.toUpperCase());
+				defaultType = type;
+			} catch (IllegalArgumentException e) {
+				// Do nothing
+			}
+		}
 	}
 
 	/**
@@ -73,7 +85,17 @@ public abstract class BasicReader {
 	public void setStory(String luid) throws IOException {
 		story = Instance.getLibrary().getStory(luid);
 		if (story == null) {
-			throw new IOException("Cannot retrieve story from library: " + luid);
+			// if the LUID is wrong and < 3, pad it to 3 chars with "0" then
+			// retry (since LUIDs are %03d)
+			if (luid != null && luid.length() < 3) {
+				while (luid.length() < 3) {
+					luid = "0" + luid;
+				}
+				setStory(luid);
+			} else {
+				throw new IOException("Cannot retrieve story from library: "
+						+ luid);
+			}
 		}
 	}
 
@@ -128,16 +150,20 @@ public abstract class BasicReader {
 	public abstract void start(SupportType type);
 
 	/**
-	 * Return a new {@link BasicReader} ready for use.
+	 * Return a new {@link BasicReader} ready for use if one is configured.
+	 * <p>
+	 * Can return NULL if none are configured.
 	 * 
-	 * @return a {@link BasicReader}
+	 * @return a {@link BasicReader}, or NULL if none configured
 	 */
 	public static BasicReader getReader() {
-		switch (defaultType) {
-		// case LOCAL:
-		// return new LocalReader().setType(ReaderType.LOCAL);
-		case CLI:
-			return new CliReader().setType(ReaderType.CLI);
+		if (defaultType != null) {
+			switch (defaultType) {
+			// case LOCAL:
+			// return new LocalReader().setType(ReaderType.LOCAL);
+			case CLI:
+				return new CliReader().setType(ReaderType.CLI);
+			}
 		}
 
 		return null;

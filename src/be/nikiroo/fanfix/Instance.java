@@ -23,15 +23,23 @@ public class Instance {
 	private static File readerTmp;
 
 	static {
+		// Most of the rest is dependant upon this:
 		config = new ConfigBundle();
 
-		// config dependent:
 		trans = new StringIdBundle(getLang());
 		lib = new Library(getFile(Config.LIBRARY_DIR));
 		debug = Instance.getConfig().getBoolean(Config.DEBUG_ERR, false);
 		coverDir = getFile(Config.DEFAULT_COVERS_DIR);
 		File tmp = getFile(Config.CACHE_DIR);
 		readerTmp = getFile(Config.CACHE_DIR_LOCAL_READER);
+
+		if (checkEnv("NOUTF")) {
+			trans.setUnicode(false);
+		}
+
+		if (checkEnv("DEBUG")) {
+			debug = true;
+		}
 
 		if (tmp == null || readerTmp == null) {
 			String tmpDir = System.getProperty("java.io.tmpdir");
@@ -53,17 +61,6 @@ public class Instance {
 					"The 'default covers' directory does not exists: "
 							+ coverDir));
 			coverDir = null;
-		}
-		//
-
-		String noutf = System.getenv("NOUTF");
-		if (noutf != null) {
-			noutf = noutf.trim().toLowerCase();
-			if ("yes".equals(noutf) || "true".equals(noutf)
-					|| "on".equals(noutf) || "1".equals(noutf)
-					|| "y".equals(noutf)) {
-				trans.setUnicode(false);
-			}
 		}
 
 		String configDir = System.getenv("CONFIG_DIR");
@@ -89,7 +86,6 @@ public class Instance {
 		}
 
 		try {
-
 			String ua = config.getString(Config.USER_AGENT);
 			int hours = config.getInteger(Config.CACHE_MAX_TIME_CHANGING, -1);
 			int hoursLarge = config
@@ -208,5 +204,27 @@ public class Instance {
 		}
 
 		return lang;
+	}
+
+	/**
+	 * Check that the given environment variable is "enabled".
+	 * 
+	 * @param key
+	 *            the variable to check
+	 * 
+	 * @return TRUE if it is
+	 */
+	private static boolean checkEnv(String key) {
+		String value = System.getenv(key);
+		if (value != null) {
+			value = value.trim().toLowerCase();
+			if ("yes".equals(value) || "true".equals(value)
+					|| "on".equals(value) || "1".equals(value)
+					|| "y".equals(value)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
