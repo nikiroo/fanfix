@@ -21,7 +21,7 @@ class MangaFox extends BasicSupport {
 
 	@Override
 	public String getSourceName() {
-		return "MangaFox.met";
+		return "MangaFox.me";
 	}
 
 	@Override

@@ -62,7 +62,7 @@ test:
 clean:
 	rm -rf bin/
 	@echo Removing sources taken from libs...
-	@for lib in libs/*.jar; do \
+	@for lib in libs/*-sources.jar; do \
 		basename "$$lib"; \
 		jar tf "$$lib" | while read -r ln; do \
 			[ -f "src/$$ln" ] && rm "src/$$ln"; \
@@ -92,7 +92,7 @@ resources: libs
 
 libs: bin
 	@[ -e bin/libs -o ! -d libs ] || echo Extracting sources from libs...
-	@[ -e bin/libs -o ! -d libs ] || (cd src&& for lib in ../libs/*.jar;do \
+	@[ -e bin/libs -o ! -d libs ] || (cd src && for lib in ../libs/*-sources.jar; do \
 		basename "$$lib"; \
 		jar xf "$$lib"; \
 	done )
@@ -105,6 +105,8 @@ $(NAME).jar: resources
 	@echo "Main-Class: `echo "$(MAIN)" | sed 's:/:.:g'`" > bin/manifest
 	@echo >> bin/manifest
 	$(JAR) cfm $(NAME).jar bin/manifest $(JAR_FLAGS)
+	@[ ! -e VERSION ] || echo Copying to "$(NAME)-`cat VERSION`.jar"
+	@[ ! -e VERSION ] || cp $(NAME).jar "$(NAME)-`cat VERSION`.jar"
 
 run: 
 	@[ -e bin/$(MAIN).class ] || echo You need to build the sources

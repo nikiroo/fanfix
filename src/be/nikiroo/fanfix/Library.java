@@ -230,18 +230,26 @@ public class Library {
 									&& !path.endsWith(format)) {
 								MetaData meta = itSupport.processMeta(
 										file.toURI().toURL()).getMeta();
-								stories.put(meta, file);
-
-								try {
-									int id = Integer.parseInt(meta.getLuid());
-									if (id > lastId) {
-										lastId = id;
+								if (meta != null) {
+									stories.put(meta, file);
+									try {
+										int id = Integer.parseInt(meta
+												.getLuid());
+										if (id > lastId) {
+											lastId = id;
+										}
+									} catch (Exception e) {
+										// not normal!!
+										Instance.syserr(new IOException(
+												"Cannot understand the LUID of "
+														+ file.getPath() + ": "
+														+ meta.getLuid(), e));
 									}
-								} catch (Exception e) {
+								} else {
 									// not normal!!
 									Instance.syserr(new IOException(
-											"Cannot read the LUID of: "
-													+ file.getPath(), e));
+											"Cannot get metadata for: "
+													+ file.getPath()));
 								}
 							}
 						} catch (IOException e) {
