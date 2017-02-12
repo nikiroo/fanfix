@@ -1,5 +1,6 @@
 package be.nikiroo.fanfix.supported;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -10,7 +11,10 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Scanner;
 
+import javax.imageio.ImageIO;
+
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.StringUtils;
 
 class MangaFox extends BasicSupport {
@@ -25,18 +29,27 @@ class MangaFox extends BasicSupport {
 	}
 
 	@Override
-	protected String getSubject(URL source, InputStream in) {
-		return "manga";
+	protected MetaData getMeta(URL source, InputStream in) throws IOException {
+		MetaData meta = new MetaData();
+
+		meta.setTitle(getTitle(reset(in)));
+		meta.setAuthor(getAuthor(reset(in)));
+		meta.setDate(getDate(reset(in)));
+		meta.setTags(getTags(reset(in)));
+		meta.setSource(getSourceName());
+		meta.setPublisher(getSourceName());
+		meta.setUuid(source.toString());
+		meta.setLuid("");
+		meta.setLang("EN");
+		meta.setSubject("manga");
+		meta.setType(getType().toString());
+		meta.setImageDocument(true);
+		meta.setCover(getCover(reset(in)));
+
+		return meta;
 	}
 
-	@Override
-	public boolean isImageDocument(URL source, InputStream in)
-			throws IOException {
-		return true;
-	}
-
-	@Override
-	protected List<String> getTags(URL source, InputStream in) {
+	private List<String> getTags(InputStream in) {
 		List<String> tags = new ArrayList<String>();
 
 		String line = getLine(in, "/genres/", 0);
@@ -53,8 +66,7 @@ class MangaFox extends BasicSupport {
 		return tags;
 	}
 
-	@Override
-	protected String getTitle(URL source, InputStream in) {
+	private String getTitle(InputStream in) {
 		String line = getLine(in, " property=\"og:title\"", 0);
 		if (line != null) {
 			int pos = -1;
@@ -74,8 +86,7 @@ class MangaFox extends BasicSupport {
 		return null;
 	}
 
-	@Override
-	protected String getAuthor(URL source, InputStream in) {
+	private String getAuthor(InputStream in) {
 		List<String> authors = new ArrayList<String>();
 
 		String line = getLine(in, "/author/", 0, false);
@@ -120,8 +131,7 @@ class MangaFox extends BasicSupport {
 		}
 	}
 
-	@Override
-	protected String getDate(URL source, InputStream in) {
+	private String getDate(InputStream in) {
 		String line = getLine(in, "/released/", 0);
 		if (line != null) {
 			line = StringUtils.unhtml(line);
@@ -152,8 +162,7 @@ class MangaFox extends BasicSupport {
 		return null;
 	}
 
-	@Override
-	protected URL getCover(URL url, InputStream in) {
+	private BufferedImage getCover(InputStream in) {
 		String line = getLine(in, " property=\"og:image\"", 0);
 		String cover = null;
 		if (line != null) {
@@ -172,10 +181,15 @@ class MangaFox extends BasicSupport {
 		}
 
 		if (cover != null) {
+			InputStream coverIn;
 			try {
-				return new URL(cover);
-			} catch (MalformedURLException e) {
-				Instance.syserr(e);
+				coverIn = openEx(cover);
+				try {
+					return ImageIO.read(coverIn);
+				} finally {
+					coverIn.close();
+				}
+			} catch (IOException e) {
 			}
 		}
 

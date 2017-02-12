@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
+import be.nikiroo.fanfix.supported.InfoReader;
 
 /**
  * Manage a library of Stories: import, export, list.
@@ -224,46 +224,27 @@ public class Library {
 	private Map<MetaData, File> getStories() {
 		if (stories.isEmpty()) {
 			lastId = 0;
-			String format = "."
-					+ Instance.getConfig().getString(Config.IMAGE_FORMAT_COVER)
-							.toLowerCase();
+
 			for (File dir : baseDir.listFiles()) {
 				if (dir.isDirectory()) {
 					for (File file : dir.listFiles()) {
 						try {
-							String path = file.getPath().toLowerCase();
-							if (!path.endsWith(".info")
-									&& !path.endsWith(format)) {
-								// TODO: export .info reading to a class and use
-								// it here
-								SupportType type = SupportType.INFO_TEXT;
-								if (path.toLowerCase().endsWith(".cbz")) {
-									type = SupportType.CBZ;
-								}
-								BasicSupport support = BasicSupport
-										.getSupport(type);
-								MetaData meta = support.processMeta(
-										file.toURI().toURL()).getMeta();
-								if (meta != null) {
-									stories.put(meta, file);
-									try {
-										int id = Integer.parseInt(meta
-												.getLuid());
-										if (id > lastId) {
-											lastId = id;
-										}
-									} catch (Exception e) {
-										// not normal!!
-										Instance.syserr(new IOException(
-												"Cannot understand the LUID of "
-														+ file.getPath() + ": "
-														+ meta.getLuid(), e));
+							if (file.getPath().toLowerCase().endsWith(".info")) {
+								MetaData meta = InfoReader.readMeta(file);
+								try {
+									int id = Integer.parseInt(meta.getLuid());
+									if (id > lastId) {
+										lastId = id;
 									}
-								} else {
+
+									stories.put(meta, file);
+
+								} catch (Exception e) {
 									// not normal!!
 									Instance.syserr(new IOException(
-											"Cannot get metadata for: "
-													+ file.getPath()));
+											"Cannot understand the LUID of "
+													+ file.getPath() + ": "
+													+ meta.getLuid(), e));
 								}
 							}
 						} catch (IOException e) {

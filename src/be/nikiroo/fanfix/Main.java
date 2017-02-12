@@ -64,7 +64,7 @@ public class Main {
 		String target = null;
 		MainAction action = MainAction.HELP;
 		Boolean plusInfo = null;
-
+		
 		boolean noMoreActions = false;
 
 		int exitCode = 0;

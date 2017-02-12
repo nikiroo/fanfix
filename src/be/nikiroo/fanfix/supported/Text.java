@@ -1,5 +1,6 @@
 package be.nikiroo.fanfix.supported;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +13,7 @@ import java.util.Scanner;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
+import be.nikiroo.fanfix.data.MetaData;
 
 /**
  * Support class for local stories encoded in textual format, with a few rules:
@@ -42,13 +44,27 @@ class Text extends BasicSupport {
 	}
 
 	@Override
-	protected String getPublisher(URL source, InputStream in)
-			throws IOException {
-		return "";
+	protected MetaData getMeta(URL source, InputStream in) throws IOException {
+		MetaData meta = new MetaData();
+
+		meta.setTitle(getTitle(reset(in)));
+		meta.setAuthor(getAuthor(reset(in)));
+		meta.setDate(getDate(reset(in)));
+		meta.setTags(new ArrayList<String>());
+		meta.setSource(getSourceName());
+		meta.setPublisher(""); // often sourceName
+		meta.setUuid(source.toString());
+		meta.setLuid("");
+		meta.setLang(getLang(source, reset(in))); // default is EN
+		meta.setSubject(getSubject(source));
+		meta.setType(getType().toString());
+		meta.setImageDocument(false);
+		meta.setCover(getCover(source));
+
+		return meta;
 	}
 
-	@Override
-	protected String getSubject(URL source, InputStream in) throws IOException {
+	private String getSubject(URL source) throws IOException {
 		try {
 			File file = new File(source.toURI());
 			return file.getParentFile().getName();
@@ -59,8 +75,7 @@ class Text extends BasicSupport {
 
 	}
 
-	@Override
-	protected String getLang(URL source, InputStream in) throws IOException {
+	private String getLang(URL source, InputStream in) throws IOException {
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
 		scan.useDelimiter("\\n");
@@ -73,7 +88,7 @@ class Text extends BasicSupport {
 
 		String lang = detectChapter(chapter0);
 		if (lang == null) {
-			lang = super.getLang(source, in);
+			lang = "EN";
 		} else {
 			lang = lang.toUpperCase();
 		}
@@ -81,16 +96,14 @@ class Text extends BasicSupport {
 		return lang;
 	}
 
-	@Override
-	protected String getTitle(URL source, InputStream in) throws IOException {
+	private String getTitle(InputStream in) throws IOException {
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
 		scan.useDelimiter("\\n");
 		return scan.next();
 	}
 
-	@Override
-	protected String getAuthor(URL source, InputStream in) throws IOException {
+	private String getAuthor(InputStream in) throws IOException {
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
 		scan.useDelimiter("\\n");
@@ -103,11 +116,10 @@ class Text extends BasicSupport {
 			author = authorDate.substring(0, pos);
 		}
 
-		return author;
+		return fixAuthor(author);
 	}
 
-	@Override
-	protected String getDate(URL source, InputStream in) throws IOException {
+	private String getDate(InputStream in) throws IOException {
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
 		scan.useDelimiter("\\n");
@@ -128,12 +140,11 @@ class Text extends BasicSupport {
 	}
 
 	@Override
-	protected String getDesc(URL source, InputStream in) {
+	protected String getDesc(URL source, InputStream in) throws IOException {
 		return getChapterContent(source, in, 0);
 	}
 
-	@Override
-	protected URL getCover(URL source, InputStream in) {
+	private BufferedImage getCover(URL source) throws IOException {
 		String path;
 		try {
 			path = new File(source.toURI()).getPath();
@@ -152,7 +163,8 @@ class Text extends BasicSupport {
 	}
 
 	@Override
-	protected List<Entry<String, URL>> getChapters(URL source, InputStream in) {
+	protected List<Entry<String, URL>> getChapters(URL source, InputStream in)
+			throws IOException {
 		List<Entry<String, URL>> chaps = new ArrayList<Entry<String, URL>>();
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
@@ -195,29 +207,23 @@ class Text extends BasicSupport {
 	}
 
 	@Override
-	protected String getChapterContent(URL source, InputStream in, int number) {
+	protected String getChapterContent(URL source, InputStream in, int number)
+			throws IOException {
 		StringBuilder builder = new StringBuilder();
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
 		scan.useDelimiter("\\n");
 		boolean inChap = false;
-		boolean prevLineEmpty = false;
 		while (scan.hasNext()) {
 			String line = scan.next();
-			if (prevLineEmpty) {
-				if (detectChapter(line, number) != null) {
-					inChap = true;
-				} else if (inChap) {
-					if (prevLineEmpty && detectChapter(line) != null) {
-						break;
-					}
-
-					builder.append(line);
-					builder.append("\n");
-				}
+			if (detectChapter(line, number) != null) {
+				inChap = true;
+			} else if (inChap && detectChapter(line) != null) {
+				break;
+			} else if (inChap) {
+				builder.append(line);
+				builder.append("\n");
 			}
-
-			prevLineEmpty = line.trim().isEmpty();
 		}
 
 		return builder.toString();

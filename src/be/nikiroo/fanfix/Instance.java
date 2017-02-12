@@ -55,7 +55,13 @@ public class Instance {
 		}
 
 		trans = new StringIdBundle(getLang());
-		lib = new Library(getFile(Config.LIBRARY_DIR));
+		try {
+			lib = new Library(getFile(Config.LIBRARY_DIR));
+		} catch (Exception e) {
+			syserr(new IOException("Cannot create library for directory: "
+					+ getFile(Config.LIBRARY_DIR), e));
+		}
+		
 		debug = Instance.getConfig().getBoolean(Config.DEBUG_ERR, false);
 		coverDir = getFile(Config.DEFAULT_COVERS_DIR);
 		File tmp = getFile(Config.CACHE_DIR);

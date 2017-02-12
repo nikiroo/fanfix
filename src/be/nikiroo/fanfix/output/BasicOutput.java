@@ -241,9 +241,9 @@ public abstract class BasicOutput {
 		imageName = paragraphNumber + "_" + chapterNameNum + ".png";
 
 		if (story.getMeta() != null) {
-			story.getMeta().setType(getType().toString());
+			story.getMeta().setType("" + getType());
 		}
-		
+
 		if (writeCover) {
 			InfoCover.writeCover(targetDir, targetName, story.getMeta());
 		}

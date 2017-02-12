@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
@@ -14,7 +15,7 @@ import java.util.zip.ZipInputStream;
 import javax.imageio.ImageIO;
 
 import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.bundles.Config;
+import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.MarkableFileInputStream;
 
@@ -24,16 +25,12 @@ import be.nikiroo.utils.MarkableFileInputStream;
  * 
  * @author niki
  */
-class Epub extends BasicSupport {
-	private InfoText base;
-	private URL fakeSource;
-
-	private File tmpCover;
-	private File tmpInfo;
+class Epub extends InfoText {
 	private File tmp;
+	protected MetaData meta;
 
-	/** Only used by {@link Epub#getInput()} so it is always reset. */
-	private InputStream in;
+	private URL fakeSource;
+	private InputStream fakeIn;
 
 	@Override
 	public String getSourceName() {
@@ -50,63 +47,15 @@ class Epub extends BasicSupport {
 	}
 
 	@Override
-	protected boolean isHtml() {
-		if (tmpInfo.exists()) {
-			return base.isHtml();
-		}
-
-		return false;
-	}
-
-	@Override
-	protected String getTitle(URL source, InputStream in) throws IOException {
-		if (tmpInfo.exists()) {
-			return base.getTitle(fakeSource, getFakeInput());
-		}
-
-		return source.toString();
-	}
-
-	@Override
-	protected String getAuthor(URL source, InputStream in) throws IOException {
-		if (tmpInfo.exists()) {
-			return base.getAuthor(fakeSource, getFakeInput());
-		}
-
-		return null;
-	}
-
-	@Override
-	protected String getDate(URL source, InputStream in) throws IOException {
-		if (tmpInfo.exists()) {
-			return base.getDate(fakeSource, getFakeInput());
-		}
-
-		return null;
-	}
-
-	@Override
-	protected String getSubject(URL source, InputStream in) throws IOException {
-		if (tmpInfo.exists()) {
-			return base.getSubject(fakeSource, getFakeInput());
-		}
-
-		return null;
+	protected MetaData getMeta(URL source, InputStream in) throws IOException {
+		return meta;
 	}
 
 	@Override
 	protected String getDesc(URL source, InputStream in) throws IOException {
-		if (tmpInfo.exists()) {
-			return base.getDesc(fakeSource, getFakeInput());
-		}
-
-		return null;
-	}
-
-	@Override
-	protected URL getCover(URL source, InputStream in) throws IOException {
-		if (tmpCover.exists()) {
-			return tmpCover.toURI().toURL();
+		if (fakeIn != null) {
+			fakeIn.reset();
+			return super.getDesc(fakeSource, fakeIn);
 		}
 
 		return null;
@@ -115,8 +64,9 @@ class Epub extends BasicSupport {
 	@Override
 	protected List<Entry<String, URL>> getChapters(URL source, InputStream in)
 			throws IOException {
-		if (tmpInfo.exists()) {
-			return base.getChapters(fakeSource, getFakeInput());
+		if (fakeIn != null) {
+			fakeIn.reset();
+			return super.getChapters(fakeSource, fakeIn);
 		}
 
 		return null;
@@ -125,70 +75,22 @@ class Epub extends BasicSupport {
 	@Override
 	protected String getChapterContent(URL source, InputStream in, int number)
 			throws IOException {
-		if (tmpInfo.exists()) {
-			return base.getChapterContent(fakeSource, getFakeInput(), number);
+		if (fakeIn != null) {
+			fakeIn.reset();
+			return super.getChapterContent(fakeSource, fakeIn, number);
 		}
 
 		return null;
 	}
 
 	@Override
-	protected String getLang(URL source, InputStream in) throws IOException {
-		if (tmpInfo.exists()) {
-			return base.getLang(fakeSource, getFakeInput());
-		}
-
-		return super.getLang(source, in);
-	}
-
-	@Override
-	protected String getPublisher(URL source, InputStream in)
-			throws IOException {
-		if (tmpInfo.exists()) {
-			return base.getPublisher(fakeSource, getFakeInput());
-		}
-
-		return super.getPublisher(source, in);
-	}
-
-	@Override
-	protected List<String> getTags(URL source, InputStream in)
-			throws IOException {
-		if (tmpInfo.exists()) {
-			return base.getTags(fakeSource, getFakeInput());
-		}
-
-		return super.getTags(source, in);
-	}
-
-	@Override
-	protected String getUuid(URL source, InputStream in) throws IOException {
-		if (tmpInfo.exists()) {
-			return base.getUuid(fakeSource, getFakeInput());
-		}
-
-		return super.getUuid(source, in);
-	}
-
-	@Override
-	protected String getLuid(URL source, InputStream in) throws IOException {
-		if (tmpInfo.exists()) {
-			return base.getLuid(fakeSource, getFakeInput());
-		}
-
-		return super.getLuid(source, in);
-	}
-
-	@Override
-	protected void preprocess(InputStream in) throws IOException {
+	protected void preprocess(URL source, InputStream in) throws IOException {
 		// Note: do NOT close this stream, as it would also close "in"
 		ZipInputStream zipIn = new ZipInputStream(in);
 		tmp = File.createTempFile("fanfic-reader-parser_", ".tmp");
-		tmpInfo = new File(tmp + ".info");
-		tmpCover = File.createTempFile("fanfic-reader-parser_", ".tmp");
-
-		base = new InfoText();
+		File tmpInfo = new File(tmp + ".info");
 		fakeSource = tmp.toURI().toURL();
+		BufferedImage cover = null;
 
 		for (ZipEntry entry = zipIn.getNextEntry(); entry != null; entry = zipIn
 				.getNextEntry()) {
@@ -213,10 +115,7 @@ class Epub extends BasicSupport {
 					// Cover
 					if (getCover()) {
 						try {
-							BufferedImage image = ImageIO.read(zipIn);
-							ImageIO.write(image, Instance.getConfig()
-									.getString(Config.IMAGE_FORMAT_COVER)
-									.toLowerCase(), tmpCover);
+							cover = ImageIO.read(zipIn);
 						} catch (Exception e) {
 							Instance.syserr(e);
 						}
@@ -238,33 +137,36 @@ class Epub extends BasicSupport {
 		}
 
 		if (tmp.exists()) {
-			this.in = new MarkableFileInputStream(new FileInputStream(tmp));
+			this.fakeIn = new MarkableFileInputStream(new FileInputStream(tmp));
+		}
+
+		if (tmpInfo.exists()) {
+			meta = InfoReader.readMeta(tmpInfo);
+			if (cover != null) {
+				meta.setCover(cover);
+			}
+			tmpInfo.delete();
+		} else {
+			meta = new MetaData();
+			meta.setUuid(source.toString());
+			meta.setLang("EN");
+			meta.setTags(new ArrayList<String>());
+			meta.setSource(getSourceName());
 		}
 	}
 
 	@Override
 	protected void close() throws IOException {
-		for (File file : new File[] { tmp, tmpInfo, tmpCover }) {
-			if (file != null && file.exists()) {
-				if (!file.delete()) {
-					file.deleteOnExit();
-				}
+		if (tmp != null && tmp.exists()) {
+			if (!tmp.delete()) {
+				tmp.deleteOnExit();
 			}
 		}
 
 		tmp = null;
-		tmpInfo = null;
-		tmpCover = null;
-		fakeSource = null;
 
-		try {
-			if (in != null) {
-				in.close();
-			}
-		} finally {
-			in = null;
-			base.close();
-		}
+		fakeIn.close();
+		super.close();
 	}
 
 	protected String getDataPrefix() {
@@ -277,18 +179,5 @@ class Epub extends BasicSupport {
 
 	protected boolean getCover() {
 		return true;
-	}
-
-	/**
-	 * Reset then return {@link Epub#in}.
-	 * 
-	 * @return {@link Epub#in}
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
-	private InputStream getFakeInput() throws IOException {
-		in.reset();
-		return in;
 	}
 }

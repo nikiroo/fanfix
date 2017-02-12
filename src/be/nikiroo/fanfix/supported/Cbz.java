@@ -39,16 +39,16 @@ class Cbz extends Epub {
 	protected boolean requireInfo() {
 		return false;
 	}
-	
-	@Override
-	public boolean isImageDocument(URL source, InputStream in)
-			throws IOException {
-		return true;
-	}
 
 	@Override
 	protected boolean getCover() {
 		return false;
+	}
+
+	@Override
+	protected void preprocess(URL source, InputStream in) throws IOException {
+		super.preprocess(source, in);
+		meta.setImageDocument(true);
 	}
 
 	@Override
@@ -74,9 +74,7 @@ class Cbz extends Epub {
 
 				if (imageEntry) {
 					try {
-						// we assume that we can get the UUID without a stream
-						String uuid = getUuid(url, null) + "_"
-								+ entry.getName();
+						String uuid = meta.getUuid() + "_" + entry.getName();
 
 						Instance.getCache().addToCache(zipIn, uuid);
 						chap.getParagraphs().add(

@@ -10,6 +10,7 @@ import java.util.Scanner;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.Chapter;
+import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.StringUtils;
 
@@ -30,8 +31,24 @@ class E621 extends BasicSupport {
 	}
 
 	@Override
-	public boolean isImageDocument(URL source, InputStream in) {
-		return true;
+	protected MetaData getMeta(URL source, InputStream in) throws IOException {
+		MetaData meta = new MetaData();
+
+		meta.setTitle(getTitle(reset(in)));
+		meta.setAuthor(getAuthor(source, reset(in)));
+		meta.setDate("");
+		meta.setTags(new ArrayList<String>()); // TODDO ???
+		meta.setSource(getSourceName());
+		meta.setPublisher(getSourceName());
+		meta.setUuid(source.toString());
+		meta.setLuid("");
+		meta.setLang("EN");
+		meta.setSubject("");
+		meta.setType(getType().toString());
+		meta.setImageDocument(true);
+		meta.setCover(null);
+
+		return meta;
 	}
 
 	@Override
@@ -66,8 +83,7 @@ class E621 extends BasicSupport {
 		return true;
 	}
 
-	@Override
-	protected String getAuthor(URL source, InputStream in) throws IOException {
+	private String getAuthor(URL source, InputStream in) throws IOException {
 		String author = getLine(in, "href=\"/post/show/", 0);
 		if (author != null) {
 			String key = "href=\"";
@@ -105,23 +121,7 @@ class E621 extends BasicSupport {
 		return null;
 	}
 
-	@Override
-	protected String getDate(URL source, InputStream in) throws IOException {
-		return null;
-	}
-
-	@Override
-	protected String getSubject(URL source, InputStream in) throws IOException {
-		return null;
-	}
-
-	@Override
-	protected URL getCover(URL source, InputStream in) throws IOException {
-		return null;
-	}
-
-	@Override
-	protected String getTitle(URL source, InputStream in) throws IOException {
+	private String getTitle(InputStream in) throws IOException {
 		String title = getLine(in, "<title>", 0);
 		if (title != null) {
 			int pos = title.indexOf('>');
@@ -137,7 +137,7 @@ class E621 extends BasicSupport {
 				title = title.substring("Pool:".length());
 			}
 
-			title = title.trim();
+			title = StringUtils.unhtml(title).trim();
 		}
 
 		return title;

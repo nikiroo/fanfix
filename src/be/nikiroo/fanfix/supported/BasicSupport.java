@@ -1,5 +1,6 @@
 package be.nikiroo.fanfix.supported;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
+
+import javax.imageio.ImageIO;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
@@ -141,7 +144,6 @@ public abstract class BasicSupport {
 		}
 	}
 
-	/** Only used by {@link BasicSupport#getInput()} just so it is always reset. */
 	private InputStream in;
 	private SupportType type;
 	private URL currentReferer; // with on 'r', as in 'HTTP'...
@@ -181,70 +183,7 @@ public abstract class BasicSupport {
 	 */
 	protected abstract boolean isHtml();
 
-	/**
-	 * Return the story title.
-	 * 
-	 * @param source
-	 *            the source of the story
-	 * @param in
-	 *            the input (the main resource)
-	 * 
-	 * @return the title
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
-	protected abstract String getTitle(URL source, InputStream in)
-			throws IOException;
-
-	/**
-	 * Return the story author.
-	 * 
-	 * @param source
-	 *            the source of the story
-	 * @param in
-	 *            the input (the main resource)
-	 * 
-	 * @return the author
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
-	protected abstract String getAuthor(URL source, InputStream in)
-			throws IOException;
-
-	/**
-	 * Return the story publication date.
-	 * 
-	 * @param source
-	 *            the source of the story
-	 * @param in
-	 *            the input (the main resource)
-	 * 
-	 * @return the date
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
-	protected abstract String getDate(URL source, InputStream in)
-			throws IOException;
-
-	/**
-	 * Return the subject of the story (for instance, if it is a fanfiction,
-	 * what is the original work; if it is a technical text, what is the
-	 * technical subject...).
-	 * 
-	 * @param source
-	 *            the source of the story
-	 * @param in
-	 *            the input (the main resource)
-	 * 
-	 * @return the subject
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
-	protected abstract String getSubject(URL source, InputStream in)
+	protected abstract MetaData getMeta(URL source, InputStream in)
 			throws IOException;
 
 	/**
@@ -261,24 +200,6 @@ public abstract class BasicSupport {
 	 *             in case of I/O error
 	 */
 	protected abstract String getDesc(URL source, InputStream in)
-			throws IOException;
-
-	/**
-	 * Return the story cover resource if any, or NULL if none.
-	 * <p>
-	 * The default cover should not be checked for here.
-	 * 
-	 * @param source
-	 *            the source of the story
-	 * @param in
-	 *            the input (the main resource)
-	 * 
-	 * @return the cover or NULL
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
-	protected abstract URL getCover(URL source, InputStream in)
 			throws IOException;
 
 	/**
@@ -315,16 +236,6 @@ public abstract class BasicSupport {
 	 */
 	protected abstract String getChapterContent(URL source, InputStream in,
 			int number) throws IOException;
-
-	/**
-	 * Check if this {@link BasicSupport} is mainly catered to image files.
-	 * 
-	 * @return TRUE if it is
-	 */
-	public boolean isImageDocument(URL source, InputStream in)
-			throws IOException {
-		return false;
-	}
 
 	/**
 	 * Return the list of cookies (values included) that must be used to
@@ -378,23 +289,15 @@ public abstract class BasicSupport {
 		}
 
 		try {
-			preprocess(getInput());
+			preprocess(url, getInput());
 
 			Story story = new Story();
-			story.setMeta(new MetaData());
-			story.getMeta().setTitle(ifUnhtml(getTitle(url, getInput())));
-			story.getMeta().setAuthor(
-					fixAuthor(ifUnhtml(getAuthor(url, getInput()))));
-			story.getMeta().setDate(ifUnhtml(getDate(url, getInput())));
-			story.getMeta().setTags(getTags(url, getInput()));
-			story.getMeta().setSource(getSourceName());
-			story.getMeta().setPublisher(
-					ifUnhtml(getPublisher(url, getInput())));
-			story.getMeta().setUuid(getUuid(url, getInput()));
-			story.getMeta().setLuid(getLuid(url, getInput()));
-			story.getMeta().setLang(getLang(url, getInput()));
-			story.getMeta().setSubject(ifUnhtml(getSubject(url, getInput())));
-			story.getMeta().setImageDocument(isImageDocument(url, getInput()));
+			MetaData meta = getMeta(url, getInput());
+			story.setMeta(meta);
+
+			if (meta != null && meta.getCover() == null) {
+				meta.setCover(getDefaultCover(meta.getSubject()));
+			}
 
 			if (getDesc) {
 				String descChapterName = Instance.getTrans().getString(
@@ -442,31 +345,6 @@ public abstract class BasicSupport {
 			}
 
 			story.setChapters(new ArrayList<Chapter>());
-
-			URL cover = getCover(url, getInput());
-			if (cover == null) {
-				String subject = story.getMeta() == null ? null : story
-						.getMeta().getSubject();
-				if (subject != null && !subject.isEmpty()
-						&& Instance.getCoverDir() != null) {
-					File fileCover = new File(Instance.getCoverDir(), subject);
-					cover = getImage(fileCover.toURI().toURL(), subject);
-				}
-			}
-
-			if (cover != null) {
-				InputStream coverIn = null;
-				try {
-					coverIn = Instance.getCache().open(cover, this, true);
-					story.getMeta().setCover(StringUtils.toImage(coverIn));
-				} catch (IOException e) {
-					Instance.syserr(new IOException(Instance.getTrans()
-							.getString(StringId.ERR_BS_NO_COVER, cover), e));
-				} finally {
-					if (coverIn != null)
-						coverIn.close();
-				}
-			}
 
 			List<Entry<String, URL>> chapters = getChapters(url, getInput());
 			int i = 1;
@@ -547,191 +425,17 @@ public abstract class BasicSupport {
 	}
 
 	/**
-	 * Return the story publisher (by default,
-	 * {@link BasicSupport#getSourceName()}).
-	 * 
-	 * @param source
-	 *            the source of the story
-	 * @param in
-	 *            the input (the main resource)
-	 * 
-	 * @return the publisher
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
-	protected String getPublisher(URL source, InputStream in)
-			throws IOException {
-		return getSourceName();
-	}
-
-	/**
-	 * Return the story UUID, a unique value representing the story (it is often
-	 * an URL).
-	 * <p>
-	 * By default, this is the {@link URL} of the resource.
-	 * 
-	 * @param source
-	 *            the source of the story
-	 * @param in
-	 *            the input (the main resource)
-	 * 
-	 * @return the uuid
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
-	protected String getUuid(URL source, InputStream in) throws IOException {
-		return source.toString();
-	}
-
-	/**
-	 * Return the story Library UID, a unique value representing the story (it
-	 * is often a number) in the local library.
-	 * <p>
-	 * By default, this is empty.
-	 * 
-	 * @param source
-	 *            the source of the story
-	 * @param in
-	 *            the input (the main resource)
-	 * 
-	 * @return the id
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
-	protected String getLuid(URL source, InputStream in) throws IOException {
-		return "";
-	}
-
-	/**
-	 * Return the 2-letter language code of this story.
-	 * <p>
-	 * By default, this is 'EN'.
-	 * 
-	 * @param source
-	 *            the source of the story
-	 * @param in
-	 *            the input (the main resource)
-	 * 
-	 * @return the language
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
-	protected String getLang(URL source, InputStream in) throws IOException {
-		return "EN";
-	}
-
-	/**
-	 * Return the list of tags for this story.
-	 * 
-	 * @param source
-	 *            the source of the story
-	 * @param in
-	 *            the input (the main resource)
-	 * 
-	 * @return the tags
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
-	protected List<String> getTags(URL source, InputStream in)
-			throws IOException {
-		return new ArrayList<String>();
-	}
-
-	/**
-	 * Return the first line from the given input which correspond to the given
-	 * selectors.
-	 * <p>
-	 * Do not reset the input, which will be pointing at the line just after the
-	 * result (input will be spent if no result is found).
-	 * 
-	 * @param in
-	 *            the input
-	 * @param needle
-	 *            a string that must be found inside the target line (also
-	 *            supports "^" at start to say "only if it starts with" the
-	 *            needle)
-	 * @param relativeLine
-	 *            the line to return based upon the target line position (-1 =
-	 *            the line before, 0 = the target line...)
-	 * 
-	 * @return the line
-	 */
-	protected String getLine(InputStream in, String needle, int relativeLine) {
-		return getLine(in, needle, relativeLine, true);
-	}
-
-	/**
-	 * Return a line from the given input which correspond to the given
-	 * selectors.
-	 * <p>
-	 * Do not reset the input, which will be pointing at the line just after the
-	 * result (input will be spent if no result is found) when first is TRUE,
-	 * and will always be spent if first is FALSE.
-	 * 
-	 * @param in
-	 *            the input
-	 * @param needle
-	 *            a string that must be found inside the target line (also
-	 *            supports "^" at start to say "only if it starts with" the
-	 *            needle)
-	 * @param relativeLine
-	 *            the line to return based upon the target line position (-1 =
-	 *            the line before, 0 = the target line...)
-	 * @param first
-	 *            takes the first result (as opposed to the last one, which will
-	 *            also always spend the input)
-	 * 
-	 * @return the line
-	 */
-	protected String getLine(InputStream in, String needle, int relativeLine,
-			boolean first) {
-		String rep = null;
-
-		List<String> lines = new ArrayList<String>();
-		@SuppressWarnings("resource")
-		Scanner scan = new Scanner(in, "UTF-8");
-		int index = -1;
-		scan.useDelimiter("\\n");
-		while (scan.hasNext()) {
-			lines.add(scan.next());
-
-			if (index == -1) {
-				if (needle.startsWith("^")) {
-					if (lines.get(lines.size() - 1).startsWith(
-							needle.substring(1))) {
-						index = lines.size() - 1;
-					}
-
-				} else {
-					if (lines.get(lines.size() - 1).contains(needle)) {
-						index = lines.size() - 1;
-					}
-				}
-			}
-
-			if (index >= 0 && index + relativeLine < lines.size()) {
-				rep = lines.get(index + relativeLine);
-				if (first) {
-					break;
-				}
-			}
-		}
-
-		return rep;
-	}
-
-	/**
 	 * Prepare the support if needed before processing.
+	 * 
+	 * @param source
+	 *            the source of the story
+	 * @param in
+	 *            the input (the main resource)
 	 * 
 	 * @throws IOException
 	 *             on I/O error
 	 */
-	protected void preprocess(InputStream in) throws IOException {
+	protected void preprocess(URL source, InputStream in) throws IOException {
 	}
 
 	/**
@@ -809,7 +513,7 @@ public abstract class BasicSupport {
 				String line = scan.next().trim();
 				boolean image = false;
 				if (line.startsWith("[") && line.endsWith("]")) {
-					URL url = getImage(source,
+					URL url = getImageUrl(source,
 							line.substring(1, line.length() - 1).trim());
 					if (url != null) {
 						paras.add(new Paragraph(url));
@@ -872,17 +576,51 @@ public abstract class BasicSupport {
 		}
 	}
 
+	static BufferedImage getDefaultCover(String subject) {
+		if (subject != null && !subject.isEmpty()
+				&& Instance.getCoverDir() != null) {
+			try {
+				File fileCover = new File(Instance.getCoverDir(), subject);
+				return getImage(fileCover.toURI().toURL(), subject);
+			} catch (MalformedURLException e) {
+			}
+		}
+
+		return null;
+	}
+
 	/**
 	 * Return the list of supported image extensions.
 	 * 
 	 * @return the extensions
 	 */
-	protected String[] getImageExt(boolean emptyAllowed) {
+	static String[] getImageExt(boolean emptyAllowed) {
 		if (emptyAllowed) {
 			return new String[] { "", ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
 		} else {
 			return new String[] { ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
 		}
+	}
+
+	static BufferedImage getImage(URL source, String line) {
+		URL url = getImageUrl(source, line);
+		if (url != null) {
+			InputStream in = null;
+			try {
+				in = Instance.getCache().open(url, getSupport(url), true);
+				return ImageIO.read(in);
+			} catch (IOException e) {
+			} finally {
+				if (in != null) {
+					try {
+						in.close();
+					} catch (IOException e) {
+					}
+				}
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -897,74 +635,84 @@ public abstract class BasicSupport {
 	 * @return the image URL if found, or NULL
 	 * 
 	 */
-	protected URL getImage(URL source, String line) {
-		String path = new File(source.getFile()).getParent();
+	static URL getImageUrl(URL source, String line) {
 		URL url = null;
 
-		// try for files
-		try {
-			String urlBase = new File(new File(path), line.trim()).toURI()
-					.toURL().toString();
-			for (String ext : getImageExt(true)) {
-				if (new File(urlBase + ext).exists()) {
-					url = new File(urlBase + ext).toURI().toURL();
-				}
-			}
-		} catch (Exception e) {
-			// Nothing to do here
-		}
-
-		if (url == null) {
-			// try for URLs
-			try {
-				for (String ext : getImageExt(true)) {
-					if (Instance.getCache().check(new URL(line + ext))) {
-						url = new URL(line + ext);
-					}
-				}
-
-				// try out of cache
-				if (url == null) {
+		if (line != null) {
+			// try for files
+			String path = null;
+			if (source != null) {
+				path = new File(source.getFile()).getParent();
+				try {
+					String urlBase = new File(new File(path), line.trim())
+							.toURI().toURL().toString();
 					for (String ext : getImageExt(true)) {
-						try {
-							url = new URL(line + ext);
-							Instance.getCache().refresh(url, this, true);
-							break;
-						} catch (IOException e) {
-							// no image with this ext
-							url = null;
+						if (new File(urlBase + ext).exists()) {
+							url = new File(urlBase + ext).toURI().toURL();
 						}
 					}
+				} catch (Exception e) {
+					// Nothing to do here
 				}
-			} catch (MalformedURLException e) {
-				// Not an url
 			}
-		}
 
-		// refresh the cached file
-		if (url != null) {
-			try {
-				Instance.getCache().refresh(url, this, true);
-			} catch (IOException e) {
-				// woops, broken image
-				url = null;
+			if (url == null) {
+				// try for URLs
+				try {
+					for (String ext : getImageExt(true)) {
+						if (Instance.getCache().check(new URL(line + ext))) {
+							url = new URL(line + ext);
+						}
+					}
+
+					// try out of cache
+					if (url == null) {
+						for (String ext : getImageExt(true)) {
+							try {
+								url = new URL(line + ext);
+								Instance.getCache().refresh(url,
+										getSupport(url), true);
+								break;
+							} catch (IOException e) {
+								// no image with this ext
+								url = null;
+							}
+						}
+					}
+				} catch (MalformedURLException e) {
+					// Not an url
+				}
+			}
+
+			// refresh the cached file
+			if (url != null) {
+				try {
+					Instance.getCache().refresh(url, getSupport(url), true);
+				} catch (IOException e) {
+					// woops, broken image
+					url = null;
+				}
 			}
 		}
 
 		return url;
 	}
 
+	protected InputStream reset(InputStream in) {
+		try {
+			in.reset();
+		} catch (IOException e) {
+		}
+		return in;
+	}
+
 	/**
 	 * Reset then return {@link BasicSupport#in}.
 	 * 
 	 * @return {@link BasicSupport#in}
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
 	 */
-	protected InputStream getInput() throws IOException {
-		in.reset();
-		return in;
+	protected InputStream getInput() {
+		return reset(in);
 	}
 
 	/**
@@ -975,7 +723,7 @@ public abstract class BasicSupport {
 	 * 
 	 * @return the author without prefixes
 	 */
-	private String fixAuthor(String author) {
+	protected String fixAuthor(String author) {
 		if (author != null) {
 			for (String suffix : new String[] { " ", ":" }) {
 				for (String byString : Instance.getConfig()
@@ -1009,7 +757,8 @@ public abstract class BasicSupport {
 	private List<Paragraph> requotify(Paragraph para) {
 		List<Paragraph> newParas = new ArrayList<Paragraph>();
 
-		if (para.getType() == ParagraphType.QUOTE) {
+		if (para.getType() == ParagraphType.QUOTE
+				&& para.getContent().length() > 2) {
 			String line = para.getContent();
 			boolean singleQ = line.startsWith("" + openQuote);
 			boolean doubleQ = line.startsWith("" + openDoubleQuote);
@@ -1019,7 +768,7 @@ public abstract class BasicSupport {
 				newParas.add(new Paragraph(ParagraphType.QUOTE, line));
 			} else {
 				char close = singleQ ? closeQuote : closeDoubleQuote;
-				int posClose = line.indexOf(close);
+				int posClose = line.indexOf(close, 1);
 				int posDot = line.indexOf(".");
 				while (posDot >= 0 && posDot < posClose) {
 					posDot = line.indexOf(".", posDot + 1);
@@ -1029,7 +778,9 @@ public abstract class BasicSupport {
 					String rest = line.substring(posDot + 1).trim();
 					line = line.substring(0, posDot + 1).trim();
 					newParas.add(new Paragraph(ParagraphType.QUOTE, line));
-					newParas.addAll(requotify(processPara(rest)));
+					if (!rest.isEmpty()) {
+						newParas.addAll(requotify(processPara(rest)));
+					}
 				} else {
 					newParas.add(para);
 				}
@@ -1300,5 +1051,87 @@ public abstract class BasicSupport {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Return the first line from the given input which correspond to the given
+	 * selectors.
+	 * 
+	 * @param in
+	 *            the input
+	 * @param needle
+	 *            a string that must be found inside the target line (also
+	 *            supports "^" at start to say "only if it starts with" the
+	 *            needle)
+	 * @param relativeLine
+	 *            the line to return based upon the target line position (-1 =
+	 *            the line before, 0 = the target line...)
+	 * 
+	 * @return the line
+	 */
+	static String getLine(InputStream in, String needle, int relativeLine) {
+		return getLine(in, needle, relativeLine, true);
+	}
+
+	/**
+	 * Return a line from the given input which correspond to the given
+	 * selectors.
+	 * 
+	 * @param in
+	 *            the input
+	 * @param needle
+	 *            a string that must be found inside the target line (also
+	 *            supports "^" at start to say "only if it starts with" the
+	 *            needle)
+	 * @param relativeLine
+	 *            the line to return based upon the target line position (-1 =
+	 *            the line before, 0 = the target line...)
+	 * @param first
+	 *            takes the first result (as opposed to the last one, which will
+	 *            also always spend the input)
+	 * 
+	 * @return the line
+	 */
+	static String getLine(InputStream in, String needle, int relativeLine,
+			boolean first) {
+		String rep = null;
+
+		try {
+			in.reset();
+		} catch (IOException e) {
+			Instance.syserr(e);
+		}
+
+		List<String> lines = new ArrayList<String>();
+		@SuppressWarnings("resource")
+		Scanner scan = new Scanner(in, "UTF-8");
+		int index = -1;
+		scan.useDelimiter("\\n");
+		while (scan.hasNext()) {
+			lines.add(scan.next());
+
+			if (index == -1) {
+				if (needle.startsWith("^")) {
+					if (lines.get(lines.size() - 1).startsWith(
+							needle.substring(1))) {
+						index = lines.size() - 1;
+					}
+
+				} else {
+					if (lines.get(lines.size() - 1).contains(needle)) {
+						index = lines.size() - 1;
+					}
+				}
+			}
+
+			if (index >= 0 && index + relativeLine < lines.size()) {
+				rep = lines.get(index + relativeLine);
+				if (first) {
+					break;
+				}
+			}
+		}
+
+		return rep;
 	}
 }

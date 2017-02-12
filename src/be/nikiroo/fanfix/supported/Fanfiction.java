@@ -1,5 +1,6 @@
 package be.nikiroo.fanfix.supported;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -12,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.Scanner;
 
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.StringUtils;
 
 /**
@@ -33,7 +35,27 @@ class Fanfiction extends BasicSupport {
 	}
 
 	@Override
-	protected String getSubject(URL source, InputStream in) {
+	protected MetaData getMeta(URL source, InputStream in) throws IOException {
+		MetaData meta = new MetaData();
+
+		meta.setTitle(getTitle(reset(in)));
+		meta.setAuthor(getAuthor(reset(in)));
+		meta.setDate(getDate(reset(in)));
+		meta.setTags(getTags(reset(in)));
+		meta.setSource(getSourceName());
+		meta.setPublisher(getSourceName());
+		meta.setUuid(source.toString());
+		meta.setLuid("");
+		meta.setLang("EN");
+		meta.setSubject(getSubject(reset(in)));
+		meta.setType(getType().toString());
+		meta.setImageDocument(false);
+		meta.setCover(getCover(source, reset(in)));
+
+		return meta;
+	}
+
+	private String getSubject(InputStream in) {
 		String line = getLine(in, "id=pre_story_links", 0);
 		if (line != null) {
 			int pos = line.lastIndexOf('"');
@@ -41,7 +63,7 @@ class Fanfiction extends BasicSupport {
 				line = line.substring(pos + 1);
 				pos = line.indexOf('<');
 				if (pos >= 0) {
-					return line.substring(0, pos);
+					return StringUtils.unhtml(line.substring(0, pos)).trim();
 				}
 			}
 		}
@@ -49,10 +71,8 @@ class Fanfiction extends BasicSupport {
 		return null;
 	}
 
-	@Override
-	protected List<String> getTags(URL source, InputStream in)
-			throws IOException {
-		List<String> tags = super.getTags(source, in);
+	private List<String> getTags(InputStream in) throws IOException {
+		List<String> tags = new ArrayList<String>();
 
 		String key = "title=\"Send Private Message\"";
 		String line = getLine(in, key, 2);
@@ -71,7 +91,7 @@ class Fanfiction extends BasicSupport {
 					}
 
 					for (String tag : line.split("-")) {
-						tags.add(tag.trim());
+						tags.add(StringUtils.unhtml(tag).trim());
 					}
 				}
 			}
@@ -80,8 +100,7 @@ class Fanfiction extends BasicSupport {
 		return tags;
 	}
 
-	@Override
-	protected String getTitle(URL source, InputStream in) {
+	private String getTitle(InputStream in) {
 		int i = 0;
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
@@ -95,7 +114,7 @@ class Fanfiction extends BasicSupport {
 						line = line.substring("Follow/Fav".length()).trim();
 					}
 
-					return line;
+					return StringUtils.unhtml(line).trim();
 				}
 			}
 		}
@@ -103,8 +122,7 @@ class Fanfiction extends BasicSupport {
 		return null;
 	}
 
-	@Override
-	protected String getAuthor(URL source, InputStream in) {
+	private String getAuthor(InputStream in) {
 		int i = 0;
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
@@ -121,8 +139,7 @@ class Fanfiction extends BasicSupport {
 		return null;
 	}
 
-	@Override
-	protected String getDate(URL source, InputStream in) {
+	private String getDate(InputStream in) {
 		String key = "Published: <span data-xutime='";
 		String line = getLine(in, key, 0);
 		if (line != null) {
@@ -153,8 +170,7 @@ class Fanfiction extends BasicSupport {
 		return getLine(in, "title=\"Send Private Message\"", 1);
 	}
 
-	@Override
-	protected URL getCover(URL url, InputStream in) {
+	private BufferedImage getCover(URL url, InputStream in) {
 		String key = "class='cimage";
 		String line = getLine(in, key, 0);
 		if (line != null) {
@@ -179,11 +195,7 @@ class Fanfiction extends BasicSupport {
 									+ "/" + url.getPath() + "/" + line;
 						}
 
-						try {
-							return new URL(line);
-						} catch (MalformedURLException e) {
-							Instance.syserr(e);
-						}
+						return getImage(null, line);
 					}
 				}
 			}

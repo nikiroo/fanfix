@@ -1,5 +1,7 @@
 package be.nikiroo.fanfix.supported;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -11,6 +13,8 @@ import java.util.Map.Entry;
 import java.util.Scanner;
 
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.utils.StringUtils;
 
 /**
  * Support class for <a href="http://www.fimfiction.net/">FimFiction.net</a>
@@ -30,8 +34,24 @@ class Fimfiction extends BasicSupport {
 	}
 
 	@Override
-	protected String getSubject(URL source, InputStream in) {
-		return "MLP";
+	protected MetaData getMeta(URL source, InputStream in) throws IOException {
+		MetaData meta = new MetaData();
+
+		meta.setTitle(getTitle(reset(in)));
+		meta.setAuthor(getAuthor(reset(in)));
+		meta.setDate(getDate(reset(in)));
+		meta.setTags(getTags(reset(in)));
+		meta.setSource(getSourceName());
+		meta.setPublisher(getSourceName());
+		meta.setUuid(source.toString());
+		meta.setLuid("");
+		meta.setLang("EN");
+		meta.setSubject("MLP");
+		meta.setType(getType().toString());
+		meta.setImageDocument(false);
+		meta.setCover(getCover(reset(in)));
+
+		return meta;
 	}
 
 	@Override
@@ -41,8 +61,7 @@ class Fimfiction extends BasicSupport {
 		return cookies;
 	}
 
-	@Override
-	protected List<String> getTags(URL source, InputStream in) {
+	private List<String> getTags(InputStream in) {
 		List<String> tags = new ArrayList<String>();
 		tags.add("MLP");
 
@@ -71,8 +90,7 @@ class Fimfiction extends BasicSupport {
 		return tags;
 	}
 
-	@Override
-	protected String getTitle(URL source, InputStream in) {
+	private String getTitle(InputStream in) {
 		String line = getLine(in, " property=\"og:title\"", 0);
 		if (line != null) {
 			int pos = -1;
@@ -84,7 +102,7 @@ class Fimfiction extends BasicSupport {
 				line = line.substring(pos + 1);
 				pos = line.indexOf('"');
 				if (pos >= 0) {
-					return line.substring(0, pos);
+					return StringUtils.unhtml(line.substring(0, pos)).trim();
 				}
 			}
 		}
@@ -92,8 +110,7 @@ class Fimfiction extends BasicSupport {
 		return null;
 	}
 
-	@Override
-	protected String getAuthor(URL source, InputStream in) {
+	private String getAuthor(InputStream in) {
 		String line = getLine(in, " href=\"/user/", 0);
 		if (line != null) {
 			int pos = line.indexOf('"');
@@ -114,8 +131,7 @@ class Fimfiction extends BasicSupport {
 		return null;
 	}
 
-	@Override
-	protected String getDate(URL source, InputStream in) {
+	private String getDate(InputStream in) {
 		String line = getLine(in, "<span class=\"date\">", 0);
 		if (line != null) {
 			int pos = -1;
@@ -141,8 +157,7 @@ class Fimfiction extends BasicSupport {
 		return getLine(in, "class=\"more_button hidden\"", -1);
 	}
 
-	@Override
-	protected URL getCover(URL url, InputStream in) {
+	private BufferedImage getCover(InputStream in) {
 		// Note: the 'og:image' is the SMALL cover, not the full version
 		String cover = getLine(in, "<div class=\"story_image\">", 1);
 		if (cover != null) {
@@ -156,15 +171,7 @@ class Fimfiction extends BasicSupport {
 			}
 		}
 
-		if (cover != null) {
-			try {
-				return new URL(cover);
-			} catch (MalformedURLException e) {
-				Instance.syserr(e);
-			}
-		}
-
-		return null;
+		return getImage(null, cover);
 	}
 
 	@Override
