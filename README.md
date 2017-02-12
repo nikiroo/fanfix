@@ -1,6 +1,6 @@
 # Fanfix
 
-Fanfix is a small Java program able to download stories from some supported websites and render them offline.
+Fanfix is a small Java program that can download stories from some supported websites and render them offline.
 
 It will convert from a (supported) URL to an .epub file for stories or a .cbz file for comics (a few other output types are also available, like Plain Text or LaTeX).
 
@@ -67,12 +67,12 @@ Some environment variables are recognized by the program:
 
 ```./configure.sh && make```
 
-You can also import the java sources into, say, [https://eclipse.org/](Eclipse), and create a runnable JAR file from there.
+You can also import the java sources into, say, [Eclipse](https://eclipse.org/), and create a runnable JAR file from there.
 
 ### Dependant libraries (included)
 
 - libs/nikiroo-utils-sources-0.9.2.jar: some shared utility functions I also use elsewhere
-- [https://github.com/unbescape/unbescape](libs/unbescape-1.1.4-sources.jar): a nice library to escape/unescape a lot of text formats; I only use it for HTML
+- [libs/unbescape-1.1.4-sources.jar](https://github.com/unbescape/unbescape): a nice library to escape/unescape a lot of text formats; I only use it for HTML
 
 Nothing else but Java 1.5+.
 
