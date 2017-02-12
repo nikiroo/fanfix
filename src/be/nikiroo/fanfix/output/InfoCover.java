@@ -44,6 +44,7 @@ class InfoCover {
 				writeMeta(infoWriter, "LANG", lang);
 				writeMeta(infoWriter, "IMAGES_DOCUMENT",
 						meta.isImageDocument() ? "true" : "false");
+				writeMeta(infoWriter, "TYPE", meta.getType());
 				if (meta.getCover() != null) {
 					String format = Instance.getConfig()
 							.getString(Config.IMAGE_FORMAT_COVER).toLowerCase();

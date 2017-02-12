@@ -21,6 +21,7 @@ public class MetaData {
 	private String luid;
 	private String lang;
 	private String publisher;
+	private String type;
 	private boolean imageDocument;
 
 	/**
@@ -253,6 +254,25 @@ public class MetaData {
 	 */
 	public void setPublisher(String publisher) {
 		this.publisher = publisher;
+	}
+
+	/**
+	 * The output type this {@link Story} is in.
+	 * 
+	 * @return the type the type
+	 */
+	public String getType() {
+		return type;
+	}
+
+	/**
+	 * The output type this {@link Story} is in.
+	 * 
+	 * @param type
+	 *            the new type to set
+	 */
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	/**

@@ -195,6 +195,7 @@ class Epub extends BasicSupport {
 			if (!entry.isDirectory()
 					&& entry.getName().startsWith(getDataPrefix())) {
 				String entryLName = entry.getName().toLowerCase();
+
 				boolean imageEntry = false;
 				for (String ext : getImageExt(false)) {
 					if (entryLName.endsWith(ext)) {

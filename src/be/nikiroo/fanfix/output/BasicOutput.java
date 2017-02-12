@@ -240,6 +240,10 @@ public abstract class BasicOutput {
 		String paragraphNumber = String.format("%04d", 0);
 		imageName = paragraphNumber + "_" + chapterNameNum + ".png";
 
+		if (story.getMeta() != null) {
+			story.getMeta().setType(getType().toString());
+		}
+		
 		if (writeCover) {
 			InfoCover.writeCover(targetDir, targetName, story.getMeta());
 		}

@@ -28,8 +28,6 @@ import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 public class Library {
 	private File baseDir;
 	private Map<MetaData, File> stories;
-	private BasicSupport itSupport = BasicSupport
-			.getSupport(SupportType.INFO_TEXT);
 	private int lastId;
 
 	/**
@@ -82,8 +80,15 @@ public class Library {
 			for (Entry<MetaData, File> entry : getStories().entrySet()) {
 				if (luid.equals(entry.getKey().getLuid())) {
 					try {
-						return itSupport.process(entry.getValue().toURI()
-								.toURL());
+						SupportType type = SupportType.valueOfAllOkUC(entry
+								.getKey().getType());
+						URL url = entry.getValue().toURI().toURL();
+						if (type != null) {
+							return BasicSupport.getSupport(type).process(url);
+						} else {
+							throw new IOException("Unknown type: "
+									+ entry.getKey().getType());
+						}
 					} catch (IOException e) {
 						// We should not have not-supported files in the
 						// library
@@ -219,8 +224,9 @@ public class Library {
 	private Map<MetaData, File> getStories() {
 		if (stories.isEmpty()) {
 			lastId = 0;
-			String format = Instance.getConfig()
-					.getString(Config.IMAGE_FORMAT_COVER).toLowerCase();
+			String format = "."
+					+ Instance.getConfig().getString(Config.IMAGE_FORMAT_COVER)
+							.toLowerCase();
 			for (File dir : baseDir.listFiles()) {
 				if (dir.isDirectory()) {
 					for (File file : dir.listFiles()) {
@@ -228,7 +234,15 @@ public class Library {
 							String path = file.getPath().toLowerCase();
 							if (!path.endsWith(".info")
 									&& !path.endsWith(format)) {
-								MetaData meta = itSupport.processMeta(
+								// TODO: export .info reading to a class and use
+								// it here
+								SupportType type = SupportType.INFO_TEXT;
+								if (path.toLowerCase().endsWith(".cbz")) {
+									type = SupportType.CBZ;
+								}
+								BasicSupport support = BasicSupport
+										.getSupport(type);
+								MetaData meta = support.processMeta(
 										file.toURI().toURL()).getMeta();
 								if (meta != null) {
 									stories.put(meta, file);

@@ -26,6 +26,34 @@ public class Instance {
 		// Most of the rest is dependent upon this:
 		config = new ConfigBundle();
 
+		String configDir = System.getenv("CONFIG_DIR");
+		if (configDir == null) {
+			configDir = new File(System.getProperty("user.home"), ".fanfix")
+					.getPath();
+		}
+		if (configDir != null) {
+			if (!new File(configDir).exists()) {
+				new File(configDir).mkdirs();
+			} else {
+				Bundles.setDirectory(configDir);
+			}
+
+			try {
+				config = new ConfigBundle();
+				config.updateFile(configDir);
+			} catch (IOException e) {
+				syserr(e);
+			}
+			try {
+				trans = new StringIdBundle(getLang());
+				trans.updateFile(configDir);
+			} catch (IOException e) {
+				syserr(e);
+			}
+
+			Bundles.setDirectory(configDir);
+		}
+
 		trans = new StringIdBundle(getLang());
 		lib = new Library(getFile(Config.LIBRARY_DIR));
 		debug = Instance.getConfig().getBoolean(Config.DEBUG_ERR, false);
@@ -61,34 +89,6 @@ public class Instance {
 					"The 'default covers' directory does not exists: "
 							+ coverDir));
 			coverDir = null;
-		}
-
-		String configDir = System.getenv("CONFIG_DIR");
-		if (configDir == null) {
-			configDir = new File(System.getProperty("user.home"), ".fanfix")
-					.getPath();
-		}
-		if (configDir != null) {
-			if (!new File(configDir).exists()) {
-				new File(configDir).mkdirs();
-			} else {
-				Bundles.setDirectory(configDir);
-			}
-
-			try {
-				config = new ConfigBundle();
-				config.updateFile(configDir);
-			} catch (IOException e) {
-				syserr(e);
-			}
-			try {
-				trans = new StringIdBundle(getLang());
-				trans.updateFile(configDir);
-			} catch (IOException e) {
-				syserr(e);
-			}
-
-			Bundles.setDirectory(configDir);
 		}
 
 		try {
