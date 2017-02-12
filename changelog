@@ -1,3 +1,11 @@
+Version 0.9.5
+-------------
+
+Resource bundle bug
+	UTF-8 strings were sometimes wrangled
+	It is fixed by using a Bundle#Control, whih sadly is only available in
+	Java 1.6+
+
 Version 0.9.4
 -------------
 

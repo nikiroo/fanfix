@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -17,9 +16,6 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
-
-import be.nikiroo.utils.resources.Bundles;
-import be.nikiroo.utils.resources.Meta;
 
 /**
  * This class encapsulate a {@link ResourceBundle} in UTF-8. It only allows to
@@ -241,26 +237,17 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
-	 * Get the value for the given key if it exists in the internal map.
+	 * Get the value for the given key if it exists in the internal map, or NULL
+	 * if not.
 	 * 
 	 * @param key
 	 *            the key to check for
 	 * 
-	 * @return true if it does
+	 * @return the value, or NULL
 	 */
 	protected String getString(String key) {
 		if (containsKey(key)) {
-			try {
-				// Note: it is also possible to fix the borked charset issue
-				// with a custom ResourceBundle#Control class, but this one,
-				// while a workaround, depend less upon the JRE classes, which
-				// may change
-				return new String(map.getString(key).getBytes("ISO-8859-1"),
-						"UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				// Those 2 encodings are always supported
-				e.printStackTrace();
-			}
+			return map.getString(key);
 		}
 
 		return null;
@@ -432,7 +419,7 @@ public class Bundle<E extends Enum<E>> {
 
 		if (map == null) {
 			map = ResourceBundle.getBundle(type.getPackage().getName() + "."
-					+ name.name(), locale);
+					+ name.name(), locale, new FixedResourceBundleControl());
 		}
 	}
 
