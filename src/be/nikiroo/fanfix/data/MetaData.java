@@ -1,6 +1,7 @@
 package be.nikiroo.fanfix.data;
 
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -8,7 +9,7 @@ import java.util.List;
  * 
  * @author niki
  */
-public class MetaData {
+public class MetaData implements Cloneable {
 	private String title;
 	private String author;
 	private String date;
@@ -312,5 +313,29 @@ public class MetaData {
 	 */
 	public void setImageDocument(boolean imageDocument) {
 		this.imageDocument = imageDocument;
+	}
+
+	@Override
+	public MetaData clone() {
+		MetaData meta = null;
+		try {
+			meta = (MetaData) super.clone();
+		} catch (CloneNotSupportedException e) {
+			// Did the clones rebel?
+			System.err.println(e);
+		}
+
+		if (tags != null) {
+			meta.tags = new ArrayList<String>();
+			meta.tags.addAll(tags);
+		}
+		if (resume != null) {
+			meta.resume = new Chapter(resume.getNumber(), resume.getName());
+			for (Paragraph para : resume) {
+				meta.resume.getParagraphs().add(para);
+			}
+		}
+
+		return meta;
 	}
 }

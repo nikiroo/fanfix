@@ -34,9 +34,9 @@ We support a few file types for local story conversion (both as input and as out
 
 ## Supported platforms
 
-Any platform with at lest Java 1.5 on it should be ok.
+Any platform with at lest Java 1.6 on it should be ok.
 
-If you have any problems to compile it with a supported Java version (1.4 won't work, but you may try to cross-compile; 1.8 had been tested and works), please contact me.
+If you have any problems to compile it with a supported Java version (1.5 won't work, but you may try to cross-compile or change the Bundle.java class from the utilities; 1.6 and 1.8 have been tested and work), please contact me.
 
 ## Usage
 
@@ -71,10 +71,10 @@ You can also import the java sources into, say, [Eclipse](https://eclipse.org/),
 
 ### Dependant libraries (included)
 
-- libs/nikiroo-utils-sources-0.9.2.jar: some shared utility functions I also use elsewhere
-- [libs/unbescape-1.1.4-sources.jar](https://github.com/unbescape/unbescape): a nice library to escape/unescape a lot of text formats; I only use it for HTML
+- libs/nikiroo-utils-sources.jar: some shared utility functions I also use elsewhere
+- [libs/unbescape-sources.jar](https://github.com/unbescape/unbescape): a nice library to escape/unescape a lot of text formats; I only use it for HTML
 
-Nothing else but Java 1.5+.
+Nothing else but Java 1.6+.
 
 Note that calling ```make libs``` will export the libraries into the src/ directory.
 

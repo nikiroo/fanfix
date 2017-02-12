@@ -83,6 +83,26 @@ public class Library {
 	 * 
 	 * @return the corresponding {@link Story}
 	 */
+	public MetaData getInfo(String luid) {
+		if (luid != null) {
+			for (Entry<MetaData, File> entry : getStories().entrySet()) {
+				if (luid.equals(entry.getKey().getLuid())) {
+					return entry.getKey();
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Retrieve a {@link File} corresponding to the given {@link Story}.
+	 * 
+	 * @param luid
+	 *            the Library UID of the story
+	 * 
+	 * @return the corresponding {@link Story}
+	 */
 	public File getFile(String luid) {
 		if (luid != null) {
 			for (Entry<MetaData, File> entry : getStories().entrySet()) {
@@ -207,7 +227,7 @@ public class Library {
 	 *             in case of I/O error
 	 */
 	private Story save(Story story, String luid) throws IOException {
-		MetaData key = story.getMeta();
+		MetaData key = story.getMeta().clone();
 
 		if (luid == null || luid.isEmpty()) {
 			getStories(); // refresh lastId if needed
