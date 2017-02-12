@@ -36,7 +36,8 @@ done
 echo "MAIN = be/nikiroo/fanfix/Main" > Makefile
 echo "NAME = fanfix" >> Makefile
 echo "PREFIX = $PREFIX" >> Makefile
-echo "JAR_FLAGS += -C bin/ org -C bin/ be -C ./ src" >> Makefile
+echo "JAR_FLAGS += -C bin/ org -C bin/ be -C ./ VERSION" >> Makefile
+#echo "SJAR_FLAGS += -C src/ org -C src/ be -C ./ LICENSE -C ./ README.md -C ./ VERSION" >> Makefile
 
 cat Makefile.base >> Makefile
 

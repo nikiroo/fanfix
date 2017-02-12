@@ -82,7 +82,6 @@ Note that calling ```make libs``` will export the libraries into the src/ direct
 
 Currently missing, but either in progress or planned:
 - A GUI (work in progress)
-- A binary JAR release (and thus, version 1)
 - Some readers other than CLI (TUI, GUI)
 - Check if it can work on Android
 - French translation

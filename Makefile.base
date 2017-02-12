@@ -6,6 +6,7 @@
 #PREFIX = usually /usr/local (where to install the program)
 #TEST = path to main test source to compile
 #JAR_FLAGS += a list of things to pack, each usually prefixed with "-C bin/"
+#SJAR_FLAGS += a list of things to pack, each usually prefixed with "-C src/", for *-sources.jar files
 
 JAVAC = javac
 JAVAC_FLAGS += -encoding UTF-8 -d ./bin/ -cp ./src/ -Xdiags:verbose
@@ -76,6 +77,9 @@ mrproper: mrpropre
 
 mrpropre: clean
 	rm -f $(NAME).jar
+	rm -f $(NAME)-sources.jar
+	[ ! -e VERSION ] || rm -f "$(NAME)-`cat VERSION`.jar"
+	[ ! -e VERSION ] || rm -f "$(NAME)-`cat VERSION`-sources.jar"
 
 love:
 	@echo "	...not war."
@@ -102,10 +106,15 @@ $(NAME).jar: resources
 	@[ -e bin/$(MAIN).class ] || echo You need to build the sources
 	@[ -e bin/$(MAIN).class ]
 	@echo Making JAR file...
+	@echo > bin/manifest
+	@[ "$(SJAR_FLAGS)" = "" ] || echo Creating $(NAME)-sources.jar...
+	@[ "$(SJAR_FLAGS)" = "" ] || $(JAR) cfm $(NAME)-sources.jar bin/manifest $(SJAR_FLAGS)
+	@[ "$(SJAR_FLAGS)" = "" ] || [ ! -e VERSION ] || echo Copying to "$(NAME)-`cat VERSION`-sources.jar"...
+	@[ "$(SJAR_FLAGS)" = "" ] || [ ! -e VERSION ] || cp $(NAME)-sources.jar "$(NAME)-`cat VERSION`-sources.jar"
 	@echo "Main-Class: `echo "$(MAIN)" | sed 's:/:.:g'`" > bin/manifest
 	@echo >> bin/manifest
 	$(JAR) cfm $(NAME).jar bin/manifest $(JAR_FLAGS)
-	@[ ! -e VERSION ] || echo Copying to "$(NAME)-`cat VERSION`.jar"
+	@[ ! -e VERSION ] || echo Copying to "$(NAME)-`cat VERSION`.jar"...
 	@[ ! -e VERSION ] || cp $(NAME).jar "$(NAME)-`cat VERSION`.jar"
 
 run: 

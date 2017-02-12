@@ -11,9 +11,9 @@ import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 
 /**
- * Command line {@link Story} reader.
+ * The class that handles the different {@link Story} readers you can use.
  * <p>
- * Will output stories to the console.
+ * All the readers should be accessed via {@link BasicReader#getReader()}.
  * 
  * @author niki
  */
@@ -159,8 +159,8 @@ public abstract class BasicReader {
 	public static BasicReader getReader() {
 		if (defaultType != null) {
 			switch (defaultType) {
-			//case LOCAL:
-				//return new LocalReader().setType(ReaderType.LOCAL);
+			// case LOCAL:
+			// return new LocalReader().setType(ReaderType.LOCAL);
 			case CLI:
 				return new CliReader().setType(ReaderType.CLI);
 			}
