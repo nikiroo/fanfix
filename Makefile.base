@@ -1,0 +1,144 @@
+# Required parameters (the commented out ones are supposed to change per project):
+
+#MAIN = path to main java source to compile
+#MORE = path to supplementary needed resources not linked from MAIN
+#NAME = name of project (used for jar output file)
+#PREFIX = usually /usr/local (where to install the program)
+#TEST = path to main test source to compile
+#JAR_FLAGS += a list of things to pack, each usually prefixed with "-C bin/"
+#SJAR_FLAGS += a list of things to pack, each usually prefixed with "-C src/", for *-sources.jar files
+
+JAVAC = javac
+JAVAC_FLAGS += -encoding UTF-8 -d ./bin/ -cp ./src/ -Xdiags:verbose
+JAVA = java
+JAVA_FLAGS += -cp ./bin/
+JAR = jar
+RJAR = java
+RJAR_FLAGS += -jar
+
+# Usual options:
+# 	make		: to build the jar file
+# 	make libs	: to update the libraries into src/
+# 	make build	: to update the binaries (not the jar)
+# 	make test	: to update the test binaries
+# 	make build jar	: to update the binaries and jar file
+# 	make clean	: to clean the directory of intermediate files
+# 	make mrpropre	: to clean the directory of all outputs
+# 	make run	: to run the program from the binaries
+# 	make run-test	: to run the test program from the binaries
+# 	make jrun	: to run the program from the jar file
+# 	make install	: to install the application into $PREFIX
+
+# Note: build is actually slower than rebuild in most cases except when
+# small changes only are detected ; so we use rebuild by default
+
+all: build jar
+
+.PHONY: all clean mrproper mrpropre build run jrun jar resources install libs love 
+
+bin:
+	@mkdir -p bin
+
+jar: $(NAME).jar
+
+build: resources
+	@echo Compiling program...
+	@echo "	src/$(MAIN)"
+	@$(JAVAC) $(JAVAC_FLAGS) "src/$(MAIN).java"
+	@[ "$(MORE)" = "" ] || for sup in $(MORE); do \
+		echo "	src/$$sup" ;\
+		$(JAVAC) $(JAVAC_FLAGS) "src/$$sup.java" ; \
+	done
+
+test: 
+	@[ -e bin/$(MAIN).class ] || echo You need to build the sources
+	@[ -e bin/$(MAIN).class ]
+	@echo Compiling test program...
+	@[ "$(TEST)" != "" ] || echo No test sources defined.
+	@[ "$(TEST)"  = "" ] || for sup in $(TEST); do \
+		echo "	src/$$sup" ;\
+		$(JAVAC) $(JAVAC_FLAGS) "src/$$sup.java" ; \
+	done
+
+clean:
+	rm -rf bin/
+	@echo Removing sources taken from libs...
+	@for lib in libs/*-sources.jar; do \
+		basename "$$lib"; \
+		jar tf "$$lib" | while read -r ln; do \
+			[ -f "src/$$ln" ] && rm "src/$$ln"; \
+		done; \
+		jar tf "$$lib" | tac | while read -r ln; do \
+			[ -d "src/$$ln" ] && rmdir "src/$$ln" 2>/dev/null || true; \
+		done; \
+	done
+
+mrproper: mrpropre
+
+mrpropre: clean
+	rm -f $(NAME).jar
+
+love:
+	@echo "	...not war."
+
+resources: libs
+	@echo Copying resources into bin/...
+	@cd src && find . | grep -v '\.java$$' | while read -r ln; do \
+		if [ -f "$$ln" ]; then \
+			dir="`dirname "$$ln"`"; \
+			mkdir -p "../bin/$$dir" ; \
+			cp "$$ln" "../bin/$$ln" ; \
+		fi ; \
+	done
+
+libs: bin
+	@[ -e bin/libs -o ! -d libs ] || echo Extracting sources from libs...
+	@[ -e bin/libs -o ! -d libs ] || (cd src && for lib in ../libs/*-sources.jar; do \
+		basename "$$lib"; \
+		jar xf "$$lib"; \
+	done )
+	@[ ! -d libs ] || touch bin/libs
+
+$(NAME).jar: resources
+	@[ -e bin/$(MAIN).class ] || echo You need to build the sources
+	@[ -e bin/$(MAIN).class ]
+	@echo Making JAR file...
+	@echo > bin/manifest
+	@[ "$(SJAR_FLAGS)" = "" ] || echo Creating $(NAME)-sources.jar...
+	@[ "$(SJAR_FLAGS)" = "" ] || $(JAR) cfm $(NAME)-sources.jar bin/manifest $(SJAR_FLAGS)
+	@[ "$(SJAR_FLAGS)" = "" ] || [ ! -e VERSION ] || echo Copying to "$(NAME)-`cat VERSION`-sources.jar"...
+	@[ "$(SJAR_FLAGS)" = "" ] || [ ! -e VERSION ] || cp $(NAME)-sources.jar "$(NAME)-`cat VERSION`-sources.jar"
+	@echo "Main-Class: `echo "$(MAIN)" | sed 's:/:.:g'`" > bin/manifest
+	@echo >> bin/manifest
+	$(JAR) cfm $(NAME).jar bin/manifest $(JAR_FLAGS)
+	@[ ! -e VERSION ] || echo Copying to "$(NAME)-`cat VERSION`.jar"...
+	@[ ! -e VERSION ] || cp $(NAME).jar "$(NAME)-`cat VERSION`.jar"
+
+run: 
+	@[ -e bin/$(MAIN).class ] || echo You need to build the sources
+	@[ -e bin/$(MAIN).class ]
+	@echo Running "$(NAME)"...
+	$(JAVA) $(JAVA_FLAGS) $(MAIN)
+
+jrun:
+	@[ -e $(NAME).jar ] || echo You need to build the jar
+	@[ -e $(NAME).jar ]
+	@echo Running "$(NAME).jar"...
+	$(RJAR) $(RJAR_FLAGS) $(NAME).jar
+
+run-test: 
+	@[ "$(TEST)" = "" -o -e "bin/$(TEST).class" ] || echo You need to build the test sources
+	@[ "$(TEST)" = "" -o -e "bin/$(TEST).class" ]
+	@echo Running tests for "$(NAME)"...
+	@[ "$(TEST)" != "" ] || echo No test sources defined.
+	[ "$(TEST)"  = "" ] || $(JAVA) $(JAVA_FLAGS) $(TEST)
+
+install:
+	@[ -e $(NAME).jar ] || echo You need to build the jar
+	@[ -e $(NAME).jar ]
+	mkdir -p "$(PREFIX)/lib" "$(PREFIX)/bin"
+	cp $(NAME).jar "$(PREFIX)/lib/"
+	echo "#!/bin/sh" > "$(PREFIX)/bin/$(NAME)"
+	echo "$(RJAR) $(RJAR_FLAGS) \"$(PREFIX)/lib/$(NAME).jar\" \"$$@\"" >> "$(PREFIX)/bin/$(NAME)"
+	chmod a+rx "$(PREFIX)/bin/$(NAME)"
+
