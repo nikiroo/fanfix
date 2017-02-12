@@ -28,20 +28,17 @@ class InfoCover {
 					}
 				}
 
-				String lang = meta.getLang();
-				if (lang != null) {
-					lang = lang.toLowerCase();
-				}
-
 				writeMeta(infoWriter, "TITLE", meta.getTitle());
 				writeMeta(infoWriter, "AUTHOR", meta.getAuthor());
 				writeMeta(infoWriter, "DATE", meta.getDate());
 				writeMeta(infoWriter, "SUBJECT", meta.getSubject());
 				writeMeta(infoWriter, "SOURCE", meta.getSource());
+				writeMeta(infoWriter, "URL", meta.getUrl());
 				writeMeta(infoWriter, "TAGS", tags);
 				writeMeta(infoWriter, "UUID", meta.getUuid());
 				writeMeta(infoWriter, "LUID", meta.getLuid());
-				writeMeta(infoWriter, "LANG", lang);
+				writeMeta(infoWriter, "LANG", meta.getLang() == null ? ""
+						: meta.getLang().toLowerCase());
 				writeMeta(infoWriter, "IMAGES_DOCUMENT",
 						meta.isImageDocument() ? "true" : "false");
 				writeMeta(infoWriter, "TYPE", meta.getType());

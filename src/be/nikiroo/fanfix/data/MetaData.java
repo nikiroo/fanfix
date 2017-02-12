@@ -17,6 +17,7 @@ public class MetaData {
 	private BufferedImage cover;
 	private String subject;
 	private String source;
+	private String url;
 	private String uuid;
 	private String luid;
 	private String lang;
@@ -162,7 +163,7 @@ public class MetaData {
 	}
 
 	/**
-	 * The source of this story (where it was downloaded from).
+	 * The source of this story (which online library it was downloaded from).
 	 * 
 	 * @return the source
 	 */
@@ -171,7 +172,7 @@ public class MetaData {
 	}
 
 	/**
-	 * The source of this story (where it was downloaded from).
+	 * The source of this story (which online library it was downloaded from).
 	 * 
 	 * @param source
 	 *            the source to set
@@ -181,7 +182,26 @@ public class MetaData {
 	}
 
 	/**
-	 * A unique value representing the story (it is often an URL).
+	 * The original URL from which this {@link Story} was imported.
+	 * 
+	 * @return the url
+	 */
+	public String getUrl() {
+		return url;
+	}
+
+	/**
+	 * The original URL from which this {@link Story} was imported.
+	 * 
+	 * @param url
+	 *            the new url to set
+	 */
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	/**
+	 * A unique value representing the story (it is often a URL).
 	 * 
 	 * @return the uuid
 	 */
@@ -190,7 +210,7 @@ public class MetaData {
 	}
 
 	/**
-	 * A unique value representing the story (it is often an URL).
+	 * A unique value representing the story (it is often a URL).
 	 * 
 	 * @param uuid
 	 *            the uuid to set

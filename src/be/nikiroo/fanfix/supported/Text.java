@@ -52,7 +52,8 @@ class Text extends BasicSupport {
 		meta.setDate(getDate(reset(in)));
 		meta.setTags(new ArrayList<String>());
 		meta.setSource(getSourceName());
-		meta.setPublisher(""); // often sourceName
+		meta.setUrl(source.toString());
+		meta.setPublisher("");
 		meta.setUuid(source.toString());
 		meta.setLuid("");
 		meta.setLang(getLang(source, reset(in))); // default is EN

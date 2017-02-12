@@ -38,9 +38,9 @@ public enum Config {
 	LATEX_LANG_EN, //
 	@Meta(what = "LaTeX output language", where = "LaTeX", format = "", info = "LaTeX full name for French")
 	LATEX_LANG_FR, //
-	@Meta(what = "other 'by' prefixes before author name", where = "", format = "coma-separated list", info = "used to identify the author")
+	@Meta(what = "other 'by' prefixes before author name", where = "", format = "comma-separated list", info = "used to identify the author")
 	BYS, //
-	@Meta(what = "Chapter identification languages", where = "", format = "coma-separated list", info = "used to identify a starting chapter in text mode")
+	@Meta(what = "Chapter identification languages", where = "", format = "comma-separated list", info = "used to identify a starting chapter in text mode")
 	CHAPTER, //
 	@Meta(what = "Chapter identification string", where = "", format = "", info = "used to identify a starting chapter in text mode")
 	CHAPTER_EN, //

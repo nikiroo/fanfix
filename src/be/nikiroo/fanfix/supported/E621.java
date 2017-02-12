@@ -39,6 +39,7 @@ class E621 extends BasicSupport {
 		meta.setDate("");
 		meta.setTags(new ArrayList<String>()); // TODDO ???
 		meta.setSource(getSourceName());
+		meta.setUrl(source.toString());
 		meta.setPublisher(getSourceName());
 		meta.setUuid(source.toString());
 		meta.setLuid("");

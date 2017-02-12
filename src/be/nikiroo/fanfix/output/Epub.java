@@ -58,7 +58,7 @@ class Epub extends BasicOutput {
 	}
 
 	@Override
-	protected String getDefaultExtension() {
+	public String getDefaultExtension() {
 		return ".epub";
 	}
 

@@ -43,6 +43,7 @@ class Fanfiction extends BasicSupport {
 		meta.setDate(getDate(reset(in)));
 		meta.setTags(getTags(reset(in)));
 		meta.setSource(getSourceName());
+		meta.setUrl(source.toString());
 		meta.setPublisher(getSourceName());
 		meta.setUuid(source.toString());
 		meta.setLuid("");

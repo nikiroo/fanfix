@@ -36,7 +36,12 @@ public abstract class BasicOutput {
 		/** ZIP with (PNG) images */
 		CBZ,
 		/** LaTeX file with "book" template */
-		LATEX;
+		LATEX,
+		/** HTML files in a dedicated directory */
+		HTML,
+
+		;
+
 		public String toString() {
 			return super.toString().toLowerCase();
 		}
@@ -56,6 +61,20 @@ public abstract class BasicOutput {
 			}
 
 			return desc;
+		}
+
+		/**
+		 * The default extension to add to the output files.
+		 * 
+		 * @return the extension
+		 */
+		public String getDefaultExtension() {
+			BasicOutput output = BasicOutput.getOutput(this, false);
+			if (output != null) {
+				return output.getDefaultExtension();
+			}
+
+			return null;
 		}
 
 		/**
@@ -208,12 +227,10 @@ public abstract class BasicOutput {
 
 	/**
 	 * The default extension to add to the output files.
-	 * <p>
-	 * Cannot be NULL!
 	 * 
 	 * @return the extension
 	 */
-	protected String getDefaultExtension() {
+	public String getDefaultExtension() {
 		return "";
 	}
 
@@ -423,6 +440,8 @@ public abstract class BasicOutput {
 				return new Cbz().setType(type, infoCover, infoCover);
 			case LATEX:
 				return new LaTeX().setType(type, infoCover, infoCover);
+			case HTML:
+				return new Html().setType(type, false, false);
 			}
 		}
 

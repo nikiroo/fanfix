@@ -6,6 +6,7 @@ import java.io.IOException;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.ConfigBundle;
 import be.nikiroo.fanfix.bundles.StringIdBundle;
+import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.utils.resources.Bundles;
 
 /**
@@ -56,12 +57,13 @@ public class Instance {
 
 		trans = new StringIdBundle(getLang());
 		try {
-			lib = new Library(getFile(Config.LIBRARY_DIR));
+			lib = new Library(getFile(Config.LIBRARY_DIR),
+					OutputType.INFO_TEXT, OutputType.CBZ);
 		} catch (Exception e) {
 			syserr(new IOException("Cannot create library for directory: "
 					+ getFile(Config.LIBRARY_DIR), e));
 		}
-		
+
 		debug = Instance.getConfig().getBoolean(Config.DEBUG_ERR, false);
 		coverDir = getFile(Config.DEFAULT_COVERS_DIR);
 		File tmp = getFile(Config.CACHE_DIR);

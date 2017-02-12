@@ -42,6 +42,7 @@ public class InfoReader {
 		meta.setDate(getInfoTag(in, "DATE"));
 		meta.setTags(getInfoTagList(in, "TAGS", ","));
 		meta.setSource(getInfoTag(in, "SOURCE"));
+		meta.setUrl(getInfoTag(in, "URL"));
 		meta.setPublisher(getInfoTag(in, "PUBLISHER"));
 		meta.setUuid(getInfoTag(in, "UUID"));
 		meta.setLuid(getInfoTag(in, "LUID"));

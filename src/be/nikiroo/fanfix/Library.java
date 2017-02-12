@@ -29,17 +29,25 @@ public class Library {
 	private File baseDir;
 	private Map<MetaData, File> stories;
 	private int lastId;
+	private OutputType text;
+	private OutputType image;
 
 	/**
 	 * Create a new {@link Library} with the given backend directory.
 	 * 
 	 * @param dir
-	 *            the directoy where to find the {@link Story} objects
+	 *            the directory where to find the {@link Story} objects
+	 * @param text
+	 *            the {@link OutputType} to save the text-focused stories into
+	 * @param image
+	 *            the {@link OutputType} to save the images-focused stories into
 	 */
-	public Library(File dir) {
+	public Library(File dir, OutputType text, OutputType image) {
 		this.baseDir = dir;
 		this.stories = new HashMap<MetaData, File>();
 		this.lastId = 0;
+		this.text = text;
+		this.image = image;
 
 		dir.mkdirs();
 	}
@@ -65,6 +73,26 @@ public class Library {
 		}
 
 		return list;
+	}
+
+	/**
+	 * Retrieve a {@link File} corresponding to the given {@link Story}.
+	 * 
+	 * @param luid
+	 *            the Library UID of the story
+	 * 
+	 * @return the corresponding {@link Story}
+	 */
+	public File getFile(String luid) {
+		if (luid != null) {
+			for (Entry<MetaData, File> entry : getStories().entrySet()) {
+				if (luid.equals(entry.getKey().getLuid())) {
+					return entry.getValue();
+				}
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -121,12 +149,7 @@ public class Library {
 			throw new IOException("URL not supported: " + url.toString());
 		}
 
-		getStories(); // refresh lastId
-		Story story = support.process(url);
-		story.getMeta().setLuid(String.format("%03d", (++lastId)));
-		save(story);
-
-		return story;
+		return save(support.process(url), null);
 	}
 
 	/**
@@ -155,17 +178,43 @@ public class Library {
 	}
 
 	/**
-	 * Save a story as-is to the {@link Library} -- the LUID <b>must</b> be
-	 * correct.
+	 * Save a {@link Story} to the {@link Library}.
 	 * 
 	 * @param story
 	 *            the {@link Story} to save
 	 * 
+	 * @return the same {@link Story}, whose LUID may have changed
+	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	private void save(Story story) throws IOException {
+	public Story save(Story story) throws IOException {
+		return save(story, null);
+	}
+
+	/**
+	 * Save a {@link Story} to the {@link Library} -- the LUID <b>must</b> be
+	 * correct, or NULL to get the next free one.
+	 * 
+	 * @param story
+	 *            the {@link Story} to save
+	 * @param luid
+	 *            the <b>correct</b> LUID or NULL to get the next free one
+	 * 
+	 * @return the same {@link Story}, whose LUID may have changed
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	private Story save(Story story, String luid) throws IOException {
 		MetaData key = story.getMeta();
+
+		if (luid == null || luid.isEmpty()) {
+			getStories(); // refresh lastId if needed
+			key.setLuid(String.format("%03d", (++lastId)));
+		} else {
+			key.setLuid(luid);
+		}
 
 		getDir(key).mkdirs();
 		if (!getDir(key).exists()) {
@@ -173,19 +222,17 @@ public class Library {
 		}
 
 		OutputType out;
-		SupportType in;
 		if (key != null && key.isImageDocument()) {
-			in = SupportType.CBZ;
-			out = OutputType.CBZ;
+			out = image;
 		} else {
-			in = SupportType.INFO_TEXT;
-			out = OutputType.INFO_TEXT;
+			out = text;
 		}
+
 		BasicOutput it = BasicOutput.getOutput(out, true);
 		File file = it.process(story, getFile(key).getPath());
-		getStories().put(
-				BasicSupport.getSupport(in).processMeta(file.toURI().toURL())
-						.getMeta(), file);
+		getStories().put(story.getMeta(), file);
+
+		return story;
 	}
 
 	/**
@@ -225,17 +272,29 @@ public class Library {
 		if (stories.isEmpty()) {
 			lastId = 0;
 
+			String ext = ".info";
 			for (File dir : baseDir.listFiles()) {
 				if (dir.isDirectory()) {
 					for (File file : dir.listFiles()) {
 						try {
-							if (file.getPath().toLowerCase().endsWith(".info")) {
+							if (file.getPath().toLowerCase().endsWith(ext)) {
 								MetaData meta = InfoReader.readMeta(file);
 								try {
 									int id = Integer.parseInt(meta.getLuid());
 									if (id > lastId) {
 										lastId = id;
 									}
+
+									// Replace .info with whatever is needed:
+									String path = file.getPath();
+									path = path.substring(0, path.length()
+											- ext.length());
+
+									String newExt = getOutputType(meta)
+											.getDefaultExtension();
+
+									file = new File(path + newExt);
+									//
 
 									stories.put(meta, file);
 
@@ -260,5 +319,21 @@ public class Library {
 		}
 
 		return stories;
+	}
+
+	/**
+	 * Return the {@link OutputType} for this {@link Story}.
+	 * 
+	 * @param meta
+	 *            the {@link Story} {@link MetaData}
+	 * 
+	 * @return the type
+	 */
+	private OutputType getOutputType(MetaData meta) {
+		if (meta != null && meta.isImageDocument()) {
+			return image;
+		} else {
+			return text;
+		}
 	}
 }

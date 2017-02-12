@@ -19,7 +19,7 @@ class InfoText extends Text {
 			StringId.CLOSE_DOUBLE_QUOTE);
 
 	@Override
-	protected String getDefaultExtension() {
+	public String getDefaultExtension() {
 		return "";
 	}
 
