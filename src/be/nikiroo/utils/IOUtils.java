@@ -9,12 +9,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 /**
- * This class offer some utilities based around {@link Stream}s.
+ * This class offer some utilities based around Streams.
  * 
  * @author niki
  */

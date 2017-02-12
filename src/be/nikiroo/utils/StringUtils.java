@@ -15,7 +15,6 @@ import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Base64;
 import java.util.Date;
 import java.util.regex.Pattern;
 
@@ -222,7 +221,7 @@ public class StringUtils {
 		ImageIO.write(image, "jpeg", out);
 		byte[] imageBytes = out.toByteArray();
 
-		imageString = new String(Base64.getEncoder().encode(imageBytes));
+		imageString = new String(Base64.encodeBytes(imageBytes));
 
 		out.close();
 
@@ -254,7 +253,7 @@ public class StringUtils {
 		out.flush();
 		in.close();
 
-		fileString = new String(Base64.getEncoder().encode(out.toByteArray()));
+		fileString = new String(Base64.encodeBytes(out.toByteArray()));
 		out.close();
 
 		return fileString;
@@ -273,8 +272,8 @@ public class StringUtils {
 	 *             in case of IO error
 	 */
 	static public BufferedImage toImage(String b64data) throws IOException {
-		ByteArrayInputStream in = new ByteArrayInputStream(Base64.getDecoder()
-				.decode(b64data));
+		ByteArrayInputStream in = new ByteArrayInputStream(
+				Base64.decode(b64data));
 		return toImage(in);
 	}
 

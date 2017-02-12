@@ -1,0 +1,21 @@
+Version 0.9.4
+-------------
+
+Compatibility bug
+	Again... because of some useless imports made there for a wrong jDoc
+	comment
+
+Version 0.9.3
+-------------
+
+Compatibility bug
+	The library did not work with JDK versions prior to 1.8 because
+	of a dependency on Base64
+	A new (public domain) class was used instead, which is compatible with
+	Java 1.5 this time
+
+Version 0.9.2
+-------------
+
+Initial version
+	...on GIT
