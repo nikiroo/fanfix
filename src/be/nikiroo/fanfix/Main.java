@@ -62,7 +62,7 @@ public class Main {
 		String typeString = null;
 		String chapString = null;
 		String target = null;
-		MainAction action = null;
+		MainAction action = MainAction.HELP;
 		Boolean plusInfo = null;
 
 		boolean noMoreActions = false;

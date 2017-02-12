@@ -23,7 +23,7 @@ public class Instance {
 	private static File readerTmp;
 
 	static {
-		// Most of the rest is dependant upon this:
+		// Most of the rest is dependent upon this:
 		config = new ConfigBundle();
 
 		trans = new StringIdBundle(getLang());
@@ -64,25 +64,31 @@ public class Instance {
 		}
 
 		String configDir = System.getenv("CONFIG_DIR");
+		if (configDir == null) {
+			configDir = new File(System.getProperty("user.home"), ".fanfix")
+					.getPath();
+		}
 		if (configDir != null) {
-			if (new File(configDir).isDirectory()) {
-				Bundles.setDirectory(configDir);
-				try {
-					config = new ConfigBundle();
-					config.updateFile(configDir);
-				} catch (IOException e) {
-					syserr(e);
-				}
-				try {
-					trans = new StringIdBundle(getLang());
-					trans.updateFile(configDir);
-				} catch (IOException e) {
-					syserr(e);
-				}
+			if (!new File(configDir).exists()) {
+				new File(configDir).mkdirs();
 			} else {
-				syserr(new IOException("Configuration directory not found: "
-						+ configDir));
+				Bundles.setDirectory(configDir);
 			}
+
+			try {
+				config = new ConfigBundle();
+				config.updateFile(configDir);
+			} catch (IOException e) {
+				syserr(e);
+			}
+			try {
+				trans = new StringIdBundle(getLang());
+				trans.updateFile(configDir);
+			} catch (IOException e) {
+				syserr(e);
+			}
+
+			Bundles.setDirectory(configDir);
 		}
 
 		try {

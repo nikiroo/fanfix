@@ -3,7 +3,7 @@ package be.nikiroo.fanfix.bundles;
 import java.io.File;
 import java.io.IOException;
 
-import be.nikiroo.utils.resources.bundles.Bundle;
+import be.nikiroo.utils.resources.Bundle;
 
 /**
  * This class manages the configuration of the application.

@@ -3,8 +3,8 @@ package be.nikiroo.fanfix.bundles;
 import java.io.IOException;
 import java.io.Writer;
 
+import be.nikiroo.utils.resources.Bundle;
 import be.nikiroo.utils.resources.Meta;
-import be.nikiroo.utils.resources.bundles.Bundle;
 
 /**
  * The {@link Enum} representing textual information to be translated to the

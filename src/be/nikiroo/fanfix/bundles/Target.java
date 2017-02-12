@@ -1,6 +1,6 @@
 package be.nikiroo.fanfix.bundles;
 
-import be.nikiroo.utils.resources.bundles.Bundle;
+import be.nikiroo.utils.resources.Bundle;
 
 /**
  * The type of configuration information the associated {@link Bundle} will

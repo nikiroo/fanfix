@@ -3,7 +3,7 @@ package be.nikiroo.fanfix.bundles;
 import java.io.File;
 import java.io.IOException;
 
-import be.nikiroo.utils.resources.bundles.TransBundle;
+import be.nikiroo.utils.resources.TransBundle;
 
 /**
  * This class manages the translation resources of the application.

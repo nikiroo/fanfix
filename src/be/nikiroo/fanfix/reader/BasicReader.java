@@ -159,8 +159,8 @@ public abstract class BasicReader {
 	public static BasicReader getReader() {
 		if (defaultType != null) {
 			switch (defaultType) {
-			// case LOCAL:
-			// return new LocalReader().setType(ReaderType.LOCAL);
+			//case LOCAL:
+				//return new LocalReader().setType(ReaderType.LOCAL);
 			case CLI:
 				return new CliReader().setType(ReaderType.CLI);
 			}
