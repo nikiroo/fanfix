@@ -7,6 +7,7 @@
 #TEST = path to main test source to compile
 #JAR_FLAGS += a list of things to pack, each usually prefixed with "-C bin/"
 #SJAR_FLAGS += a list of things to pack, each usually prefixed with "-C src/", for *-sources.jar files
+#TEST_PARAMS = any parameter to pass to the test runnable when "test-run"
 
 JAVAC = javac
 JAVAC_FLAGS += -encoding UTF-8 -d ./bin/ -cp ./src/
@@ -34,7 +35,7 @@ RJAR_FLAGS += -jar
 
 all: build jar
 
-.PHONY: all clean mrproper mrpropre build run jrun jar resources install libs love 
+.PHONY: all clean mrproper mrpropre build run jrun jar resources test-resources install libs love 
 
 bin:
 	@mkdir -p bin
@@ -50,7 +51,7 @@ build: resources
 		$(JAVAC) $(JAVAC_FLAGS) "src/$$sup.java" ; \
 	done
 
-test: 
+test: test-resources
 	@[ -e bin/$(MAIN).class ] || echo You need to build the sources
 	@[ -e bin/$(MAIN).class ]
 	@echo Compiling test program...
@@ -86,7 +87,17 @@ love:
 
 resources: libs
 	@echo Copying resources into bin/...
-	@cd src && find . | grep -v '\.java$$' | while read -r ln; do \
+	@cd src && find . | grep -v '\.java$$' | grep -v '/test/' | while read -r ln; do \
+		if [ -f "$$ln" ]; then \
+			dir="`dirname "$$ln"`"; \
+			mkdir -p "../bin/$$dir" ; \
+			cp "$$ln" "../bin/$$ln" ; \
+		fi ; \
+	done
+
+test-resources: resources
+	@echo Copying test resources into bin/...
+	@cd src && find . | grep -v '\.java$$' | grep '/test/' | while read -r ln; do \
 		if [ -f "$$ln" ]; then \
 			dir="`dirname "$$ln"`"; \
 			mkdir -p "../bin/$$dir" ; \
@@ -134,7 +145,7 @@ run-test:
 	@[ "$(TEST)" = "" -o -e "bin/$(TEST).class" ]
 	@echo Running tests for "$(NAME)"...
 	@[ "$(TEST)" != "" ] || echo No test sources defined.
-	[ "$(TEST)"  = "" ] || $(JAVA) $(JAVA_FLAGS) $(TEST)
+	[ "$(TEST)"  = "" ] || ( clear ; $(JAVA) $(JAVA_FLAGS) $(TEST) $(TEST_PARAMS) )
 
 install:
 	@[ -e $(NAME).jar ] || echo You need to build the jar

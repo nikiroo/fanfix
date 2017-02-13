@@ -175,6 +175,11 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 	}
 
 	@Override
+	public void reload() {
+		setBundle(name, locale);
+	}
+
+	@Override
 	public String getString(E id) {
 		return getString(id, (Object[]) null);
 	}

@@ -57,7 +57,7 @@ public class Bundle<E extends Enum<E>> {
 	 *         resource file)
 	 */
 	public String getString(E id) {
-		return getStringX(id, "");
+		return getStringX(id, null);
 	}
 
 	/**
@@ -74,8 +74,7 @@ public class Bundle<E extends Enum<E>> {
 	 */
 	public String getStringX(E id, String suffix) {
 		String key = id.name()
-				+ ((suffix == null || suffix.isEmpty()) ? "" : "_"
-						+ suffix.toUpperCase());
+				+ (suffix == null ? "" : "_" + suffix.toUpperCase());
 
 		if (containsKey(key)) {
 			return getString(key).trim();
@@ -180,10 +179,11 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
-	 * Create/update the .properties file. Will use the most likely candidate as
-	 * base if the file does not already exists and this resource is
-	 * translatable (for instance, "en_US" will use "en" as a base if the
-	 * resource is a translation file).
+	 * Create/update the .properties file.
+	 * <p>
+	 * Will use the most likely candidate as base if the file does not already
+	 * exists and this resource is translatable (for instance, "en_US" will use
+	 * "en" as a base if the resource is a translation file).
 	 * 
 	 * @param path
 	 *            the path where the .properties files are
@@ -217,6 +217,13 @@ public class Bundle<E extends Enum<E>> {
 		}
 
 		writer.close();
+	}
+
+	/**
+	 * Reload the {@link Bundle} data files.
+	 */
+	public void reload() {
+		setBundle(name, null);
 	}
 
 	/**
@@ -367,7 +374,7 @@ public class Bundle<E extends Enum<E>> {
 			value = "";
 		}
 
-		String[] lines = value.replaceAll("\\\t", "\\\\\\t").split("\n");
+		String[] lines = value.replaceAll("\t", "\\t").split("\n");
 		for (int i = 0; i < lines.length; i++) {
 			writer.write(lines[i]);
 			if (i < lines.length - 1) {

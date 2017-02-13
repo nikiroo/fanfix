@@ -33,8 +33,21 @@ done
 
 [ $valid = false ] && exit 2
 
+if [ "`whereis tput`" = "tput:" ]; then
+	ok='"[ ok ]"';
+	ko='"[ !! ]"';
+	cols=80;
+else
+	ok='"`tput bold`[`tput setf 2` OK `tput init``tput bold`]`tput init`"';
+	ko='"`tput bold`[`tput setf 4` !! `tput init``tput bold`]`tput init`"';
+	cols='"`tput cols`"';
+fi;
+
+
 echo "MAIN = be/nikiroo/utils/resources/TransBundle" > Makefile
-echo "MORE = be/nikiroo/utils/StringUtils be/nikiroo/utils/IOUtils be/nikiroo/utils/MarkableFileInputStream" >> Makefile
+echo "MORE = be/nikiroo/utils/StringUtils be/nikiroo/utils/IOUtils be/nikiroo/utils/MarkableFileInputStream be/nikiroo/utils/test/TestLauncher" >> Makefile
+echo "TEST = be/nikiroo/utils/test/Test" >> Makefile
+echo "TEST_PARAMS = $cols $ok $ko" >> Makefile
 echo "NAME = nikiroo-utils" >> Makefile
 echo "PREFIX = $PREFIX" >> Makefile
 echo "JAR_FLAGS += -C bin/ be" >> Makefile
