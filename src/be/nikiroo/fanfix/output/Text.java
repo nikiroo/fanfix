@@ -59,7 +59,8 @@ class Text extends BasicOutput {
 		writer.write(title);
 		writer.write("\n");
 		if (author != null && !author.isEmpty()) {
-			writer.write("©" + author);
+			writer.write(Instance.getTrans().getString(StringId.BY) + " "
+					+ author);
 		}
 		if (date != null && !date.isEmpty()) {
 			writer.write(" (");

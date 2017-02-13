@@ -30,10 +30,11 @@ class InfoText extends Text {
 			MetaData meta = InfoReader.readMeta(new File(new File(source
 					.toURI()).getPath() + ".info"));
 
-			// Some old .info files don't have this information...
+			// Some old .info files don't have those now required fields...
 			String test = meta.getTitle() == null ? "" : meta.getTitle();
 			test += meta.getAuthor() == null ? "" : meta.getAuthor();
 			test += meta.getDate() == null ? "" : meta.getDate();
+			test += meta.getUrl() == null ? "" : meta.getUrl();
 			if (test.isEmpty()) {
 				MetaData superMeta = super.getMeta(source, reset(in));
 				if (meta.getTitle() == null || meta.getTitle().isEmpty()) {
@@ -44,6 +45,9 @@ class InfoText extends Text {
 				}
 				if (meta.getDate() == null || meta.getDate().isEmpty()) {
 					meta.setDate(superMeta.getDate());
+				}
+				if (meta.getUrl() == null || meta.getUrl().isEmpty()) {
+					meta.setUrl(superMeta.getUrl());
 				}
 			}
 

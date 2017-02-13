@@ -227,7 +227,9 @@ public class Library {
 	 *             in case of I/O error
 	 */
 	private Story save(Story story, String luid) throws IOException {
+		// Do not change the original metadata, but change the original story
 		MetaData key = story.getMeta().clone();
+		story.setMeta(key);
 
 		if (luid == null || luid.isEmpty()) {
 			getStories(); // refresh lastId if needed

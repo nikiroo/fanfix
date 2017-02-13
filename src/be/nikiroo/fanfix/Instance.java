@@ -47,9 +47,7 @@ public class Instance {
 			}
 			try {
 				trans = new StringIdBundle(getLang());
-				System.out.println("UPDATING");
 				trans.updateFile(configDir);
-				System.out.println("UPDATED");
 			} catch (IOException e) {
 				syserr(e);
 			}
