@@ -194,6 +194,11 @@ public class Library {
 			throw new IOException("Output type not supported: " + type);
 		}
 
+		Story story = getStory(luid);
+		if (story == null) {
+			throw new IOException("Cannot find story to export: " + luid);
+		}
+
 		return out.process(getStory(luid), target);
 	}
 

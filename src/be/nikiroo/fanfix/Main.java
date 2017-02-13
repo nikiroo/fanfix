@@ -64,7 +64,7 @@ public class Main {
 		String target = null;
 		MainAction action = MainAction.HELP;
 		Boolean plusInfo = null;
-		
+
 		boolean noMoreActions = false;
 
 		int exitCode = 0;
@@ -163,7 +163,7 @@ public class Main {
 				exitCode = imprt(urlString);
 				break;
 			case EXPORT:
-				exitCode = export(urlString, typeString, target);
+				exitCode = export(luid, typeString, target);
 				break;
 			case CONVERT:
 				exitCode = convert(urlString, typeString, target,
@@ -248,7 +248,7 @@ public class Main {
 	/**
 	 * Export the {@link Story} from the {@link Library} to the given target.
 	 * 
-	 * @param urlString
+	 * @param luid
 	 *            the story LUID
 	 * @param typeString
 	 *            the {@link OutputType} to use
@@ -257,7 +257,7 @@ public class Main {
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	private static int export(String urlString, String typeString, String target) {
+	private static int export(String luid, String typeString, String target) {
 		OutputType type = OutputType.valueOfNullOkUC(typeString);
 		if (type == null) {
 			Instance.syserr(new Exception(trans(StringId.OUTPUT_DESC,
@@ -266,9 +266,7 @@ public class Main {
 		}
 
 		try {
-			Story story = Instance.getLibrary().imprt(new URL(urlString));
-			Instance.getLibrary().export(story.getMeta().getLuid(), type,
-					target);
+			Instance.getLibrary().export(luid, type, target);
 		} catch (IOException e) {
 			Instance.syserr(e);
 			return 4;
