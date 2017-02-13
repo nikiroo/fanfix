@@ -46,4 +46,9 @@ public enum Config {
 	CHAPTER_EN, //
 	@Meta(what = "Chapter identification string", where = "", format = "", info = "used to identify a starting chapter in text mode")
 	CHAPTER_FR, //
+	@Meta(what = "Output type", where = "Local Reader", format = "One of the known output type", info = "The type of output for the Local Reader for non-images documents")
+	LOCAL_READER_NON_IMAGES_DOCUMENT_TYPE, //
+	@Meta(what = "Output type", where = "Local Reader", format = "One of the known output type", info = "The type of output for the Local Reader for images documents")
+	LOCAL_READER_IMAGES_DOCUMENT_TYPE, //
+
 }

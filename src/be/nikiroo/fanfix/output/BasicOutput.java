@@ -92,7 +92,7 @@ public abstract class BasicOutput {
 
 		/**
 		 * Call {@link OutputType#valueOf(String.toUpperCase())} but return NULL
-		 * for NULL instead of raising exception.
+		 * for NULL and empty instead of raising an exception.
 		 * 
 		 * @param typeName
 		 *            the possible type name
@@ -100,7 +100,7 @@ public abstract class BasicOutput {
 		 * @return NULL or the type
 		 */
 		public static OutputType valueOfNullOkUC(String typeName) {
-			if (typeName == null) {
+			if (typeName == null || typeName.isEmpty()) {
 				return null;
 			}
 
@@ -441,7 +441,7 @@ public abstract class BasicOutput {
 			case LATEX:
 				return new LaTeX().setType(type, infoCover, infoCover);
 			case HTML:
-				return new Html().setType(type, false, false);
+				return new Html().setType(type, infoCover, infoCover);
 			}
 		}
 

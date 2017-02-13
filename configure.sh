@@ -33,7 +33,19 @@ done
 
 [ $valid = false ] && exit 2
 
+if [ "`whereis tput`" = "tput:" ]; then
+	ok='"[ ok ]"';
+	ko='"[ !! ]"';
+	cols=80;
+else
+	ok='"`tput bold`[`tput setf 2` OK `tput init``tput bold`]`tput init`"';
+	ko='"`tput bold`[`tput setf 4` !! `tput init``tput bold`]`tput init`"';
+	cols='"`tput cols`"';
+fi;
+
 echo "MAIN = be/nikiroo/fanfix/Main" > Makefile
+echo "TEST = " >> Makefile
+echo "TEST_PARAMS = $cols $ok $ko" >> Makefile
 echo "NAME = fanfix" >> Makefile
 echo "PREFIX = $PREFIX" >> Makefile
 echo "JAR_FLAGS += -C bin/ org -C bin/ be -C ./ VERSION" >> Makefile

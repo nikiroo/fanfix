@@ -360,6 +360,7 @@ public abstract class BasicSupport {
 					} finally {
 						chapIn.close();
 					}
+
 					i++;
 				}
 			}
@@ -767,11 +768,22 @@ public abstract class BasicSupport {
 				line = openDoubleQuote + line + closeDoubleQuote;
 				newParas.add(new Paragraph(ParagraphType.QUOTE, line));
 			} else {
+				char open = singleQ ? openQuote : openDoubleQuote;
 				char close = singleQ ? closeQuote : closeDoubleQuote;
-				int posClose = line.indexOf(close, 1);
-				int posDot = line.indexOf(".");
-				while (posDot >= 0 && posDot < posClose) {
-					posDot = line.indexOf(".", posDot + 1);
+
+				int posDot = -1;
+				boolean inQuote = false;
+				int i = 0;
+				for (char car : line.toCharArray()) {
+					if (car == open) {
+						inQuote = true;
+					} else if (car == close) {
+						inQuote = false;
+					} else if (car == '.' && !inQuote) {
+						posDot = i;
+						break;
+					}
+					i++;
 				}
 
 				if (posDot >= 0) {

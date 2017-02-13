@@ -379,6 +379,7 @@ public class Main {
 			} else {
 				try {
 					BasicSupport support = BasicSupport.getSupport(source);
+					
 					if (support != null) {
 						Story story = support.process(source);
 
