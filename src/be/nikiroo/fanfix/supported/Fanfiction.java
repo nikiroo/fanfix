@@ -196,7 +196,7 @@ class Fanfiction extends BasicSupport {
 									+ "/" + url.getPath() + "/" + line;
 						}
 
-						return getImage(null, line);
+						return getImage(this, null, line);
 					}
 				}
 			}
@@ -220,39 +220,62 @@ class Fanfiction extends BasicSupport {
 		String line = getLine(in, "id=chap_select", 0);
 		String key = "<option  value=";
 		int i = 1;
-		for (pos = line.indexOf(key); pos >= 0; pos = line.indexOf(key, pos), i++) {
-			pos = line.indexOf('>', pos);
-			if (pos >= 0) {
-				int endOfName = line.indexOf('<', pos);
-				if (endOfName >= 0) {
-					String name = line.substring(pos + 1, endOfName);
-					String chapNum = i + ".";
-					if (name.startsWith(chapNum)) {
-						name = name.substring(chapNum.length(), name.length());
-					}
 
-					try {
-						final String chapName = name.trim();
-						final URL chapURL = new URL(base + i + suffix);
-						urls.add(new Entry<String, URL>() {
-							public URL setValue(URL value) {
-								return null;
-							}
+		if (line != null) {
+			for (pos = line.indexOf(key); pos >= 0; pos = line
+					.indexOf(key, pos), i++) {
+				pos = line.indexOf('>', pos);
+				if (pos >= 0) {
+					int endOfName = line.indexOf('<', pos);
+					if (endOfName >= 0) {
+						String name = line.substring(pos + 1, endOfName);
+						String chapNum = i + ".";
+						if (name.startsWith(chapNum)) {
+							name = name.substring(chapNum.length(),
+									name.length());
+						}
 
-							public URL getValue() {
-								return chapURL;
-							}
+						try {
+							final String chapName = name.trim();
+							final URL chapURL = new URL(base + i + suffix);
+							urls.add(new Entry<String, URL>() {
+								public URL setValue(URL value) {
+									return null;
+								}
 
-							public String getKey() {
-								return chapName;
-							}
-						});
-					} catch (MalformedURLException e) {
-						Instance.syserr(new IOException("Cannot parse chapter "
-								+ i + " url: " + (base + i + suffix), e));
+								public URL getValue() {
+									return chapURL;
+								}
+
+								public String getKey() {
+									return chapName;
+								}
+							});
+						} catch (MalformedURLException e) {
+							Instance.syserr(new IOException(
+									"Cannot parse chapter " + i + " url: "
+											+ (base + i + suffix), e));
+						}
 					}
 				}
 			}
+		} else {
+			// only one chapter:
+			final String chapName = getTitle(reset(in));
+			final URL chapURL = source;
+			urls.add(new Entry<String, URL>() {
+				public URL setValue(URL value) {
+					return null;
+				}
+
+				public URL getValue() {
+					return chapURL;
+				}
+
+				public String getKey() {
+					return chapName;
+				}
+			});
 		}
 
 		return urls;

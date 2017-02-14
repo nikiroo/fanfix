@@ -9,7 +9,8 @@ To help organize your stories, it can also work as a local library.
 In this mode, you can:
 - Import a story from its URL (or even another file)
 - Export a story to a file (.epub or .cbz)
-- Display a story from the local library
+- Display a story from the local library in text format in the console
+- Display a story from the local library graphically **by calling a native program to handle it** (though Fanfix can automatically process it into HTML so any browser can open it)
 
 ## Supported websites
 
@@ -81,7 +82,23 @@ Note that calling ```make libs``` will export the libraries into the src/ direct
 ## TODO
 
 Currently missing, but either in progress or planned:
-- A GUI (work in progress)
-- Some readers other than CLI (TUI, GUI)
-- Check if it can work on Android
-- French translation
+- [ ] A GUI (work in progress)
+  - [x] Make one
+  - [x] Make it run when no args passed
+  - [ ] Fix the UI, it is ugly
+  - [ ] Work on the UI thread is BAD
+  - [ ] Allow export
+  - [ ] Show a list of types
+    - [x] ..in the menu
+    - [ ] ..as a screen view
+  - options screen
+- [ ] A TUI reader
+- [ ] Check if it can work on Android
+- [ ] Translations
+  - [x] i18n system in place
+  - [x] Make use of it
+  - [x] Use it for all user output (some WIP remains)
+  - [ ] French translation
+- [ ] Allow lauching a custom application instead of Desktop.star ?
+  - [ ] Make a wrapper for firefox to create a new, empty profile ?
+

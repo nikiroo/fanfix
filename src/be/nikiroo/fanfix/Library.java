@@ -53,6 +53,23 @@ public class Library {
 	}
 
 	/**
+	 * List all the known types of stories.
+	 * 
+	 * @return the types
+	 */
+	public List<String> getTypes() {
+		List<String> list = new ArrayList<String>();
+		for (Entry<MetaData, File> entry : getStories().entrySet()) {
+			String storyType = entry.getValue().getParentFile().getName();
+			if (!list.contains(storyType)) {
+				list.add(storyType);
+			}
+		}
+
+		return list;
+	}
+
+	/**
 	 * List all the stories of the given source type in the {@link Library}, or
 	 * all the stories if NULL is passed as a type.
 	 * 
@@ -61,13 +78,11 @@ public class Library {
 	 * 
 	 * @return the stories
 	 */
-	public List<MetaData> getList(SupportType type) {
-		String typeString = type == null ? null : type.getSourceName();
-
+	public List<MetaData> getList(String type) {
 		List<MetaData> list = new ArrayList<MetaData>();
 		for (Entry<MetaData, File> entry : getStories().entrySet()) {
 			String storyType = entry.getValue().getParentFile().getName();
-			if (typeString == null || typeString.equalsIgnoreCase(storyType)) {
+			if (type == null || type.equalsIgnoreCase(storyType)) {
 				list.add(entry.getKey());
 			}
 		}

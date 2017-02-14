@@ -514,7 +514,7 @@ public abstract class BasicSupport {
 				String line = scan.next().trim();
 				boolean image = false;
 				if (line.startsWith("[") && line.endsWith("]")) {
-					URL url = getImageUrl(source,
+					URL url = getImageUrl(this, source,
 							line.substring(1, line.length() - 1).trim());
 					if (url != null) {
 						paras.add(new Paragraph(url));
@@ -582,7 +582,7 @@ public abstract class BasicSupport {
 				&& Instance.getCoverDir() != null) {
 			try {
 				File fileCover = new File(Instance.getCoverDir(), subject);
-				return getImage(fileCover.toURI().toURL(), subject);
+				return getImage(null, fileCover.toURI().toURL(), subject);
 			} catch (MalformedURLException e) {
 			}
 		}
@@ -603,8 +603,8 @@ public abstract class BasicSupport {
 		}
 	}
 
-	static BufferedImage getImage(URL source, String line) {
-		URL url = getImageUrl(source, line);
+	static BufferedImage getImage(BasicSupport support, URL source, String line) {
+		URL url = getImageUrl(support, source, line);
 		if (url != null) {
 			InputStream in = null;
 			try {
@@ -636,7 +636,7 @@ public abstract class BasicSupport {
 	 * @return the image URL if found, or NULL
 	 * 
 	 */
-	static URL getImageUrl(URL source, String line) {
+	static URL getImageUrl(BasicSupport support, URL source, String line) {
 		URL url = null;
 
 		if (line != null) {
@@ -645,11 +645,11 @@ public abstract class BasicSupport {
 			if (source != null) {
 				path = new File(source.getFile()).getParent();
 				try {
-					String urlBase = new File(new File(path), line.trim())
-							.toURI().toURL().toString();
+					String basePath = new File(new File(path), line.trim())
+							.getAbsolutePath();
 					for (String ext : getImageExt(true)) {
-						if (new File(urlBase + ext).exists()) {
-							url = new File(urlBase + ext).toURI().toURL();
+						if (new File(basePath + ext).exists()) {
+							url = new File(basePath + ext).toURI().toURL();
 						}
 					}
 				} catch (Exception e) {
@@ -663,6 +663,7 @@ public abstract class BasicSupport {
 					for (String ext : getImageExt(true)) {
 						if (Instance.getCache().check(new URL(line + ext))) {
 							url = new URL(line + ext);
+							break;
 						}
 					}
 
@@ -671,8 +672,7 @@ public abstract class BasicSupport {
 						for (String ext : getImageExt(true)) {
 							try {
 								url = new URL(line + ext);
-								Instance.getCache().refresh(url,
-										getSupport(url), true);
+								Instance.getCache().refresh(url, support, true);
 								break;
 							} catch (IOException e) {
 								// no image with this ext
@@ -688,7 +688,7 @@ public abstract class BasicSupport {
 			// refresh the cached file
 			if (url != null) {
 				try {
-					Instance.getCache().refresh(url, getSupport(url), true);
+					Instance.getCache().refresh(url, support, true);
 				} catch (IOException e) {
 					// woops, broken image
 					url = null;

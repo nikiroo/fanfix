@@ -8,7 +8,6 @@ import be.nikiroo.fanfix.Library;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.supported.BasicSupport;
-import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 
 /**
  * The class that handles the different {@link Story} readers you can use.
@@ -147,7 +146,7 @@ public abstract class BasicReader {
 	 *            the type of {@link Story} to take into account, or NULL for
 	 *            all
 	 */
-	public abstract void start(SupportType type);
+	public abstract void start(String type);
 
 	/**
 	 * Return a new {@link BasicReader} ready for use if one is configured.
@@ -157,13 +156,18 @@ public abstract class BasicReader {
 	 * @return a {@link BasicReader}, or NULL if none configured
 	 */
 	public static BasicReader getReader() {
-		if (defaultType != null) {
-			switch (defaultType) {
-			// case LOCAL:
-			// return new LocalReader().setType(ReaderType.LOCAL);
-			case CLI:
-				return new CliReader().setType(ReaderType.CLI);
+		try {
+			if (defaultType != null) {
+				switch (defaultType) {
+				case LOCAL:
+					return new LocalReader().setType(ReaderType.LOCAL);
+				case CLI:
+					return new CliReader().setType(ReaderType.CLI);
+				}
 			}
+		} catch (IOException e) {
+			Instance.syserr(new Exception("Cannot create a reader of type: "
+					+ defaultType, e));
 		}
 
 		return null;

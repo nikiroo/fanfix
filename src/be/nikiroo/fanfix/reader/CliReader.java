@@ -9,7 +9,6 @@ import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
-import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 
 /**
  * Command line {@link Story} reader.
@@ -75,7 +74,7 @@ class CliReader extends BasicReader {
 	}
 
 	@Override
-	public void start(SupportType type) {
+	public void start(String type) {
 		List<MetaData> stories;
 		stories = Instance.getLibrary().getList(type);
 

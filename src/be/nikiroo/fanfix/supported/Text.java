@@ -160,7 +160,7 @@ class Text extends BasicSupport {
 			}
 		}
 
-		return getImage(source, path);
+		return getImage(this, source, path);
 	}
 
 	@Override

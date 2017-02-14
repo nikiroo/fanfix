@@ -22,7 +22,7 @@ import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
  */
 public class Main {
 	private enum MainAction {
-		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER
+		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER, START,
 	}
 
 	/**
@@ -46,9 +46,9 @@ public class Main {
 	 * target</li>
 	 * <li>--read [id] ([chapter number]): read the given story from the library
 	 * </li>
-	 * <li>--read-url [URL] ([cahpter number]): convert on the fly and read the
+	 * <li>--read-url [URL] ([chapter number]): convert on the fly and read the
 	 * story, without saving it</li>
-	 * <li>--list: list the stories present in the library</li>
+	 * <li>--list ([type]): list the stories present in the library</li>
 	 * <li>--set-reader [reader type]: set the reader type to CLI or LOCAL for
 	 * this command</li>
 	 * </ul>
@@ -62,7 +62,7 @@ public class Main {
 		String typeString = null;
 		String chapString = null;
 		String target = null;
-		MainAction action = MainAction.HELP;
+		MainAction action = MainAction.START;
 		Boolean plusInfo = null;
 
 		boolean noMoreActions = false;
@@ -154,6 +154,9 @@ public class Main {
 			case SET_READER:
 				exitCode = setReaderType(args[i]);
 				break;
+			case START:
+				exitCode = 255; // not supposed to be selected by user
+				break;
 			}
 		}
 
@@ -183,6 +186,10 @@ public class Main {
 				exitCode = 0;
 				break;
 			case SET_READER:
+				break;
+			case START:
+				BasicReader.setDefaultReaderType(ReaderType.LOCAL);
+				BasicReader.getReader().start(null);
 				break;
 			}
 		}
@@ -232,7 +239,7 @@ public class Main {
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	private static int imprt(String urlString) {
+	public static int imprt(String urlString) {
 		try {
 			Story story = Instance.getLibrary().imprt(getUrl(urlString));
 			System.out.println(story.getMeta().getLuid() + ": \""
@@ -257,7 +264,7 @@ public class Main {
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	private static int export(String luid, String typeString, String target) {
+	public static int export(String luid, String typeString, String target) {
 		OutputType type = OutputType.valueOfNullOkUC(typeString);
 		if (type == null) {
 			Instance.syserr(new Exception(trans(StringId.OUTPUT_DESC,
@@ -280,23 +287,13 @@ public class Main {
 	 * is passed, in which case all stories will be listed).
 	 * 
 	 * @param typeString
-	 *            the {@link SupportType} to list the known stories of, or NULL
-	 *            to list all stories
+	 *            the type to list the known stories of, or NULL to list all
+	 *            stories
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	private static int list(String typeString) {
-		SupportType type = null;
-		try {
-			type = SupportType.valueOfNullOkUC(typeString);
-		} catch (Exception e) {
-			Instance.syserr(new Exception(
-					trans(StringId.INPUT_DESC, typeString), e));
-			return 1;
-		}
-
+	private static int list(String type) {
 		BasicReader.getReader().start(type);
-
 		return 0;
 	}
 
@@ -379,7 +376,7 @@ public class Main {
 			} else {
 				try {
 					BasicSupport support = BasicSupport.getSupport(source);
-					
+
 					if (support != null) {
 						Story story = support.process(source);
 

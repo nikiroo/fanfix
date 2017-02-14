@@ -172,7 +172,7 @@ class Fimfiction extends BasicSupport {
 			}
 		}
 
-		return getImage(null, cover);
+		return getImage(this, null, cover);
 	}
 
 	@Override

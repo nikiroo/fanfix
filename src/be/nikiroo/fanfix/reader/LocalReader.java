@@ -10,7 +10,6 @@ import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
-import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 
 class LocalReader extends BasicReader {
 	private Library lib;
@@ -76,17 +75,13 @@ class LocalReader extends BasicReader {
 	}
 
 	@Override
-	public void start(SupportType type) {
-		final SupportType typeFinal = type;
+	public void start(String type) {
+		final String typeFinal = type;
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				new LocalReaderFrame(LocalReader.this, typeFinal)
 						.setVisible(true);
 			}
 		});
-	}
-
-	public static void main(String[] args) throws IOException {
-		new LocalReader().start(null);
 	}
 }

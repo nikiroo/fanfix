@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class InfoReader {
 			InputStream in = new MarkableFileInputStream(new FileInputStream(
 					infoFile));
 			try {
-				return createMeta(in);
+				return createMeta(infoFile.toURI().toURL(), in);
 			} finally {
 				in.close();
 				in = null;
@@ -34,7 +35,8 @@ public class InfoReader {
 		}
 	}
 
-	private static MetaData createMeta(InputStream in) throws IOException {
+	private static MetaData createMeta(URL sourceInfoFile, InputStream in)
+			throws IOException {
 		MetaData meta = new MetaData();
 
 		meta.setTitle(getInfoTag(in, "TITLE"));
@@ -50,7 +52,8 @@ public class InfoReader {
 		meta.setSubject(getInfoTag(in, "SUBJECT"));
 		meta.setType(getInfoTag(in, "TYPE"));
 		meta.setImageDocument(getInfoTagBoolean(in, "IMAGES_DOCUMENT", false));
-		meta.setCover(BasicSupport.getImage(null, getInfoTag(in, "COVER")));
+		meta.setCover(BasicSupport.getImage(null, sourceInfoFile,
+				getInfoTag(in, "COVER")));
 
 		if (meta.getCover() == null) {
 			meta.setCover(BasicSupport.getDefaultCover(meta.getSubject()));
