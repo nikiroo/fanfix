@@ -96,24 +96,28 @@ class E621 extends BasicSupport {
 					author = author.substring(0, pos - 1);
 					String page = source.getProtocol() + "://"
 							+ source.getHost() + author;
-					InputStream pageIn = Instance.getCache().open(
-							new URL(page), this, false);
 					try {
-						key = "class=\"tag-type-artist\"";
-						author = getLine(pageIn, key, 0);
-						if (author != null) {
-							pos = author.indexOf("<a href=\"");
-							if (pos >= 0) {
-								author = author.substring(pos);
-								pos = author.indexOf("</a>");
+						InputStream pageIn = Instance.getCache().open(
+								new URL(page), this, false);
+						try {
+							key = "class=\"tag-type-artist\"";
+							author = getLine(pageIn, key, 0);
+							if (author != null) {
+								pos = author.indexOf("<a href=\"");
 								if (pos >= 0) {
-									author = author.substring(0, pos);
-									return StringUtils.unhtml(author);
+									author = author.substring(pos);
+									pos = author.indexOf("</a>");
+									if (pos >= 0) {
+										author = author.substring(0, pos);
+										return StringUtils.unhtml(author);
+									}
 								}
 							}
+						} finally {
+							pageIn.close();
 						}
-					} finally {
-						pageIn.close();
+					} catch (Exception e) {
+						// No author found
 					}
 				}
 			}
