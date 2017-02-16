@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -60,6 +62,7 @@ class Cbz extends Epub {
 
 		ZipInputStream zipIn = new ZipInputStream(getInput());
 
+		List<String> images = new ArrayList<String>();
 		for (ZipEntry entry = zipIn.getNextEntry(); entry != null; entry = zipIn
 				.getNextEntry()) {
 			if (!entry.isDirectory()
@@ -73,16 +76,26 @@ class Cbz extends Epub {
 				}
 
 				if (imageEntry) {
+					String uuid = meta.getUuid() + "_" + entry.getName();
+					images.add(uuid);
 					try {
-						String uuid = meta.getUuid() + "_" + entry.getName();
-
 						Instance.getCache().addToCache(zipIn, uuid);
-						chap.getParagraphs().add(
-								new Paragraph(new File(uuid).toURI().toURL()));
 					} catch (Exception e) {
 						Instance.syserr(e);
 					}
 				}
+			}
+		}
+
+		// ZIP order is not sure
+		Collections.sort(images);
+
+		for (String uuid : images) {
+			try {
+				chap.getParagraphs().add(
+						new Paragraph(new File(uuid).toURI().toURL()));
+			} catch (Exception e) {
+				Instance.syserr(e);
 			}
 		}
 

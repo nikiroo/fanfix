@@ -2,7 +2,9 @@ package be.nikiroo.fanfix.reader;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
@@ -14,6 +16,7 @@ import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 import be.nikiroo.fanfix.data.MetaData;
 
@@ -48,8 +51,8 @@ class LocalReaderBook extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 	private JLabel icon;
-	private JLabel title;
-	private JLabel author;
+	private JTextArea title;
+	private JTextArea author;
 	private boolean selected;
 	private boolean hovered;
 	private Date lastClick;
@@ -69,8 +72,12 @@ class LocalReaderBook extends JPanel {
 			icon = new JLabel(" [ no cover ] ");
 		}
 
-		title = new JLabel(meta.getTitle());
-		author = new JLabel("by " + meta.getAuthor());
+		title = new JTextArea(meta.getTitle());
+		title.setWrapStyleWord(true);
+		title.setLineWrap(true);
+		title.setEditable(false);
+		title.setBackground(new Color(0, true));
+		author = new JTextArea("by " + meta.getAuthor());
 
 		this.setLayout(new BorderLayout());
 		this.add(icon, BorderLayout.CENTER);
@@ -97,24 +104,12 @@ class LocalReaderBook extends JPanel {
 	 */
 	public void setSelected(boolean selected) {
 		this.selected = selected;
-		fixColor();
+		repaint();
 	}
 
 	private void setHovered(boolean hovered) {
 		this.hovered = hovered;
-		fixColor();
-	}
-
-	private void fixColor() {
-		if (selected && !hovered) {
-			setBackground(new Color(180, 180, 255));
-		} else if (!selected && hovered) {
-			setBackground(new Color(230, 230, 255));
-		} else if (selected && hovered) {
-			setBackground(new Color(200, 200, 255));
-		} else {
-			setBackground(new Color(255, 255, 255));
-		}
+		repaint();
 	}
 
 	private void setupListeners() {
@@ -159,5 +154,23 @@ class LocalReaderBook extends JPanel {
 
 	public void addActionListener(BookActionListner listener) {
 		listeners.add(listener);
+	}
+
+	@Override
+	public void paint(Graphics g) {
+		super.paint(g);
+
+		Color color = new Color(255, 255, 255, 0);
+		if (selected && !hovered) {
+			color = new Color(80, 80, 100, 40);
+		} else if (!selected && hovered) {
+			color = new Color(230, 230, 255, 100);
+		} else if (selected && hovered) {
+			color = new Color(200, 200, 255, 100);
+		}
+
+		Rectangle clip = g.getClipBounds();
+		g.setColor(color);
+		g.fillRect(clip.x, clip.y, clip.width, clip.height);
 	}
 }
