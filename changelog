@@ -1,3 +1,15 @@
+Version 0.9.7
+-------------
+
+Improve toImage and allow non-resetable InputStreams
+	...though they are then automatically saved onto disk then re-opened,
+	then the file is deleted at the end of the process -- bad perfs
+	Worse, it does it even if no EXIF metadata are present (because it
+	cannot know that before reading the Stream, and cannot save a
+	partially, non-resetable Stream to disk)
+
+Reoarganize some methods from String to IO
+
 Version 0.9.6
 -------------
 
