@@ -1,5 +1,6 @@
 package be.nikiroo.fanfix.supported;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -47,7 +48,7 @@ class E621 extends BasicSupport {
 		meta.setSubject("");
 		meta.setType(getType().toString());
 		meta.setImageDocument(true);
-		meta.setCover(null);
+		meta.setCover(getCover(source));
 
 		return meta;
 	}
@@ -82,6 +83,21 @@ class E621 extends BasicSupport {
 	@Override
 	protected boolean isHtml() {
 		return true;
+	}
+
+	private BufferedImage getCover(URL source) throws IOException {
+		InputStream in = Instance.getCache().open(source, this, true);
+		String images = getChapterContent(new URL(source.toString() + "?page="
+				+ 1), in, 1);
+		if (!images.isEmpty()) {
+			int pos = images.indexOf('\n');
+			if (pos >= 0) {
+				images = images.substring(1, pos - 1);
+				return getImage(this, null, images);
+			}
+		}
+
+		return null;
 	}
 
 	private String getAuthor(URL source, InputStream in) throws IOException {

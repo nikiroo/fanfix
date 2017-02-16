@@ -15,6 +15,7 @@ import javax.imageio.ImageIO;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.StringUtils;
 
 class MangaFox extends BasicSupport {
@@ -186,7 +187,7 @@ class MangaFox extends BasicSupport {
 			try {
 				coverIn = openEx(cover);
 				try {
-					return ImageIO.read(coverIn);
+					return IOUtils.toImage(coverIn);
 				} finally {
 					coverIn.close();
 				}

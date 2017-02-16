@@ -14,8 +14,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 
-import javax.imageio.ImageIO;
-
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.StringId;
@@ -24,6 +22,7 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.StringUtils;
 
 /**
@@ -609,7 +608,7 @@ public abstract class BasicSupport {
 			InputStream in = null;
 			try {
 				in = Instance.getCache().open(url, getSupport(url), true);
-				return ImageIO.read(in);
+				return IOUtils.toImage(in);
 			} catch (IOException e) {
 			} finally {
 				if (in != null) {

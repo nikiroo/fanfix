@@ -12,8 +12,6 @@ import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import javax.imageio.ImageIO;
-
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.IOUtils;
@@ -115,7 +113,7 @@ class Epub extends InfoText {
 					// Cover
 					if (getCover()) {
 						try {
-							cover = ImageIO.read(zipIn);
+							cover = IOUtils.toImage(zipIn);
 						} catch (Exception e) {
 							Instance.syserr(e);
 						}

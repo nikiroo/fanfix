@@ -25,7 +25,6 @@ import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.MarkableFileInputStream;
-import be.nikiroo.utils.StringUtils;
 
 /**
  * This cache will manage Internet (and local) downloads, as well as put the
@@ -96,13 +95,14 @@ public class Cache {
 	 * @param stable
 	 *            TRUE for more stable resources, FALSE when they often change
 	 * 
-	 * @return the opened resource
+	 * @return the opened resource, NOT NULL
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
 	public InputStream open(URL url, BasicSupport support, boolean stable)
 			throws IOException {
+		// MUST NOT return null
 		return open(url, support, stable, url);
 	}
 
@@ -121,13 +121,14 @@ public class Cache {
 	 * @param originalUrl
 	 *            the original {@link URL} used to locate the cached resource
 	 * 
-	 * @return the opened resource
+	 * @return the opened resource, NOT NULL
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
 	public InputStream open(URL url, BasicSupport support, boolean stable,
 			URL originalUrl) throws IOException {
+		// MUST NOT return null
 		try {
 			InputStream in = load(originalUrl, false, stable);
 			if (in == null) {
@@ -138,6 +139,7 @@ public class Cache {
 							+ (url == null ? "null" : url.toString()), e);
 				}
 
+				// Was just saved, can load old, so, will not be null
 				in = load(originalUrl, true, stable);
 			}
 
@@ -157,8 +159,6 @@ public class Cache {
 	 *            the support to use to download the resource
 	 * @param stable
 	 *            TRUE for more stable resources, FALSE when they often change
-	 * 
-	 * @return TRUE if it was pre-downloaded
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -203,15 +203,12 @@ public class Cache {
 	 *             in case of I/O error
 	 */
 	public void saveAsImage(URL url, File target) throws IOException {
-		URL cachedUrl = new URL(url.toString()
-				+ "."
-				+ Instance.getConfig().getString(Config.IMAGE_FORMAT_CONTENT)
-						.toLowerCase());
+		URL cachedUrl = new URL(url.toString());
 		File cached = getCached(cachedUrl);
 
 		if (!cached.exists() || isOld(cached, true)) {
-			InputStream imageIn = Instance.getCache().open(url, null, true);
-			ImageIO.write(StringUtils.toImage(imageIn), Instance.getConfig()
+			InputStream imageIn = open(url, null, true);
+			ImageIO.write(IOUtils.toImage(imageIn), Instance.getConfig()
 					.getString(Config.IMAGE_FORMAT_CONTENT).toLowerCase(),
 					cached);
 		}
@@ -266,7 +263,9 @@ public class Cache {
 	 * 
 	 * @param url
 	 *            the resource to open
-	 * @return the opened resource
+	 * 
+	 * @return the opened resource if found, NULL i not
+	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
