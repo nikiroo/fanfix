@@ -1,19 +1,21 @@
 package be.nikiroo.fanfix.output;
 
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
-import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
+import be.nikiroo.fanfix.data.Story;
 
 class LaTeX extends BasicOutput {
-	protected FileWriter writer;
+	protected BufferedWriter writer;
 	private boolean lastWasQuote = false;
 
 	// quote chars
@@ -34,7 +36,8 @@ class LaTeX extends BasicOutput {
 
 		File target = new File(targetDir, targetName);
 
-		writer = new FileWriter(target);
+		writer = new BufferedWriter(new OutputStreamWriter(
+				new FileOutputStream(target), "UTF-8"));
 		try {
 			super.process(story, targetDir, targetNameOrig);
 		} finally {

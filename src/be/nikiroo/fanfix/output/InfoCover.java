@@ -1,8 +1,10 @@
 package be.nikiroo.fanfix.output;
 
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 
 import javax.imageio.ImageIO;
 
@@ -14,7 +16,8 @@ class InfoCover {
 	public static void writeInfo(File targetDir, String targetName,
 			MetaData meta) throws IOException {
 		File info = new File(targetDir, targetName + ".info");
-		FileWriter infoWriter = new FileWriter(info);
+		BufferedWriter infoWriter = new BufferedWriter(new OutputStreamWriter(
+				new FileOutputStream(info), "UTF-8"));
 
 		if (meta != null) {
 			try {
@@ -73,8 +76,8 @@ class InfoCover {
 		}
 	}
 
-	private static void writeMeta(FileWriter writer, String key, String value)
-			throws IOException {
+	private static void writeMeta(BufferedWriter writer, String key,
+			String value) throws IOException {
 		if (value == null) {
 			value = "";
 		}

@@ -1,8 +1,10 @@
 package be.nikiroo.fanfix.output;
 
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
@@ -59,7 +61,8 @@ class Cbz extends BasicOutput {
 			}
 		}
 
-		FileWriter writer = new FileWriter(new File(dir, "URL"));
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+				new FileOutputStream(new File(dir, "URL")), "UTF-8"));
 		try {
 			if (meta != null) {
 				writer.write(meta.getUuid());
@@ -70,7 +73,8 @@ class Cbz extends BasicOutput {
 			writer.close();
 		}
 
-		writer = new FileWriter(new File(dir, "SUMMARY"));
+		writer = new BufferedWriter(new OutputStreamWriter(
+				new FileOutputStream(new File(dir, "SUMMARY")), "UTF-8"));
 		try {
 			String title = "";
 			if (meta != null && meta.getTitle() != null) {

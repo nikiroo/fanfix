@@ -1,9 +1,11 @@
 package be.nikiroo.fanfix.output;
 
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 
 import javax.imageio.ImageIO;
 
@@ -19,7 +21,7 @@ import be.nikiroo.utils.StringUtils;
 
 class Html extends BasicOutput {
 	private File dir;
-	protected FileWriter writer;
+	protected BufferedWriter writer;
 	private boolean inDialogue = false;
 	private boolean inNormal = false;
 
@@ -32,12 +34,12 @@ class Html extends BasicOutput {
 		target.mkdir();
 		dir = target;
 
-		targetName = new File(targetName, "index").getPath();
 		targetName += getDefaultExtension();
 
 		target = new File(targetDir, targetName);
 
-		writer = new FileWriter(target);
+		writer = new BufferedWriter(new OutputStreamWriter(
+				new FileOutputStream(target), "UTF-8"));
 		try {
 			super.process(story, targetDir, targetNameOrig);
 		} finally {

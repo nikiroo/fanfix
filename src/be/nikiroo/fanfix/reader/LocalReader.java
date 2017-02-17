@@ -48,21 +48,23 @@ class LocalReader extends BasicReader {
 	}
 
 	// return new luid
-	public String imprt(String luid) {
+	public String imprt(String luid) throws IOException {
 		try {
 			Story story = Instance.getLibrary().getStory(luid);
-			story = lib.save(story);
-			return story.getMeta().getLuid();
+			if (story != null) {
+				story = lib.save(story);
+				return story.getMeta().getLuid();
+			} else {
+				throw new IOException("Cannot find story in Library: " + luid);
+			}
 		} catch (IOException e) {
-			Instance.syserr(new IOException(
+			throw new IOException(
 					"Cannot import story from library to LocalReader library: "
-							+ luid, e));
+							+ luid, e);
 		}
-
-		return null;
 	}
 
-	public File getTarget(String luid) {
+	public File getTarget(String luid) throws IOException {
 		MetaData meta = lib.getInfo(luid);
 		File file = lib.getFile(luid);
 		if (file == null) {

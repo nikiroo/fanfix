@@ -136,7 +136,7 @@ public class Library {
 	 * @param luid
 	 *            the Library UID of the story
 	 * 
-	 * @return the corresponding {@link Story}
+	 * @return the corresponding {@link Story} or NULL if not found
 	 */
 	public Story getStory(String luid) {
 		if (luid != null) {

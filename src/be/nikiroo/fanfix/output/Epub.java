@@ -1,9 +1,11 @@
 package be.nikiroo.fanfix.output;
 
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.net.URL;
 
 import javax.imageio.ImageIO;
@@ -14,14 +16,14 @@ import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
-import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
+import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.StringUtils;
 
 class Epub extends BasicOutput {
 	private File tmpDir;
-	private FileWriter writer;
+	private BufferedWriter writer;
 	private boolean inDialogue = false;
 	private boolean inNormal = false;
 	private File images;
@@ -119,7 +121,9 @@ class Epub extends BasicOutput {
 	protected void writeChapterHeader(Chapter chap) throws IOException {
 		String filename = String.format("%s%03d%s", "chapter-",
 				chap.getNumber(), ".xml");
-		writer = new FileWriter(new File(tmpDir + "/OPS", filename));
+		writer = new BufferedWriter(new OutputStreamWriter(
+				new FileOutputStream(new File(tmpDir + File.separator + "OPS",
+						filename)), "UTF-8"));
 		inDialogue = false;
 		inNormal = false;
 		try {
