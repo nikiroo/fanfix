@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -16,7 +17,6 @@ import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 
 import be.nikiroo.fanfix.data.MetaData;
 
@@ -49,10 +49,20 @@ class LocalReaderBook extends JPanel {
 		public void action(LocalReaderBook book);
 	}
 
+	private static final int COVER_WIDTH = 100;
+	private static final int COVER_HEIGHT = 150;
+	private static final int SPINE_WIDTH = 5;
+	private static final int SPINE_HEIGHT = 5;
+	private static final int HOFFSET = 20;
+	private static final Color SPINE_COLOR_BOTTOM = new Color(180, 180, 180);
+	private static final Color SPINE_COLOR_RIGHT = new Color(100, 100, 100);
+	private static final int TEXT_WIDTH = COVER_WIDTH + 40;
+	private static final int TEXT_HEIGHT = 50;
+	private static final String AUTHOR_COLOR = "#888888";
+
 	private static final long serialVersionUID = 1L;
 	private JLabel icon;
-	private JTextArea title;
-	private JTextArea author;
+	private JLabel tt;
 	private boolean selected;
 	private boolean hovered;
 	private Date lastClick;
@@ -61,27 +71,38 @@ class LocalReaderBook extends JPanel {
 
 	public LocalReaderBook(MetaData meta) {
 		if (meta.getCover() != null) {
-			BufferedImage resizedImage = new BufferedImage(100, 150,
+			BufferedImage resizedImage = new BufferedImage(SPINE_WIDTH
+					+ COVER_WIDTH, SPINE_HEIGHT + COVER_HEIGHT + HOFFSET,
 					BufferedImage.TYPE_4BYTE_ABGR);
 			Graphics2D g = resizedImage.createGraphics();
-			g.drawImage(meta.getCover(), 0, 0, 100, 150, null);
+			g.setColor(Color.white);
+			g.fillRect(0, HOFFSET, COVER_WIDTH, COVER_HEIGHT);
+			g.drawImage(meta.getCover(), 0, HOFFSET, COVER_WIDTH, COVER_HEIGHT,
+					null);
 			g.dispose();
 
 			icon = new JLabel(new ImageIcon(resizedImage));
 		} else {
+			// TODO: a big black "X" ?
 			icon = new JLabel(" [ no cover ] ");
 		}
 
-		title = new JTextArea(meta.getTitle());
-		title.setWrapStyleWord(true);
-		title.setLineWrap(true);
-		title.setEditable(false);
-		title.setBackground(new Color(0, true));
-		author = new JTextArea("by " + meta.getAuthor());
+		String optAuthor = meta.getAuthor();
+		if (optAuthor != null && !optAuthor.isEmpty()) {
+			optAuthor = "(" + optAuthor + ")";
+		}
+		tt = new JLabel(
+				String.format(
+						"<html>"
+								+ "<body style='width: %d px; height: %d px; text-align: center'>"
+								+ "%s" + "<br>" + "<span style='color: %s;'>"
+								+ "%s" + "</span>" + "</body>" + "</html>",
+						TEXT_WIDTH, TEXT_HEIGHT, meta.getTitle(), AUTHOR_COLOR,
+						optAuthor));
 
-		this.setLayout(new BorderLayout());
+		this.setLayout(new BorderLayout(10, 10));
 		this.add(icon, BorderLayout.CENTER);
-		this.add(title, BorderLayout.SOUTH);
+		this.add(tt, BorderLayout.SOUTH);
 
 		setupListeners();
 		setSelected(false);
@@ -159,6 +180,23 @@ class LocalReaderBook extends JPanel {
 	@Override
 	public void paint(Graphics g) {
 		super.paint(g);
+
+		int h = COVER_HEIGHT;
+		int w = COVER_WIDTH;
+		int xOffset = (TEXT_WIDTH - COVER_WIDTH) - 4;
+
+		int[] xs = new int[] { xOffset, xOffset + SPINE_WIDTH,
+				xOffset + w + SPINE_WIDTH, xOffset + w };
+		int[] ys = new int[] { HOFFSET + h, HOFFSET + h + SPINE_HEIGHT,
+				HOFFSET + h + SPINE_HEIGHT, HOFFSET + h };
+		g.setColor(SPINE_COLOR_BOTTOM);
+		g.fillPolygon(new Polygon(xs, ys, xs.length));
+		xs = new int[] { xOffset + w, xOffset + w + SPINE_WIDTH,
+				xOffset + w + SPINE_WIDTH, xOffset + w };
+		ys = new int[] { HOFFSET, HOFFSET + SPINE_HEIGHT,
+				HOFFSET + h + SPINE_HEIGHT, HOFFSET + h };
+		g.setColor(SPINE_COLOR_RIGHT);
+		g.fillPolygon(new Polygon(xs, ys, xs.length));
 
 		Color color = new Color(255, 255, 255, 0);
 		if (selected && !hovered) {

@@ -2,6 +2,8 @@
 
 Fanfix is a small Java program that can download stories from some supported websites and render them offline.
 
+![Main GUI](screenshots/fanfix.png?raw=true "Main GUI")
+
 It will convert from a (supported) URL to an .epub file for stories or a .cbz file for comics (a few other output types are also available, like Plain Text or LaTeX).
 
 To help organize your stories, it can also work as a local library.
@@ -37,16 +39,17 @@ We support a few file types for local story conversion (both as input and as out
 
 Any platform with at lest Java 1.6 on it should be ok.
 
-If you have any problems to compile it with a supported Java version (1.5 won't work, but you may try to cross-compile or change the Bundle.java class from the utilities; 1.6 and 1.8 have been tested and work), please contact me.
+It has only been tested on Linux and Windows for now, but feel free to inform me if you try it on another system.
+
+If you have any problems to compile it with a supported Java version (1.5 won't work, but you may try to cross-compile; 1.6 and 1.8 have been tested and work), please contact me.
 
 ## Usage
 
-You can start the program in CLI mode:
+You can start the program in GUI mode (as in the screenshot on top):
 - ```java -jar fanfix.jar```
 
-__TODO__: offer a GUI mode (work in progress)
 
-The following arguments are allowed:
+The following arguments are also allowed:
 - ```--import [URL]```: import the story at URL into the local library
 - ```--export [id] [output_type] [target]```: export the story denoted by ID to the target file
 - ```--convert [URL] [output_type] [target] (+info)```: convert the story at URL into target, and force-add the .info and cover if +info is passed
@@ -85,7 +88,7 @@ Currently missing, but either in progress or planned:
 - [ ] A GUI (work in progress)
   - [x] Make one
   - [x] Make it run when no args passed
-  - [ ] Fix the UI, it is ugly
+  - [x] Fix the UI, it is ugly
   - [ ] Work on the UI thread is BAD
   - [ ] Allow export
   - [ ] Show a list of types
@@ -99,6 +102,7 @@ Currently missing, but either in progress or planned:
   - [x] Make use of it
   - [x] Use it for all user output (some WIP remains)
   - [ ] French translation
-- [ ] Allow lauching a custom application instead of Desktop.star ?
+- [ ] Allow lauching a custom application instead of Desktop.start ?
   - [ ] Make a wrapper for firefox to create a new, empty profile ?
+- [ ] Install a mechanism to handle stories import progress update
 

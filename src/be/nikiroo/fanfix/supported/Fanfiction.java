@@ -124,6 +124,8 @@ class Fanfiction extends BasicSupport {
 	}
 
 	private String getAuthor(InputStream in) {
+		String author = null;
+
 		int i = 0;
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
@@ -132,12 +134,13 @@ class Fanfiction extends BasicSupport {
 			String line = scan.next();
 			if (line.contains("xcontrast_txt")) {
 				if ((++i) == 3) {
-					return StringUtils.unhtml(line).trim();
+					author = StringUtils.unhtml(line).trim();
+					break;
 				}
 			}
 		}
 
-		return null;
+		return fixAuthor(author);
 	}
 
 	private String getDate(InputStream in) {

@@ -14,6 +14,7 @@ import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.reader.BasicReader.ReaderType;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
+import be.nikiroo.utils.UIUtils;
 
 /**
  * Main program entry point.
@@ -188,6 +189,7 @@ public class Main {
 			case SET_READER:
 				break;
 			case START:
+				UIUtils.setLookAndFeel();
 				BasicReader.setDefaultReaderType(ReaderType.LOCAL);
 				BasicReader.getReader().start(null);
 				break;

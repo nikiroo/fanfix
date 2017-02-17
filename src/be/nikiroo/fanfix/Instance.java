@@ -6,6 +6,8 @@ import java.io.IOException;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.ConfigBundle;
 import be.nikiroo.fanfix.bundles.StringIdBundle;
+import be.nikiroo.fanfix.bundles.UiConfig;
+import be.nikiroo.fanfix.bundles.UiConfigBundle;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.utils.resources.Bundles;
 
@@ -16,6 +18,7 @@ import be.nikiroo.utils.resources.Bundles;
  */
 public class Instance {
 	private static ConfigBundle config;
+	private static UiConfigBundle uiconfig;
 	private static StringIdBundle trans;
 	private static Cache cache;
 	private static Library lib;
@@ -46,6 +49,12 @@ public class Instance {
 				syserr(e);
 			}
 			try {
+				uiconfig = new UiConfigBundle();
+				uiconfig.updateFile(configDir);
+			} catch (IOException e) {
+				syserr(e);
+			}
+			try {
 				trans = new StringIdBundle(getLang());
 				trans.updateFile(configDir);
 			} catch (IOException e) {
@@ -55,6 +64,7 @@ public class Instance {
 			Bundles.setDirectory(configDir);
 		}
 
+		uiconfig = new UiConfigBundle();
 		trans = new StringIdBundle(getLang());
 		try {
 			lib = new Library(getFile(Config.LIBRARY_DIR),
@@ -67,7 +77,7 @@ public class Instance {
 		debug = Instance.getConfig().getBoolean(Config.DEBUG_ERR, false);
 		coverDir = getFile(Config.DEFAULT_COVERS_DIR);
 		File tmp = getFile(Config.CACHE_DIR);
-		readerTmp = getFile(Config.CACHE_DIR_LOCAL_READER);
+		readerTmp = getFile(UiConfig.CACHE_DIR_LOCAL_READER);
 
 		if (checkEnv("NOUTF")) {
 			trans.setUnicode(false);
@@ -119,6 +129,15 @@ public class Instance {
 	 */
 	public static ConfigBundle getConfig() {
 		return config;
+	}
+
+	/**
+	 * Get the (unique) UI configuration service for the program.
+	 * 
+	 * @return the configuration service
+	 */
+	public static UiConfigBundle getUiConfig() {
+		return uiconfig;
 	}
 
 	/**
@@ -186,8 +205,25 @@ public class Instance {
 	 * @return the path
 	 */
 	private static File getFile(Config id) {
+		return getFile(config.getString(id));
+	}
+
+	/**
+	 * Return a path, but support the special $HOME variable.
+	 * 
+	 * @return the path
+	 */
+	private static File getFile(UiConfig id) {
+		return getFile(uiconfig.getString(id));
+	}
+
+	/**
+	 * Return a path, but support the special $HOME variable.
+	 * 
+	 * @return the path
+	 */
+	private static File getFile(String path) {
 		File file = null;
-		String path = config.getString(id);
 		if (path != null && !path.isEmpty()) {
 			path = path.replace('/', File.separatorChar);
 			if (path.contains("$HOME")) {

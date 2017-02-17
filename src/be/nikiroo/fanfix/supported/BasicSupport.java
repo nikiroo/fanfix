@@ -763,6 +763,22 @@ public abstract class BasicSupport {
 			boolean singleQ = line.startsWith("" + openQuote);
 			boolean doubleQ = line.startsWith("" + openDoubleQuote);
 
+			// Do not try when more than one quote at a time
+			// (some stories are not easily readable if we do)
+			if (singleQ
+					&& line.indexOf(closeQuote, 1) < line
+							.lastIndexOf(closeQuote)) {
+				newParas.add(para);
+				return newParas;
+			}
+			if (doubleQ
+					&& line.indexOf(closeDoubleQuote, 1) < line
+							.lastIndexOf(closeDoubleQuote)) {
+				newParas.add(para);
+				return newParas;
+			}
+			//
+
 			if (!singleQ && !doubleQ) {
 				line = openDoubleQuote + line + closeDoubleQuote;
 				newParas.add(new Paragraph(ParagraphType.QUOTE, line));

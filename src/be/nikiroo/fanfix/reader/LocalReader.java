@@ -6,8 +6,7 @@ import java.io.IOException;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.Library;
-import be.nikiroo.fanfix.bundles.Config;
-import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 
@@ -23,14 +22,14 @@ class LocalReader extends BasicReader {
 		}
 
 		// TODO: can throw an exception, manage that (convert to IOEx ?)
-		OutputType text = OutputType.valueOfNullOkUC(Instance.getConfig()
-				.getString(Config.LOCAL_READER_NON_IMAGES_DOCUMENT_TYPE));
+		OutputType text = OutputType.valueOfNullOkUC(Instance.getUiConfig()
+				.getString(UiConfig.LOCAL_READER_NON_IMAGES_DOCUMENT_TYPE));
 		if (text == null) {
 			text = OutputType.HTML;
 		}
 
-		OutputType images = OutputType.valueOfNullOkUC(Instance.getConfig()
-				.getString(Config.LOCAL_READER_IMAGES_DOCUMENT_TYPE));
+		OutputType images = OutputType.valueOfNullOkUC(Instance.getUiConfig()
+				.getString(UiConfig.LOCAL_READER_IMAGES_DOCUMENT_TYPE));
 		if (images == null) {
 			images = OutputType.CBZ;
 		}
@@ -47,13 +46,12 @@ class LocalReader extends BasicReader {
 	public void read(int chapter) {
 	}
 
-	// return new luid
-	public String imprt(String luid) throws IOException {
+	// keep same luid
+	public void imprt(String luid) throws IOException {
 		try {
 			Story story = Instance.getLibrary().getStory(luid);
 			if (story != null) {
-				story = lib.save(story);
-				return story.getMeta().getLuid();
+				story = lib.save(story, luid);
 			} else {
 				throw new IOException("Cannot find story in Library: " + luid);
 			}
@@ -65,12 +63,10 @@ class LocalReader extends BasicReader {
 	}
 
 	public File getTarget(String luid) throws IOException {
-		MetaData meta = lib.getInfo(luid);
 		File file = lib.getFile(luid);
 		if (file == null) {
-			luid = imprt(luid);
+			imprt(luid);
 			file = lib.getFile(luid);
-			meta = lib.getInfo(luid);
 		}
 
 		return file;

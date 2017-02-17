@@ -14,8 +14,6 @@ public enum Config {
 	READER_TYPE, //
 	@Meta(what = "directory", where = "", format = "absolute path, $HOME variable supported, / is always accepted as dir separator", info = "The directory where to store temporary files, defaults to a directory 'fanfic-tmp' in the system default temporary directory")
 	CACHE_DIR, //
-	@Meta(what = "directory", where = "", format = "absolute path, $HOME variable supported, / is always accepted as dir separator", info = "The directory where to store temporary files, defaults to a directory 'fanfic-reader' in the system default temporary directory")
-	CACHE_DIR_LOCAL_READER, //
 	@Meta(what = "delay in hours", where = "", format = "integer | 0: no cache | -1: infinite time cache which is default", info = "The delay after which a cached resource that is thought to change ~often is considered too old and triggers a refresh")
 	CACHE_MAX_TIME_CHANGING, //
 	@Meta(what = "delay in hours", where = "", format = "integer | 0: no cache | -1: infinite time cache which is default", info = "The delay after which a cached resource that is thought to change rarely is considered too old and triggers a refresh")
@@ -46,9 +44,4 @@ public enum Config {
 	CHAPTER_EN, //
 	@Meta(what = "Chapter identification string", where = "", format = "", info = "used to identify a starting chapter in text mode")
 	CHAPTER_FR, //
-	@Meta(what = "Output type", where = "Local Reader", format = "One of the known output type", info = "The type of output for the Local Reader for non-images documents")
-	LOCAL_READER_NON_IMAGES_DOCUMENT_TYPE, //
-	@Meta(what = "Output type", where = "Local Reader", format = "One of the known output type", info = "The type of output for the Local Reader for images documents")
-	LOCAL_READER_IMAGES_DOCUMENT_TYPE, //
-
 }

@@ -1,6 +1,7 @@
 package be.nikiroo.fanfix.reader;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,8 +22,10 @@ import javax.swing.JScrollPane;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.Main;
+import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.reader.LocalReaderBook.BookActionListner;
+import be.nikiroo.utils.WrapLayout;
 
 class LocalReaderFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
@@ -31,9 +34,10 @@ class LocalReaderFrame extends JFrame {
 	private List<LocalReaderBook> books;
 	private JPanel bookPane;
 	private String type;
+	private Color color;
 
 	public LocalReaderFrame(LocalReader reader, String type) {
-		super("HTML reader");
+		super("Fanfix Library");
 
 		this.reader = reader;
 
@@ -42,9 +46,29 @@ class LocalReaderFrame extends JFrame {
 		setLayout(new BorderLayout());
 
 		books = new ArrayList<LocalReaderBook>();
-		bookPane = new JPanel(new WrapLayout(WrapLayout.LEADING));
+		bookPane = new JPanel(new WrapLayout(WrapLayout.LEADING, 5, 5));
 
-		add(new JScrollPane(bookPane), BorderLayout.CENTER);
+		color = null;
+		String bg = Instance.getUiConfig().getString(UiConfig.BACKGROUND_COLOR);
+		if (bg.startsWith("#") && bg.length() == 7) {
+			try {
+				color = new Color(Integer.parseInt(bg.substring(1, 3), 16),
+						Integer.parseInt(bg.substring(3, 5), 16),
+						Integer.parseInt(bg.substring(5, 7), 16));
+			} catch (NumberFormatException e) {
+				color = null; // no changes
+				e.printStackTrace();
+			}
+		}
+
+		if (color != null) {
+			setBackground(color);
+			bookPane.setBackground(color);
+		}
+
+		JScrollPane scroll = new JScrollPane(bookPane);
+		scroll.getVerticalScrollBar().setUnitIncrement(16);
+		add(scroll, BorderLayout.CENTER);
 
 		refreshBooks(type);
 		setJMenuBar(createMenu());
@@ -59,6 +83,10 @@ class LocalReaderFrame extends JFrame {
 		bookPane.removeAll();
 		for (MetaData meta : stories) {
 			LocalReaderBook book = new LocalReaderBook(meta);
+			if (color != null) {
+				book.setBackground(color);
+			}
+
 			books.add(book);
 			final String luid = meta.getLuid();
 			book.addActionListener(new BookActionListner() {
@@ -95,13 +123,18 @@ class LocalReaderFrame extends JFrame {
 		imprt.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String url = JOptionPane.showInputDialog(LocalReaderFrame.this,
-						"url?");
-				if (Main.imprt(url) != 0) {
-					JOptionPane.showMessageDialog(LocalReaderFrame.this,
-							"Cannot import", "Imort error",
-							JOptionPane.ERROR_MESSAGE);
-				} else {
-					refreshBooks(type);
+						"url of the story to import?\n" + "\n"
+								+ "Note: it will currently make the UI \n"
+								+ "unresponsive until it is downloaded...",
+						"Importing from URL", JOptionPane.QUESTION_MESSAGE);
+				if (url != null && !url.isEmpty()) {
+					if (Main.imprt(url) != 0) {
+						JOptionPane.showMessageDialog(LocalReaderFrame.this,
+								"Cannot import: " + url, "Imort error",
+								JOptionPane.ERROR_MESSAGE);
+					} else {
+						refreshBooks(type);
+					}
 				}
 			}
 		});

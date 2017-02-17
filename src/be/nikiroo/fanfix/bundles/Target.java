@@ -11,9 +11,11 @@ import be.nikiroo.utils.resources.Bundle;
 public enum Target {
 	/**
 	 * Configuration options that the user can change in the
-	 * <tt>.properties</tt> file.
+	 * <tt>.properties</tt> file
 	 */
 	config,
-	/** Translation resources. */
+	/** Translation resources */
 	resources,
+	/** UI resources (from colours to behaviour) */
+	ui,
 }
