@@ -39,7 +39,7 @@ We support a few file types for local story conversion (both as input and as out
 
 Any platform with at lest Java 1.6 on it should be ok.
 
-It has only been tested on Linux and Windows for now, but feel free to inform me if you try it on another system.
+It has been tested on Linux, MacOS X and Windows for now, but feel free to inform me if you try it on another system.
 
 If you have any problems to compile it with a supported Java version (1.5 won't work, but you may try to cross-compile; 1.6 and 1.8 have been tested and work), please contact me.
 

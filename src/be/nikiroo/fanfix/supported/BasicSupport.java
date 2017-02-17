@@ -465,7 +465,6 @@ public abstract class BasicSupport {
 	 */
 	protected Chapter makeChapter(URL source, int number, String name,
 			String content) throws IOException {
-
 		// Chapter name: process it correctly, then remove the possible
 		// redundant "Chapter x: " in front of it
 		String chapterName = processPara(name).getContent().trim();

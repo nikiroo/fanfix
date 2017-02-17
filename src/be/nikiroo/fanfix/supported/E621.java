@@ -253,7 +253,7 @@ class E621 extends BasicSupport {
 		scan.useDelimiter("\\n");
 		while (scan.hasNext()) {
 			String line = scan.next();
-			if (line.contains("class=\"preview\"")) {
+			if (line.contains("class=\"preview")) {
 				for (int pos = line.indexOf(key); pos >= 0; pos = line.indexOf(
 						key, pos + key.length())) {
 					int endPos = line.indexOf("\"", pos);
