@@ -57,7 +57,7 @@ class Html extends BasicOutput {
 
 	@Override
 	public String getDefaultExtension() {
-		return ".html";
+		return File.separator + "index.html";
 	}
 
 	@Override
