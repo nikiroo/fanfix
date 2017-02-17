@@ -28,8 +28,8 @@ We support a few file types for local story conversion (both as input and as out
 - epub: .epub files created by this program (we do not support "all" .epub files, at least for now)
 - text: local stories encoded in plain text format, with a few specific rules:
   - the title must be on the first line
-  - the author (preceded by nothing, "by " or "©") must be on the second line, possibly with the publication date in parenthesis (i.e., "By Unknown (3rd October 1998)")
-  - chapters must be declared with "Chapter x" or "Chapter x: NAME OF THE CHAPTER", where "x" is the chapter number
+  - the author (preceded by nothing, ```by ``` or ```©```) must be on the second line, possibly with the publication date in parenthesis (i.e., ```By Unknown (3rd October 1998)```)
+  - chapters must be declared with ```Chapter x``` or ```Chapter x: NAME OF THE CHAPTER```, where ```x``` is the chapter number
   - a description of the story must be given as chapter number 0
   - a cover image may be present with the same filename as the story, but a .png, .jpeg or .jpg extension
 - info_text: contains the same information as the text format, but with a companion .info file to store some metadata (the .info file is supposed to be created by Fanfix or compatible with it)
@@ -65,7 +65,7 @@ Some environment variables are recognized by the program:
 - ```LANG=en```: force the language to English (the only one for now...)
 - ```CONFIG_DIR=$HOME/.fanfix```: use the given directory as a config directory (and copy the default configuration if needed)
 - ```NOUTF=1```: try to fallback to non-unicode values when possible (can have an impact on the resulting files, not only on user messages)
-- ```DEBUG=1```: force the DEBUG=true option of the configuration file (to show more information on errors)
+- ```DEBUG=1```: force the ```DEBUG=true``` option of the configuration file (to show more information on errors)
 
 ## Compilation
 
@@ -94,7 +94,7 @@ Currently missing, but either in progress or planned:
   - [ ] Show a list of types
     - [x] ..in the menu
     - [ ] ..as a screen view
-  - options screen
+  - [ ] options screen
 - [ ] A TUI reader
 - [ ] Check if it can work on Android
 - [ ] Translations
