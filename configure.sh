@@ -45,7 +45,7 @@ fi;
 
 
 echo "MAIN = be/nikiroo/utils/resources/TransBundle" > Makefile
-echo "MORE = be/nikiroo/utils/StringUtils be/nikiroo/utils/IOUtils be/nikiroo/utils/MarkableFileInputStream be/nikiroo/utils/test/TestLauncher" >> Makefile
+echo "MORE = be/nikiroo/utils/StringUtils be/nikiroo/utils/IOUtils be/nikiroo/utils/MarkableFileInputStream be/nikiroo/utils/UIUtils be/nikiroo/utils/WrapLayout be/nikiroo/utils/test/TestLauncher" >> Makefile
 echo "TEST = be/nikiroo/utils/test/Test" >> Makefile
 echo "TEST_PARAMS = $cols $ok $ko" >> Makefile
 echo "NAME = nikiroo-utils" >> Makefile
