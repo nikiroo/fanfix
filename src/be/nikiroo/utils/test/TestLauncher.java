@@ -1,7 +1,11 @@
 package be.nikiroo.utils.test;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+
+import be.nikiroo.utils.test.TestCase.AssertException;
 
 /**
  * A {@link TestLauncher} starts a series of {@link TestCase}s and displays the
@@ -46,6 +50,8 @@ public class TestLauncher {
 
 	protected int executed;
 	protected int total;
+
+	private int currentSeries = 0;
 
 	/**
 	 * Create a new {@link TestLauncher} with default parameters.
@@ -144,10 +150,12 @@ public class TestLauncher {
 				System.out.println("");
 			}
 
+			currentSeries = 0;
 			for (TestLauncher serie : series) {
 				errors += serie.launch(depth + 1);
 				executed += serie.executed;
 				total += serie.total;
+				currentSeries++;
 			}
 		} catch (Exception e) {
 			print(depth, "__start");
@@ -263,7 +271,7 @@ public class TestLauncher {
 			System.out.println("[ Test suite: " + name + " ]");
 			System.out.println("");
 		} else {
-			System.out.println(prefix(depth) + name + ":");
+			System.out.println(prefix(depth, false) + name + ":");
 		}
 	}
 
@@ -276,7 +284,8 @@ public class TestLauncher {
 	 *            the {@link TestCase}
 	 */
 	protected void print(int depth, String name) {
-		name = prefix(depth) + (name == null ? "" : name).replace("\t", "    ");
+		name = prefix(depth, false)
+				+ (name == null ? "" : name).replace("\t", "    ");
 
 		while (name.length() < columns - 11) {
 			name += ".";
@@ -296,8 +305,15 @@ public class TestLauncher {
 	private void print(int depth, Exception error) {
 		if (error != null) {
 			System.out.println(" " + koString);
-			for (String line : (error.getMessage() + "").split("\n")) {
-				System.out.println(prefix(depth) + "\t\t" + line);
+			String lines = error.getMessage() + "";
+			if (!(error instanceof AssertException)) {
+				StringWriter sw = new StringWriter();
+				PrintWriter pw = new PrintWriter(sw);
+				error.printStackTrace(pw);
+				lines = sw.toString();
+			}
+			for (String line : lines.split("\n")) {
+				System.out.println(prefix(depth, false) + "\t\t" + line);
 			}
 		} else {
 			System.out.println(" " + okString);
@@ -332,11 +348,10 @@ public class TestLauncher {
 		if (depth == 0) {
 			System.out.println(resume);
 		} else {
-			String arrow = "┗▶";
-			if (series.isEmpty()) {
-				arrow = "━▶";
-			}
-			System.out.println(prefix(depth) + arrow + resume);
+			String arrow = "┗▶ ";
+			System.out.println(prefix(depth, currentSeries == 0) + arrow
+					+ resume);
+			System.out.println(prefix(depth, currentSeries == 0));
 		}
 	}
 
@@ -347,22 +362,25 @@ public class TestLauncher {
 	 * 
 	 * @param depth
 	 *            the current depth
+	 * @param first
+	 *            this line is the first of its tabulation level
 	 * 
 	 * @return the prefix
 	 */
-	private String prefix(int depth) {
+	private String prefix(int depth, boolean first) {
 		String space = tabs(depth - 1);
 
 		String line = "";
 		if (depth > 0) {
 			if (depth > 1) {
-				if (depth != last) {
+				if (depth != last && first) {
 					line = "╻"; // first line
 				} else {
 					line = "┃"; // continuation
 				}
 			}
-			space = space + line + tabs(1);
+
+			space += line + tabs(1);
 		}
 
 		last = depth;
@@ -378,7 +396,6 @@ public class TestLauncher {
 	 * @return the string
 	 */
 	private String tabs(int depth) {
-
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < depth; i++) {
 			builder.append("    ");

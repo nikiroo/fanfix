@@ -123,10 +123,7 @@ abstract public class TestCase {
 			throws AssertException {
 
 		if (errorMessage == null) {
-			errorMessage = String.format("" //
-					+ "Assertion failed!\n" //
-					+ "Expected value: [%s]\n" //
-					+ "Actual value: [%s]", expected, actual);
+			errorMessage = generateAssertMessage(expected, actual);
 		}
 
 		if ((expected == null && actual != null)
@@ -234,5 +231,23 @@ abstract public class TestCase {
 	public void assertEquals(String errorMessage, double expected, double actual)
 			throws AssertException {
 		assertEquals(errorMessage, new Double(expected), new Double(actual));
+	}
+
+	/**
+	 * Generate the default assert message for 2 different values that were
+	 * supposed to be equals.
+	 * 
+	 * @param expected
+	 *            the expected value
+	 * @param actual
+	 *            the actual value
+	 * 
+	 * @return the message
+	 */
+	public static String generateAssertMessage(Object expected, Object actual) {
+		return String.format("" //
+				+ "Assertion failed!\n" //
+				+ "Expected value: [%s]\n" //
+				+ "Actual value: [%s]", expected, actual);
 	}
 }

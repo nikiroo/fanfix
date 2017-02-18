@@ -1,3 +1,18 @@
+Version 1.1.0
+-------------
+
+Add progress reporting, move to ui package
+	A new progress reporting system (and tests) in the new ui package
+	(some other classes have been moved into ui, too: WrapLayout and
+	UIUtils)
+
+Version 1.0.0
+-------------
+
+Add WrapLayout and UIUtils
+	A FlowLayout that automatically wrap to the next line (from existing
+	code found on internet) and a method to set a fake-native look & feel
+
 Version 0.9.7
 -------------
 

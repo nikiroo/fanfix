@@ -1,4 +1,4 @@
-package be.nikiroo.utils;
+package be.nikiroo.utils.ui;
 
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;

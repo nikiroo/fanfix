@@ -9,6 +9,7 @@ public class Test extends TestLauncher {
 	public Test(String[] args) {
 		super("Nikiroo-utils", args);
 
+		addSeries(new ProgressTest(args));
 		addSeries(new BundleTest(args));
 	}
 
