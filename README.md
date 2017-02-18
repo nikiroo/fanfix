@@ -105,9 +105,9 @@ Currently missing, but either in progress or planned:
 - [ ] Allow lauching a custom application instead of Desktop.start ?
   - [ ] Make a wrapper for firefox to create a new, empty profile ?
 - [ ] Install a mechanism to handle stories import/export progress update
-  - [ ] Progress system
-    - [x] in support classes (import)
-    - [ ] in output classes (export)
-    - [x] CLI usage of such
-    - [ ] GUI usage of such
+  - [x] Progress system
+    [x] in support classes (import)
+    [ ] in output classes (export)
+    [x] CLI usage of such
+    [ ] GUI usage of such
 
