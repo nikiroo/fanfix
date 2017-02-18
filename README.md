@@ -106,8 +106,8 @@ Currently missing, but either in progress or planned:
   - [ ] Make a wrapper for firefox to create a new, empty profile ?
 - [ ] Install a mechanism to handle stories import/export progress update
   - [x] Progress system
-    [x] in support classes (import)
-    [ ] in output classes (export)
-    [x] CLI usage of such
-    [ ] GUI usage of such
+  - [x] in support classes (import)
+  - [ ] in output classes (export)
+  - [x] CLI usage of such
+  - [ ] GUI usage of such
 
