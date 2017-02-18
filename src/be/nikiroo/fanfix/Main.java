@@ -411,12 +411,19 @@ public class Main {
 					BasicSupport support = BasicSupport.getSupport(source);
 
 					if (support != null) {
-						Story story = support.process(source, pg);
+						Progress pgIn = new Progress();
+						Progress pgOut = new Progress();
+						if (pg != null) {
+							pg.setMax(2);
+							pg.addProgress(pgIn, 1);
+							pg.addProgress(pgOut, 1);
+						}
 
+						Story story = support.process(source, pgIn);
 						try {
 							target = new File(target).getAbsolutePath();
 							BasicOutput.getOutput(type, infoCover).process(
-									story, target);
+									story, target, pgOut);
 						} catch (IOException e) {
 							Instance.syserr(new IOException(trans(
 									StringId.ERR_SAVING, target), e));

@@ -2,13 +2,16 @@ package be.nikiroo.fanfix.output;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.Paragraph;
-import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
+import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.utils.ui.Progress;
 
 /**
  * This class is the base class used by the other output classes. It can be used
@@ -135,6 +138,8 @@ public abstract class BasicOutput {
 	private OutputType type;
 	private boolean writeCover;
 	private boolean writeInfo;
+	private Progress storyPg;
+	private Progress chapPg;
 
 	/**
 	 * Process the {@link Story} into the given target.
@@ -144,6 +149,8 @@ public abstract class BasicOutput {
 	 * @param target
 	 *            the target where to save to (will not necessary be taken as is
 	 *            by the processor, for instance an extension can be added)
+	 * @param pg
+	 *            the optional progress reporter
 	 * 
 	 * @return the actual main target saved, which can be slightly different
 	 *         that the input one
@@ -151,7 +158,10 @@ public abstract class BasicOutput {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public File process(Story story, String target) throws IOException {
+	public File process(Story story, String target, Progress pg)
+			throws IOException {
+		storyPg = pg;
+
 		target = new File(target).getAbsolutePath();
 		File targetDir = new File(target).getParentFile();
 		String targetName = new File(target).getName();
@@ -179,6 +189,7 @@ public abstract class BasicOutput {
 	 * @param targetName
 	 *            the target filename (will not necessary be taken as is by the
 	 *            processor, for instance an extension can be added)
+	 * 
 	 * 
 	 * @return the actual main target saved, which can be slightly different
 	 *         that the input one
@@ -253,6 +264,12 @@ public abstract class BasicOutput {
 	}
 
 	protected void writeStory(Story story) throws IOException {
+		if (storyPg == null) {
+			storyPg = new Progress(0, story.getChapters().size() + 2);
+		} else {
+			storyPg.setMinMax(0, story.getChapters().size() + 2);
+		}
+
 		String chapterNameNum = String.format("%03d", 0);
 		String paragraphNumber = String.format("%04d", 0);
 		imageName = paragraphNumber + "_" + chapterNameNum + ".png";
@@ -268,11 +285,28 @@ public abstract class BasicOutput {
 			InfoCover.writeInfo(targetDir, targetName, story.getMeta());
 		}
 
-		writeStoryHeader(story);
+		storyPg.setProgress(1);
+
+		List<Progress> chapPgs = new ArrayList<Progress>(story.getChapters()
+				.size());
 		for (Chapter chap : story) {
-			writeChapter(chap);
+			chapPg = new Progress(0, chap.getParagraphs().size());
+			storyPg.addProgress(chapPg, 1);
+			chapPgs.add(chapPg);
+			chapPg = null;
+		}
+
+		writeStoryHeader(story);
+		for (int i = 0; i < story.getChapters().size(); i++) {
+			chapPg = chapPgs.get(i);
+			writeChapter(story.getChapters().get(i));
+			chapPg.setProgress(chapPg.getMax());
+			chapPg = null;
 		}
 		writeStoryFooter(story);
+
+		storyPg.setProgress(storyPg.getMax());
+		storyPg = null;
 	}
 
 	protected void writeChapter(Chapter chap) throws IOException {
@@ -289,10 +323,14 @@ public abstract class BasicOutput {
 		imageName = chapterNameNum + "_" + paragraphNumber + ".png";
 
 		writeChapterHeader(chap);
+		int i = 1;
 		for (Paragraph para : chap) {
 			paragraphNumber = String.format("%04d", num++);
 			imageName = chapterNameNum + "_" + paragraphNumber + ".png";
 			writeParagraph(para);
+			if (chapPg != null) {
+				chapPg.setProgress(i++);
+			}
 		}
 		writeChapterFooter(chap);
 	}

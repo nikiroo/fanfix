@@ -217,17 +217,25 @@ public class Library {
 	 */
 	public File export(String luid, OutputType type, String target, Progress pg)
 			throws IOException {
+		Progress pgGetStory = new Progress();
+		Progress pgOut = new Progress();
+		if (pg != null) {
+			pg.setMax(2);
+			pg.addProgress(pgGetStory, 1);
+			pg.addProgress(pgOut, 1);
+		}
+
 		BasicOutput out = BasicOutput.getOutput(type, true);
 		if (out == null) {
 			throw new IOException("Output type not supported: " + type);
 		}
 
-		Story story = getStory(luid, pg);
+		Story story = getStory(luid, pgGetStory);
 		if (story == null) {
 			throw new IOException("Cannot find story to export: " + luid);
 		}
 
-		return out.process(story, target);
+		return out.process(story, target, pgOut);
 	}
 
 	/**
@@ -235,14 +243,16 @@ public class Library {
 	 * 
 	 * @param story
 	 *            the {@link Story} to save
+	 * @param pg
+	 *            the optional progress reporter
 	 * 
 	 * @return the same {@link Story}, whose LUID may have changed
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public Story save(Story story) throws IOException {
-		return save(story, null);
+	public Story save(Story story, Progress pg) throws IOException {
+		return save(story, null, pg);
 	}
 
 	/**
@@ -253,13 +263,15 @@ public class Library {
 	 *            the {@link Story} to save
 	 * @param luid
 	 *            the <b>correct</b> LUID or NULL to get the next free one
+	 * @param pg
+	 *            the optional progress reporter
 	 * 
 	 * @return the same {@link Story}, whose LUID may have changed
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public Story save(Story story, String luid) throws IOException {
+	public Story save(Story story, String luid, Progress pg) throws IOException {
 		// Do not change the original metadata, but change the original story
 		MetaData key = story.getMeta().clone();
 		story.setMeta(key);
@@ -284,7 +296,7 @@ public class Library {
 		}
 
 		BasicOutput it = BasicOutput.getOutput(out, true);
-		File file = it.process(story, getFile(key).getPath());
+		File file = it.process(story, getFile(key).getPath(), pg);
 		getStories().put(story.getMeta(), file);
 
 		return story;
