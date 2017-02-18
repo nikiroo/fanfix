@@ -14,7 +14,7 @@ import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.reader.BasicReader.ReaderType;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
-import be.nikiroo.utils.UIUtils;
+import be.nikiroo.utils.ui.UIUtils;
 import be.nikiroo.utils.ui.Progress;
 
 /**
