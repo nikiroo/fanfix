@@ -44,7 +44,7 @@ else
 fi;
 
 echo "MAIN = be/nikiroo/fanfix/Main" > Makefile
-echo "TEST = " >> Makefile
+echo "TEST = be/nikiroo/fanfix/test/Test" >> Makefile
 echo "TEST_PARAMS = $cols $ok $ko" >> Makefile
 echo "NAME = fanfix" >> Makefile
 echo "PREFIX = $PREFIX" >> Makefile

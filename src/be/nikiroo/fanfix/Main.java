@@ -15,6 +15,7 @@ import be.nikiroo.fanfix.reader.BasicReader.ReaderType;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 import be.nikiroo.utils.UIUtils;
+import be.nikiroo.utils.ui.Progress;
 
 /**
  * Main program entry point.
@@ -161,17 +162,40 @@ public class Main {
 			}
 		}
 
+		final Progress mainProgress = new Progress(0, 80);
+		mainProgress.addProgressListener(new Progress.ProgressListener() {
+			private int current = mainProgress.getMin();
+
+			public void progress(Progress progress, String name) {
+				int diff = progress.getProgress() - current;
+				current += diff;
+
+				StringBuilder builder = new StringBuilder();
+				for (int i = 0; i < diff; i++) {
+					builder.append('.');
+				}
+
+				System.err.print(builder.toString());
+
+				if (progress.isDone()) {
+					System.err.println("");
+				}
+			}
+		});
+		Progress pg = new Progress();
+		mainProgress.addProgress(pg, mainProgress.getMax());
+
 		if (exitCode != 255) {
 			switch (action) {
 			case IMPORT:
-				exitCode = imprt(urlString);
+				exitCode = imprt(urlString, pg);
 				break;
 			case EXPORT:
-				exitCode = export(luid, typeString, target);
+				exitCode = export(luid, typeString, target, pg);
 				break;
 			case CONVERT:
 				exitCode = convert(urlString, typeString, target,
-						plusInfo == null ? false : plusInfo);
+						plusInfo == null ? false : plusInfo, pg);
 				break;
 			case LIST:
 				exitCode = list(typeString);
@@ -238,12 +262,14 @@ public class Main {
 	 * 
 	 * @param urlString
 	 *            the resource to import
+	 * @param pg
+	 *            the optional progress reporter
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	public static int imprt(String urlString) {
+	public static int imprt(String urlString, Progress pg) {
 		try {
-			Story story = Instance.getLibrary().imprt(getUrl(urlString));
+			Story story = Instance.getLibrary().imprt(getUrl(urlString), pg);
 			System.out.println(story.getMeta().getLuid() + ": \""
 					+ story.getMeta().getTitle() + "\" imported.");
 		} catch (IOException e) {
@@ -263,10 +289,13 @@ public class Main {
 	 *            the {@link OutputType} to use
 	 * @param target
 	 *            the target
+	 * @param pg
+	 *            the optional progress reporter
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	public static int export(String luid, String typeString, String target) {
+	public static int export(String luid, String typeString, String target,
+			Progress pg) {
 		OutputType type = OutputType.valueOfNullOkUC(typeString);
 		if (type == null) {
 			Instance.syserr(new Exception(trans(StringId.OUTPUT_DESC,
@@ -275,7 +304,7 @@ public class Main {
 		}
 
 		try {
-			Instance.getLibrary().export(luid, type, target);
+			Instance.getLibrary().export(luid, type, target, pg);
 		} catch (IOException e) {
 			Instance.syserr(e);
 			return 4;
@@ -318,9 +347,9 @@ public class Main {
 		try {
 			BasicReader reader = BasicReader.getReader();
 			if (library) {
-				reader.setStory(story);
+				reader.setStory(story, null);
 			} else {
-				reader.setStory(getUrl(story));
+				reader.setStory(getUrl(story), null);
 			}
 
 			if (chapString != null) {
@@ -354,11 +383,13 @@ public class Main {
 	 * @param infoCover
 	 *            TRUE to also export the cover and info file, even if the given
 	 *            {@link OutputType} does not usually save them
+	 * @param pg
+	 *            the optional progress reporter
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
 	private static int convert(String urlString, String typeString,
-			String target, boolean infoCover) {
+			String target, boolean infoCover, Progress pg) {
 		int exitCode = 0;
 
 		String sourceName = urlString;
@@ -380,7 +411,7 @@ public class Main {
 					BasicSupport support = BasicSupport.getSupport(source);
 
 					if (support != null) {
-						Story story = support.process(source);
+						Story story = support.process(source, pg);
 
 						try {
 							target = new File(target).getAbsolutePath();

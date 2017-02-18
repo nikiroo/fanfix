@@ -24,7 +24,7 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.Main;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
-import be.nikiroo.fanfix.reader.LocalReaderBook.BookActionListner;
+import be.nikiroo.fanfix.reader.LocalReaderBook.BookActionListener;
 import be.nikiroo.utils.WrapLayout;
 
 class LocalReaderFrame extends JFrame {
@@ -89,7 +89,7 @@ class LocalReaderFrame extends JFrame {
 
 			books.add(book);
 			final String luid = meta.getLuid();
-			book.addActionListener(new BookActionListner() {
+			book.addActionListener(new BookActionListener() {
 				public void select(LocalReaderBook book) {
 					for (LocalReaderBook abook : books) {
 						abook.setSelected(abook == book);
@@ -98,8 +98,8 @@ class LocalReaderFrame extends JFrame {
 
 				public void action(LocalReaderBook book) {
 					try {
-						File target = LocalReaderFrame.this.reader
-								.getTarget(luid);
+						File target = LocalReaderFrame.this.reader.getTarget(
+								luid, null);
 						Desktop.getDesktop().browse(target.toURI());
 					} catch (IOException e) {
 						Instance.syserr(e);
@@ -128,7 +128,7 @@ class LocalReaderFrame extends JFrame {
 								+ "unresponsive until it is downloaded...",
 						"Importing from URL", JOptionPane.QUESTION_MESSAGE);
 				if (url != null && !url.isEmpty()) {
-					if (Main.imprt(url) != 0) {
+					if (Main.imprt(url, null) != 0) {
 						JOptionPane.showMessageDialog(LocalReaderFrame.this,
 								"Cannot import: " + url, "Imort error",
 								JOptionPane.ERROR_MESSAGE);

@@ -14,6 +14,7 @@ import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.supported.BasicSupport;
+import be.nikiroo.utils.ui.Progress;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 import be.nikiroo.fanfix.supported.InfoReader;
 
@@ -135,10 +136,12 @@ public class Library {
 	 * 
 	 * @param luid
 	 *            the Library UID of the story
+	 * @param pg
+	 *            the optional progress reporter
 	 * 
 	 * @return the corresponding {@link Story} or NULL if not found
 	 */
-	public Story getStory(String luid) {
+	public Story getStory(String luid, Progress pg) {
 		if (luid != null) {
 			for (Entry<MetaData, File> entry : getStories().entrySet()) {
 				if (luid.equals(entry.getKey().getLuid())) {
@@ -147,7 +150,8 @@ public class Library {
 								.getKey().getType());
 						URL url = entry.getValue().toURI().toURL();
 						if (type != null) {
-							return BasicSupport.getSupport(type).process(url);
+							return BasicSupport.getSupport(type).process(url,
+									pg);
 						} else {
 							throw new IOException("Unknown type: "
 									+ entry.getKey().getType());
@@ -163,6 +167,11 @@ public class Library {
 			}
 		}
 
+		if (pg != null) {
+			pg.setMinMax(0, 1);
+			pg.setProgress(1);
+		}
+
 		return null;
 	}
 
@@ -172,19 +181,21 @@ public class Library {
 	 * 
 	 * @param url
 	 *            the {@link URL} to import
+	 * @param pg
+	 *            the optional progress reporter
 	 * 
 	 * @return the imported {@link Story}
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public Story imprt(URL url) throws IOException {
+	public Story imprt(URL url, Progress pg) throws IOException {
 		BasicSupport support = BasicSupport.getSupport(url);
 		if (support == null) {
 			throw new IOException("URL not supported: " + url.toString());
 		}
 
-		return save(support.process(url), null);
+		return save(support.process(url, pg), null);
 	}
 
 	/**
@@ -196,25 +207,27 @@ public class Library {
 	 *            the {@link OutputType} to transform it to
 	 * @param target
 	 *            the target to save to
+	 * @param pg
+	 *            the optional progress reporter
 	 * 
 	 * @return the saved resource (the main saved {@link File})
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public File export(String luid, OutputType type, String target)
+	public File export(String luid, OutputType type, String target, Progress pg)
 			throws IOException {
 		BasicOutput out = BasicOutput.getOutput(type, true);
 		if (out == null) {
 			throw new IOException("Output type not supported: " + type);
 		}
 
-		Story story = getStory(luid);
+		Story story = getStory(luid, pg);
 		if (story == null) {
 			throw new IOException("Cannot find story to export: " + luid);
 		}
 
-		return out.process(getStory(luid), target);
+		return out.process(story, target);
 	}
 
 	/**

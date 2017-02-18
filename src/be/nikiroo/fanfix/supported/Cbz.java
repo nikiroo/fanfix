@@ -14,6 +14,7 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.utils.ui.Progress;
 
 /**
  * Support class for CBZ files (works better with CBZ created with this program,
@@ -54,7 +55,13 @@ class Cbz extends Epub {
 	}
 
 	@Override
-	public Story process(URL url) throws IOException {
+	public Story process(URL url, Progress pg) throws IOException {
+		if (pg == null) {
+			pg = new Progress();
+		} else {
+			pg.setMinMax(0, 100);
+		}
+
 		Story story = processMeta(url, false, true);
 		story.setChapters(new ArrayList<Chapter>());
 		Chapter chap = new Chapter(1, null);
@@ -62,6 +69,7 @@ class Cbz extends Epub {
 
 		ZipInputStream zipIn = new ZipInputStream(getInput());
 
+		pg.setProgress(10);
 		List<String> images = new ArrayList<String>();
 		for (ZipEntry entry = zipIn.getNextEntry(); entry != null; entry = zipIn
 				.getNextEntry()) {
@@ -87,8 +95,11 @@ class Cbz extends Epub {
 			}
 		}
 
+		pg.setProgress(80);
+
 		// ZIP order is not sure
 		Collections.sort(images);
+		pg.setProgress(90);
 
 		for (String uuid : images) {
 			try {
@@ -99,6 +110,7 @@ class Cbz extends Epub {
 			}
 		}
 
+		pg.setProgress(100);
 		return story;
 	}
 }

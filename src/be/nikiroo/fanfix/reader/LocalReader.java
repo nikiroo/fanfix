@@ -9,6 +9,7 @@ import be.nikiroo.fanfix.Library;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
+import be.nikiroo.utils.ui.Progress;
 
 class LocalReader extends BasicReader {
 	private Library lib;
@@ -46,10 +47,20 @@ class LocalReader extends BasicReader {
 	public void read(int chapter) {
 	}
 
-	// keep same luid
-	public void imprt(String luid) throws IOException {
+	/**
+	 * Import the story into the local reader library, and keep the same LUID.
+	 * 
+	 * @param luid
+	 *            the Library UID
+	 * @param pg
+	 *            the optional progress reporter
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public void imprt(String luid, Progress pg) throws IOException {
 		try {
-			Story story = Instance.getLibrary().getStory(luid);
+			Story story = Instance.getLibrary().getStory(luid, pg);
 			if (story != null) {
 				story = lib.save(story, luid);
 			} else {
@@ -62,10 +73,23 @@ class LocalReader extends BasicReader {
 		}
 	}
 
-	public File getTarget(String luid) throws IOException {
+	/**
+	 * Get the target file related to this {@link Story}.
+	 * 
+	 * @param luid
+	 *            the LUID of the {@link Story}
+	 * @param pg
+	 *            the optional progress reporter
+	 * 
+	 * @return the target file
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public File getTarget(String luid, Progress pg) throws IOException {
 		File file = lib.getFile(luid);
 		if (file == null) {
-			imprt(luid);
+			imprt(luid, pg);
 			file = lib.getFile(luid);
 		}
 

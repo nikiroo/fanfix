@@ -8,6 +8,7 @@ import be.nikiroo.fanfix.Library;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.supported.BasicSupport;
+import be.nikiroo.utils.ui.Progress;
 
 /**
  * The class that handles the different {@link Story} readers you can use.
@@ -78,23 +79,16 @@ public abstract class BasicReader {
 	 * 
 	 * @param luid
 	 *            the {@link Story} ID
+	 * @param pg
+	 *            the optional progress reporter
+	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public void setStory(String luid) throws IOException {
-		story = Instance.getLibrary().getStory(luid);
+	public void setStory(String luid, Progress pg) throws IOException {
+		story = Instance.getLibrary().getStory(luid, pg);
 		if (story == null) {
-			// if the LUID is wrong and < 3, pad it to 3 chars with "0" then
-			// retry (since LUIDs are %03d)
-			if (luid != null && luid.length() < 3) {
-				while (luid.length() < 3) {
-					luid = "0" + luid;
-				}
-				setStory(luid);
-			} else {
-				throw new IOException("Cannot retrieve story from library: "
-						+ luid);
-			}
+			throw new IOException("Cannot retrieve story from library: " + luid);
 		}
 	}
 
@@ -103,16 +97,19 @@ public abstract class BasicReader {
 	 * 
 	 * @param source
 	 *            the {@link Story} {@link URL}
+	 * @param pg
+	 *            the optional progress reporter
+	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public void setStory(URL source) throws IOException {
+	public void setStory(URL source, Progress pg) throws IOException {
 		BasicSupport support = BasicSupport.getSupport(source);
 		if (support == null) {
 			throw new IOException("URL not supported: " + source.toString());
 		}
 
-		story = support.process(source);
+		story = support.process(source, pg);
 		if (story == null) {
 			throw new IOException(
 					"Cannot retrieve story from external source: "

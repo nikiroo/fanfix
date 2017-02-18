@@ -14,6 +14,7 @@ import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.StringUtils;
+import be.nikiroo.utils.ui.Progress;
 
 /**
  * Support class for <a href="http://e621.net/">e621.net</a> and <a
@@ -54,9 +55,9 @@ class E621 extends BasicSupport {
 	}
 
 	@Override
-	public Story process(URL url) throws IOException {
+	public Story process(URL url, Progress pg) throws IOException {
 		// There is no chapters on e621, just pagination...
-		Story story = super.process(url);
+		Story story = super.process(url, pg);
 
 		Chapter only = new Chapter(1, null);
 		for (Chapter chap : story) {

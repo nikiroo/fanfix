@@ -24,6 +24,7 @@ import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.StringUtils;
+import be.nikiroo.utils.ui.Progress;
 
 /**
  * This class is the base class used by the other support classes. It can be
@@ -328,26 +329,42 @@ public abstract class BasicSupport {
 	 * 
 	 * @param url
 	 *            the story resource
+	 * @param pg
+	 *            the optional progress reporter
 	 * 
 	 * @return the {@link Story}
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public Story process(URL url) throws IOException {
+	public Story process(URL url, Progress pg) throws IOException {
+		if (pg == null) {
+			pg = new Progress();
+		} else {
+			pg.setMinMax(0, 100);
+		}
+
 		setCurrentReferer(url);
 
+		pg.setProgress(1);
 		try {
 			Story story = processMeta(url, false, true);
+			pg.setProgress(10);
 			if (story == null) {
+				pg.setProgress(100);
 				return null;
 			}
 
 			story.setChapters(new ArrayList<Chapter>());
 
 			List<Entry<String, URL>> chapters = getChapters(url, getInput());
+			pg.setProgress(20);
+
 			int i = 1;
 			if (chapters != null) {
+				Progress pgChaps = new Progress(0, chapters.size());
+				pg.addProgress(pgChaps, 80);
+
 				for (Entry<String, URL> chap : chapters) {
 					setCurrentReferer(chap.getValue());
 					InputStream chapIn = Instance.getCache().open(
@@ -360,8 +377,11 @@ public abstract class BasicSupport {
 						chapIn.close();
 					}
 
+					pgChaps.setProgress(i);
 					i++;
 				}
+			} else {
+				pg.setProgress(100);
 			}
 
 			return story;

@@ -31,7 +31,7 @@ class LocalReaderBook extends JPanel {
 	 * 
 	 * @author niki
 	 */
-	interface BookActionListner extends EventListener {
+	interface BookActionListener extends EventListener {
 		/**
 		 * The book was selected (single click).
 		 * 
@@ -67,7 +67,7 @@ class LocalReaderBook extends JPanel {
 	private boolean hovered;
 	private Date lastClick;
 	private long doubleClickDelay = 200; // in ms
-	private List<BookActionListner> listeners;
+	private List<BookActionListener> listeners;
 
 	public LocalReaderBook(MetaData meta) {
 		if (meta.getCover() != null) {
@@ -134,7 +134,7 @@ class LocalReaderBook extends JPanel {
 	}
 
 	private void setupListeners() {
-		listeners = new ArrayList<LocalReaderBook.BookActionListner>();
+		listeners = new ArrayList<LocalReaderBook.BookActionListener>();
 		addMouseListener(new MouseListener() {
 			public void mouseReleased(MouseEvent e) {
 			}
@@ -164,7 +164,7 @@ class LocalReaderBook extends JPanel {
 	}
 
 	private void click(boolean doubleClick) {
-		for (BookActionListner listener : listeners) {
+		for (BookActionListener listener : listeners) {
 			if (doubleClick) {
 				listener.action(this);
 			} else {
@@ -173,7 +173,7 @@ class LocalReaderBook extends JPanel {
 		}
 	}
 
-	public void addActionListener(BookActionListner listener) {
+	public void addActionListener(BookActionListener listener) {
 		listeners.add(listener);
 	}
 
