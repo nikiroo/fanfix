@@ -25,7 +25,7 @@ import be.nikiroo.fanfix.Main;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.reader.LocalReaderBook.BookActionListener;
-import be.nikiroo.utils.WrapLayout;
+import be.nikiroo.utils.ui.WrapLayout;
 
 class LocalReaderFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
