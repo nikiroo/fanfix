@@ -1,10 +1,12 @@
 package be.nikiroo.fanfix.supported;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -510,90 +512,137 @@ public abstract class BasicSupport {
 
 		Chapter chap = new Chapter(number, chapterName);
 
-		if (content == null) {
-			return chap;
+		if (content != null) {
+			chap.setParagraphs(makeParagraphs(source, content));
 		}
 
+		return chap;
+
+	}
+
+	/**
+	 * Convert the given content into {@link Paragraph}s.
+	 * 
+	 * @param source
+	 *            the source URL of the story
+	 * @param content
+	 *            the textual content
+	 * 
+	 * @return the {@link Paragraph}s
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	protected List<Paragraph> makeParagraphs(URL source, String content)
+			throws IOException {
 		if (isHtml()) {
 			// Special <HR> processing:
 			content = content.replaceAll("(<hr [^>]*>)|(<hr/>)|(<hr>)",
 					"\n* * *\n");
 		}
 
+		List<Paragraph> paras = new ArrayList<Paragraph>();
 		InputStream in = new ByteArrayInputStream(content.getBytes("UTF-8"));
 		try {
-			@SuppressWarnings("resource")
-			Scanner scan = new Scanner(in, "UTF-8");
-			scan.useDelimiter("(\\n|</p>)"); // \n for test, </p> for html
+			BufferedReader buff = new BufferedReader(new InputStreamReader(in,
+					"UTF-8"));
 
-			List<Paragraph> paras = new ArrayList<Paragraph>();
-			while (scan.hasNext()) {
-				String line = scan.next().trim();
-				boolean image = false;
-				if (line.startsWith("[") && line.endsWith("]")) {
-					URL url = getImageUrl(this, source,
-							line.substring(1, line.length() - 1).trim());
-					if (url != null) {
-						paras.add(new Paragraph(url));
-						image = true;
+			for (String encodedLine = buff.readLine(); encodedLine != null; encodedLine = buff
+					.readLine()) {
+				String lines[];
+				if (isHtml()) {
+					lines = encodedLine.split("(<p>|</p>|<br>|<br/>|\\n)");
+				} else {
+					lines = new String[] { encodedLine };
+				}
+
+				for (String aline : lines) {
+					String line = aline.trim();
+
+					URL image = null;
+					if (line.startsWith("[") && line.endsWith("]")) {
+						image = getImageUrl(this, source,
+								line.substring(1, line.length() - 1).trim());
+					}
+
+					if (image != null) {
+						paras.add(new Paragraph(image));
+					} else {
+						paras.add(processPara(line));
 					}
 				}
-
-				if (!image) {
-					paras.add(processPara(line));
-				}
 			}
-
-			// Check quotes for "bad" format
-			List<Paragraph> newParas = new ArrayList<Paragraph>();
-			for (Paragraph para : paras) {
-				newParas.addAll(requotify(para));
-			}
-			paras = newParas;
-
-			// Remove double blanks/brks
-			boolean space = false;
-			boolean brk = true;
-			for (int i = 0; i < paras.size(); i++) {
-				Paragraph para = paras.get(i);
-				boolean thisSpace = para.getType() == ParagraphType.BLANK;
-				boolean thisBrk = para.getType() == ParagraphType.BREAK;
-
-				if (space && thisBrk) {
-					paras.remove(i - 1);
-					i--;
-				} else if ((space || brk) && (thisSpace || thisBrk)) {
-					paras.remove(i);
-					i--;
-				}
-
-				space = thisSpace;
-				brk = thisBrk;
-			}
-
-			// Remove blank/brk at start
-			if (paras.size() > 0
-					&& (paras.get(0).getType() == ParagraphType.BLANK || paras
-							.get(0).getType() == ParagraphType.BREAK)) {
-				paras.remove(0);
-			}
-
-			// Remove blank/brk at end
-			int last = paras.size() - 1;
-			if (paras.size() > 0
-					&& (paras.get(last).getType() == ParagraphType.BLANK || paras
-							.get(last).getType() == ParagraphType.BREAK)) {
-				paras.remove(last);
-			}
-
-			chap.setParagraphs(paras);
-
-			return chap;
 		} finally {
 			in.close();
 		}
+
+		// Check quotes for "bad" format
+		List<Paragraph> newParas = new ArrayList<Paragraph>();
+		for (Paragraph para : paras) {
+			newParas.addAll(requotify(para));
+		}
+		paras = newParas;
+
+		// Remove double blanks/brks
+		fixBlanksBreaks(paras);
+
+		return paras;
 	}
 
+	/**
+	 * Fix the {@link ParagraphType#BLANK}s and {@link ParagraphType#BREAK}s of
+	 * those {@link Paragraph}s.
+	 * <p>
+	 * The resulting list will not contain a starting or trailing blank/break
+	 * nor 2 blanks or breaks following each other.
+	 * 
+	 * @param paras
+	 *            the list of {@link Paragraph}s to fix
+	 */
+	protected void fixBlanksBreaks(List<Paragraph> paras) {
+		boolean space = false;
+		boolean brk = true;
+		for (int i = 0; i < paras.size(); i++) {
+			Paragraph para = paras.get(i);
+			boolean thisSpace = para.getType() == ParagraphType.BLANK;
+			boolean thisBrk = para.getType() == ParagraphType.BREAK;
+
+			if (i > 0 && space && thisBrk) {
+				paras.remove(i - 1);
+				i--;
+			} else if ((space || brk) && (thisSpace || thisBrk)) {
+				paras.remove(i);
+				i--;
+			}
+
+			space = thisSpace;
+			brk = thisBrk;
+		}
+
+		// Remove blank/brk at start
+		if (paras.size() > 0
+				&& (paras.get(0).getType() == ParagraphType.BLANK || paras.get(
+						0).getType() == ParagraphType.BREAK)) {
+			paras.remove(0);
+		}
+
+		// Remove blank/brk at end
+		int last = paras.size() - 1;
+		if (paras.size() > 0
+				&& (paras.get(last).getType() == ParagraphType.BLANK || paras
+						.get(last).getType() == ParagraphType.BREAK)) {
+			paras.remove(last);
+		}
+	}
+
+	/**
+	 * Get the default cover related to this subject (see <tt>.info</tt> files).
+	 * 
+	 * @param subject
+	 *            the subject
+	 * 
+	 * @return the cover if any, or NULL
+	 */
 	static BufferedImage getDefaultCover(String subject) {
 		if (subject != null && !subject.isEmpty()
 				&& Instance.getCoverDir() != null) {
@@ -772,7 +821,7 @@ public abstract class BasicSupport {
 	 * 
 	 * @return the correctly (or so we hope) quotified paragraphs
 	 */
-	private List<Paragraph> requotify(Paragraph para) {
+	protected List<Paragraph> requotify(Paragraph para) {
 		List<Paragraph> newParas = new ArrayList<Paragraph>();
 
 		if (para.getType() == ParagraphType.QUOTE

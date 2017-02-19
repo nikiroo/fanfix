@@ -87,20 +87,14 @@ public class Instance {
 			debug = true;
 		}
 
-		if (tmp == null || readerTmp == null) {
-			String tmpDir = System.getProperty("java.io.tmpdir");
-			if (tmpDir != null) {
-				if (tmp == null) {
-					tmp = new File(tmpDir, "fanfic-tmp");
-				}
-				if (readerTmp == null) {
-					readerTmp = new File(tmpDir, "fanfic-reader");
-				}
-			} else {
-				syserr(new IOException(
-						"The system does not have a default temporary directory"));
-			}
+		// Could have used: System.getProperty("java.io.tmpdir")
+		if (tmp == null) {
+			tmp = new File(configDir, "tmp");
 		}
+		if (readerTmp == null) {
+			readerTmp = new File(configDir, "tmp-reader");
+		}
+		//
 
 		if (coverDir != null && !coverDir.exists()) {
 			syserr(new IOException(

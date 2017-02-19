@@ -9,7 +9,8 @@ import be.nikiroo.utils.test.TestLauncher;
  */
 public class Test extends TestLauncher {
 	public Test(String[] args) {
-		super("Fanfix (empty: all tests were moved to nikiroo-utils...)", args);
+		super("Fanfix", args);
+		addSeries(new BasicSupportTest(args));
 	}
 
 	/**
