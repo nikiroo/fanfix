@@ -1,4 +1,4 @@
-package be.nikiroo.utils.ui;
+package be.nikiroo.utils;
 
 import java.util.ArrayList;
 import java.util.EventListener;

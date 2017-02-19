@@ -1,6 +1,6 @@
 package be.nikiroo.utils.test;
 
-import be.nikiroo.utils.ui.Progress;
+import be.nikiroo.utils.Progress;
 
 public class ProgressTest extends TestLauncher {
 	public ProgressTest(String[] args) {

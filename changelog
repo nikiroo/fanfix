@@ -1,3 +1,10 @@
+Version 1.1.1
+-------------
+
+Add UI component for Progress
+	Still a WIP, it only show the current progress bar, still not the
+	children bars (it's planned)
+
 Version 1.1.0
 -------------
 

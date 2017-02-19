@@ -1,5 +1,6 @@
 package be.nikiroo.utils.resources;
 
+import java.awt.Color;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -176,6 +177,31 @@ public class Bundle<E extends Enum<E>> {
 		}
 
 		return ' ';
+	}
+
+	/**
+	 * Return the value associated to the given id as a {@link Color}.
+	 * 
+	 * @param the
+	 *            id of the value to get
+	 * 
+	 * @return the associated value
+	 */
+	public Color getColor(E id) {
+		Color color = null;
+
+		String bg = getString(id).trim();
+		if (bg.startsWith("#") && bg.length() == 7) {
+			try {
+				color = new Color(Integer.parseInt(bg.substring(1, 3), 16),
+						Integer.parseInt(bg.substring(3, 5), 16),
+						Integer.parseInt(bg.substring(5, 7), 16));
+			} catch (NumberFormatException e) {
+				color = null; // no changes
+			}
+		}
+
+		return color;
 	}
 
 	/**
