@@ -19,12 +19,14 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 
 import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.Main;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.reader.LocalReaderBook.BookActionListener;
+import be.nikiroo.utils.Progress;
+import be.nikiroo.utils.ui.ProgressBar;
 import be.nikiroo.utils.ui.WrapLayout;
 
 class LocalReaderFrame extends JFrame {
@@ -35,6 +37,8 @@ class LocalReaderFrame extends JFrame {
 	private JPanel bookPane;
 	private String type;
 	private Color color;
+	private ProgressBar pgBar;
+	private JMenuBar bar;
 
 	public LocalReaderFrame(LocalReader reader, String type) {
 		super("Fanfix Library");
@@ -48,18 +52,7 @@ class LocalReaderFrame extends JFrame {
 		books = new ArrayList<LocalReaderBook>();
 		bookPane = new JPanel(new WrapLayout(WrapLayout.LEADING, 5, 5));
 
-		color = null;
-		String bg = Instance.getUiConfig().getString(UiConfig.BACKGROUND_COLOR);
-		if (bg.startsWith("#") && bg.length() == 7) {
-			try {
-				color = new Color(Integer.parseInt(bg.substring(1, 3), 16),
-						Integer.parseInt(bg.substring(3, 5), 16),
-						Integer.parseInt(bg.substring(5, 7), 16));
-			} catch (NumberFormatException e) {
-				color = null; // no changes
-				e.printStackTrace();
-			}
-		}
+		color = Instance.getUiConfig().getColor(UiConfig.BACKGROUND_COLOR);
 
 		if (color != null) {
 			setBackground(color);
@@ -69,6 +62,9 @@ class LocalReaderFrame extends JFrame {
 		JScrollPane scroll = new JScrollPane(bookPane);
 		scroll.getVerticalScrollBar().setUnitIncrement(16);
 		add(scroll, BorderLayout.CENTER);
+
+		pgBar = new ProgressBar();
+		add(pgBar, BorderLayout.SOUTH);
 
 		refreshBooks(type);
 		setJMenuBar(createMenu());
@@ -97,13 +93,18 @@ class LocalReaderFrame extends JFrame {
 				}
 
 				public void action(LocalReaderBook book) {
-					try {
-						File target = LocalReaderFrame.this.reader.getTarget(
-								luid, null);
-						Desktop.getDesktop().browse(target.toURI());
-					} catch (IOException e) {
-						Instance.syserr(e);
-					}
+					final Progress pg = new Progress();
+					outOfUi(pg, new Runnable() {
+						public void run() {
+							try {
+								File target = LocalReaderFrame.this.reader
+										.getTarget(luid, pg);
+								Desktop.getDesktop().browse(target.toURI());
+							} catch (IOException e) {
+								Instance.syserr(e);
+							}
+						}
+					});
 				}
 			});
 
@@ -115,26 +116,48 @@ class LocalReaderFrame extends JFrame {
 	}
 
 	private JMenuBar createMenu() {
-		JMenuBar bar = new JMenuBar();
+		bar = new JMenuBar();
 
 		JMenu file = new JMenu("File");
 
 		JMenuItem imprt = new JMenuItem("Import", KeyEvent.VK_I);
 		imprt.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String url = JOptionPane.showInputDialog(LocalReaderFrame.this,
-						"url of the story to import?\n" + "\n"
-								+ "Note: it will currently make the UI \n"
-								+ "unresponsive until it is downloaded...",
+				final String url = JOptionPane.showInputDialog(
+						LocalReaderFrame.this, "url of the story to import?",
 						"Importing from URL", JOptionPane.QUESTION_MESSAGE);
 				if (url != null && !url.isEmpty()) {
-					if (Main.imprt(url, null) != 0) {
-						JOptionPane.showMessageDialog(LocalReaderFrame.this,
-								"Cannot import: " + url, "Imort error",
-								JOptionPane.ERROR_MESSAGE);
-					} else {
-						refreshBooks(type);
-					}
+					final Progress pg = new Progress("Importing " + url);
+					outOfUi(pg, new Runnable() {
+						public void run() {
+							Exception ex = null;
+							try {
+								Instance.getLibrary().imprt(
+										BasicReader.getUrl(url), pg);
+							} catch (IOException e) {
+								ex = e;
+							}
+
+							final Exception e = ex;
+
+							final boolean ok = (e == null);
+							SwingUtilities.invokeLater(new Runnable() {
+								public void run() {
+									if (!ok) {
+										JOptionPane.showMessageDialog(
+												LocalReaderFrame.this,
+												"Cannot import: " + url,
+												e.getMessage(),
+												JOptionPane.ERROR_MESSAGE);
+
+										setAllEnabled(true);
+									} else {
+										refreshBooks(type);
+									}
+								}
+							});
+						}
+					});
 				}
 			}
 		});
@@ -166,5 +189,45 @@ class LocalReaderFrame extends JFrame {
 		bar.add(file);
 
 		return bar;
+	}
+
+	private void outOfUi(final Progress pg, final Runnable run) {
+		pgBar.setProgress(pg);
+
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				setAllEnabled(false);
+				pgBar.addActioListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						pgBar.setProgress(null);
+						setAllEnabled(true);
+					}
+				});
+			}
+		});
+
+		new Thread(new Runnable() {
+			public void run() {
+				run.run();
+				if (!pg.isDone()) {
+					pg.setProgress(pg.getMax());
+				}
+			}
+		}).start();
+	}
+
+	public void setAllEnabled(boolean enabled) {
+		for (LocalReaderBook book : books) {
+			book.setEnabled(enabled);
+			book.validate();
+			book.repaint();
+		}
+		bar.setEnabled(enabled);
+		bookPane.setEnabled(enabled);
+		bookPane.validate();
+		bookPane.repaint();
+		setEnabled(enabled);
+		validate();
+		repaint();
 	}
 }

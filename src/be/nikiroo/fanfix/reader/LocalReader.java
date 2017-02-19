@@ -9,7 +9,7 @@ import be.nikiroo.fanfix.Library;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
-import be.nikiroo.utils.ui.Progress;
+import be.nikiroo.utils.Progress;
 
 class LocalReader extends BasicReader {
 	private Library lib;

@@ -23,8 +23,8 @@ import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
-import be.nikiroo.utils.ui.Progress;
 
 /**
  * This class is the base class used by the other support classes. It can be
@@ -377,8 +377,7 @@ public abstract class BasicSupport {
 						chapIn.close();
 					}
 
-					pgChaps.setProgress(i);
-					i++;
+					pgChaps.setProgress(i++);
 				}
 			} else {
 				pg.setProgress(100);

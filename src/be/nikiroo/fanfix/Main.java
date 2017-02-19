@@ -14,8 +14,8 @@ import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.reader.BasicReader.ReaderType;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
+import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.ui.UIUtils;
-import be.nikiroo.utils.ui.Progress;
 
 /**
  * Main program entry point.
@@ -230,34 +230,6 @@ public class Main {
 	}
 
 	/**
-	 * Return an {@link URL} from this {@link String}, be it a file path or an
-	 * actual {@link URL}.
-	 * 
-	 * @param sourceString
-	 *            the source
-	 * 
-	 * @return the corresponding {@link URL}
-	 * 
-	 * @throws MalformedURLException
-	 *             if this is neither a file nor a conventional {@link URL}
-	 */
-	private static URL getUrl(String sourceString) throws MalformedURLException {
-		if (sourceString == null || sourceString.isEmpty()) {
-			throw new MalformedURLException("Empty url");
-		}
-
-		URL source = null;
-		try {
-			source = new URL(sourceString);
-		} catch (MalformedURLException e) {
-			File sourceFile = new File(sourceString);
-			source = sourceFile.toURI().toURL();
-		}
-
-		return source;
-	}
-
-	/**
 	 * Import the given resource into the {@link Library}.
 	 * 
 	 * @param urlString
@@ -269,7 +241,8 @@ public class Main {
 	 */
 	public static int imprt(String urlString, Progress pg) {
 		try {
-			Story story = Instance.getLibrary().imprt(getUrl(urlString), pg);
+			Story story = Instance.getLibrary().imprt(
+					BasicReader.getUrl(urlString), pg);
 			System.out.println(story.getMeta().getLuid() + ": \""
 					+ story.getMeta().getTitle() + "\" imported.");
 		} catch (IOException e) {
@@ -349,7 +322,7 @@ public class Main {
 			if (library) {
 				reader.setStory(story, null);
 			} else {
-				reader.setStory(getUrl(story), null);
+				reader.setStory(BasicReader.getUrl(story), null);
 			}
 
 			if (chapString != null) {
@@ -394,7 +367,7 @@ public class Main {
 
 		String sourceName = urlString;
 		try {
-			URL source = getUrl(urlString);
+			URL source = BasicReader.getUrl(urlString);
 			sourceName = source.toString();
 			if (source.toString().startsWith("file://")) {
 				sourceName = sourceName.substring("file://".length());

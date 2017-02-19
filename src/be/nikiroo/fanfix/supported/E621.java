@@ -13,8 +13,8 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
-import be.nikiroo.utils.ui.Progress;
 
 /**
  * Support class for <a href="http://e621.net/">e621.net</a> and <a

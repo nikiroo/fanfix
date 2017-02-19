@@ -11,7 +11,7 @@ import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
-import be.nikiroo.utils.ui.Progress;
+import be.nikiroo.utils.Progress;
 
 /**
  * This class is the base class used by the other output classes. It can be used

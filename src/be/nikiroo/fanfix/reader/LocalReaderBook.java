@@ -59,10 +59,10 @@ class LocalReaderBook extends JPanel {
 	private static final int TEXT_WIDTH = COVER_WIDTH + 40;
 	private static final int TEXT_HEIGHT = 50;
 	private static final String AUTHOR_COLOR = "#888888";
-
 	private static final long serialVersionUID = 1L;
+
 	private JLabel icon;
-	private JLabel tt;
+	private JLabel title;
 	private boolean selected;
 	private boolean hovered;
 	private Date lastClick;
@@ -91,7 +91,7 @@ class LocalReaderBook extends JPanel {
 		if (optAuthor != null && !optAuthor.isEmpty()) {
 			optAuthor = "(" + optAuthor + ")";
 		}
-		tt = new JLabel(
+		title = new JLabel(
 				String.format(
 						"<html>"
 								+ "<body style='width: %d px; height: %d px; text-align: center'>"
@@ -102,7 +102,7 @@ class LocalReaderBook extends JPanel {
 
 		this.setLayout(new BorderLayout(10, 10));
 		this.add(icon, BorderLayout.CENTER);
-		this.add(tt, BorderLayout.SOUTH);
+		this.add(title, BorderLayout.SOUTH);
 
 		setupListeners();
 		setSelected(false);
@@ -151,14 +151,16 @@ class LocalReaderBook extends JPanel {
 			}
 
 			public void mouseClicked(MouseEvent e) {
-				Date now = new Date();
-				if (lastClick != null
-						&& now.getTime() - lastClick.getTime() < doubleClickDelay) {
-					click(true);
-				} else {
-					click(false);
+				if (isEnabled()) {
+					Date now = new Date();
+					if (lastClick != null
+							&& now.getTime() - lastClick.getTime() < doubleClickDelay) {
+						click(true);
+					} else {
+						click(false);
+					}
+					lastClick = now;
 				}
-				lastClick = now;
 			}
 		});
 	}
@@ -199,7 +201,8 @@ class LocalReaderBook extends JPanel {
 		g.fillPolygon(new Polygon(xs, ys, xs.length));
 
 		Color color = new Color(255, 255, 255, 0);
-		if (selected && !hovered) {
+		if (!isEnabled()) {
+		} else if (selected && !hovered) {
 			color = new Color(80, 80, 100, 40);
 		} else if (!selected && hovered) {
 			color = new Color(230, 230, 255, 100);

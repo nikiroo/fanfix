@@ -14,7 +14,7 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
-import be.nikiroo.utils.ui.Progress;
+import be.nikiroo.utils.Progress;
 
 /**
  * Support class for CBZ files (works better with CBZ created with this program,

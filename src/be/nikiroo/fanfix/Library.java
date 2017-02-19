@@ -14,9 +14,9 @@ import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.supported.BasicSupport;
-import be.nikiroo.utils.ui.Progress;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 import be.nikiroo.fanfix.supported.InfoReader;
+import be.nikiroo.utils.Progress;
 
 /**
  * Manage a library of Stories: import, export, list.

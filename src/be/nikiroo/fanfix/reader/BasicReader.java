@@ -1,6 +1,8 @@
 package be.nikiroo.fanfix.reader;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import be.nikiroo.fanfix.Instance;
@@ -8,7 +10,7 @@ import be.nikiroo.fanfix.Library;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.supported.BasicSupport;
-import be.nikiroo.utils.ui.Progress;
+import be.nikiroo.utils.Progress;
 
 /**
  * The class that handles the different {@link Story} readers you can use.
@@ -189,5 +191,33 @@ public abstract class BasicReader {
 	 */
 	public static void setDefaultReaderType(ReaderType defaultType) {
 		BasicReader.defaultType = defaultType;
+	}
+
+	/**
+	 * Return an {@link URL} from this {@link String}, be it a file path or an
+	 * actual {@link URL}.
+	 * 
+	 * @param sourceString
+	 *            the source
+	 * 
+	 * @return the corresponding {@link URL}
+	 * 
+	 * @throws MalformedURLException
+	 *             if this is neither a file nor a conventional {@link URL}
+	 */
+	public static URL getUrl(String sourceString) throws MalformedURLException {
+		if (sourceString == null || sourceString.isEmpty()) {
+			throw new MalformedURLException("Empty url");
+		}
+
+		URL source = null;
+		try {
+			source = new URL(sourceString);
+		} catch (MalformedURLException e) {
+			File sourceFile = new File(sourceString);
+			source = sourceFile.toURI().toURL();
+		}
+
+		return source;
 	}
 }
