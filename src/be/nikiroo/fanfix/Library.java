@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput;
@@ -58,7 +59,7 @@ public class Library {
 	 * 
 	 * @return the types
 	 */
-	public List<String> getTypes() {
+	public synchronized List<String> getTypes() {
 		List<String> list = new ArrayList<String>();
 		for (Entry<MetaData, File> entry : getStories().entrySet()) {
 			String storyType = entry.getValue().getParentFile().getName();
@@ -79,7 +80,7 @@ public class Library {
 	 * 
 	 * @return the stories
 	 */
-	public List<MetaData> getList(String type) {
+	public synchronized List<MetaData> getList(String type) {
 		List<MetaData> list = new ArrayList<MetaData>();
 		for (Entry<MetaData, File> entry : getStories().entrySet()) {
 			String storyType = entry.getValue().getParentFile().getName();
@@ -99,7 +100,7 @@ public class Library {
 	 * 
 	 * @return the corresponding {@link Story}
 	 */
-	public MetaData getInfo(String luid) {
+	public synchronized MetaData getInfo(String luid) {
 		if (luid != null) {
 			for (Entry<MetaData, File> entry : getStories().entrySet()) {
 				if (luid.equals(entry.getKey().getLuid())) {
@@ -119,7 +120,7 @@ public class Library {
 	 * 
 	 * @return the corresponding {@link Story}
 	 */
-	public File getFile(String luid) {
+	public synchronized File getFile(String luid) {
 		if (luid != null) {
 			for (Entry<MetaData, File> entry : getStories().entrySet()) {
 				if (luid.equals(entry.getKey().getLuid())) {
@@ -141,7 +142,7 @@ public class Library {
 	 * 
 	 * @return the corresponding {@link Story} or NULL if not found
 	 */
-	public Story getStory(String luid, Progress pg) {
+	public synchronized Story getStory(String luid, Progress pg) {
 		if (luid != null) {
 			for (Entry<MetaData, File> entry : getStories().entrySet()) {
 				if (luid.equals(entry.getKey().getLuid())) {
@@ -271,7 +272,8 @@ public class Library {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public Story save(Story story, String luid, Progress pg) throws IOException {
+	public synchronized Story save(Story story, String luid, Progress pg)
+			throws IOException {
 		// Do not change the original metadata, but change the original story
 		MetaData key = story.getMeta().clone();
 		story.setMeta(key);
@@ -296,10 +298,59 @@ public class Library {
 		}
 
 		BasicOutput it = BasicOutput.getOutput(out, true);
-		File file = it.process(story, getFile(key).getPath(), pg);
-		getStories().put(story.getMeta(), file);
+		it.process(story, getFile(key).getPath(), pg);
+
+		// empty cache
+		stories.clear();
 
 		return story;
+	}
+
+	/**
+	 * Delete the given {@link Story} from this {@link Library}.
+	 * 
+	 * @param luid
+	 *            the LUID of the target {@link Story}
+	 * 
+	 * @return TRUE if it was deleted
+	 */
+	public synchronized boolean delete(String luid) {
+		boolean ok = false;
+
+		MetaData meta = getInfo(luid);
+		File file = getStories().get(meta);
+
+		if (file != null) {
+			if (file.delete()) {
+				String newExt = getOutputType(meta).getDefaultExtension(false);
+
+				String path = file.getAbsolutePath();
+				File infoFile = new File(path + ".info");
+				if (!infoFile.exists()) {
+					infoFile = new File(path.substring(0, path.length()
+							- newExt.length())
+							+ ".info");
+				}
+				infoFile.delete();
+
+				String coverExt = "."
+						+ Instance.getConfig().getString(
+								Config.IMAGE_FORMAT_COVER);
+				File coverFile = new File(path + coverExt);
+				if (!coverFile.exists()) {
+					coverFile = new File(path.substring(0, path.length()
+							- newExt.length()));
+				}
+				coverFile.delete();
+
+				ok = true;
+			}
+
+			// clear cache
+			stories.clear();
+		}
+
+		return ok;
 	}
 
 	/**
@@ -335,7 +386,7 @@ public class Library {
 	 * 
 	 * @return the stories
 	 */
-	private Map<MetaData, File> getStories() {
+	private synchronized Map<MetaData, File> getStories() {
 		if (stories.isEmpty()) {
 			lastId = 0;
 
@@ -358,7 +409,7 @@ public class Library {
 											- ext.length());
 
 									String newExt = getOutputType(meta)
-											.getDefaultExtension();
+											.getDefaultExtension(true);
 
 									file = new File(path + newExt);
 									//

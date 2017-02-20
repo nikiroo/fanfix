@@ -23,7 +23,7 @@ class Text extends BasicOutput {
 	public File process(Story story, File targetDir, String targetName)
 			throws IOException {
 		String targetNameOrig = targetName;
-		targetName += getDefaultExtension();
+		targetName += getDefaultExtension(false);
 
 		this.targetDir = targetDir;
 
@@ -42,7 +42,7 @@ class Text extends BasicOutput {
 	}
 
 	@Override
-	public String getDefaultExtension() {
+	public String getDefaultExtension(boolean readerTarget) {
 		return ".txt";
 	}
 

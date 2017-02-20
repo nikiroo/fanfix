@@ -104,6 +104,10 @@ class LocalReader extends BasicReader {
 		return file;
 	}
 
+	public boolean isCached(String luid) {
+		return lib.getInfo(luid) != null;
+	}
+
 	@Override
 	public void start(String type) {
 		final String typeFinal = type;
@@ -113,5 +117,14 @@ class LocalReader extends BasicReader {
 						.setVisible(true);
 			}
 		});
+	}
+
+	void refresh(String luid) {
+		lib.delete(luid);
+	}
+
+	void delete(String luid) {
+		lib.delete(luid);
+		Instance.getLibrary().delete(luid);
 	}
 }

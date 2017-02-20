@@ -18,7 +18,7 @@ class Cbz extends BasicOutput {
 	public File process(Story story, File targetDir, String targetName)
 			throws IOException {
 		String targetNameOrig = targetName;
-		targetName += getDefaultExtension();
+		targetName += getDefaultExtension(false);
 
 		File target = new File(targetDir, targetName);
 
@@ -45,7 +45,7 @@ class Cbz extends BasicOutput {
 	}
 
 	@Override
-	public String getDefaultExtension() {
+	public String getDefaultExtension(boolean readerTarget) {
 		return ".cbz";
 	}
 

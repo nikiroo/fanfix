@@ -89,8 +89,9 @@ Currently missing, but either in progress or planned:
   - [x] Make one
   - [x] Make it run when no args passed
   - [x] Fix the UI, it is ugly
-  - [ ] Work on the UI thread is BAD
+  - [x] Work on the UI thread is BAD
   - [ ] Allow export
+  - [x] Allow delete/refresh
   - [ ] Show a list of types
     - [x] ..in the menu
     - [ ] ..as a screen view
@@ -100,14 +101,15 @@ Currently missing, but either in progress or planned:
 - [ ] Translations
   - [x] i18n system in place
   - [x] Make use of it
-  - [x] Use it for all user output (some WIP remains)
+  - [x] Use it for most user ouput
+  - [ ] Use it for all user output
   - [ ] French translation
 - [ ] Allow lauching a custom application instead of Desktop.start ?
   - [ ] Make a wrapper for firefox to create a new, empty profile ?
-- [ ] Install a mechanism to handle stories import/export progress update
+- [x] Install a mechanism to handle stories import/export progress update
   - [x] Progress system
   - [x] in support classes (import)
-  - [ ] in output classes (export)
+  - [x] in output classes (export)
   - [x] CLI usage of such
-  - [ ] GUI usage of such
+  - [x] GUI usage of such
 

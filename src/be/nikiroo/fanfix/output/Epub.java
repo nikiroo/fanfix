@@ -32,7 +32,7 @@ class Epub extends BasicOutput {
 	public File process(Story story, File targetDir, String targetName)
 			throws IOException {
 		String targetNameOrig = targetName;
-		targetName += getDefaultExtension();
+		targetName += getDefaultExtension(false);
 
 		tmpDir = File.createTempFile("fanfic-reader-epub_", ".wip");
 		tmpDir.delete();
@@ -60,7 +60,7 @@ class Epub extends BasicOutput {
 	}
 
 	@Override
-	public String getDefaultExtension() {
+	public String getDefaultExtension(boolean readerTarget) {
 		return ".epub";
 	}
 

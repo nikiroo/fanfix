@@ -68,8 +68,13 @@ class LocalReaderBook extends JPanel {
 	private Date lastClick;
 	private long doubleClickDelay = 200; // in ms
 	private List<BookActionListener> listeners;
+	private String luid;
+	private boolean cached;
 
-	public LocalReaderBook(MetaData meta) {
+	public LocalReaderBook(MetaData meta, boolean cached) {
+		this.luid = meta.getLuid();
+		this.cached = cached;
+
 		if (meta.getCover() != null) {
 			BufferedImage resizedImage = new BufferedImage(SPINE_WIDTH
 					+ COVER_WIDTH, SPINE_HEIGHT + COVER_HEIGHT + HOFFSET,
@@ -179,6 +184,29 @@ class LocalReaderBook extends JPanel {
 		listeners.add(listener);
 	}
 
+	public String getLuid() {
+		return luid;
+	}
+
+	/**
+	 * This boos is cached into the {@link LocalReader} library.
+	 * 
+	 * @return the cached
+	 */
+	public boolean isCached() {
+		return cached;
+	}
+
+	/**
+	 * This boos is cached into the {@link LocalReader} library.
+	 * 
+	 * @param cached
+	 *            the cached to set
+	 */
+	public void setCached(boolean cached) {
+		this.cached = cached;
+	}
+
 	@Override
 	public void paint(Graphics g) {
 		super.paint(g);
@@ -211,6 +239,11 @@ class LocalReaderBook extends JPanel {
 		}
 
 		Rectangle clip = g.getClipBounds();
+		if (cached) {
+			g.setColor(Color.green);
+			g.fillOval(clip.x + clip.width - 30, 10, 20, 20);
+		}
+		
 		g.setColor(color);
 		g.fillRect(clip.x, clip.y, clip.width, clip.height);
 	}

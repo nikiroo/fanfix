@@ -34,9 +34,7 @@ class Html extends BasicOutput {
 		target.mkdir();
 		dir = target;
 
-		targetName += getDefaultExtension();
-
-		target = new File(targetDir, targetName);
+		target = new File(targetDir, targetName + getDefaultExtension(true));
 
 		writer = new BufferedWriter(new OutputStreamWriter(
 				new FileOutputStream(target), "UTF-8"));
@@ -58,8 +56,12 @@ class Html extends BasicOutput {
 	}
 
 	@Override
-	public String getDefaultExtension() {
-		return File.separator + "index.html";
+	public String getDefaultExtension(boolean readerTarget) {
+		if (readerTarget) {
+			return File.separator + "index.html";
+		} else {
+			return "";
+		}
 	}
 
 	@Override

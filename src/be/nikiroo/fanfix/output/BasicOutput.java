@@ -69,12 +69,17 @@ public abstract class BasicOutput {
 		/**
 		 * The default extension to add to the output files.
 		 * 
+		 * @param readerTarget
+		 *            the target to point to to read the {@link Story} (for
+		 *            instance, the main entry point if this {@link Story} is in
+		 *            a directory bundle)
+		 * 
 		 * @return the extension
 		 */
-		public String getDefaultExtension() {
+		public String getDefaultExtension(boolean readerTarget) {
 			BasicOutput output = BasicOutput.getOutput(this, false);
 			if (output != null) {
-				return output.getDefaultExtension();
+				return output.getDefaultExtension(readerTarget);
 			}
 
 			return null;
@@ -166,7 +171,7 @@ public abstract class BasicOutput {
 		File targetDir = new File(target).getParentFile();
 		String targetName = new File(target).getName();
 
-		String ext = getDefaultExtension();
+		String ext = getDefaultExtension(false);
 		if (ext != null && !ext.isEmpty()) {
 			if (targetName.toLowerCase().endsWith(ext)) {
 				targetName = targetName.substring(0,
@@ -239,9 +244,14 @@ public abstract class BasicOutput {
 	/**
 	 * The default extension to add to the output files.
 	 * 
+	 * @param readerTarget
+	 *            the target to point to to read the {@link Story} (for
+	 *            instance, the main entry point if this {@link Story} is in a
+	 *            directory bundle)
+	 * 
 	 * @return the extension
 	 */
-	public String getDefaultExtension() {
+	public String getDefaultExtension(boolean readerTarget) {
 		return "";
 	}
 

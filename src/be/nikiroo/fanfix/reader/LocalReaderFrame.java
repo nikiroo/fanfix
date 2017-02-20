@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -39,6 +40,7 @@ class LocalReaderFrame extends JFrame {
 	private Color color;
 	private ProgressBar pgBar;
 	private JMenuBar bar;
+	private LocalReaderBook selectedBook;
 
 	public LocalReaderFrame(LocalReader reader, String type) {
 		super("Fanfix Library");
@@ -78,7 +80,8 @@ class LocalReaderFrame extends JFrame {
 		books.clear();
 		bookPane.removeAll();
 		for (MetaData meta : stories) {
-			LocalReaderBook book = new LocalReaderBook(meta);
+			LocalReaderBook book = new LocalReaderBook(meta,
+					reader.isCached(meta.getLuid()));
 			if (color != null) {
 				book.setBackground(color);
 			}
@@ -87,18 +90,20 @@ class LocalReaderFrame extends JFrame {
 			final String luid = meta.getLuid();
 			book.addActionListener(new BookActionListener() {
 				public void select(LocalReaderBook book) {
+					selectedBook = book;
 					for (LocalReaderBook abook : books) {
 						abook.setSelected(abook == book);
 					}
 				}
 
-				public void action(LocalReaderBook book) {
+				public void action(final LocalReaderBook book) {
 					final Progress pg = new Progress();
 					outOfUi(pg, new Runnable() {
 						public void run() {
 							try {
 								File target = LocalReaderFrame.this.reader
 										.getTarget(luid, pg);
+								book.setCached(true);
 								// TODO: allow custom programs, with
 								// Desktop/xdg-open fallback
 								try {
@@ -146,60 +151,20 @@ class LocalReaderFrame extends JFrame {
 		bar = new JMenuBar();
 
 		JMenu file = new JMenu("File");
+		file.setMnemonic(KeyEvent.VK_F);
 
-		JMenuItem imprt = new JMenuItem("Import", KeyEvent.VK_I);
+		JMenuItem imprt = new JMenuItem("Import URL", KeyEvent.VK_U);
 		imprt.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				final String url = JOptionPane.showInputDialog(
-						LocalReaderFrame.this, "url of the story to import?",
-						"Importing from URL", JOptionPane.QUESTION_MESSAGE);
-				if (url != null && !url.isEmpty()) {
-					final Progress pg = new Progress("Importing " + url);
-					outOfUi(pg, new Runnable() {
-						public void run() {
-							Exception ex = null;
-							try {
-								Instance.getLibrary().imprt(
-										BasicReader.getUrl(url), pg);
-							} catch (IOException e) {
-								ex = e;
-							}
-
-							final Exception e = ex;
-
-							final boolean ok = (e == null);
-							SwingUtilities.invokeLater(new Runnable() {
-								public void run() {
-									if (!ok) {
-										JOptionPane.showMessageDialog(
-												LocalReaderFrame.this,
-												"Cannot import: " + url,
-												e.getMessage(),
-												JOptionPane.ERROR_MESSAGE);
-
-										setAllEnabled(true);
-									} else {
-										refreshBooks(type);
-									}
-								}
-							});
-						}
-					});
-				}
+				imprt(true);
 			}
 		});
-		JMenu types = new JMenu("Type");
-		List<String> tt = Instance.getLibrary().getTypes();
-		tt.add(0, null);
-		for (final String type : tt) {
-			JMenuItem item = new JMenuItem(type == null ? "[all]" : type);
-			item.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					refreshBooks(type);
-				}
-			});
-			types.add(item);
-		}
+		JMenuItem imprtF = new JMenuItem("Import File", KeyEvent.VK_F);
+		imprtF.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				imprt(false);
+			}
+		});
 		JMenuItem exit = new JMenuItem("Exit", KeyEvent.VK_X);
 		exit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -209,11 +174,89 @@ class LocalReaderFrame extends JFrame {
 		});
 
 		file.add(imprt);
-		file.add(types);
+		file.add(imprtF);
 		file.addSeparator();
 		file.add(exit);
 
 		bar.add(file);
+
+		JMenu edit = new JMenu("Edit");
+		edit.setMnemonic(KeyEvent.VK_E);
+
+		final String notYet = "[TODO] Show not ready yet, but you can do it on command line, see: fanfix --help";
+
+		JMenuItem export = new JMenuItem("Export", KeyEvent.VK_E);
+		export.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(LocalReaderFrame.this, notYet);
+			}
+		});
+
+		JMenuItem refresh = new JMenuItem("Refresh", KeyEvent.VK_R);
+		refresh.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (selectedBook != null) {
+					outOfUi(null, new Runnable() {
+						public void run() {
+							reader.refresh(selectedBook.getLuid());
+							selectedBook.setCached(false);
+							SwingUtilities.invokeLater(new Runnable() {
+								public void run() {
+									selectedBook.repaint();
+								}
+							});
+						}
+					});
+				}
+			}
+		});
+
+		JMenuItem delete = new JMenuItem("Delete", KeyEvent.VK_D);
+		delete.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (selectedBook != null) {
+					outOfUi(null, new Runnable() {
+						public void run() {
+							reader.delete(selectedBook.getLuid());
+							selectedBook = null;
+							SwingUtilities.invokeLater(new Runnable() {
+								public void run() {
+									refreshBooks(type);
+								}
+							});
+						}
+					});
+				}
+			}
+		});
+
+		edit.add(export);
+		edit.add(refresh);
+		edit.add(delete);
+
+		bar.add(edit);
+
+		JMenu view = new JMenu("View");
+		view.setMnemonic(KeyEvent.VK_V);
+
+		List<String> tt = Instance.getLibrary().getTypes();
+		tt.add(0, null);
+		for (final String type : tt) {
+
+			JMenuItem item = new JMenuItem(type == null ? "All books" : type);
+			item.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					refreshBooks(type);
+				}
+			});
+			view.add(item);
+
+			if (type == null) {
+				view.addSeparator();
+			}
+		}
+
+		bar.add(view);
 
 		return bar;
 	}
@@ -236,11 +279,66 @@ class LocalReaderFrame extends JFrame {
 		new Thread(new Runnable() {
 			public void run() {
 				run.run();
-				if (!pg.isDone()) {
+				if (pg == null) {
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							setAllEnabled(true);
+						}
+					});
+				} else if (!pg.isDone()) {
 					pg.setProgress(pg.getMax());
 				}
 			}
 		}).start();
+	}
+
+	private void imprt(boolean askUrl) {
+		JFileChooser fc = new JFileChooser();
+
+		final String url;
+		if (askUrl) {
+			url = JOptionPane.showInputDialog(LocalReaderFrame.this,
+					"url of the story to import?", "Importing from URL",
+					JOptionPane.QUESTION_MESSAGE);
+		} else if (fc.showOpenDialog(this) != JFileChooser.CANCEL_OPTION) {
+			url = fc.getSelectedFile().getAbsolutePath();
+		} else {
+			url = null;
+		}
+
+		if (url != null && !url.isEmpty()) {
+			final Progress pg = new Progress("Importing " + url);
+			outOfUi(pg, new Runnable() {
+				public void run() {
+					Exception ex = null;
+					try {
+						Instance.getLibrary()
+								.imprt(BasicReader.getUrl(url), pg);
+					} catch (IOException e) {
+						ex = e;
+					}
+
+					final Exception e = ex;
+
+					final boolean ok = (e == null);
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							if (!ok) {
+								JOptionPane.showMessageDialog(
+										LocalReaderFrame.this,
+										"Cannot import: " + url,
+										e.getMessage(),
+										JOptionPane.ERROR_MESSAGE);
+
+								setAllEnabled(true);
+							} else {
+								refreshBooks(type);
+							}
+						}
+					});
+				}
+			});
+		}
 	}
 
 	public void setAllEnabled(boolean enabled) {
@@ -249,10 +347,12 @@ class LocalReaderFrame extends JFrame {
 			book.validate();
 			book.repaint();
 		}
+
 		bar.setEnabled(enabled);
 		bookPane.setEnabled(enabled);
 		bookPane.validate();
 		bookPane.repaint();
+
 		setEnabled(enabled);
 		validate();
 		repaint();
