@@ -99,7 +99,34 @@ class LocalReaderFrame extends JFrame {
 							try {
 								File target = LocalReaderFrame.this.reader
 										.getTarget(luid, pg);
-								Desktop.getDesktop().browse(target.toURI());
+								// TODO: allow custom programs, with
+								// Desktop/xdg-open fallback
+								try {
+									Desktop.getDesktop().browse(target.toURI());
+								} catch (UnsupportedOperationException e) {
+									String browsers[] = new String[] {
+											"xdg-open", "epiphany",
+											"konqueror", "firefox", "chrome",
+											"google-chrome", "mozilla" };
+
+									Runtime runtime = Runtime.getRuntime();
+									for (String browser : browsers) {
+										try {
+											runtime.exec(new String[] {
+													browser,
+													target.getAbsolutePath() });
+											runtime = null;
+											break;
+										} catch (IOException ioe) {
+											// continue, try next browser
+										}
+									}
+
+									if (runtime != null) {
+										throw new IOException(
+												"Cannot find a working GUI browser...");
+									}
+								}
 							} catch (IOException e) {
 								Instance.syserr(e);
 							}

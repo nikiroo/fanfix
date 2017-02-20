@@ -40,7 +40,7 @@ h1 {
 }
 
 .book, .chapter_content {
-	text-indent: 40px;
+	NO_text-indent: 40px;
 	padding-top: 40px;
 	padding-left: 5%;
 	padding-right: 5%;
@@ -83,19 +83,20 @@ h2 .chaptitle {
 }
 
 .normals {
-	/* padding-bottom: 20px; */
-	
 }
 
 .normal {
-	/* padding-bottom: 20px; */
-	
+	/* Can be removed if you want a more "compact" view */
+	display: block;
+}
+
+.blank {
+	/* Can be removed if you want a more "compact" view */
+	height: 24px;
+	width: 100%;
 }
 
 .dialogues {
-	/* padding-top: 10px;
-	padding-bottom: 10px; */
-	
 }
 
 .dialogue {
