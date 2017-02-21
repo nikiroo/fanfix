@@ -17,6 +17,7 @@ import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 import be.nikiroo.fanfix.supported.InfoReader;
+import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -322,13 +323,23 @@ public class Library {
 
 		if (file != null) {
 			if (file.delete()) {
-				String newExt = getOutputType(meta).getDefaultExtension(false);
+				String readerExt = getOutputType(meta)
+						.getDefaultExtension(true);
+				String fileExt = getOutputType(meta).getDefaultExtension(false);
 
 				String path = file.getAbsolutePath();
+				if (readerExt != null && !readerExt.equals(fileExt)) {
+					path = path
+							.substring(0, path.length() - readerExt.length())
+							+ fileExt;
+					file = new File(path);
+					IOUtils.deltree(file);
+				}
+
 				File infoFile = new File(path + ".info");
 				if (!infoFile.exists()) {
 					infoFile = new File(path.substring(0, path.length()
-							- newExt.length())
+							- fileExt.length())
 							+ ".info");
 				}
 				infoFile.delete();
@@ -339,7 +350,7 @@ public class Library {
 				File coverFile = new File(path + coverExt);
 				if (!coverFile.exists()) {
 					coverFile = new File(path.substring(0, path.length()
-							- newExt.length()));
+							- fileExt.length()));
 				}
 				coverFile.delete();
 

@@ -6,6 +6,8 @@ import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +21,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
@@ -86,8 +89,37 @@ class LocalReaderFrame extends JFrame {
 				book.setBackground(color);
 			}
 
+			book.addMouseListener(new MouseListener() {
+				public void mouseReleased(MouseEvent e) {
+					if (e.isPopupTrigger())
+						pop(e);
+				}
+
+				public void mousePressed(MouseEvent e) {
+					if (e.isPopupTrigger())
+						pop(e);
+				}
+
+				public void mouseExited(MouseEvent e) {
+				}
+
+				public void mouseEntered(MouseEvent e) {
+				}
+
+				public void mouseClicked(MouseEvent e) {
+				}
+
+				private void pop(MouseEvent e) {
+					JPopupMenu popup = new JPopupMenu();
+					popup.add(createMenuItemExport());
+					popup.add(createMenuItemRefresh());
+					popup.addSeparator();
+					popup.add(createMenuItemDelete());
+					// popup.show(e.getComponent(), e.getX(), e.getY());
+				}
+			});
+
 			books.add(book);
-			final String luid = meta.getLuid();
 			book.addActionListener(new BookActionListener() {
 				public void select(LocalReaderBook book) {
 					selectedBook = book;
@@ -96,47 +128,19 @@ class LocalReaderFrame extends JFrame {
 					}
 				}
 
+				public void popupRequested(LocalReaderBook book, MouseEvent e) {
+					JPopupMenu popup = new JPopupMenu();
+					popup.add(createMenuItemOpenBook());
+					popup.addSeparator();
+					popup.add(createMenuItemExport());
+					popup.add(createMenuItemRefresh());
+					popup.addSeparator();
+					popup.add(createMenuItemDelete());
+					popup.show(e.getComponent(), e.getX(), e.getY());
+				}
+
 				public void action(final LocalReaderBook book) {
-					final Progress pg = new Progress();
-					outOfUi(pg, new Runnable() {
-						public void run() {
-							try {
-								File target = LocalReaderFrame.this.reader
-										.getTarget(luid, pg);
-								book.setCached(true);
-								// TODO: allow custom programs, with
-								// Desktop/xdg-open fallback
-								try {
-									Desktop.getDesktop().browse(target.toURI());
-								} catch (UnsupportedOperationException e) {
-									String browsers[] = new String[] {
-											"xdg-open", "epiphany",
-											"konqueror", "firefox", "chrome",
-											"google-chrome", "mozilla" };
-
-									Runtime runtime = Runtime.getRuntime();
-									for (String browser : browsers) {
-										try {
-											runtime.exec(new String[] {
-													browser,
-													target.getAbsolutePath() });
-											runtime = null;
-											break;
-										} catch (IOException ioe) {
-											// continue, try next browser
-										}
-									}
-
-									if (runtime != null) {
-										throw new IOException(
-												"Cannot find a working GUI browser...");
-									}
-								}
-							} catch (IOException e) {
-								Instance.syserr(e);
-							}
-						}
-					});
+					openBook(book);
 				}
 			});
 
@@ -173,6 +177,9 @@ class LocalReaderFrame extends JFrame {
 			}
 		});
 
+		file.add(createMenuItemOpenBook());
+		file.add(createMenuItemExport());
+		file.addSeparator();
 		file.add(imprt);
 		file.add(imprtF);
 		file.addSeparator();
@@ -183,56 +190,9 @@ class LocalReaderFrame extends JFrame {
 		JMenu edit = new JMenu("Edit");
 		edit.setMnemonic(KeyEvent.VK_E);
 
-		final String notYet = "[TODO] Show not ready yet, but you can do it on command line, see: fanfix --help";
-
-		JMenuItem export = new JMenuItem("Export", KeyEvent.VK_E);
-		export.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(LocalReaderFrame.this, notYet);
-			}
-		});
-
-		JMenuItem refresh = new JMenuItem("Refresh", KeyEvent.VK_R);
-		refresh.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if (selectedBook != null) {
-					outOfUi(null, new Runnable() {
-						public void run() {
-							reader.refresh(selectedBook.getLuid());
-							selectedBook.setCached(false);
-							SwingUtilities.invokeLater(new Runnable() {
-								public void run() {
-									selectedBook.repaint();
-								}
-							});
-						}
-					});
-				}
-			}
-		});
-
-		JMenuItem delete = new JMenuItem("Delete", KeyEvent.VK_D);
-		delete.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if (selectedBook != null) {
-					outOfUi(null, new Runnable() {
-						public void run() {
-							reader.delete(selectedBook.getLuid());
-							selectedBook = null;
-							SwingUtilities.invokeLater(new Runnable() {
-								public void run() {
-									refreshBooks(type);
-								}
-							});
-						}
-					});
-				}
-			}
-		});
-
-		edit.add(export);
-		edit.add(refresh);
-		edit.add(delete);
+		edit.add(createMenuItemRefresh());
+		edit.addSeparator();
+		edit.add(createMenuItemDelete());
 
 		bar.add(edit);
 
@@ -259,6 +219,120 @@ class LocalReaderFrame extends JFrame {
 		bar.add(view);
 
 		return bar;
+	}
+
+	private JMenuItem createMenuItemExport() {
+		// TODO
+		final String notYet = "[TODO] not ready yet, but you can do it on command line, see: fanfix --help";
+
+		JMenuItem export = new JMenuItem("Save as...", KeyEvent.VK_E);
+		export.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(LocalReaderFrame.this, notYet);
+			}
+		});
+
+		return export;
+	}
+
+	private JMenuItem createMenuItemRefresh() {
+		JMenuItem refresh = new JMenuItem("Refresh", KeyEvent.VK_R);
+		refresh.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (selectedBook != null) {
+					outOfUi(null, new Runnable() {
+						public void run() {
+							reader.refresh(selectedBook.getLuid());
+							selectedBook.setCached(false);
+							SwingUtilities.invokeLater(new Runnable() {
+								public void run() {
+									selectedBook.repaint();
+								}
+							});
+						}
+					});
+				}
+			}
+		});
+
+		return refresh;
+	}
+
+	private JMenuItem createMenuItemDelete() {
+		JMenuItem delete = new JMenuItem("Delete", KeyEvent.VK_D);
+		delete.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (selectedBook != null) {
+					outOfUi(null, new Runnable() {
+						public void run() {
+							reader.delete(selectedBook.getLuid());
+							selectedBook = null;
+							SwingUtilities.invokeLater(new Runnable() {
+								public void run() {
+									refreshBooks(type);
+								}
+							});
+						}
+					});
+				}
+			}
+		});
+
+		return delete;
+	}
+
+	private JMenuItem createMenuItemOpenBook() {
+		JMenuItem open = new JMenuItem("Open", KeyEvent.VK_O);
+		open.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (selectedBook != null) {
+					openBook(selectedBook);
+				}
+			}
+		});
+
+		return open;
+	}
+
+	private void openBook(final LocalReaderBook book) {
+		final Progress pg = new Progress();
+		outOfUi(pg, new Runnable() {
+			public void run() {
+				try {
+					File target = LocalReaderFrame.this.reader.getTarget(
+							book.getLuid(), pg);
+					book.setCached(true);
+					// TODO: allow custom programs, with
+					// Desktop/xdg-open fallback
+					try {
+						Desktop.getDesktop().browse(target.toURI());
+					} catch (UnsupportedOperationException e) {
+						String browsers[] = new String[] { "xdg-open",
+								"epiphany", "konqueror", "firefox", "chrome",
+								"google-chrome", "mozilla" };
+
+						Runtime runtime = Runtime.getRuntime();
+						for (String browser : browsers) {
+							try {
+								runtime.exec(new String[] { browser,
+										target.getAbsolutePath() });
+								runtime = null;
+								break;
+							} catch (IOException ioe) {
+								// continue, try next browser
+							}
+						}
+
+						if (runtime != null) {
+							throw new IOException(
+									"Cannot find a working GUI browser...");
+						}
+					}
+				} catch (IOException e) {
+					Instance.syserr(e);
+				}
+			}
+		});
 	}
 
 	private void outOfUi(final Progress pg, final Runnable run) {

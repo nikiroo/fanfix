@@ -35,7 +35,7 @@ class Html extends BasicOutput {
 		dir = target;
 
 		target = new File(targetDir, targetName + getDefaultExtension(true));
-
+		
 		writer = new BufferedWriter(new OutputStreamWriter(
 				new FileOutputStream(target), "UTF-8"));
 		try {

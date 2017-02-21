@@ -104,6 +104,15 @@ class LocalReader extends BasicReader {
 		return file;
 	}
 
+	/**
+	 * Check if the {@link Story} denoted by this Library UID is present in the
+	 * {@link LocalReader} cache.
+	 * 
+	 * @param luid
+	 *            the Library UID
+	 * 
+	 * @return TRUE if it is
+	 */
 	public boolean isCached(String luid) {
 		return lib.getInfo(luid) != null;
 	}

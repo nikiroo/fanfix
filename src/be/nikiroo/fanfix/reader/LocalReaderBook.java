@@ -47,6 +47,16 @@ class LocalReaderBook extends JPanel {
 		 *            the {@link LocalReaderBook} itself
 		 */
 		public void action(LocalReaderBook book);
+
+		/**
+		 * A popup menu was requested for this {@link LocalReaderBook}.
+		 * 
+		 * @param book
+		 *            the {@link LocalReaderBook} itself
+		 * @param e
+		 *            the {@link MouseEvent} that generated this call
+		 */
+		public void popupRequested(LocalReaderBook book, MouseEvent e);
 	}
 
 	private static final int COVER_WIDTH = 100;
@@ -142,9 +152,15 @@ class LocalReaderBook extends JPanel {
 		listeners = new ArrayList<LocalReaderBook.BookActionListener>();
 		addMouseListener(new MouseListener() {
 			public void mouseReleased(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					popup(e);
+				}
 			}
 
 			public void mousePressed(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					popup(e);
+				}
 			}
 
 			public void mouseExited(MouseEvent e) {
@@ -164,20 +180,28 @@ class LocalReaderBook extends JPanel {
 					} else {
 						click(false);
 					}
+
 					lastClick = now;
 				}
 			}
-		});
-	}
 
-	private void click(boolean doubleClick) {
-		for (BookActionListener listener : listeners) {
-			if (doubleClick) {
-				listener.action(this);
-			} else {
-				listener.select(this);
+			private void click(boolean doubleClick) {
+				for (BookActionListener listener : listeners) {
+					if (doubleClick) {
+						listener.action(LocalReaderBook.this);
+					} else {
+						listener.select(LocalReaderBook.this);
+					}
+				}
 			}
-		}
+
+			private void popup(MouseEvent e) {
+				for (BookActionListener listener : listeners) {
+					listener.select((LocalReaderBook.this));
+					listener.popupRequested(LocalReaderBook.this, e);
+				}
+			}
+		});
 	}
 
 	public void addActionListener(BookActionListener listener) {
@@ -243,7 +267,7 @@ class LocalReaderBook extends JPanel {
 			g.setColor(Color.green);
 			g.fillOval(clip.x + clip.width - 30, 10, 20, 20);
 		}
-		
+
 		g.setColor(color);
 		g.fillRect(clip.x, clip.y, clip.width, clip.height);
 	}
