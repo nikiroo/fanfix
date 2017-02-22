@@ -19,6 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.fanfix.data.Story;
 
 /**
  * A book item presented in a {@link LocalReaderFrame}.
@@ -59,6 +60,9 @@ class LocalReaderBook extends JPanel {
 		public void popupRequested(LocalReaderBook book, MouseEvent e);
 	}
 
+	private static final long serialVersionUID = 1L;
+
+	// TODO: export some of the configuration options?
 	private static final int COVER_WIDTH = 100;
 	private static final int COVER_HEIGHT = 150;
 	private static final int SPINE_WIDTH = 5;
@@ -69,43 +73,55 @@ class LocalReaderBook extends JPanel {
 	private static final int TEXT_WIDTH = COVER_WIDTH + 40;
 	private static final int TEXT_HEIGHT = 50;
 	private static final String AUTHOR_COLOR = "#888888";
-	private static final long serialVersionUID = 1L;
+	private static final Color BORDER = Color.black;
+	private static final long doubleClickDelay = 200; // in ms
+	//
 
 	private JLabel icon;
 	private JLabel title;
 	private boolean selected;
 	private boolean hovered;
 	private Date lastClick;
-	private long doubleClickDelay = 200; // in ms
+
 	private List<BookActionListener> listeners;
 	private String luid;
 	private boolean cached;
 
+	/**
+	 * Create a new {@link LocalReaderBook} item for the givn {@link Story}.
+	 * 
+	 * @param meta
+	 *            the story {@code}link MetaData}
+	 * @param cached
+	 *            TRUE if it is locally cached
+	 */
 	public LocalReaderBook(MetaData meta, boolean cached) {
 		this.luid = meta.getLuid();
 		this.cached = cached;
 
+		BufferedImage resizedImage = new BufferedImage(SPINE_WIDTH
+				+ COVER_WIDTH, SPINE_HEIGHT + COVER_HEIGHT + HOFFSET,
+				BufferedImage.TYPE_4BYTE_ABGR);
+		Graphics2D g = resizedImage.createGraphics();
+		g.setColor(Color.white);
+		g.fillRect(0, HOFFSET, COVER_WIDTH, COVER_HEIGHT);
 		if (meta.getCover() != null) {
-			BufferedImage resizedImage = new BufferedImage(SPINE_WIDTH
-					+ COVER_WIDTH, SPINE_HEIGHT + COVER_HEIGHT + HOFFSET,
-					BufferedImage.TYPE_4BYTE_ABGR);
-			Graphics2D g = resizedImage.createGraphics();
-			g.setColor(Color.white);
-			g.fillRect(0, HOFFSET, COVER_WIDTH, COVER_HEIGHT);
 			g.drawImage(meta.getCover(), 0, HOFFSET, COVER_WIDTH, COVER_HEIGHT,
 					null);
-			g.dispose();
-
-			icon = new JLabel(new ImageIcon(resizedImage));
 		} else {
-			// TODO: a big black "X" ?
-			icon = new JLabel(" [ no cover ] ");
+			g.setColor(Color.black);
+			g.drawLine(0, HOFFSET, COVER_WIDTH, HOFFSET + COVER_HEIGHT);
+			g.drawLine(COVER_WIDTH, HOFFSET, 0, HOFFSET + COVER_HEIGHT);
 		}
+		g.dispose();
+
+		icon = new JLabel(new ImageIcon(resizedImage));
 
 		String optAuthor = meta.getAuthor();
 		if (optAuthor != null && !optAuthor.isEmpty()) {
 			optAuthor = "(" + optAuthor + ")";
 		}
+
 		title = new JLabel(
 				String.format(
 						"<html>"
@@ -126,7 +142,7 @@ class LocalReaderBook extends JPanel {
 	/**
 	 * The book current selection state.
 	 * 
-	 * @return the selected
+	 * @return the selection state
 	 */
 	public boolean isSelected() {
 		return selected;
@@ -136,18 +152,28 @@ class LocalReaderBook extends JPanel {
 	 * The book current selection state.
 	 * 
 	 * @param selected
-	 *            the selected to set
+	 *            TRUE if it is selected
 	 */
 	public void setSelected(boolean selected) {
 		this.selected = selected;
 		repaint();
 	}
 
+	/**
+	 * The item mouse-hover state.
+	 * 
+	 * @param hovered
+	 *            TRUE if it is mouse-hovered
+	 */
 	private void setHovered(boolean hovered) {
 		this.hovered = hovered;
 		repaint();
 	}
 
+	/**
+	 * Setup the mouse listener that will activate {@link BookActionListener}
+	 * events.
+	 */
 	private void setupListeners() {
 		listeners = new ArrayList<LocalReaderBook.BookActionListener>();
 		addMouseListener(new MouseListener() {
@@ -204,51 +230,83 @@ class LocalReaderBook extends JPanel {
 		});
 	}
 
+	/**
+	 * Add a new {@link BookActionListener} on this item.
+	 * 
+	 * @param listener
+	 *            the listener
+	 */
 	public void addActionListener(BookActionListener listener) {
 		listeners.add(listener);
 	}
 
+	/**
+	 * The Library UID of the book represented by this item.
+	 * 
+	 * @return the LUID
+	 */
 	public String getLuid() {
 		return luid;
 	}
 
 	/**
-	 * This boos is cached into the {@link LocalReader} library.
+	 * This item {@link LocalReader} library cache state.
 	 * 
-	 * @return the cached
+	 * @return TRUE if it is present in the {@link LocalReader} cache
 	 */
 	public boolean isCached() {
 		return cached;
 	}
 
 	/**
-	 * This boos is cached into the {@link LocalReader} library.
+	 * This item {@link LocalReader} library cache state.
 	 * 
 	 * @param cached
-	 *            the cached to set
+	 *            TRUE if it is present in the {@link LocalReader} cache
 	 */
 	public void setCached(boolean cached) {
 		this.cached = cached;
 	}
 
+	/**
+	 * Draw a "cached" icon and a partially transparent overlay if needed
+	 * depending upon the selection and mouse-hover states on top of the normal
+	 * component.
+	 */
 	@Override
 	public void paint(Graphics g) {
 		super.paint(g);
 
+		Rectangle clip = g.getClipBounds();
+		if (clip.getWidth() <= 0 || clip.getHeight() <= 0) {
+			return;
+		}
+
 		int h = COVER_HEIGHT;
 		int w = COVER_WIDTH;
-		int xOffset = (TEXT_WIDTH - COVER_WIDTH) - 4;
+		int xOffset = (TEXT_WIDTH - COVER_WIDTH) - 1;
+		int yOffset = HOFFSET;
+
+		if (BORDER != null) {
+			if (BORDER != null) {
+				g.setColor(BORDER);
+				g.drawRect(xOffset, yOffset, COVER_WIDTH, COVER_HEIGHT);
+			}
+
+			xOffset++;
+			yOffset++;
+		}
 
 		int[] xs = new int[] { xOffset, xOffset + SPINE_WIDTH,
 				xOffset + w + SPINE_WIDTH, xOffset + w };
-		int[] ys = new int[] { HOFFSET + h, HOFFSET + h + SPINE_HEIGHT,
-				HOFFSET + h + SPINE_HEIGHT, HOFFSET + h };
+		int[] ys = new int[] { yOffset + h, yOffset + h + SPINE_HEIGHT,
+				yOffset + h + SPINE_HEIGHT, yOffset + h };
 		g.setColor(SPINE_COLOR_BOTTOM);
 		g.fillPolygon(new Polygon(xs, ys, xs.length));
 		xs = new int[] { xOffset + w, xOffset + w + SPINE_WIDTH,
 				xOffset + w + SPINE_WIDTH, xOffset + w };
-		ys = new int[] { HOFFSET, HOFFSET + SPINE_HEIGHT,
-				HOFFSET + h + SPINE_HEIGHT, HOFFSET + h };
+		ys = new int[] { yOffset, yOffset + SPINE_HEIGHT,
+				yOffset + h + SPINE_HEIGHT, yOffset + h };
 		g.setColor(SPINE_COLOR_RIGHT);
 		g.fillPolygon(new Polygon(xs, ys, xs.length));
 
@@ -262,13 +320,12 @@ class LocalReaderBook extends JPanel {
 			color = new Color(200, 200, 255, 100);
 		}
 
-		Rectangle clip = g.getClipBounds();
-		if (cached) {
-			g.setColor(Color.green);
-			g.fillOval(clip.x + clip.width - 30, 10, 20, 20);
-		}
-
 		g.setColor(color);
 		g.fillRect(clip.x, clip.y, clip.width, clip.height);
+
+		if (cached) {
+			g.setColor(Color.green);
+			g.fillOval(COVER_WIDTH + HOFFSET + 30, 10, 20, 20);
+		}
 	}
 }

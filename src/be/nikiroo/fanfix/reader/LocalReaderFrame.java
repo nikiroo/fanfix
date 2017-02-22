@@ -3,16 +3,20 @@ package be.nikiroo.fanfix.reader;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Desktop;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -24,15 +28,28 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.Library;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.LocalReaderBook.BookActionListener;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.ui.ProgressBar;
 import be.nikiroo.utils.ui.WrapLayout;
 
+/**
+ * A {@link Frame} that will show a {@link LocalReaderBook} item for each
+ * {@link Story} in the main cache ({@link Instance#getCache()}), and offer a
+ * way to copy them to the {@link LocalReader} cache ({@link LocalReader#lib}),
+ * read them, delete them...
+ * 
+ * @author niki
+ */
 class LocalReaderFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private LocalReader reader;
@@ -45,6 +62,15 @@ class LocalReaderFrame extends JFrame {
 	private JMenuBar bar;
 	private LocalReaderBook selectedBook;
 
+	/**
+	 * Create a new {@link LocalReaderFrame}.
+	 * 
+	 * @param reader
+	 *            the associated {@link LocalReader} to forward some commands
+	 *            and access its {@link Library}
+	 * @param type
+	 *            the type of {@link Story} to load, or NULL for all types
+	 */
 	public LocalReaderFrame(LocalReader reader, String type) {
 		super("Fanfix Library");
 
@@ -77,6 +103,12 @@ class LocalReaderFrame extends JFrame {
 		setVisible(true);
 	}
 
+	/**
+	 * Refresh the list of {@link LocalReaderBook}s from disk.
+	 * 
+	 * @param type
+	 *            the type of {@link Story} to load, or NULL for all types
+	 */
 	private void refreshBooks(String type) {
 		this.type = type;
 		stories = Instance.getLibrary().getList(type);
@@ -89,37 +121,8 @@ class LocalReaderFrame extends JFrame {
 				book.setBackground(color);
 			}
 
-			book.addMouseListener(new MouseListener() {
-				public void mouseReleased(MouseEvent e) {
-					if (e.isPopupTrigger())
-						pop(e);
-				}
-
-				public void mousePressed(MouseEvent e) {
-					if (e.isPopupTrigger())
-						pop(e);
-				}
-
-				public void mouseExited(MouseEvent e) {
-				}
-
-				public void mouseEntered(MouseEvent e) {
-				}
-
-				public void mouseClicked(MouseEvent e) {
-				}
-
-				private void pop(MouseEvent e) {
-					JPopupMenu popup = new JPopupMenu();
-					popup.add(createMenuItemExport());
-					popup.add(createMenuItemRefresh());
-					popup.addSeparator();
-					popup.add(createMenuItemDelete());
-					// popup.show(e.getComponent(), e.getX(), e.getY());
-				}
-			});
-
 			books.add(book);
+
 			book.addActionListener(new BookActionListener() {
 				public void select(LocalReaderBook book) {
 					selectedBook = book;
@@ -151,6 +154,11 @@ class LocalReaderFrame extends JFrame {
 		bookPane.repaint();
 	}
 
+	/**
+	 * Create the main menu bar.
+	 * 
+	 * @return the bar
+	 */
 	private JMenuBar createMenu() {
 		bar = new JMenuBar();
 
@@ -221,22 +229,86 @@ class LocalReaderFrame extends JFrame {
 		return bar;
 	}
 
+	/**
+	 * Create the export menu item.
+	 * 
+	 * @return the item
+	 */
 	private JMenuItem createMenuItemExport() {
-		// TODO
-		final String notYet = "[TODO] not ready yet, but you can do it on command line, see: fanfix --help";
+		final JFileChooser fc = new JFileChooser();
+		fc.setAcceptAllFileFilterUsed(false);
 
-		JMenuItem export = new JMenuItem("Save as...", KeyEvent.VK_E);
+		final Map<FileFilter, OutputType> filters = new HashMap<FileFilter, OutputType>();
+		for (OutputType type : OutputType.values()) {
+			String ext = type.getDefaultExtension(false);
+			String desc = type.getDesc(false);
+			if (ext == null || ext.isEmpty()) {
+				filters.put(createAllFilter(desc), type);
+			} else {
+				filters.put(new FileNameExtensionFilter(desc, ext), type);
+			}
+		}
+
+		// First the "ALL" filters, then, the extension filters
+		for (Entry<FileFilter, OutputType> entry : filters.entrySet()) {
+			if (!(entry.getKey() instanceof FileNameExtensionFilter)) {
+				fc.addChoosableFileFilter(entry.getKey());
+			}
+		}
+		for (Entry<FileFilter, OutputType> entry : filters.entrySet()) {
+			if (entry.getKey() instanceof FileNameExtensionFilter) {
+				fc.addChoosableFileFilter(entry.getKey());
+			}
+		}
+		//
+
+		JMenuItem export = new JMenuItem("Save as...", KeyEvent.VK_S);
 		export.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(LocalReaderFrame.this, notYet);
+				if (selectedBook != null) {
+					fc.showDialog(LocalReaderFrame.this, "Save");
+					final OutputType type = filters.get(fc.getFileFilter());
+					final String path = fc.getSelectedFile().getAbsolutePath()
+							+ type.getDefaultExtension(false);
+					final Progress pg = new Progress();
+					outOfUi(pg, new Runnable() {
+						public void run() {
+							try {
+								Instance.getLibrary().export(
+										selectedBook.getLuid(), type, path, pg);
+							} catch (IOException e) {
+								Instance.syserr(e);
+							}
+						}
+					});
+				}
 			}
 		});
 
 		return export;
 	}
 
+	private FileFilter createAllFilter(final String desc) {
+		return new FileFilter() {
+			@Override
+			public String getDescription() {
+				return desc;
+			}
+
+			@Override
+			public boolean accept(File f) {
+				return true;
+			}
+		};
+	}
+
+	/**
+	 * Create the refresh (delete cache) menu item.
+	 * 
+	 * @return the item
+	 */
 	private JMenuItem createMenuItemRefresh() {
-		JMenuItem refresh = new JMenuItem("Refresh", KeyEvent.VK_R);
+		JMenuItem refresh = new JMenuItem("Clear cache", KeyEvent.VK_C);
 		refresh.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (selectedBook != null) {
@@ -258,6 +330,11 @@ class LocalReaderFrame extends JFrame {
 		return refresh;
 	}
 
+	/**
+	 * Create the delete menu item.
+	 * 
+	 * @return the item
+	 */
 	private JMenuItem createMenuItemDelete() {
 		JMenuItem delete = new JMenuItem("Delete", KeyEvent.VK_D);
 		delete.addActionListener(new ActionListener() {
@@ -281,6 +358,11 @@ class LocalReaderFrame extends JFrame {
 		return delete;
 	}
 
+	/**
+	 * Create the open menu item.
+	 * 
+	 * @return the item
+	 */
 	private JMenuItem createMenuItemOpenBook() {
 		JMenuItem open = new JMenuItem("Open", KeyEvent.VK_O);
 		open.addActionListener(new ActionListener() {
@@ -294,6 +376,12 @@ class LocalReaderFrame extends JFrame {
 		return open;
 	}
 
+	/**
+	 * Open a {@link LocalReaderBook} item.
+	 * 
+	 * @param book
+	 *            the {@link LocalReaderBook} to open
+	 */
 	private void openBook(final LocalReaderBook book) {
 		final Progress pg = new Progress();
 		outOfUi(pg, new Runnable() {
@@ -335,16 +423,28 @@ class LocalReaderFrame extends JFrame {
 		});
 	}
 
+	/**
+	 * Process the given action out of the Swing UI thread and link the given
+	 * {@link ProgressBar} to the action.
+	 * <p>
+	 * The code will make sure that the {@link ProgressBar} (if not NULL) is set
+	 * to done when the action is done.
+	 * 
+	 * @param pg
+	 *            the {@link ProgressBar} or NULL
+	 * @param run
+	 *            the action to run
+	 */
 	private void outOfUi(final Progress pg, final Runnable run) {
 		pgBar.setProgress(pg);
 
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				setAllEnabled(false);
+				setEnabled(false);
 				pgBar.addActioListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						pgBar.setProgress(null);
-						setAllEnabled(true);
+						setEnabled(true);
 					}
 				});
 			}
@@ -356,7 +456,7 @@ class LocalReaderFrame extends JFrame {
 				if (pg == null) {
 					SwingUtilities.invokeLater(new Runnable() {
 						public void run() {
-							setAllEnabled(true);
+							setEnabled(true);
 						}
 					});
 				} else if (!pg.isDone()) {
@@ -366,6 +466,12 @@ class LocalReaderFrame extends JFrame {
 		}).start();
 	}
 
+	/**
+	 * Import a {@link Story} into the main {@link Library}.
+	 * 
+	 * @param askUrl
+	 *            TRUE for an {@link URL}, false for a {@link File}
+	 */
 	private void imprt(boolean askUrl) {
 		JFileChooser fc = new JFileChooser();
 
@@ -404,7 +510,7 @@ class LocalReaderFrame extends JFrame {
 										e.getMessage(),
 										JOptionPane.ERROR_MESSAGE);
 
-								setAllEnabled(true);
+								setEnabled(true);
 							} else {
 								refreshBooks(type);
 							}
@@ -415,19 +521,31 @@ class LocalReaderFrame extends JFrame {
 		}
 	}
 
-	public void setAllEnabled(boolean enabled) {
+	/**
+	 * Enables or disables this component, depending on the value of the
+	 * parameter <code>b</code>. An enabled component can respond to user input
+	 * and generate events. Components are enabled initially by default.
+	 * <p>
+	 * Disabling this component will also affect its children.
+	 * 
+	 * @param b
+	 *            If <code>true</code>, this component is enabled; otherwise
+	 *            this component is disabled
+	 */
+	@Override
+	public void setEnabled(boolean b) {
 		for (LocalReaderBook book : books) {
-			book.setEnabled(enabled);
+			book.setEnabled(b);
 			book.validate();
 			book.repaint();
 		}
 
-		bar.setEnabled(enabled);
-		bookPane.setEnabled(enabled);
+		bar.setEnabled(b);
+		bookPane.setEnabled(b);
 		bookPane.validate();
 		bookPane.repaint();
 
-		setEnabled(enabled);
+		super.setEnabled(b);
 		validate();
 		repaint();
 	}

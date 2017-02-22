@@ -456,7 +456,7 @@ public class Main {
 
 			for (OutputType type : OutputType.values()) {
 				builder.append(trans(StringId.ERR_SYNTAX_TYPE, type.toString(),
-						type.getDesc()));
+						type.getDesc(true)));
 				builder.append('\n');
 			}
 

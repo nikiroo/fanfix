@@ -90,8 +90,21 @@ public enum StringId {
 	OUTPUT_DESC_CBZ, //
 	@Meta(what = "output format description", where = "OutputType", format = "", info = "Description of this output type")
 	OUTPUT_DESC_LATEX, //
-	@Meta(what = "output format description", where = "OutputType", format = "", info = "Description of this output type")
+	@Meta(what = "short output format description", where = "OutputType", format = "", info = "Description of this output type")
 	OUTPUT_DESC_SYSOUT, //
+	OUTPUT_DESC_SHORT, //
+	@Meta(what = "short output format description", where = "OutputType", format = "", info = "Description of this output type")
+	OUTPUT_DESC_SHORT_EPUB, //
+	@Meta(what = "short output format description", where = "OutputType", format = "", info = "Description of this output type")
+	OUTPUT_DESC_SHORT_TEXT, //
+	@Meta(what = "short output format description", where = "OutputType", format = "", info = "Description of this output type")
+	OUTPUT_DESC_SHORT_INFO_TEXT, //
+	@Meta(what = "short output format description", where = "OutputType", format = "", info = "Description of this output type")
+	OUTPUT_DESC_SHORT_CBZ, //
+	@Meta(what = "short output format description", where = "OutputType", format = "", info = "Description of this output type")
+	OUTPUT_DESC_SHORT_LATEX, //
+	@Meta(what = "short output format description", where = "OutputType", format = "", info = "Description of this output type")
+	OUTPUT_DESC_SHORT_SYSOUT, //
 	@Meta(what = "error message", where = "LaTeX", format = "%s = the unknown 2-code language", info = "Error message for unknown 2-letter LaTeX language code")
 	LATEX_LANG_UNKNOWN, //
 	@Meta(what = "'by' prefix before author name", where = "", format = "", info = "used to output the author, make sure it is covered by Config.BYS for input detection")

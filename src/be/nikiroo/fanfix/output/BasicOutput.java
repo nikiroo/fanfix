@@ -52,15 +52,19 @@ public abstract class BasicOutput {
 		/**
 		 * A description of this output type.
 		 * 
+		 * @param longDesc
+		 *            TRUE for the long description, FALSE for the short one
+		 * 
 		 * @return the description
 		 */
-		public String getDesc() {
-			String desc = Instance.getTrans().getStringX(StringId.OUTPUT_DESC,
-					this.name());
+		public String getDesc(boolean longDesc) {
+			StringId id = longDesc ? StringId.OUTPUT_DESC
+					: StringId.OUTPUT_DESC_SHORT;
+
+			String desc = Instance.getTrans().getStringX(id, this.name());
 
 			if (desc == null) {
-				desc = Instance.getTrans()
-						.getString(StringId.OUTPUT_DESC, this);
+				desc = Instance.getTrans().getString(id, this);
 			}
 
 			return desc;
