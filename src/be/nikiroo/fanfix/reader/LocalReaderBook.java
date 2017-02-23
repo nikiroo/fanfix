@@ -20,6 +20,7 @@ import javax.swing.JPanel;
 
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.utils.ui.UIUtils;
 
 /**
  * A book item presented in a {@link LocalReaderFrame}.
@@ -324,8 +325,8 @@ class LocalReaderBook extends JPanel {
 		g.fillRect(clip.x, clip.y, clip.width, clip.height);
 
 		if (cached) {
-			g.setColor(Color.green);
-			g.fillOval(COVER_WIDTH + HOFFSET + 30, 10, 20, 20);
+			UIUtils.drawEllipse3D(g, Color.green.darker(), COVER_WIDTH
+					+ HOFFSET + 30, 10, 20, 20);
 		}
 	}
 }
