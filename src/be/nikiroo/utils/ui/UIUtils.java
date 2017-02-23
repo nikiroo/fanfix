@@ -1,5 +1,13 @@
 package be.nikiroo.utils.ui;
 
+import java.awt.Color;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.RadialGradientPaint;
+import java.awt.RenderingHints;
+
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -27,6 +35,84 @@ public class UIUtils {
 		} catch (ClassNotFoundException e) {
 		} catch (UnsupportedLookAndFeelException e) {
 		} catch (IllegalAccessException e) {
+		}
+	}
+
+	/**
+	 * Draw a 3D-looking ellipse at the given location, if the given
+	 * {@link Graphics} object is compatible (with {@link Graphics2D}); draw a
+	 * simple ellipse if not.
+	 * 
+	 * @param g
+	 *            the {@link Graphics} to draw on
+	 * @param color
+	 *            the base colour
+	 * @param x
+	 *            the X coordinate
+	 * @param y
+	 *            the Y coordinate
+	 * @param width
+	 *            the width radius
+	 * @param height
+	 *            the height radius
+	 */
+	static public void drawEllipse3D(Graphics g, Color color, int x, int y,
+			int width, int height) {
+		if (g instanceof Graphics2D) {
+			Graphics2D g2 = (Graphics2D) g;
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+					RenderingHints.VALUE_ANTIALIAS_ON);
+
+			// Retains the previous state
+			Paint oldPaint = g2.getPaint();
+
+			// Base shape
+			g2.setColor(color);
+			g2.fillOval(x, y, width, height);
+
+			// Compute dark/bright colours
+			Paint p = null;
+			Color dark = color.darker();
+			Color bright = color.brighter();
+			Color darkEnd = new Color(dark.getRed(), dark.getGreen(),
+					dark.getBlue(), 0);
+			Color darkPartial = new Color(dark.getRed(), dark.getGreen(),
+					dark.getBlue(), 64);
+			Color brightEnd = new Color(bright.getRed(), bright.getGreen(),
+					bright.getBlue(), 0);
+
+			// Adds shadows at the bottom left
+			p = new GradientPaint(0, height, dark, width, 0, darkEnd);
+			g2.setPaint(p);
+			g2.fillOval(x, y, width, height);
+
+			// Adds highlights at the top right
+			p = new GradientPaint(width, 0, bright, 0, height, brightEnd);
+			g2.setPaint(p);
+			g2.fillOval(x, y, width, height);
+
+			// Darken the edges
+			p = new RadialGradientPaint(x + width / 2f, y + height / 2f,
+					Math.min(width / 2f, height / 2f), new float[] { 0f, 1f },
+					new Color[] { darkEnd, darkPartial },
+					RadialGradientPaint.CycleMethod.NO_CYCLE);
+			g2.setPaint(p);
+			g2.fillOval(x, y, width, height);
+
+			// Adds inner highlight at the top right
+			p = new RadialGradientPaint(x + 3f * width / 4f, y + height / 4f,
+					Math.min(width / 4f, height / 4f),
+					new float[] { 0.0f, 0.8f },
+					new Color[] { bright, brightEnd },
+					RadialGradientPaint.CycleMethod.NO_CYCLE);
+			g2.setPaint(p);
+			g2.fillOval(x * 2, y, width, height);
+
+			// Reset original paint
+			g2.setPaint(oldPaint);
+		} else {
+			g.setColor(color);
+			g.fillOval(x, y, width, height);
 		}
 	}
 }
