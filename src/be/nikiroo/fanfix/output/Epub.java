@@ -198,7 +198,7 @@ class Epub extends BasicOutput {
 			writer.write("		<div class='blank'></div>");
 			break;
 		case BREAK:
-			writer.write("		<hr/>");
+			writer.write("		<hr class='break'/>");
 			break;
 		case NORMAL:
 			writer.write("		<span class='normal'>");

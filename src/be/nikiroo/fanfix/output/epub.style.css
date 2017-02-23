@@ -96,6 +96,12 @@ h2 .chaptitle {
 	width: 100%;
 }
 
+hr.break {
+	/* Can be removed if you want a more "compact" view */
+	margin-top: 48px;
+	margin-bottom: 48px;
+}
+
 .dialogues {
 }
 

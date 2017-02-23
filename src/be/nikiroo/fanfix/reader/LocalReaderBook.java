@@ -266,7 +266,10 @@ class LocalReaderBook extends JPanel {
 	 *            TRUE if it is present in the {@link LocalReader} cache
 	 */
 	public void setCached(boolean cached) {
-		this.cached = cached;
+		if (this.cached != cached) {
+			this.cached = cached;
+			invalidate();
+		}
 	}
 
 	/**
