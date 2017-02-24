@@ -1,4 +1,10 @@
-Version 1.1.2
+Version 1.2.2
+-------------
+
+Fix bug in Bundle regarding \t handling
+	...tests should be written (later)
+
+Version 1.2.1
 -------------
 
 New drawEllipse3D method

@@ -400,7 +400,7 @@ public class Bundle<E extends Enum<E>> {
 			value = "";
 		}
 
-		String[] lines = value.replaceAll("\t", "\\t").split("\n");
+		String[] lines = value.replaceAll("\t", "\\\\\\t").split("\n");
 		for (int i = 0; i < lines.length; i++) {
 			writer.write(lines[i]);
 			if (i < lines.length - 1) {
