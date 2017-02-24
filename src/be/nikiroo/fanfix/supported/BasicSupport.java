@@ -60,7 +60,9 @@ public abstract class BasicSupport {
 		/** Furry website with comics support */
 		E621,
 		/** CBZ files */
-		CBZ;
+		CBZ,
+		/** HTML files */
+		HTML;
 
 		/**
 		 * A description of this support type (more information than the
@@ -285,7 +287,7 @@ public abstract class BasicSupport {
 	 */
 	protected Story processMeta(URL url, boolean close, boolean getDesc)
 			throws IOException {
-		in = Instance.getCache().open(url, this, false);
+		in = openInput(url);
 		if (in == null) {
 			return null;
 		}
@@ -765,6 +767,21 @@ public abstract class BasicSupport {
 		return url;
 	}
 
+	/**
+	 * Open the input file that will be used through the support.
+	 * 
+	 * @param source
+	 *            the source {@link URL}
+	 * 
+	 * @return the {@link InputStream}
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	protected InputStream openInput(URL source) throws IOException {
+		return Instance.getCache().open(source, this, false);
+	}
+
 	protected InputStream reset(InputStream in) {
 		try {
 			in.reset();
@@ -1105,8 +1122,8 @@ public abstract class BasicSupport {
 			}
 		}
 
-		for (SupportType type : new SupportType[] { SupportType.TEXT,
-				SupportType.INFO_TEXT }) {
+		for (SupportType type : new SupportType[] { SupportType.INFO_TEXT,
+				SupportType.TEXT }) {
 			BasicSupport support = getSupport(type);
 			if (support != null && support.supports(url)) {
 				return support;
@@ -1142,6 +1159,8 @@ public abstract class BasicSupport {
 			return new E621().setType(type);
 		case CBZ:
 			return new Cbz().setType(type);
+		case HTML:
+			return new Html().setType(type);
 		}
 
 		return null;

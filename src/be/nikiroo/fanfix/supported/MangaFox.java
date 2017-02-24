@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Scanner;
 
-import javax.imageio.ImageIO;
-
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.IOUtils;

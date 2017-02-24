@@ -4,13 +4,13 @@ Fanfix is a small Java program that can download stories from some supported web
 
 ![Main GUI](screenshots/fanfix.png?raw=true "Main GUI")
 
-It will convert from a (supported) URL to an .epub file for stories or a .cbz file for comics (a few other output types are also available, like Plain Text or LaTeX).
+It will convert from a (supported) URL to an .epub file for stories or a .cbz file for comics (a few other output types are also available, like Plain Text, LaTeX, HTML...).
 
 To help organize your stories, it can also work as a local library.
 
 In this mode, you can:
-- Import a story from its URL (or even another file)
-- Export a story to a file (.epub or .cbz)
+- Import a story from its URL (or just from a file)
+- Export a story to a file (in any of the supported output types)
 - Display a story from the local library in text format in the console
 - Display a story from the local library graphically **by calling a native program to handle it** (though Fanfix can automatically process it into HTML so any browser can open it)
 
@@ -34,6 +34,7 @@ We support a few file types for local story conversion (both as input and as out
   - a cover image may be present with the same filename as the story, but a .png, .jpeg or .jpg extension
 - info_text: contains the same information as the text format, but with a companion .info file to store some metadata (the .info file is supposed to be created by Fanfix or compatible with it)
 - cbz: .cbz (collection of images) files, preferably created with Fanfix (but any .cbz file is supported, though without most of Fanfix metadata, obviously)
+- html: HTML files that you can open with any browser; note that it will create a directory structure with ```index.html``` being the file you need to open (or select if you want to convert it into something else) -- we only support importing HTML files created by Fanfix or compatible
 
 ## Supported platforms
 
@@ -56,7 +57,7 @@ The following arguments are also allowed:
 - ```--read [id] ([chapter number])```: read the given story denoted by ID from the library
 - ```--read-url [URL] ([chapter number])```: convert on the fly and read the story denoted by ID, without saving it
 - ```--list```: list the stories present in the library and their associated IDs
-- ```--set-reader [reader type]```: set the reader type to CLI or LOCAL for this command
+- ```--set-reader [reader type]```: set the reader type to CLI or LOCAL for this command (must be the first option)
 - ```--help```: display the available options
 
 ### Environment variables

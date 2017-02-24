@@ -491,9 +491,8 @@ class LocalReaderFrame extends JFrame {
 						public void run() {
 							if (!ok) {
 								JOptionPane.showMessageDialog(
-										LocalReaderFrame.this,
+										LocalReaderFrame.this, e.getMessage(),
 										"Cannot import: " + url,
-										e.getMessage(),
 										JOptionPane.ERROR_MESSAGE);
 							} else {
 								refreshBooks(type);

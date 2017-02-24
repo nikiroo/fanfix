@@ -34,8 +34,13 @@ class Html extends BasicOutput {
 		target.mkdir();
 		dir = target;
 
+		// write a copy of the originals inside
+		InfoCover.writeInfo(dir, targetName, story.getMeta());
+		InfoCover.writeCover(dir, targetName, story.getMeta());
+		new InfoText().process(story, dir, targetNameOrig);
+
 		target = new File(targetDir, targetName + getDefaultExtension(true));
-		
+
 		writer = new BufferedWriter(new OutputStreamWriter(
 				new FileOutputStream(target), "UTF-8"));
 		try {
