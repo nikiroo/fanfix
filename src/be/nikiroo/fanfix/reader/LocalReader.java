@@ -1,5 +1,6 @@
 package be.nikiroo.fanfix.reader;
 
+import java.awt.Desktop;
 import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
@@ -7,6 +8,7 @@ import java.io.IOException;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.Library;
 import be.nikiroo.fanfix.bundles.UiConfig;
+import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.utils.Progress;
@@ -22,29 +24,48 @@ class LocalReader extends BasicReader {
 					"Cannote create cache directory for local reader: " + dir);
 		}
 
-		// TODO: can throw an exception, manage that (convert to IOEx ?)
-		OutputType text = OutputType.valueOfNullOkUC(Instance.getUiConfig()
-				.getString(UiConfig.LOCAL_READER_NON_IMAGES_DOCUMENT_TYPE));
-		if (text == null) {
-			text = OutputType.HTML;
-		}
+		OutputType text = null;
+		OutputType images = null;
 
-		OutputType images = OutputType.valueOfNullOkUC(Instance.getUiConfig()
-				.getString(UiConfig.LOCAL_READER_IMAGES_DOCUMENT_TYPE));
-		if (images == null) {
-			images = OutputType.CBZ;
+		try {
+			text = OutputType.valueOfNullOkUC(Instance.getUiConfig().getString(
+					UiConfig.NON_IMAGES_DOCUMENT_TYPE));
+			if (text == null) {
+				text = OutputType.HTML;
+			}
+
+			images = OutputType.valueOfNullOkUC(Instance.getUiConfig()
+					.getString(UiConfig.IMAGES_DOCUMENT_TYPE));
+			if (images == null) {
+				images = OutputType.CBZ;
+			}
+		} catch (Exception e) {
+			UiConfig key = (text == null) ? UiConfig.NON_IMAGES_DOCUMENT_TYPE
+					: UiConfig.IMAGES_DOCUMENT_TYPE;
+			String value = Instance.getUiConfig().getString(key);
+
+			throw new IOException(
+					String.format(
+							"The configuration option %s is not valid: %s",
+							key, value), e);
 		}
-		//
 
 		lib = new Library(dir, text, images);
 	}
 
 	@Override
 	public void read() throws IOException {
+		if (getStory() == null) {
+			throw new IOException("No story to read");
+		}
+
+		open(getStory().getMeta().getLuid(), null);
 	}
 
 	@Override
-	public void read(int chapter) {
+	public void read(int chapter) throws IOException {
+		// TODO: show a special page?
+		read();
 	}
 
 	/**
@@ -128,12 +149,47 @@ class LocalReader extends BasicReader {
 		});
 	}
 
+	// refresh = delete from LocalReader cache (TODO: rename?)
 	void refresh(String luid) {
 		lib.delete(luid);
 	}
 
+	// delete from main library
 	void delete(String luid) {
 		lib.delete(luid);
 		Instance.getLibrary().delete(luid);
+	}
+
+	// open the given book
+	void open(String luid, Progress pg) throws IOException {
+		MetaData meta = Instance.getLibrary().getInfo(luid);
+		File target = getTarget(luid, pg);
+
+		String program = null;
+		if (meta.isImageDocument()) {
+			program = Instance.getUiConfig().getString(
+					UiConfig.IMAGES_DOCUMENT_READER);
+		} else {
+			program = Instance.getUiConfig().getString(
+					UiConfig.NON_IMAGES_DOCUMENT_READER);
+		}
+
+		if (program != null && program.trim().isEmpty()) {
+			program = null;
+		}
+
+		if (program == null) {
+			try {
+				Desktop.getDesktop().browse(target.toURI());
+			} catch (UnsupportedOperationException e) {
+				Runtime.getRuntime().exec(
+						new String[] { "xdg-open", target.getAbsolutePath() });
+
+			}
+		} else {
+			Runtime.getRuntime().exec(
+					new String[] { program, target.getAbsolutePath() });
+
+		}
 	}
 }

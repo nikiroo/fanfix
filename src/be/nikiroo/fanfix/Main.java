@@ -35,8 +35,8 @@ public class Main {
 	 * <li>NOUTF: if set to 1 or 'true', the program will prefer non-unicode
 	 * {@link String}s when possible</li>
 	 * <li>CONFIG_DIR: a path where to look for the <tt>.properties</tt> files
-	 * before taking the included ones; they will also be saved/updated into
-	 * this path when the program starts</li>
+	 * before taking the usual ones; they will also be saved/updated into this
+	 * path when the program starts</li>
 	 * <li>DEBUG: if set to 1 or 'true', the program will override the DEBUG_ERR
 	 * configuration value with 'true'</li>
 	 * </ul>

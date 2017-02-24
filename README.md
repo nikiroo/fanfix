@@ -90,7 +90,7 @@ Currently missing, but either in progress or planned:
   - [x] Make it run when no args passed
   - [x] Fix the UI, it is ugly
   - [x] Work on the UI thread is BAD
-  - [ ] Allow export
+  - [x] Allow export
   - [x] Allow delete/refresh
   - [ ] Show a list of types
     - [x] ..in the menu
@@ -104,7 +104,7 @@ Currently missing, but either in progress or planned:
   - [x] Use it for most user ouput
   - [ ] Use it for all user output
   - [ ] French translation
-- [ ] Allow lauching a custom application instead of Desktop.start ?
+- [x] Allow lauching a custom application instead of Desktop.start ?
   - [ ] Make a wrapper for firefox to create a new, empty profile ?
 - [x] Install a mechanism to handle stories import/export progress update
   - [x] Progress system

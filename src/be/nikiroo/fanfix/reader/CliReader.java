@@ -58,7 +58,11 @@ class CliReader extends BasicReader {
 	}
 
 	@Override
-	public void read(int chapter) {
+	public void read(int chapter) throws IOException {
+		if (getStory() == null) {
+			throw new IOException("No story to read");
+		}
+
 		if (chapter > getStory().getChapters().size()) {
 			System.err.println("Chapter " + chapter + ": no such chapter");
 		} else {

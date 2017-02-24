@@ -134,8 +134,12 @@ public abstract class BasicReader {
 	 * 
 	 * @param chapter
 	 *            the chapter
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error or if the {@link Story} was not
+	 *             previously set
 	 */
-	public abstract void read(int chapter);
+	public abstract void read(int chapter) throws IOException;
 
 	/**
 	 * Start the reader in browse mode for the given type (or pass NULL for all

@@ -2,7 +2,6 @@ package be.nikiroo.fanfix.reader;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Desktop;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -113,6 +112,7 @@ class LocalReaderFrame extends JFrame {
 		this.type = type;
 		stories = Instance.getLibrary().getList(type);
 		books.clear();
+		bookPane.invalidate();
 		bookPane.removeAll();
 		for (MetaData meta : stories) {
 			LocalReaderBook book = new LocalReaderBook(meta,
@@ -210,7 +210,6 @@ class LocalReaderFrame extends JFrame {
 		List<String> tt = Instance.getLibrary().getTypes();
 		tt.add(0, null);
 		for (final String type : tt) {
-
 			JMenuItem item = new JMenuItem(type == null ? "All books" : type);
 			item.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -288,6 +287,15 @@ class LocalReaderFrame extends JFrame {
 		return export;
 	}
 
+	/**
+	 * Create a {@link FileFilter} that accepts all files and return the given
+	 * description.
+	 * 
+	 * @param desc
+	 *            the description
+	 * 
+	 * @return the filter
+	 */
 	private FileFilter createAllFilter(final String desc) {
 		return new FileFilter() {
 			@Override
@@ -387,36 +395,14 @@ class LocalReaderFrame extends JFrame {
 		outOfUi(pg, new Runnable() {
 			public void run() {
 				try {
-					File target = LocalReaderFrame.this.reader.getTarget(
-							book.getLuid(), pg);
-					book.setCached(true);
-					// TODO: allow custom programs, with
-					// Desktop/xdg-open fallback
-					try {
-						Desktop.getDesktop().browse(target.toURI());
-					} catch (UnsupportedOperationException e) {
-						String browsers[] = new String[] { "xdg-open",
-								"epiphany", "konqueror", "firefox", "chrome",
-								"google-chrome", "mozilla" };
-
-						Runtime runtime = Runtime.getRuntime();
-						for (String browser : browsers) {
-							try {
-								runtime.exec(new String[] { browser,
-										target.getAbsolutePath() });
-								runtime = null;
-								break;
-							} catch (IOException ioe) {
-								// continue, try next browser
-							}
+					reader.open(book.getLuid(), pg);
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							book.setCached(true);
 						}
-
-						if (runtime != null) {
-							throw new IOException(
-									"Cannot find a working GUI browser...");
-						}
-					}
+					});
 				} catch (IOException e) {
+					// TODO: error message?
 					Instance.syserr(e);
 				}
 			}
@@ -509,8 +495,6 @@ class LocalReaderFrame extends JFrame {
 										"Cannot import: " + url,
 										e.getMessage(),
 										JOptionPane.ERROR_MESSAGE);
-
-								setEnabled(true);
 							} else {
 								refreshBooks(type);
 							}
@@ -536,17 +520,14 @@ class LocalReaderFrame extends JFrame {
 	public void setEnabled(boolean b) {
 		for (LocalReaderBook book : books) {
 			book.setEnabled(b);
-			book.validate();
 			book.repaint();
 		}
 
 		bar.setEnabled(b);
 		bookPane.setEnabled(b);
-		bookPane.validate();
 		bookPane.repaint();
 
 		super.setEnabled(b);
-		validate();
 		repaint();
 	}
 }

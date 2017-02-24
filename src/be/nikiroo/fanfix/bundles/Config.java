@@ -10,7 +10,7 @@ import be.nikiroo.utils.resources.Meta;
 public enum Config {
 	@Meta(what = "language", where = "", format = "language (example: en-GB) or nothing for default system language", info = "Force the language (can be overwritten again with the env variable $LANG)")
 	LANG, //
-	@Meta(what = "reader type", where = "", format = "CLI or LOCAL", info = "Select the reader to use to read stories (CLI = simple output to console, LOCAL = use local system file handler)")
+	@Meta(what = "reader type", where = "", format = "CLI or LOCAL", info = "Select the default reader to use to read stories (CLI = simple output to console, LOCAL = use local system file handler)")
 	READER_TYPE, //
 	@Meta(what = "directory", where = "", format = "absolute path, $HOME variable supported, / is always accepted as dir separator", info = "The directory where to store temporary files, defaults to directory 'tmp' in the conig directory (usually $HOME/.fanfix)")
 	CACHE_DIR, //

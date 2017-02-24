@@ -89,7 +89,7 @@ class LocalReaderBook extends JPanel {
 	private boolean cached;
 
 	/**
-	 * Create a new {@link LocalReaderBook} item for the givn {@link Story}.
+	 * Create a new {@link LocalReaderBook} item for the given {@link Story}.
 	 * 
 	 * @param meta
 	 *            the story {@code}link MetaData}
@@ -97,31 +97,15 @@ class LocalReaderBook extends JPanel {
 	 *            TRUE if it is locally cached
 	 */
 	public LocalReaderBook(MetaData meta, boolean cached) {
-		this.luid = meta.getLuid();
 		this.cached = cached;
-
-		BufferedImage resizedImage = new BufferedImage(SPINE_WIDTH
-				+ COVER_WIDTH, SPINE_HEIGHT + COVER_HEIGHT + HOFFSET,
-				BufferedImage.TYPE_4BYTE_ABGR);
-		Graphics2D g = resizedImage.createGraphics();
-		g.setColor(Color.white);
-		g.fillRect(0, HOFFSET, COVER_WIDTH, COVER_HEIGHT);
-		if (meta.getCover() != null) {
-			g.drawImage(meta.getCover(), 0, HOFFSET, COVER_WIDTH, COVER_HEIGHT,
-					null);
-		} else {
-			g.setColor(Color.black);
-			g.drawLine(0, HOFFSET, COVER_WIDTH, HOFFSET + COVER_HEIGHT);
-			g.drawLine(COVER_WIDTH, HOFFSET, 0, HOFFSET + COVER_HEIGHT);
-		}
-		g.dispose();
-
-		icon = new JLabel(new ImageIcon(resizedImage));
+		luid = meta.getLuid();
 
 		String optAuthor = meta.getAuthor();
 		if (optAuthor != null && !optAuthor.isEmpty()) {
 			optAuthor = "(" + optAuthor + ")";
 		}
+
+		icon = new JLabel(generateCoverIcon(meta.getCover()));
 
 		title = new JLabel(
 				String.format(
@@ -132,12 +116,11 @@ class LocalReaderBook extends JPanel {
 						TEXT_WIDTH, TEXT_HEIGHT, meta.getTitle(), AUTHOR_COLOR,
 						optAuthor));
 
-		this.setLayout(new BorderLayout(10, 10));
-		this.add(icon, BorderLayout.CENTER);
-		this.add(title, BorderLayout.SOUTH);
+		setLayout(new BorderLayout(10, 10));
+		add(icon, BorderLayout.CENTER);
+		add(title, BorderLayout.SOUTH);
 
 		setupListeners();
-		setSelected(false);
 	}
 
 	/**
@@ -156,8 +139,10 @@ class LocalReaderBook extends JPanel {
 	 *            TRUE if it is selected
 	 */
 	public void setSelected(boolean selected) {
-		this.selected = selected;
-		repaint();
+		if (this.selected != selected) {
+			this.selected = selected;
+			repaint();
+		}
 	}
 
 	/**
@@ -167,8 +152,10 @@ class LocalReaderBook extends JPanel {
 	 *            TRUE if it is mouse-hovered
 	 */
 	private void setHovered(boolean hovered) {
-		this.hovered = hovered;
-		repaint();
+		if (this.hovered != hovered) {
+			this.hovered = hovered;
+			repaint();
+		}
 	}
 
 	/**
@@ -268,19 +255,25 @@ class LocalReaderBook extends JPanel {
 	public void setCached(boolean cached) {
 		if (this.cached != cached) {
 			this.cached = cached;
-			invalidate();
+			repaint();
 		}
 	}
 
 	/**
-	 * Draw a "cached" icon and a partially transparent overlay if needed
-	 * depending upon the selection and mouse-hover states on top of the normal
-	 * component.
+	 * Paint the item, then call {@link LocalReaderBook#paintOverlay(Graphics)}.
 	 */
 	@Override
 	public void paint(Graphics g) {
 		super.paint(g);
+		paintOverlay(g);
+	}
 
+	/**
+	 * Draw a partially transparent overlay if needed depending upon the
+	 * selection and mouse-hover states on top of the normal component, as well
+	 * as a possible "cached" icon if the item is cached.
+	 */
+	public void paintOverlay(Graphics g) {
 		Rectangle clip = g.getClipBounds();
 		if (clip.getWidth() <= 0 || clip.getHeight() <= 0) {
 			return;
@@ -331,5 +324,33 @@ class LocalReaderBook extends JPanel {
 			UIUtils.drawEllipse3D(g, Color.green.darker(), COVER_WIDTH
 					+ HOFFSET + 30, 10, 20, 20);
 		}
+	}
+
+	/**
+	 * Generate a cover icon based upon the given cover image (which may be
+	 * NULL).
+	 * 
+	 * @param image
+	 *            the cover image, or NULL for none
+	 * 
+	 * @return the icon
+	 */
+	private ImageIcon generateCoverIcon(BufferedImage image) {
+		BufferedImage resizedImage = new BufferedImage(SPINE_WIDTH
+				+ COVER_WIDTH, SPINE_HEIGHT + COVER_HEIGHT + HOFFSET,
+				BufferedImage.TYPE_4BYTE_ABGR);
+		Graphics2D g = resizedImage.createGraphics();
+		g.setColor(Color.white);
+		g.fillRect(0, HOFFSET, COVER_WIDTH, COVER_HEIGHT);
+		if (image != null) {
+			g.drawImage(image, 0, HOFFSET, COVER_WIDTH, COVER_HEIGHT, null);
+		} else {
+			g.setColor(Color.black);
+			g.drawLine(0, HOFFSET, COVER_WIDTH, HOFFSET + COVER_HEIGHT);
+			g.drawLine(COVER_WIDTH, HOFFSET, 0, HOFFSET + COVER_HEIGHT);
+		}
+		g.dispose();
+
+		return new ImageIcon(resizedImage);
 	}
 }
