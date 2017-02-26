@@ -87,7 +87,12 @@ class Text extends BasicSupport {
 			chapter0 = scan.next();
 		}
 
-		String lang = detectChapter(chapter0);
+		String lang = detectChapter(chapter0, 0);
+		if (lang == null) {
+			// No description??
+			lang = detectChapter(chapter0, 1);
+		}
+
 		if (lang == null) {
 			lang = "EN";
 		} else {
@@ -170,35 +175,30 @@ class Text extends BasicSupport {
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
 		scan.useDelimiter("\\n");
-		boolean descSkipped = false;
 		boolean prevLineEmpty = false;
 		while (scan.hasNext()) {
 			String line = scan.next();
-			if (prevLineEmpty && detectChapter(line) != null) {
-				if (descSkipped) {
-					String chapName = Integer.toString(chaps.size());
-					int pos = line.indexOf(':');
-					if (pos >= 0 && pos + 1 < line.length()) {
-						chapName = line.substring(pos + 1).trim();
-					}
-					final URL value = source;
-					final String key = chapName;
-					chaps.add(new Entry<String, URL>() {
-						public URL setValue(URL value) {
-							return null;
-						}
-
-						public URL getValue() {
-							return value;
-						}
-
-						public String getKey() {
-							return key;
-						}
-					});
-				} else {
-					descSkipped = true;
+			if (prevLineEmpty && detectChapter(line, chaps.size() + 1) != null) {
+				String chapName = Integer.toString(chaps.size() + 1);
+				int pos = line.indexOf(':');
+				if (pos >= 0 && pos + 1 < line.length()) {
+					chapName = line.substring(pos + 1).trim();
 				}
+				final URL value = source;
+				final String key = chapName;
+				chaps.add(new Entry<String, URL>() {
+					public URL setValue(URL value) {
+						return null;
+					}
+
+					public URL getValue() {
+						return value;
+					}
+
+					public String getKey() {
+						return key;
+					}
+				});
 			}
 
 			prevLineEmpty = line.trim().isEmpty();
@@ -219,7 +219,7 @@ class Text extends BasicSupport {
 			String line = scan.next();
 			if (detectChapter(line, number) != null) {
 				inChap = true;
-			} else if (inChap && detectChapter(line) != null) {
+			} else if (inChap && detectChapter(line, number + 1) != null) {
 				break;
 			} else if (inChap) {
 				builder.append(line);
@@ -249,19 +249,6 @@ class Text extends BasicSupport {
 	}
 
 	/**
-	 * Check if the given line looks like a starting chapter in a supported
-	 * language, and return the language if it does (or NULL if not).
-	 * 
-	 * @param line
-	 *            the line to check
-	 * 
-	 * @return the language or NULL
-	 */
-	private String detectChapter(String line) {
-		return detectChapter(line, null);
-	}
-
-	/**
 	 * Check if the given line looks like the given starting chapter in a
 	 * supported language, and return the language if it does (or NULL if not).
 	 * 
@@ -270,7 +257,7 @@ class Text extends BasicSupport {
 	 * 
 	 * @return the language or NULL
 	 */
-	private String detectChapter(String line, Integer number) {
+	private String detectChapter(String line, int number) {
 		line = line.toUpperCase();
 		for (String lang : Instance.getConfig().getString(Config.CHAPTER)
 				.split(",")) {
@@ -279,19 +266,16 @@ class Text extends BasicSupport {
 			if (chapter != null && !chapter.isEmpty()) {
 				chapter = chapter.toUpperCase() + " ";
 				if (line.startsWith(chapter)) {
-					if (number != null) {
-						// We want "[CHAPTER] [number]: [name]", with ": [name]"
-						// optional
-						String test = line.substring(chapter.length()).trim();
-						if (test.startsWith(Integer.toString(number))) {
-							test = test.substring(
-									Integer.toString(number).length()).trim();
-							if (test.isEmpty() || test.startsWith(":")) {
-								return lang;
-							}
+					// We want "[CHAPTER] [number]: [name]", with ": [name]"
+					// optional
+					String test = line.substring(chapter.length()).trim();
+					if (test.startsWith(Integer.toString(number))) {
+						test = test
+								.substring(Integer.toString(number).length())
+								.trim();
+						if (test.isEmpty() || test.startsWith(":")) {
+							return lang;
 						}
-					} else {
-						return lang;
 					}
 				}
 			}

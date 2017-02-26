@@ -30,11 +30,15 @@ public class Instance {
 		// Most of the rest is dependent upon this:
 		config = new ConfigBundle();
 
-		String configDir = System.getenv("CONFIG_DIR");
+		String configDir = System.getProperty("CONFIG_DIR");
+		if (configDir == null) {
+			configDir = System.getenv("CONFIG_DIR");
+		}
 		if (configDir == null) {
 			configDir = new File(System.getProperty("user.home"), ".fanfix")
 					.getPath();
 		}
+		
 		if (configDir != null) {
 			if (!new File(configDir).exists()) {
 				new File(configDir).mkdirs();

@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import java.util.Scanner;
 
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.StringUtils;
 
@@ -309,7 +310,21 @@ class Fanfiction extends BasicSupport {
 				if (builder.length() == 0) {
 					int pos = line.indexOf("<hr");
 					if (pos >= 0) {
-						line = line.substring(pos);
+						boolean chaptered = false;
+						for (String lang : Instance.getConfig()
+								.getString(Config.CHAPTER).split(",")) {
+							String chapterWord = Instance.getConfig()
+									.getStringX(Config.CHAPTER, lang);
+							int posChap = line.indexOf(chapterWord + " ");
+							if (posChap < pos) {
+								chaptered = true;
+								break;
+							}
+						}
+
+						if (chaptered) {
+							line = line.substring(pos);
+						}
 					}
 				}
 

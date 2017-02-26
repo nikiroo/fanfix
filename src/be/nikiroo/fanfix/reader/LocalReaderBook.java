@@ -85,7 +85,7 @@ class LocalReaderBook extends JPanel {
 	private Date lastClick;
 
 	private List<BookActionListener> listeners;
-	private String luid;
+	private MetaData meta;
 	private boolean cached;
 
 	/**
@@ -98,7 +98,7 @@ class LocalReaderBook extends JPanel {
 	 */
 	public LocalReaderBook(MetaData meta, boolean cached) {
 		this.cached = cached;
-		luid = meta.getLuid();
+		this.meta = meta;
 
 		String optAuthor = meta.getAuthor();
 		if (optAuthor != null && !optAuthor.isEmpty()) {
@@ -229,12 +229,12 @@ class LocalReaderBook extends JPanel {
 	}
 
 	/**
-	 * The Library UID of the book represented by this item.
+	 * The Library {@code}link MetaData} of the book represented by this item.
 	 * 
-	 * @return the LUID
+	 * @return the meta
 	 */
-	public String getLuid() {
-		return luid;
+	public MetaData getMeta() {
+		return meta;
 	}
 
 	/**

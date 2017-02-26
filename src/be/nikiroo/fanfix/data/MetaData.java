@@ -9,7 +9,7 @@ import java.util.List;
  * 
  * @author niki
  */
-public class MetaData implements Cloneable {
+public class MetaData implements Cloneable, Comparable<MetaData> {
 	private String title;
 	private String author;
 	private String date;
@@ -313,6 +313,11 @@ public class MetaData implements Cloneable {
 	 */
 	public void setImageDocument(boolean imageDocument) {
 		this.imageDocument = imageDocument;
+	}
+
+	public int compareTo(MetaData o) {
+		String oUuid = o == null ? null : o.getUuid();
+		return getUuid().compareTo(oUuid);
 	}
 
 	@Override

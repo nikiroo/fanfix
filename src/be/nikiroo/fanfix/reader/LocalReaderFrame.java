@@ -136,7 +136,8 @@ class LocalReaderFrame extends JFrame {
 					popup.add(createMenuItemOpenBook());
 					popup.addSeparator();
 					popup.add(createMenuItemExport());
-					popup.add(createMenuItemRefresh());
+					popup.add(createMenuItemClearCache());
+					popup.add(createMenuItemRedownload());
 					popup.addSeparator();
 					popup.add(createMenuItemDelete());
 					popup.show(e.getComponent(), e.getX(), e.getY());
@@ -165,13 +166,13 @@ class LocalReaderFrame extends JFrame {
 		JMenu file = new JMenu("File");
 		file.setMnemonic(KeyEvent.VK_F);
 
-		JMenuItem imprt = new JMenuItem("Import URL", KeyEvent.VK_U);
+		JMenuItem imprt = new JMenuItem("Import URL...", KeyEvent.VK_U);
 		imprt.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				imprt(true);
 			}
 		});
-		JMenuItem imprtF = new JMenuItem("Import File", KeyEvent.VK_F);
+		JMenuItem imprtF = new JMenuItem("Import File...", KeyEvent.VK_F);
 		imprtF.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				imprt(false);
@@ -198,7 +199,8 @@ class LocalReaderFrame extends JFrame {
 		JMenu edit = new JMenu("Edit");
 		edit.setMnemonic(KeyEvent.VK_E);
 
-		edit.add(createMenuItemRefresh());
+		edit.add(createMenuItemClearCache());
+		edit.add(createMenuItemRedownload());
 		edit.addSeparator();
 		edit.add(createMenuItemDelete());
 
@@ -274,7 +276,8 @@ class LocalReaderFrame extends JFrame {
 						public void run() {
 							try {
 								Instance.getLibrary().export(
-										selectedBook.getLuid(), type, path, pg);
+										selectedBook.getMeta().getLuid(), type,
+										path, pg);
 							} catch (IOException e) {
 								Instance.syserr(e);
 							}
@@ -315,20 +318,43 @@ class LocalReaderFrame extends JFrame {
 	 * 
 	 * @return the item
 	 */
-	private JMenuItem createMenuItemRefresh() {
+	private JMenuItem createMenuItemClearCache() {
 		JMenuItem refresh = new JMenuItem("Clear cache", KeyEvent.VK_C);
 		refresh.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (selectedBook != null) {
 					outOfUi(null, new Runnable() {
 						public void run() {
-							reader.refresh(selectedBook.getLuid());
+							reader.refresh(selectedBook.getMeta().getLuid());
 							selectedBook.setCached(false);
 							SwingUtilities.invokeLater(new Runnable() {
 								public void run() {
 									selectedBook.repaint();
 								}
 							});
+						}
+					});
+				}
+			}
+		});
+
+		return refresh;
+	}
+
+	/**
+	 * Create the redownload (then delete original) menu item.
+	 * 
+	 * @return the item
+	 */
+	private JMenuItem createMenuItemRedownload() {
+		JMenuItem refresh = new JMenuItem("Redownload", KeyEvent.VK_R);
+		refresh.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (selectedBook != null) {
+					imprt(selectedBook.getMeta().getUrl(), new Runnable() {
+						public void run() {
+							reader.delete(selectedBook.getMeta().getLuid());
+							selectedBook = null;
 						}
 					});
 				}
@@ -350,7 +376,7 @@ class LocalReaderFrame extends JFrame {
 				if (selectedBook != null) {
 					outOfUi(null, new Runnable() {
 						public void run() {
-							reader.delete(selectedBook.getLuid());
+							reader.delete(selectedBook.getMeta().getLuid());
 							selectedBook = null;
 							SwingUtilities.invokeLater(new Runnable() {
 								public void run() {
@@ -395,7 +421,7 @@ class LocalReaderFrame extends JFrame {
 		outOfUi(pg, new Runnable() {
 			public void run() {
 				try {
-					reader.open(book.getLuid(), pg);
+					reader.open(book.getMeta().getLuid(), pg);
 					SwingUtilities.invokeLater(new Runnable() {
 						public void run() {
 							book.setCached(true);
@@ -454,6 +480,8 @@ class LocalReaderFrame extends JFrame {
 
 	/**
 	 * Import a {@link Story} into the main {@link Library}.
+	 * <p>
+	 * Should be called inside the UI thread.
 	 * 
 	 * @param askUrl
 	 *            TRUE for an {@link URL}, false for a {@link File}
@@ -461,7 +489,7 @@ class LocalReaderFrame extends JFrame {
 	private void imprt(boolean askUrl) {
 		JFileChooser fc = new JFileChooser();
 
-		final String url;
+		String url;
 		if (askUrl) {
 			url = JOptionPane.showInputDialog(LocalReaderFrame.this,
 					"url of the story to import?", "Importing from URL",
@@ -473,35 +501,54 @@ class LocalReaderFrame extends JFrame {
 		}
 
 		if (url != null && !url.isEmpty()) {
-			final Progress pg = new Progress("Importing " + url);
-			outOfUi(pg, new Runnable() {
-				public void run() {
-					Exception ex = null;
-					try {
-						Instance.getLibrary()
-								.imprt(BasicReader.getUrl(url), pg);
-					} catch (IOException e) {
-						ex = e;
-					}
+			imprt(url, null);
+		}
+	}
 
-					final Exception e = ex;
+	/**
+	 * Actually import the {@link Story} into the main {@link Library}.
+	 * <p>
+	 * Should be called inside the UI thread.
+	 * 
+	 * @param url
+	 *            the {@link Story} to import by {@link URL}
+	 * @param onSuccess
+	 *            Action to execute on success
+	 */
+	private void imprt(final String url, final Runnable onSuccess) {
+		final Progress pg = new Progress("Importing " + url);
+		outOfUi(pg, new Runnable() {
+			public void run() {
+				Exception ex = null;
+				try {
+					Instance.getLibrary().imprt(BasicReader.getUrl(url), pg);
+				} catch (IOException e) {
+					ex = e;
+				}
 
-					final boolean ok = (e == null);
-					SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							if (!ok) {
-								JOptionPane.showMessageDialog(
-										LocalReaderFrame.this, e.getMessage(),
-										"Cannot import: " + url,
-										JOptionPane.ERROR_MESSAGE);
-							} else {
+				final Exception e = ex;
+
+				final boolean ok = (e == null);
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						if (!ok) {
+							JOptionPane.showMessageDialog(
+									LocalReaderFrame.this, "Cannot import: "
+											+ url, e.getMessage(),
+									JOptionPane.ERROR_MESSAGE);
+
+							setEnabled(true);
+						} else {
+							refreshBooks(type);
+							if (onSuccess != null) {
+								onSuccess.run();
 								refreshBooks(type);
 							}
 						}
-					});
-				}
-			});
-		}
+					}
+				});
+			}
+		});
 	}
 
 	/**

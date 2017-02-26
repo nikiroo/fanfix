@@ -150,7 +150,7 @@ public abstract class BasicSupport {
 
 	private InputStream in;
 	private SupportType type;
-	private URL currentReferer; // with on 'r', as in 'HTTP'...
+	private URL currentReferer; // with only one 'r', as in 'HTTP'...
 
 	// quote chars
 	private char openQuote = Instance.getTrans().getChar(
@@ -913,7 +913,7 @@ public abstract class BasicSupport {
 	 * 
 	 * @return the processed {@link Paragraph}
 	 */
-	private Paragraph processPara(String line) {
+	protected Paragraph processPara(String line) {
 		line = ifUnhtml(line).trim();
 
 		boolean space = true;
@@ -936,11 +936,16 @@ public abstract class BasicSupport {
 
 			if (tentativeCloseQuote) {
 				tentativeCloseQuote = false;
-				if ((car >= 'a' && car <= 'z') || (car >= 'A' && car <= 'Z')
-						|| (car >= '0' && car <= '9')) {
+				if (Character.isLetterOrDigit(car)) {
 					builder.append("'");
 				} else {
-					builder.append(closeQuote);
+					// handle double-single quotes as double quotes
+					if (prev == car) {
+						builder.append(closeDoubleQuote);
+						continue;
+					} else {
+						builder.append(closeQuote);
+					}
 				}
 			}
 
@@ -956,9 +961,21 @@ public abstract class BasicSupport {
 			case '\'':
 				if (space || (brk && quote)) {
 					quote = true;
-					builder.append(openQuote);
-				} else if (prev == ' ') {
-					builder.append(openQuote);
+					// handle double-single quotes as double quotes
+					if (prev == car) {
+						builder.deleteCharAt(builder.length() - 1);
+						builder.append(openDoubleQuote);
+					} else {
+						builder.append(openQuote);
+					}
+				} else if (prev == ' ' || prev == car) {
+					// handle double-single quotes as double quotes
+					if (prev == car) {
+						builder.deleteCharAt(builder.length() - 1);
+						builder.append(openDoubleQuote);
+					} else {
+						builder.append(openQuote);
+					}
 				} else {
 					// it is a quote ("I'm off") or a 'quote' ("This
 					// 'good' restaurant"...)
@@ -1011,7 +1028,13 @@ public abstract class BasicSupport {
 					quote = true;
 					builder.append(openQuote);
 				} else {
-					builder.append(openQuote);
+					// handle double-single quotes as double quotes
+					if (prev == car) {
+						builder.deleteCharAt(builder.length() - 1);
+						builder.append(openDoubleQuote);
+					} else {
+						builder.append(openQuote);
+					}
 				}
 				space = false;
 				brk = false;
@@ -1024,7 +1047,13 @@ public abstract class BasicSupport {
 			case '」':
 				space = false;
 				brk = false;
-				builder.append(closeQuote);
+				// handle double-single quotes as double quotes
+				if (prev == car) {
+					builder.deleteCharAt(builder.length() - 1);
+					builder.append(closeDoubleQuote);
+				} else {
+					builder.append(closeQuote);
+				}
 				break;
 
 			case '«':

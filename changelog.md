@@ -1,5 +1,39 @@
 # Fanfix
 
+## Version 1.2.4
+
+- new UI option: Re-download
+- fix UI: books are now sorted (will not jump around after refresh/redownload)
+- fixes on quote character handling
+- fixes on Chapter detection
+
+## Version 1.2.3
+
+- Include the original (info_text) files when saving to HTML
+- New input type supported: HTML files made by Fanfix
+
+## Version 1.2.2
+
+- New "Save as..." GUI option
+- GUI fixes (icon refresh)
+- Fix handling of TABs in user messages
+- LocalReader can now be used with --read
+- Some fixes in CSS
+
+## Version 1.2.1
+
+- Some GUI menu functions added
+- Right-click popup menu added
+- GUI fixes, especially for the LocalReader library
+- New green round icon to denote "cached" (into LocalReader library) files
+
+## Version 1.2.0
+
+- Progress reporting system in GUI, too
+- CSS style changes
+- unit tests added
+- Some GUI menu functions added (delete, refresh, a place-holder for export)
+
 ## Version 1.1.0
 
 - new Progress reporting system (currently only in CLI mode)

@@ -1,5 +1,6 @@
 package be.nikiroo.fanfix.test;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -7,14 +8,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
+import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.supported.BasicSupport;
+import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
+import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.test.TestCase;
 import be.nikiroo.utils.test.TestLauncher;
 
 public class BasicSupportTest extends TestLauncher {
+	// quote chars
+	private char openQuote = Instance.getTrans().getChar(
+			StringId.OPEN_SINGLE_QUOTE);
+	private char closeQuote = Instance.getTrans().getChar(
+			StringId.CLOSE_SINGLE_QUOTE);
+	private char openDoubleQuote = Instance.getTrans().getChar(
+			StringId.OPEN_DOUBLE_QUOTE);
+	private char closeDoubleQuote = Instance.getTrans().getChar(
+			StringId.CLOSE_DOUBLE_QUOTE);
 
 	public BasicSupportTest(String[] args) {
 		super("BasicSupport", args);
@@ -113,6 +128,189 @@ public class BasicSupportTest extends TestLauncher {
 								.getType());
 					}
 				});
+
+				addTest(new TestCase("BasicSupport.processPara() quotes") {
+					@Override
+					public void test() throws Exception {
+						BasicSupportEmpty support = new BasicSupportEmpty() {
+							@Override
+							protected boolean isHtml() {
+								return true;
+							}
+						};
+
+						Paragraph para;
+
+						// sanity check
+						para = support.processPara("");
+						assertEquals(ParagraphType.BLANK, para.getType());
+						//
+
+						para = support.processPara("\"Yes, my Lord!\"");
+						assertEquals(ParagraphType.QUOTE, para.getType());
+						assertEquals(openDoubleQuote + "Yes, my Lord!"
+								+ closeDoubleQuote, para.getContent());
+
+						para = support.processPara("«Yes, my Lord!»");
+						assertEquals(ParagraphType.QUOTE, para.getType());
+						assertEquals(openDoubleQuote + "Yes, my Lord!"
+								+ closeDoubleQuote, para.getContent());
+
+						para = support.processPara("'Yes, my Lord!'");
+						assertEquals(ParagraphType.QUOTE, para.getType());
+						assertEquals(openQuote + "Yes, my Lord!" + closeQuote,
+								para.getContent());
+
+						para = support.processPara("‹Yes, my Lord!›");
+						assertEquals(ParagraphType.QUOTE, para.getType());
+						assertEquals(openQuote + "Yes, my Lord!" + closeQuote,
+								para.getContent());
+					}
+				});
+
+				addTest(new TestCase(
+						"BasicSupport.processPara() double-simple quotes") {
+					@Override
+					public void setUp() throws Exception {
+						super.setUp();
+
+					};
+
+					@Override
+					public void tearDown() throws Exception {
+
+						super.tearDown();
+					}
+
+					@Override
+					public void test() throws Exception {
+						BasicSupportEmpty support = new BasicSupportEmpty() {
+							@Override
+							protected boolean isHtml() {
+								return true;
+							}
+						};
+
+						Paragraph para;
+
+						para = support.processPara("''Yes, my Lord!''");
+						assertEquals(ParagraphType.QUOTE, para.getType());
+						assertEquals(openDoubleQuote + "Yes, my Lord!"
+								+ closeDoubleQuote, para.getContent());
+
+						para = support.processPara("‹‹Yes, my Lord!››");
+						assertEquals(ParagraphType.QUOTE, para.getType());
+						assertEquals(openDoubleQuote + "Yes, my Lord!"
+								+ closeDoubleQuote, para.getContent());
+					}
+				});
+
+				addTest(new TestCase("BasicSupport.processPara() apostrophe") {
+					@Override
+					public void test() throws Exception {
+						BasicSupportEmpty support = new BasicSupportEmpty() {
+							@Override
+							protected boolean isHtml() {
+								return true;
+							}
+						};
+
+						Paragraph para;
+
+						String text = "Nous étions en été, mais cela aurait être l'hiver quand nous n'étions encore qu'à Aubeuge";
+						para = support.processPara(text);
+						assertEquals(ParagraphType.NORMAL, para.getType());
+						assertEquals(text, para.getContent());
+					}
+				});
+			}
+		});
+
+		addSeries(new TestLauncher("Text", args) {
+			{
+				addTest(new TestCase("Chapter detection simple") {
+					private File tmp;
+
+					@Override
+					public void setUp() throws Exception {
+						tmp = File.createTempFile("fanfix-text-file_", ".test");
+						IOUtils.writeSmallFile(tmp.getParentFile(),
+								tmp.getName(), "TITLE"
+										+ "\n"//
+										+ "By nona"
+										+ "\n" //
+										+ "\n" //
+										+ "Chapter 0: Resumé" + "\n" + "\n"
+										+ "'sume." + "\n" + "\n"
+										+ "Chapter 1: chap1" + "\n" + "\n"
+										+ "Fanfan." + "\n" + "\n"
+										+ "Chapter 2: Chap2" + "\n" + "\n" //
+										+ "Tulipe." + "\n");
+					};
+
+					@Override
+					public void tearDown() throws Exception {
+						tmp.delete();
+					};
+
+					@Override
+					public void test() throws Exception {
+						BasicSupport support = BasicSupport
+								.getSupport(SupportType.TEXT);
+
+						Story story = support
+								.process(tmp.toURI().toURL(), null);
+
+						assertEquals(2, story.getChapters().size());
+						assertEquals(1, story.getChapters().get(1)
+								.getParagraphs().size());
+						assertEquals("Tulipe.", story.getChapters().get(1)
+								.getParagraphs().get(0).getContent());
+					}
+				});
+
+				addTest(new TestCase("Chapter detection with String 'Chapter'") {
+					private File tmp;
+
+					@Override
+					public void setUp() throws Exception {
+						tmp = File.createTempFile("fanfix-text-file_", ".test");
+						IOUtils.writeSmallFile(tmp.getParentFile(),
+								tmp.getName(), "TITLE"
+										+ "\n"//
+										+ "By nona"
+										+ "\n" //
+										+ "\n" //
+										+ "Chapter 0: Resumé" + "\n" + "\n"
+										+ "'sume." + "\n" + "\n"
+										+ "Chapter 1: chap1" + "\n" + "\n"
+										+ "Chapter fout-la-merde" + "\n"
+										+ "\n"//
+										+ "Fanfan." + "\n" + "\n"
+										+ "Chapter 2: Chap2" + "\n" + "\n" //
+										+ "Tulipe." + "\n");
+					};
+
+					@Override
+					public void tearDown() throws Exception {
+						tmp.delete();
+					};
+
+					@Override
+					public void test() throws Exception {
+						BasicSupport support = BasicSupport
+								.getSupport(SupportType.TEXT);
+
+						Story story = support
+								.process(tmp.toURI().toURL(), null);
+
+						assertEquals(2, story.getChapters().size());
+						assertEquals(1, story.getChapters().get(1)
+								.getParagraphs().size());
+						assertEquals("Tulipe.", story.getChapters().get(1)
+								.getParagraphs().get(0).getContent());
+					}
+				});
 			}
 		});
 	}
@@ -167,6 +365,12 @@ public class BasicSupportTest extends TestLauncher {
 		// and make it public!
 		public void fixBlanksBreaks(List<Paragraph> paras) {
 			super.fixBlanksBreaks(paras);
+		}
+
+		@Override
+		// and make it public!
+		public Paragraph processPara(String line) {
+			return super.processPara(line);
 		}
 	}
 }
