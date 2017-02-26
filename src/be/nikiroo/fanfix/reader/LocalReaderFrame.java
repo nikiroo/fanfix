@@ -450,15 +450,11 @@ class LocalReaderFrame extends JFrame {
 	private void outOfUi(final Progress pg, final Runnable run) {
 		pgBar.setProgress(pg);
 
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				setEnabled(false);
-				pgBar.addActioListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						pgBar.setProgress(null);
-						setEnabled(true);
-					}
-				});
+		setEnabled(false);
+		pgBar.addActioListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				pgBar.setProgress(null);
+				setEnabled(true);
 			}
 		});
 
@@ -532,6 +528,7 @@ class LocalReaderFrame extends JFrame {
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
 						if (!ok) {
+							Instance.syserr(e);
 							JOptionPane.showMessageDialog(
 									LocalReaderFrame.this, "Cannot import: "
 											+ url, e.getMessage(),

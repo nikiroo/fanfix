@@ -390,7 +390,11 @@ public class Library {
 	 * @return the target
 	 */
 	private File getFile(MetaData key) {
-		String title = key.getTitle().replaceAll("[^a-zA-Z0-9._+-]", "_");
+		String title = key.getTitle();
+		if (title == null) {
+			title = "";
+		}
+		title = title.replaceAll("[^a-zA-Z0-9._+-]", "_");
 		return new File(getDir(key), key.getLuid() + "_" + title);
 	}
 

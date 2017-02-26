@@ -59,6 +59,8 @@ public abstract class BasicSupport {
 		MANGAFOX,
 		/** Furry website with comics support */
 		E621,
+		/** Furry website with stories */
+		YIFFSTAR,
 		/** CBZ files */
 		CBZ,
 		/** HTML files */
@@ -255,6 +257,21 @@ public abstract class BasicSupport {
 	}
 
 	/**
+	 * Return the canonical form of the main {@link URL}.
+	 * 
+	 * @param source
+	 *            the source {@link URL}
+	 * 
+	 * @return the canonical form of this {@link URL}
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public URL getCanonicalUrl(URL source) throws IOException {
+		return source;
+	}
+
+	/**
 	 * Process the given story resource into a partially filled {@link Story}
 	 * object containing the name and metadata, except for the description.
 	 * 
@@ -287,6 +304,10 @@ public abstract class BasicSupport {
 	 */
 	protected Story processMeta(URL url, boolean close, boolean getDesc)
 			throws IOException {
+		url = getCanonicalUrl(url);
+
+		setCurrentReferer(url);
+
 		in = openInput(url);
 		if (in == null) {
 			return null;
@@ -324,6 +345,8 @@ public abstract class BasicSupport {
 					in.close();
 				}
 			}
+
+			setCurrentReferer(null);
 		}
 	}
 
@@ -348,8 +371,7 @@ public abstract class BasicSupport {
 			pg.setMinMax(0, 100);
 		}
 
-		setCurrentReferer(url);
-
+		url = getCanonicalUrl(url);
 		pg.setProgress(1);
 		try {
 			Story story = processMeta(url, false, true);
@@ -358,6 +380,8 @@ public abstract class BasicSupport {
 				pg.setProgress(100);
 				return null;
 			}
+
+			setCurrentReferer(url);
 
 			story.setChapters(new ArrayList<Chapter>());
 
@@ -400,12 +424,12 @@ public abstract class BasicSupport {
 				in.close();
 			}
 
-			currentReferer = null;
+			setCurrentReferer(null);
 		}
 	}
 
 	/**
-	 * The support type.$
+	 * The support type.
 	 * 
 	 * @return the type
 	 */
@@ -661,6 +685,11 @@ public abstract class BasicSupport {
 	/**
 	 * Return the list of supported image extensions.
 	 * 
+	 * @param emptyAllowed
+	 *            TRUE to allow an empty extension on first place, which can be
+	 *            used when you may already have an extension in your input but
+	 *            are not sure about it
+	 * 
 	 * @return the extensions
 	 */
 	static String[] getImageExt(boolean emptyAllowed) {
@@ -671,6 +700,18 @@ public abstract class BasicSupport {
 		}
 	}
 
+	/**
+	 * Check if the given resource can be a local image or a remote image, then
+	 * refresh the cache with it if it is.
+	 * 
+	 * @param source
+	 *            the story source
+	 * @param line
+	 *            the resource to check
+	 * 
+	 * @return the image if found, or NULL
+	 * 
+	 */
 	static BufferedImage getImage(BasicSupport support, URL source, String line) {
 		URL url = getImageUrl(support, source, line);
 		if (url != null) {
@@ -782,6 +823,14 @@ public abstract class BasicSupport {
 		return Instance.getCache().open(source, this, false);
 	}
 
+	/**
+	 * Reset the given {@link InputStream} and return it.
+	 * 
+	 * @param in
+	 *            the {@link InputStream} to reset
+	 * 
+	 * @return the same {@link InputStream} after reset
+	 */
 	protected InputStream reset(InputStream in) {
 		try {
 			in.reset();
@@ -834,7 +883,7 @@ public abstract class BasicSupport {
 	 * paragraphs (quotes or not)).
 	 * 
 	 * @param para
-	 *            the paragraph to requotify (not necessaraly a quote)
+	 *            the paragraph to requotify (not necessarily a quote)
 	 * 
 	 * @return the correctly (or so we hope) quotified paragraphs
 	 */
@@ -1111,7 +1160,7 @@ public abstract class BasicSupport {
 	}
 
 	/**
-	 * Remove the HTML from the inpit <b>if</b> {@link BasicSupport#isHtml()} is
+	 * Remove the HTML from the input <b>if</b> {@link BasicSupport#isHtml()} is
 	 * true.
 	 * 
 	 * @param input
@@ -1186,6 +1235,8 @@ public abstract class BasicSupport {
 			return new MangaFox().setType(type);
 		case E621:
 			return new E621().setType(type);
+		case YIFFSTAR:
+			return new YiffStar().setType(type);
 		case CBZ:
 			return new Cbz().setType(type);
 		case HTML:

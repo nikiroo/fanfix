@@ -46,7 +46,7 @@ class E621 extends BasicSupport {
 		meta.setUuid(source.toString());
 		meta.setLuid("");
 		meta.setLang("EN");
-		meta.setSubject("");
+		meta.setSubject("Furry");
 		meta.setType(getType().toString());
 		meta.setImageDocument(true);
 		meta.setCover(getCover(source));

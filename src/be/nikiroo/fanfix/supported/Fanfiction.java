@@ -329,6 +329,7 @@ class Fanfiction extends BasicSupport {
 				}
 
 				builder.append(line);
+				builder.append('\n');
 			}
 		}
 
