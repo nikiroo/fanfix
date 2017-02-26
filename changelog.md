@@ -6,6 +6,7 @@
 - fix UI: books are now sorted (will not jump around after refresh/redownload)
 - fixes on quote character handling
 - fixes on Chapter detection
+- more tests included
 
 ## Version 1.2.3
 
