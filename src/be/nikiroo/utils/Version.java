@@ -40,16 +40,17 @@ public class Version {
 	 *            the version (<tt>MAJOR.MINOR.PATCH</tt>)
 	 */
 	public Version(String version) {
-		this.version = version;
 		try {
 			String[] tab = version.split("\\.");
 			this.major = Integer.parseInt(tab[0]);
 			this.minor = Integer.parseInt(tab[1]);
 			this.patch = Integer.parseInt(tab[2]);
+			this.version = version;
 		} catch (Exception e) {
 			this.major = 0;
 			this.minor = 0;
 			this.patch = 0;
+			this.version = null;
 		}
 	}
 

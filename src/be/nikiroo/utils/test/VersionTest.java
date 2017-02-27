@@ -32,6 +32,13 @@ class VersionTest extends TestLauncher {
 						new Version(
 								"Doors 98 SE Special Deluxe Edition Pro++ Not-Home")
 								.isEmpty());
+
+				assertEquals(
+						"Bad input should return [unknown]",
+						"[unknown]",
+						new Version(
+								"Doors 98 SE Special Deluxe Edition Pro++ Not-Home")
+								.toString());
 			}
 		});
 
