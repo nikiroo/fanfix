@@ -112,7 +112,7 @@ public class Version {
 	 * @return the {@link Version} of the program, or an empty {@link Version}
 	 *         (does not return NULL)
 	 */
-	public static String getCurrentVersion() {
+	public static Version getCurrentVersion() {
 		String version = null;
 
 		InputStream in = IOUtils.openResource("VERSION");
@@ -127,7 +127,7 @@ public class Version {
 			}
 		}
 
-		return version;
+		return new Version(version);
 	}
 
 	/**
