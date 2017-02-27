@@ -7,7 +7,7 @@ import be.nikiroo.utils.resources.Bundle;
 import be.nikiroo.utils.resources.Bundles;
 import be.nikiroo.utils.resources.Meta;
 
-public class BundleTest extends TestLauncher {
+class BundleTest extends TestLauncher {
 	private File tmp;
 	private B b = new B();
 

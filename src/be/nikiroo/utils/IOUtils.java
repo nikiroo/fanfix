@@ -5,7 +5,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -328,31 +327,6 @@ public class IOUtils {
 		}
 
 		return image;
-	}
-
-	/**
-	 * Return the version of the program if it follows the VERSION convention
-	 * (i.e., if it has a file called VERSION containing the version as a
-	 * {@link String} on its binary root).
-	 * 
-	 * @return the version, or NULL
-	 */
-	public static String getVersion() {
-		String version = null;
-
-		InputStream in = openResource("VERSION");
-		if (in != null) {
-			try {
-				ByteArrayOutputStream ba = new ByteArrayOutputStream();
-				write(in, ba);
-				in.close();
-
-				version = ba.toString("UTF-8");
-			} catch (IOException e) {
-			}
-		}
-
-		return version;
 	}
 
 	/**

@@ -12,6 +12,7 @@ public class Test extends TestLauncher {
 		addSeries(new ProgressTest(args));
 		addSeries(new BundleTest(args));
 		addSeries(new IOUtilsTest(args));
+		addSeries(new VersionTest(args));
 	}
 
 	/**

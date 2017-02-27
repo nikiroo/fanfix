@@ -2,7 +2,7 @@ package be.nikiroo.utils.test;
 
 import be.nikiroo.utils.Progress;
 
-public class ProgressTest extends TestLauncher {
+class ProgressTest extends TestLauncher {
 	public ProgressTest(String[] args) {
 		super("Progress reporting", args);
 
