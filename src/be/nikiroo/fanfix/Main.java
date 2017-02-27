@@ -15,6 +15,7 @@ import be.nikiroo.fanfix.reader.BasicReader.ReaderType;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 import be.nikiroo.utils.Progress;
+import be.nikiroo.utils.Version;
 import be.nikiroo.utils.ui.UIUtils;
 
 /**
@@ -24,7 +25,7 @@ import be.nikiroo.utils.ui.UIUtils;
  */
 public class Main {
 	private enum MainAction {
-		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER, START,
+		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER, START, VERSION,
 	}
 
 	/**
@@ -53,6 +54,7 @@ public class Main {
 	 * <li>--list ([type]): list the stories present in the library</li>
 	 * <li>--set-reader [reader type]: set the reader type to CLI or LOCAL for
 	 * this command</li>
+	 * <li>--version: get the version of the program</li>
 	 * </ul>
 	 * 
 	 * @param args
@@ -159,6 +161,8 @@ public class Main {
 			case START:
 				exitCode = 255; // not supposed to be selected by user
 				break;
+			case VERSION:
+				exitCode = 255; // no arguments for this option
 			}
 		}
 
@@ -211,6 +215,13 @@ public class Main {
 				exitCode = 0;
 				break;
 			case SET_READER:
+				break;
+			case VERSION:
+				System.out
+						.println(String.format("Fanfix version %s"
+								+ "\nhttps://github.com/nikiroo/fanfix/"
+								+ "\n\tWritten by Nikiroo",
+								Version.getCurrentVersion()));
 				break;
 			case START:
 				UIUtils.setLookAndFeel();

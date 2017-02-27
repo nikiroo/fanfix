@@ -38,6 +38,7 @@ import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.LocalReaderBook.BookActionListener;
 import be.nikiroo.utils.Progress;
+import be.nikiroo.utils.Version;
 import be.nikiroo.utils.ui.ProgressBar;
 import be.nikiroo.utils.ui.WrapLayout;
 
@@ -71,7 +72,7 @@ class LocalReaderFrame extends JFrame {
 	 *            the type of {@link Story} to load, or NULL for all types
 	 */
 	public LocalReaderFrame(LocalReader reader, String type) {
-		super("Fanfix Library");
+		super(String.format("Fanfix %s Library", Version.getCurrentVersion()));
 
 		this.reader = reader;
 

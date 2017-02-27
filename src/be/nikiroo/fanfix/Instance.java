@@ -38,7 +38,7 @@ public class Instance {
 			configDir = new File(System.getProperty("user.home"), ".fanfix")
 					.getPath();
 		}
-		
+
 		if (configDir != null) {
 			if (!new File(configDir).exists()) {
 				new File(configDir).mkdirs();
@@ -149,7 +149,7 @@ public class Instance {
 
 	/**
 	 * Get the (unique) {link StringIdBundle} for the program.
-	 *
+	 * 
 	 * @return the {link StringIdBundle}
 	 */
 	public static StringIdBundle getTrans() {
