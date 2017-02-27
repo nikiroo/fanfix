@@ -94,6 +94,7 @@ resources: libs
 			cp "$$ln" "../bin/$$ln" ; \
 		fi ; \
 	done
+	@cp VERSION bin/
 
 test-resources: resources
 	@echo Copying test resources into bin/...
