@@ -44,13 +44,13 @@ else
 fi;
 
 
-echo "MAIN = be/nikiroo/utils/resources/TransBundle" > Makefile
-echo "MORE = be/nikiroo/utils/StringUtils be/nikiroo/utils/IOUtils be/nikiroo/utils/MarkableFileInputStream be/nikiroo/utils/ui/UIUtils be/nikiroo/utils/ui/WrapLayout be/nikiroo/utils/ui/ProgressBar be/nikiroo/utils/test/TestLauncher" >> Makefile
+echo "MAIN = be/nikiroo/utils/test/Test" > Makefile
+echo "MORE = be/nikiroo/utils/StringUtils be/nikiroo/utils/IOUtils be/nikiroo/utils/MarkableFileInputStream be/nikiroo/utils/ui/UIUtils be/nikiroo/utils/ui/WrapLayout be/nikiroo/utils/ui/ProgressBar be/nikiroo/utils/resources/TransBundle" >> Makefile
 echo "TEST = be/nikiroo/utils/test/Test" >> Makefile
 echo "TEST_PARAMS = $cols $ok $ko" >> Makefile
 echo "NAME = nikiroo-utils" >> Makefile
 echo "PREFIX = $PREFIX" >> Makefile
-echo "JAR_FLAGS += -C bin/ be" >> Makefile
+echo "JAR_FLAGS += -C bin/ be -C bin/ VERSION" >> Makefile
 echo "SJAR_FLAGS += -C src/ be" >> Makefile
 
 cat Makefile.base >> Makefile

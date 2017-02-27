@@ -5,8 +5,6 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import be.nikiroo.utils.test.TestCase.AssertException;
-
 /**
  * A {@link TestLauncher} starts a series of {@link TestCase}s and displays the
  * result to the user.
@@ -305,13 +303,10 @@ public class TestLauncher {
 	private void print(int depth, Exception error) {
 		if (error != null) {
 			System.out.println(" " + koString);
-			String lines = error.getMessage() + "";
-			if (!(error instanceof AssertException)) {
-				StringWriter sw = new StringWriter();
-				PrintWriter pw = new PrintWriter(sw);
-				error.printStackTrace(pw);
-				lines = sw.toString();
-			}
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			error.printStackTrace(pw);
+			String lines = sw.toString();
 			for (String line : lines.split("\n")) {
 				System.out.println(prefix(depth, false) + "\t\t" + line);
 			}

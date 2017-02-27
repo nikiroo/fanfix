@@ -270,7 +270,7 @@ public class Progress {
 					name = Progress.this.name;
 				}
 
-				setTotalProgress(name, (int) (total * (max - min)));
+				setTotalProgress(name, (int) Math.round(total * (max - min)));
 			}
 		});
 

@@ -1,3 +1,18 @@
+Version 1.2.3
+-------------
+
+Add openResource and getVersion in IOUtils
+	The file VERSION is supposed to exist
+
+Give more informartion on AssertErrors
+	The TestCase were not always helpful in case of AssertExceptions; they
+	now print the stacktrace (they only used to do it for non-assert
+	exceptions)
+
+Fix configure.sh
+	The VERSION file was not added, the Main method was not the correct
+	one (so it was not producing working runnable JAR, yet it stated so)
+
 Version 1.2.2
 -------------
 

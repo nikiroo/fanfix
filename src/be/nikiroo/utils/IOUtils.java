@@ -5,6 +5,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -232,7 +233,7 @@ public class IOUtils {
 	 * @throws IOException
 	 *             in case of IO error
 	 */
-	static public BufferedImage toImage(InputStream in) throws IOException {
+	public static BufferedImage toImage(InputStream in) throws IOException {
 		MarkableFileInputStream tmpIn = null;
 		File tmp = null;
 		try {
@@ -330,6 +331,48 @@ public class IOUtils {
 	}
 
 	/**
+	 * Return the version of the program if it follows the VERSION convention
+	 * (i.e., if it has a file called VERSION containing the version as a
+	 * {@link String} on its binary root).
+	 * 
+	 * @return the version, or NULL
+	 */
+	public static String getVersion() {
+		String version = null;
+
+		InputStream in = openResource("VERSION");
+		if (in != null) {
+			try {
+				ByteArrayOutputStream ba = new ByteArrayOutputStream();
+				write(in, ba);
+				in.close();
+
+				version = ba.toString("UTF-8");
+			} catch (IOException e) {
+			}
+		}
+
+		return version;
+	}
+
+	/**
+	 * Open the given /-separated resource (from the binary root).
+	 * 
+	 * @param name
+	 *            the resource name
+	 * 
+	 * @return the opened resource if found, NLL if not
+	 */
+	public static InputStream openResource(String name) {
+		ClassLoader loader = IOUtils.class.getClassLoader();
+		if (loader == null) {
+			loader = ClassLoader.getSystemClassLoader();
+		}
+
+		return loader.getResourceAsStream(name);
+	}
+
+	/**
 	 * Return the EXIF transformation flag of this image if any.
 	 * 
 	 * <p>
@@ -344,7 +387,7 @@ public class IOUtils {
 	 * @throws IOException
 	 *             in case of IO error
 	 */
-	static private int getExifTransorm(InputStream in) throws IOException {
+	private static int getExifTransorm(InputStream in) throws IOException {
 		int[] exif_data = new int[100];
 		int set_flag = 0;
 		int is_motorola = 0;

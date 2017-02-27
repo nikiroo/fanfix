@@ -234,6 +234,29 @@ abstract public class TestCase {
 	}
 
 	/**
+	 * Check that given {@link Object} is not NULL.
+	 * 
+	 * @param the
+	 *            error message to display if it is NULL
+	 * @param actual
+	 *            the actual value
+	 * 
+	 * @throws AssertException
+	 *             in case they differ
+	 */
+	public void assertNotNull(String errorMessage, Object actual)
+			throws AssertException {
+		if (actual == null) {
+			if (errorMessage == null) {
+				errorMessage = String.format("" //
+						+ "Assertion failed!\n" //
+						+ "Object should have been NULL: [%s]", actual);
+			}
+			throw new AssertException(errorMessage);
+		}
+	}
+
+	/**
 	 * Generate the default assert message for 2 different values that were
 	 * supposed to be equals.
 	 * 
