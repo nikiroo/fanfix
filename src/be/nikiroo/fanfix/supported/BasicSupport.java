@@ -244,6 +244,16 @@ public abstract class BasicSupport {
 			int number) throws IOException;
 
 	/**
+	 * Log into the support (can be a no-op depending upon the support).
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public void login() throws IOException {
+
+	}
+
+	/**
 	 * Return the list of cookies (values included) that must be used to
 	 * correctly fetch the resources.
 	 * <p>
@@ -251,8 +261,11 @@ public abstract class BasicSupport {
 	 * it.
 	 * 
 	 * @return the cookies
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
 	 */
-	public Map<String, String> getCookies() {
+	public Map<String, String> getCookies() throws IOException {
 		return new HashMap<String, String>();
 	}
 
@@ -304,6 +317,8 @@ public abstract class BasicSupport {
 	 */
 	protected Story processMeta(URL url, boolean close, boolean getDesc)
 			throws IOException {
+		login();
+
 		url = getCanonicalUrl(url);
 
 		setCurrentReferer(url);

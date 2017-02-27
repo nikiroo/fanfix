@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.StringUtils;
 
@@ -65,12 +67,21 @@ class YiffStar extends BasicSupport {
 	}
 
 	@Override
-	public Map<String, String> getCookies() {
-		// TODO
-		// Cookies will actually be retained by the cache manager once logged in
-		// But we need to connect here and notify the cache manager
+	public void login() throws IOException {
+		Map<String, String> post = new HashMap<String, String>();
+		post.put("LoginForm[sfLoginUsername]",
+				Instance.getConfig().getString(Config.LOGIN_YIFFSTAR_USER));
+		post.put("LoginForm[sfLoginPassword]",
+				Instance.getConfig().getString(Config.LOGIN_YIFFSTAR_PASS));
+		post.put("YII_CSRF_TOKEN", "");
 
-		return super.getCookies();
+		// Cookies will actually be retained by the cache manager once logged in
+		// TODO: not working yet, once fixed can be removed (adding "/guest" to
+		// URLs fix the access problem!):
+		/*
+		 * Instance.getCache() .openNoCache(new
+		 * URL("https://www.sofurry.com/user/login"), this, post).close();
+		 */
 	}
 
 	@Override
@@ -78,11 +89,13 @@ class YiffStar extends BasicSupport {
 		if (source.getPath().startsWith("/view")) {
 			InputStream in = Instance.getCache().open(source, this, false);
 			String line = getLine(in, "/browse/folder/", 0);
-			String[] tab = line.split("\"");
-			if (tab.length > 1) {
-				String groupUrl = source.getProtocol() + "://"
-						+ source.getHost() + tab[1];
-				return new URL(groupUrl);
+			if (line != null) {
+				String[] tab = line.split("\"");
+				if (tab.length > 1) {
+					String groupUrl = source.getProtocol() + "://"
+							+ source.getHost() + tab[1];
+					return new URL(groupUrl);
+				}
 			}
 		}
 

@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -15,6 +16,7 @@ import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
@@ -85,6 +87,13 @@ public class Cache {
 	}
 
 	/**
+	 * Clear all the cookies currently in the jar.
+	 */
+	public void clearCookies() {
+		cookies.getCookieStore().removeAll();
+	}
+
+	/**
 	 * Open a resource (will load it from the cache if possible, or save it into
 	 * the cache after downloading if not).
 	 * 
@@ -148,6 +157,108 @@ public class Cache {
 			throw new IOException("Cannot open the url: "
 					+ (url == null ? "null" : url.toString()), e);
 		}
+	}
+
+	/**
+	 * Open the given {@link URL} without using the cache, but still using and
+	 * updating the cookies.
+	 * 
+	 * @param url
+	 *            the {@link URL} to open
+	 * @param support
+	 *            the {@link BasicSupport} used for the cookies
+	 * 
+	 * @return the {@link InputStream} of the opened page
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public InputStream openNoCache(URL url, BasicSupport support)
+			throws IOException {
+		return openNoCache(url, support, url, null);
+	}
+
+	/**
+	 * Open the given {@link URL} without using the cache, but still using and
+	 * updating the cookies.
+	 * 
+	 * @param url
+	 *            the {@link URL} to open
+	 * @param support
+	 *            the {@link BasicSupport} used for the cookies
+	 * @param postParams
+	 *            the POST parameters
+	 * 
+	 * @return the {@link InputStream} of the opened page
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public InputStream openNoCache(URL url, BasicSupport support,
+			Map<String, String> postParams) throws IOException {
+		return openNoCache(url, support, url, postParams);
+	}
+
+	/**
+	 * Open the given {@link URL} without using the cache, but still using and
+	 * updating the cookies.
+	 * 
+	 * @param url
+	 *            the {@link URL} to open
+	 * @param support
+	 *            the {@link BasicSupport} used for the cookies
+	 * @param originalUrl
+	 *            the original {@link URL} before any redirection occurs
+	 * @param postParams
+	 *            the POST parameters
+	 * 
+	 * @return the {@link InputStream} of the opened page
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	private InputStream openNoCache(URL url, BasicSupport support,
+			final URL originalUrl, Map<String, String> postParams)
+			throws IOException {
+
+		URLConnection conn = openConnectionWithCookies(url, support);
+		if (postParams != null) {
+			StringBuilder postData = new StringBuilder();
+			for (Map.Entry<String, String> param : postParams.entrySet()) {
+				if (postData.length() != 0)
+					postData.append('&');
+				postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
+				postData.append('=');
+				postData.append(URLEncoder.encode(
+						String.valueOf(param.getValue()), "UTF-8"));
+			}
+
+			conn.setDoOutput(true);
+
+			OutputStreamWriter writer = new OutputStreamWriter(
+					conn.getOutputStream());
+
+			writer.write(postData.toString());
+			writer.flush();
+			writer.close();
+		}
+
+		conn.connect();
+
+		// Check if redirect
+		if (conn instanceof HttpURLConnection
+				&& ((HttpURLConnection) conn).getResponseCode() / 100 == 3) {
+			String newUrl = conn.getHeaderField("Location");
+			return openNoCache(new URL(newUrl), support, originalUrl,
+					postParams);
+		}
+
+		InputStream in = conn.getInputStream();
+		if ("gzip".equals(conn.getContentEncoding())) {
+			in = new GZIPInputStream(in);
+		}
+
+		return in;
 	}
 
 	/**
@@ -295,33 +406,7 @@ public class Cache {
 	 */
 	private void save(URL url, BasicSupport support, URL originalUrl)
 			throws IOException {
-		URLConnection conn = url.openConnection();
-
-		conn.setRequestProperty("User-Agent", UA);
-		conn.setRequestProperty("Cookie", generateCookies(support));
-		conn.setRequestProperty("Accept-Encoding", "gzip");
-		if (support != null && support.getCurrentReferer() != null) {
-			conn.setRequestProperty("Referer", support.getCurrentReferer()
-					.toString());
-			conn.setRequestProperty("Host", support.getCurrentReferer()
-					.getHost());
-		}
-
-		conn.connect();
-
-		// Check if redirect
-		if (conn instanceof HttpURLConnection
-				&& ((HttpURLConnection) conn).getResponseCode() / 100 == 3) {
-			String newUrl = conn.getHeaderField("Location");
-			save(new URL(newUrl), support, originalUrl);
-			return;
-		}
-
-		InputStream in = conn.getInputStream();
-		if ("gzip".equals(conn.getContentEncoding())) {
-			in = new GZIPInputStream(in);
-		}
-
+		InputStream in = openNoCache(url, support, originalUrl, null);
 		try {
 			File cached = getCached(originalUrl);
 			BufferedOutputStream out = new BufferedOutputStream(
@@ -338,6 +423,37 @@ public class Cache {
 		} finally {
 			in.close();
 		}
+	}
+
+	/**
+	 * Open a connection on the given {@link URL}, and manage the cookies that
+	 * come with it.
+	 * 
+	 * @param url
+	 *            the {@link URL} to open
+	 * @param support
+	 *            the {@link BasicSupport} to use for cookie generation
+	 * 
+	 * @return the connection
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	private URLConnection openConnectionWithCookies(URL url,
+			BasicSupport support) throws IOException {
+		URLConnection conn = url.openConnection();
+
+		conn.setRequestProperty("User-Agent", UA);
+		conn.setRequestProperty("Cookie", generateCookies(support));
+		conn.setRequestProperty("Accept-Encoding", "gzip");
+		if (support != null && support.getCurrentReferer() != null) {
+			conn.setRequestProperty("Referer", support.getCurrentReferer()
+					.toString());
+			conn.setRequestProperty("Host", support.getCurrentReferer()
+					.getHost());
+		}
+
+		return conn;
 	}
 
 	/**
@@ -409,14 +525,18 @@ public class Cache {
 		}
 
 		if (support != null) {
-			for (Map.Entry<String, String> set : support.getCookies()
-					.entrySet()) {
-				if (builder.length() > 0) {
-					builder.append(';');
+			try {
+				for (Map.Entry<String, String> set : support.getCookies()
+						.entrySet()) {
+					if (builder.length() > 0) {
+						builder.append(';');
+					}
+					builder.append(set.getKey());
+					builder.append('=');
+					builder.append(set.getValue());
 				}
-				builder.append(set.getKey());
-				builder.append('=');
-				builder.append(set.getValue());
+			} catch (IOException e) {
+				Instance.syserr(e);
 			}
 		}
 
