@@ -3,6 +3,8 @@ package be.nikiroo.fanfix.reader;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Frame;
+import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -486,19 +488,32 @@ class LocalReaderFrame extends JFrame {
 	private void imprt(boolean askUrl) {
 		JFileChooser fc = new JFileChooser();
 
-		String url;
+		Object url;
 		if (askUrl) {
+			String clipboard = "";
+			try {
+				clipboard = ("" + Toolkit.getDefaultToolkit()
+						.getSystemClipboard().getData(DataFlavor.stringFlavor))
+						.trim();
+			} catch (Exception e) {
+				// No data will be handled
+			}
+
+			if (clipboard == null || !clipboard.startsWith("http")) {
+				clipboard = "";
+			}
+
 			url = JOptionPane.showInputDialog(LocalReaderFrame.this,
 					"url of the story to import?", "Importing from URL",
-					JOptionPane.QUESTION_MESSAGE);
+					JOptionPane.QUESTION_MESSAGE, null, null, clipboard);
 		} else if (fc.showOpenDialog(this) != JFileChooser.CANCEL_OPTION) {
 			url = fc.getSelectedFile().getAbsolutePath();
 		} else {
 			url = null;
 		}
 
-		if (url != null && !url.isEmpty()) {
-			imprt(url, null);
+		if (url != null && !url.toString().isEmpty()) {
+			imprt(url.toString(), null);
 		}
 	}
 
