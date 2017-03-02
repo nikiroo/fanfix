@@ -222,7 +222,7 @@ public class Cache {
 			throws IOException {
 
 		URLConnection conn = openConnectionWithCookies(url, support);
-		if (postParams != null) {
+		if (postParams != null && conn instanceof HttpURLConnection) {
 			StringBuilder postData = new StringBuilder();
 			for (Map.Entry<String, String> param : postParams.entrySet()) {
 				if (postData.length() != 0)
@@ -234,6 +234,10 @@ public class Cache {
 			}
 
 			conn.setDoOutput(true);
+			((HttpURLConnection) conn).setRequestMethod("POST");
+			conn.setRequestProperty("Content-Type",
+					"application/x-www-form-urlencoded");
+			conn.setRequestProperty("charset", "utf-8");
 
 			OutputStreamWriter writer = new OutputStreamWriter(
 					conn.getOutputStream());

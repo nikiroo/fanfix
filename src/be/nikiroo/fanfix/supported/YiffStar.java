@@ -3,6 +3,7 @@ package be.nikiroo.fanfix.supported;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,25 +69,32 @@ class YiffStar extends BasicSupport {
 
 	@Override
 	public void login() throws IOException {
-		Map<String, String> post = new HashMap<String, String>();
-		post.put("LoginForm[sfLoginUsername]",
-				Instance.getConfig().getString(Config.LOGIN_YIFFSTAR_USER));
-		post.put("LoginForm[sfLoginPassword]",
-				Instance.getConfig().getString(Config.LOGIN_YIFFSTAR_PASS));
-		post.put("YII_CSRF_TOKEN", "");
+		// Note: this should not be necessary anymore
+		// (the "/guest" trick is enough)
+		String login = Instance.getConfig().getString(
+				Config.LOGIN_YIFFSTAR_USER);
+		String password = Instance.getConfig().getString(
+				Config.LOGIN_YIFFSTAR_PASS);
 
-		// Cookies will actually be retained by the cache manager once logged in
-		// TODO: not working yet, once fixed can be removed (adding "/guest" to
-		// URLs fix the access problem!):
-		/*
-		 * Instance.getCache() .openNoCache(new
-		 * URL("https://www.sofurry.com/user/login"), this, post).close();
-		 */
+		if (login != null && !login.isEmpty() && password != null
+				&& !password.isEmpty()) {
+			Map<String, String> post = new HashMap<String, String>();
+			post.put("sfLoginUsername", login);
+			post.put("sfLoginPassword", password);
+			post.put("YII_CSRF_TOKEN", "");
+
+			// Cookies will actually be retained by the cache manager once
+			// logged in
+			Instance.getCache()
+					.openNoCache(new URL("https://www.sofurry.com/user/login"),
+							this, post).close();
+		}
 	}
 
 	@Override
 	public URL getCanonicalUrl(URL source) throws IOException {
 		if (source.getPath().startsWith("/view")) {
+			source = new URL(source.toString() + "/guest");
 			InputStream in = Instance.getCache().open(source, this, false);
 			String line = getLine(in, "/browse/folder/", 0);
 			if (line != null) {
@@ -94,7 +102,7 @@ class YiffStar extends BasicSupport {
 				if (tab.length > 1) {
 					String groupUrl = source.getProtocol() + "://"
 							+ source.getHost() + tab[1];
-					return new URL(groupUrl);
+					return guest(groupUrl);
 				}
 			}
 		}
@@ -194,7 +202,7 @@ class YiffStar extends BasicSupport {
 						link = source.getProtocol() + "://" + source.getHost()
 								+ link;
 					}
-					final URL value = new URL(link);
+					final URL value = guest(link);
 					final String key = StringUtils.unhtml(line).trim();
 					urls.add(new Entry<String, URL>() {
 						public URL setValue(URL value) {
@@ -244,5 +252,28 @@ class YiffStar extends BasicSupport {
 		}
 
 		return builder.toString();
+	}
+
+	/**
+	 * Return a {@link URL} from the given link, but add the "/guest" part to it
+	 * to make sure we don't need to be logged-in to see it.
+	 * 
+	 * @param link
+	 *            the link
+	 * 
+	 * @return the {@link URL}
+	 * 
+	 * @throws MalformedURLException
+	 */
+	private URL guest(String link) throws MalformedURLException {
+		if (link.contains("?")) {
+			if (link.contains("/?")) {
+				return new URL(link.replace("?", "guest?"));
+			} else {
+				return new URL(link.replace("?", "/guest?"));
+			}
+		} else {
+			return new URL(link + "/guest");
+		}
 	}
 }

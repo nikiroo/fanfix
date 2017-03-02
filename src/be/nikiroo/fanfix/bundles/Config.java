@@ -44,8 +44,8 @@ public enum Config {
 	CHAPTER_EN, //
 	@Meta(what = "Chapter identification string", where = "", format = "", info = "used to identify a starting chapter in text mode")
 	CHAPTER_FR, //
-	@Meta(what = "Login information", where = "", format = "", info = "used to login on YiffStar to have access to all the stories")
+	@Meta(what = "Login information", where = "", format = "", info = "used to login on YiffStar to have access to all the stories (should not be necessary anymore)")
 	LOGIN_YIFFSTAR_USER, //
-	@Meta(what = "Login information", where = "", format = "", info = "used to login on YiffStar to have access to all the stories")
+	@Meta(what = "Login information", where = "", format = "", info = "used to login on YiffStar to have access to all the stories (should not be necessary anymore)")
 	LOGIN_YIFFSTAR_PASS, //
 }
