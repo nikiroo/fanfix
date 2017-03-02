@@ -23,6 +23,7 @@ Currently, the following websites are supported:
 - http://Fanfiction.net/: fan fictions of many, many different universes, from TV shows to novels to games
 - http://mangafox.me/: a well filled repository of mangas, or, as their website states: most popular manga scanlations read online for free at mangafox, as well as a close-knit community to chat and make friends
 - https://e621.net/: a Furry website supporting comics, including MLP
+- https://sofurry.com/: same thing, but story-oriented
 
 ## A note about file support
 

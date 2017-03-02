@@ -1,5 +1,12 @@
 # Fanfix
 
+## Version 1.3.0
+
+- now supports YiffStar (SoFurry.com)
+- supports login/password websites
+- UI: copied URLs (ctrl+C) are selected by default when importing an URL
+- UI: version now visible in UI (also with --version)
+
 ## Version 1.2.4
 
 - new UI option: Re-download
