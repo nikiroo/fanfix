@@ -13,12 +13,12 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -42,7 +42,6 @@ import be.nikiroo.fanfix.reader.LocalReaderBook.BookActionListener;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.ui.ProgressBar;
-import be.nikiroo.utils.ui.WrapLayout;
 
 /**
  * A {@link Frame} that will show a {@link LocalReaderBook} item for each
@@ -55,10 +54,9 @@ import be.nikiroo.utils.ui.WrapLayout;
 class LocalReaderFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private LocalReader reader;
-	private List<MetaData> stories;
-	private List<LocalReaderBook> books;
-	private JPanel bookPane;
-	private String type;
+	private Map<LocalReaderGroup, String> booksByType;
+	private Map<LocalReaderGroup, String> booksByAuthor;
+	private JPanel pane;
 	private Color color;
 	private ProgressBar pgBar;
 	private JMenuBar bar;
@@ -82,27 +80,105 @@ class LocalReaderFrame extends JFrame {
 		setSize(800, 600);
 		setLayout(new BorderLayout());
 
-		books = new ArrayList<LocalReaderBook>();
-		bookPane = new JPanel(new WrapLayout(WrapLayout.LEADING, 5, 5));
+		pane = new JPanel();
+		pane.setLayout(new BoxLayout(pane, BoxLayout.PAGE_AXIS));
 
 		color = Instance.getUiConfig().getColor(UiConfig.BACKGROUND_COLOR);
-
 		if (color != null) {
 			setBackground(color);
-			bookPane.setBackground(color);
+			pane.setBackground(color);
 		}
 
-		JScrollPane scroll = new JScrollPane(bookPane);
+		JScrollPane scroll = new JScrollPane(pane);
 		scroll.getVerticalScrollBar().setUnitIncrement(16);
 		add(scroll, BorderLayout.CENTER);
 
 		pgBar = new ProgressBar();
 		add(pgBar, BorderLayout.SOUTH);
 
-		refreshBooks(type);
 		setJMenuBar(createMenu());
 
+		booksByType = new HashMap<LocalReaderGroup, String>();
+		booksByAuthor = new HashMap<LocalReaderGroup, String>();
+
+		addBookPane(type, true);
+		refreshBooks();
+
 		setVisible(true);
+	}
+
+	/**
+	 * Add a new {@link LocalReaderGroup} on the frame to display the books of
+	 * the selected type or author.
+	 * 
+	 * @param value
+	 *            the author or the type
+	 * @param type
+	 *            TRUE for type, FALSE for author
+	 */
+	private void addBookPane(String value, boolean type) {
+		if (value == null) {
+			if (type) {
+				for (String tt : Instance.getLibrary().getTypes()) {
+					if (tt != null) {
+						addBookPane(tt, type);
+					}
+				}
+			} else {
+				for (String tt : Instance.getLibrary().getAuthors()) {
+					if (tt != null) {
+						addBookPane(tt, type);
+					}
+				}
+			}
+
+			return;
+		}
+
+		LocalReaderGroup bookPane = new LocalReaderGroup(reader, value, color);
+		if (type) {
+			booksByType.put(bookPane, value);
+		} else {
+			booksByAuthor.put(bookPane, value);
+		}
+
+		this.invalidate();
+		pane.invalidate();
+		pane.add(bookPane);
+		pane.validate();
+		this.validate();
+
+		bookPane.setActionListener(new BookActionListener() {
+			public void select(LocalReaderBook book) {
+				selectedBook = book;
+			}
+
+			public void popupRequested(LocalReaderBook book, MouseEvent e) {
+				JPopupMenu popup = new JPopupMenu();
+				popup.add(createMenuItemOpenBook());
+				popup.addSeparator();
+				popup.add(createMenuItemExport());
+				popup.add(createMenuItemClearCache());
+				popup.add(createMenuItemRedownload());
+				popup.addSeparator();
+				popup.add(createMenuItemDelete());
+				popup.show(e.getComponent(), e.getX(), e.getY());
+			}
+
+			public void action(final LocalReaderBook book) {
+				openBook(book);
+			}
+		});
+	}
+
+	private void removeBookPanes() {
+		booksByType.clear();
+		booksByAuthor.clear();
+		pane.invalidate();
+		this.invalidate();
+		pane.removeAll();
+		pane.validate();
+		this.validate();
 	}
 
 	/**
@@ -111,51 +187,21 @@ class LocalReaderFrame extends JFrame {
 	 * @param type
 	 *            the type of {@link Story} to load, or NULL for all types
 	 */
-	private void refreshBooks(String type) {
-		this.type = type;
-		stories = Instance.getLibrary().getList(type);
-		books.clear();
-		bookPane.invalidate();
-		bookPane.removeAll();
-		for (MetaData meta : stories) {
-			LocalReaderBook book = new LocalReaderBook(meta,
-					reader.isCached(meta.getLuid()));
-			if (color != null) {
-				book.setBackground(color);
-			}
-
-			books.add(book);
-
-			book.addActionListener(new BookActionListener() {
-				public void select(LocalReaderBook book) {
-					selectedBook = book;
-					for (LocalReaderBook abook : books) {
-						abook.setSelected(abook == book);
-					}
-				}
-
-				public void popupRequested(LocalReaderBook book, MouseEvent e) {
-					JPopupMenu popup = new JPopupMenu();
-					popup.add(createMenuItemOpenBook());
-					popup.addSeparator();
-					popup.add(createMenuItemExport());
-					popup.add(createMenuItemClearCache());
-					popup.add(createMenuItemRedownload());
-					popup.addSeparator();
-					popup.add(createMenuItemDelete());
-					popup.show(e.getComponent(), e.getX(), e.getY());
-				}
-
-				public void action(final LocalReaderBook book) {
-					openBook(book);
-				}
-			});
-
-			bookPane.add(book);
+	private void refreshBooks() {
+		for (LocalReaderGroup group : booksByType.keySet()) {
+			List<MetaData> stories = Instance.getLibrary().getListByType(
+					booksByType.get(group));
+			group.refreshBooks(stories);
 		}
 
-		bookPane.validate();
-		bookPane.repaint();
+		for (LocalReaderGroup group : booksByAuthor.keySet()) {
+			List<MetaData> stories = Instance.getLibrary().getListByAuthor(
+					booksByAuthor.get(group));
+			group.refreshBooks(stories);
+		}
+
+		pane.repaint();
+		this.repaint();
 	}
 
 	/**
@@ -209,26 +255,52 @@ class LocalReaderFrame extends JFrame {
 
 		bar.add(edit);
 
-		JMenu view = new JMenu("View");
-		view.setMnemonic(KeyEvent.VK_V);
+		JMenu sources = new JMenu("Sources");
+		sources.setMnemonic(KeyEvent.VK_S);
 
 		List<String> tt = Instance.getLibrary().getTypes();
 		tt.add(0, null);
 		for (final String type : tt) {
-			JMenuItem item = new JMenuItem(type == null ? "All books" : type);
+			JMenuItem item = new JMenuItem(type == null ? "All" : type);
 			item.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					refreshBooks(type);
+					removeBookPanes();
+					addBookPane(type, true);
+					refreshBooks();
 				}
 			});
-			view.add(item);
+			sources.add(item);
 
 			if (type == null) {
-				view.addSeparator();
+				sources.addSeparator();
 			}
 		}
 
-		bar.add(view);
+		bar.add(sources);
+
+		JMenu authors = new JMenu("Authors");
+		authors.setMnemonic(KeyEvent.VK_A);
+
+		List<String> aa = Instance.getLibrary().getAuthors();
+		aa.add(0, null);
+		for (final String author : aa) {
+			JMenuItem item = new JMenuItem(author == null ? "All"
+					: author.isEmpty() ? "[unknown]" : author);
+			item.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					removeBookPanes();
+					addBookPane(author, false);
+					refreshBooks();
+				}
+			});
+			authors.add(item);
+
+			if (author == null || author.isEmpty()) {
+				authors.addSeparator();
+			}
+		}
+
+		bar.add(authors);
 
 		return bar;
 	}
@@ -383,7 +455,7 @@ class LocalReaderFrame extends JFrame {
 							selectedBook = null;
 							SwingUtilities.invokeLater(new Runnable() {
 								public void run() {
-									refreshBooks(type);
+									refreshBooks();
 								}
 							});
 						}
@@ -552,10 +624,10 @@ class LocalReaderFrame extends JFrame {
 
 							setEnabled(true);
 						} else {
-							refreshBooks(type);
+							refreshBooks();
 							if (onSuccess != null) {
 								onSuccess.run();
-								refreshBooks(type);
+								refreshBooks();
 							}
 						}
 					}
@@ -577,15 +649,13 @@ class LocalReaderFrame extends JFrame {
 	 */
 	@Override
 	public void setEnabled(boolean b) {
-		for (LocalReaderBook book : books) {
-			book.setEnabled(b);
-			book.repaint();
-		}
-
 		bar.setEnabled(b);
-		bookPane.setEnabled(b);
-		bookPane.repaint();
-
+		for (LocalReaderGroup group : booksByType.keySet()) {
+			group.setEnabled(b);
+		}
+		for (LocalReaderGroup group : booksByAuthor.keySet()) {
+			group.setEnabled(b);
+		}
 		super.setEnabled(b);
 		repaint();
 	}

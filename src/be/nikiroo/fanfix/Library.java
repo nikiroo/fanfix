@@ -64,12 +64,53 @@ public class Library {
 	public synchronized List<String> getTypes() {
 		List<String> list = new ArrayList<String>();
 		for (Entry<MetaData, File> entry : getStories().entrySet()) {
-			String storyType = entry.getValue().getParentFile().getName();
+			String storyType = entry.getKey().getSource();
 			if (!list.contains(storyType)) {
 				list.add(storyType);
 			}
 		}
 
+		Collections.sort(list);
+		return list;
+	}
+
+	/**
+	 * List all the known authors of stories.
+	 * 
+	 * @return the authors
+	 */
+	public synchronized List<String> getAuthors() {
+		List<String> list = new ArrayList<String>();
+		for (Entry<MetaData, File> entry : getStories().entrySet()) {
+			String storyAuthor = entry.getKey().getAuthor();
+			if (!list.contains(storyAuthor)) {
+				list.add(storyAuthor);
+			}
+		}
+
+		Collections.sort(list);
+		return list;
+	}
+
+	/**
+	 * List all the stories of the given author in the {@link Library}, or all
+	 * the stories if NULL is passed as an author.
+	 * 
+	 * @param author
+	 *            the author of the stories to retrieve, or NULL for all
+	 * 
+	 * @return the stories
+	 */
+	public synchronized List<MetaData> getListByAuthor(String author) {
+		List<MetaData> list = new ArrayList<MetaData>();
+		for (Entry<MetaData, File> entry : getStories().entrySet()) {
+			String storyAuthor = entry.getKey().getAuthor();
+			if (author == null || author.equalsIgnoreCase(storyAuthor)) {
+				list.add(entry.getKey());
+			}
+		}
+
+		Collections.sort(list);
 		return list;
 	}
 
@@ -82,7 +123,7 @@ public class Library {
 	 * 
 	 * @return the stories
 	 */
-	public synchronized List<MetaData> getList(String type) {
+	public synchronized List<MetaData> getListByType(String type) {
 		List<MetaData> list = new ArrayList<MetaData>();
 		for (Entry<MetaData, File> entry : getStories().entrySet()) {
 			String storyType = entry.getValue().getParentFile().getName();

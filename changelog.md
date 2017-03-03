@@ -1,5 +1,9 @@
 # Fanfix
 
+## Version 1.3.1
+
+- UI: can now display books by Author
+
 ## Version 1.3.0
 
 - now supports YiffStar (SoFurry.com)
