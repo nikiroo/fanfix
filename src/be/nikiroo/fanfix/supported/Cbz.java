@@ -1,5 +1,6 @@
 package be.nikiroo.fanfix.supported;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import javax.imageio.ImageIO;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.Chapter;
@@ -85,9 +88,9 @@ class Cbz extends Epub {
 
 				if (imageEntry) {
 					String uuid = meta.getUuid() + "_" + entry.getName();
-					images.add(uuid);
 					try {
-						Instance.getCache().addToCache(zipIn, uuid);
+						File tmp = Instance.getCache().addToCache(zipIn, uuid);
+						images.add(tmp.toURI().toURL().toString());
 					} catch (Exception e) {
 						Instance.syserr(e);
 					}
@@ -97,16 +100,27 @@ class Cbz extends Epub {
 
 		pg.setProgress(80);
 
-		// ZIP order is not sure
+		// ZIP order is not correct for us
 		Collections.sort(images);
 		pg.setProgress(90);
 
 		for (String uuid : images) {
 			try {
-				chap.getParagraphs().add(
-						new Paragraph(new File(uuid).toURI().toURL()));
+				chap.getParagraphs().add(new Paragraph(new URL(uuid)));
 			} catch (Exception e) {
 				Instance.syserr(e);
+			}
+		}
+
+		if (meta.getCover() == null && !images.isEmpty()) {
+			InputStream in = Instance.getCache().open(new URL(images.get(0)),
+					this, true);
+			try {
+				BufferedImage fcover = ImageIO.read(in);
+				meta.setCover(fcover);
+				meta.setFakeCover(true);
+			} finally {
+				in.close();
 			}
 		}
 

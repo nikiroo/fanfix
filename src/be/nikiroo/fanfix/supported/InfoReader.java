@@ -60,6 +60,7 @@ public class InfoReader {
 			meta.setWords(0);
 		}
 		meta.setCreationDate(getInfoTag(in, "CREATION_DATE"));
+		meta.setFakeCover(Boolean.parseBoolean(getInfoTag(in, "FAKE_COVER")));
 
 		if (meta.getCover() == null) {
 			meta.setCover(BasicSupport.getDefaultCover(meta.getSubject()));

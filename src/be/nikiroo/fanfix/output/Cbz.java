@@ -28,8 +28,11 @@ class Cbz extends BasicOutput {
 
 		// will also save the images!
 		new InfoText().process(story, dir, targetNameOrig);
+
 		InfoCover.writeInfo(dir, targetNameOrig, story.getMeta());
-		InfoCover.writeCover(dir, targetNameOrig, story.getMeta());
+		if (story.getMeta() != null && !story.getMeta().isFakeCover()) {
+			InfoCover.writeCover(dir, targetNameOrig, story.getMeta());
+		}
 
 		IOUtils.writeSmallFile(dir, "version", "3.0");
 

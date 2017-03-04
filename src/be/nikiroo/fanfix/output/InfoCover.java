@@ -57,6 +57,8 @@ class InfoCover {
 				writeMeta(infoWriter, "WORDCOUNT",
 						Long.toString(meta.getWords()));
 				writeMeta(infoWriter, "CREATION_DATE", meta.getCreationDate());
+				writeMeta(infoWriter, "FAKE_COVER",
+						Boolean.toString(meta.isFakeCover()));
 			} finally {
 				infoWriter.close();
 			}

@@ -27,6 +27,7 @@ public class MetaData implements Cloneable, Comparable<MetaData> {
 	private boolean imageDocument;
 	private long words;
 	private String creationDate;
+	private boolean fakeCover;
 
 	/**
 	 * The title of the story.
@@ -353,6 +354,27 @@ public class MetaData implements Cloneable, Comparable<MetaData> {
 	 */
 	public void setCreationDate(String creationDate) {
 		this.creationDate = creationDate;
+	}
+
+	/**
+	 * The cover in this {@link MetaData} object is "fake", in the sens that it
+	 * comes from the actual content images.
+	 * 
+	 * @return TRUE for a fake cover
+	 */
+	public boolean isFakeCover() {
+		return fakeCover;
+	}
+
+	/**
+	 * The cover in this {@link MetaData} object is "fake", in the sens that it
+	 * comes from the actual content images
+	 * 
+	 * @param fakeCover
+	 *            TRUE for a fake cover
+	 */
+	public void setFakeCover(boolean fakeCover) {
+		this.fakeCover = fakeCover;
 	}
 
 	public int compareTo(MetaData o) {

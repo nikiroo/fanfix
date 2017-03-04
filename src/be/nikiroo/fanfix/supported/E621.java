@@ -50,6 +50,7 @@ class E621 extends BasicSupport {
 		meta.setType(getType().toString());
 		meta.setImageDocument(true);
 		meta.setCover(getCover(source));
+		meta.setFakeCover(true);
 
 		return meta;
 	}
