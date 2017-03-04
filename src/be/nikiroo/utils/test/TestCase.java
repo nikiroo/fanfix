@@ -15,6 +15,10 @@ abstract public class TestCase {
 	class AssertException extends Exception {
 		private static final long serialVersionUID = 1L;
 
+		public AssertException(String reason, Exception source) {
+			super(reason, source);
+		}
+
 		public AssertException(String reason) {
 			super(reason);
 		}
@@ -121,14 +125,15 @@ abstract public class TestCase {
 	 */
 	public void assertEquals(String errorMessage, Object expected, Object actual)
 			throws AssertException {
-
-		if (errorMessage == null) {
-			errorMessage = generateAssertMessage(expected, actual);
-		}
-
 		if ((expected == null && actual != null)
 				|| (expected != null && !expected.equals(actual))) {
-			throw new AssertException(errorMessage);
+			if (errorMessage == null) {
+				throw new AssertException(generateAssertMessage(expected,
+						actual));
+			} else {
+				throw new AssertException(errorMessage, new AssertException(
+						generateAssertMessage(expected, actual)));
+			}
 		}
 	}
 
@@ -247,12 +252,16 @@ abstract public class TestCase {
 	public void assertNotNull(String errorMessage, Object actual)
 			throws AssertException {
 		if (actual == null) {
+			String defaultReason = String.format("" //
+					+ "Assertion failed!\n" //
+					+ "Object should have been NULL: [%s]", actual);
+
 			if (errorMessage == null) {
-				errorMessage = String.format("" //
-						+ "Assertion failed!\n" //
-						+ "Object should have been NULL: [%s]", actual);
+				throw new AssertException(defaultReason);
+			} else {
+				throw new AssertException(errorMessage, new AssertException(
+						defaultReason));
 			}
-			throw new AssertException(errorMessage);
 		}
 	}
 
