@@ -54,6 +54,9 @@ class InfoCover {
 				}
 				writeMeta(infoWriter, "EPUBCREATOR", BasicOutput.EPUB_CREATOR);
 				writeMeta(infoWriter, "PUBLISHER", meta.getPublisher());
+				writeMeta(infoWriter, "WORDCOUNT",
+						Long.toString(meta.getWords()));
+				writeMeta(infoWriter, "CREATION_DATE", meta.getCreationDate());
 			} finally {
 				infoWriter.close();
 			}

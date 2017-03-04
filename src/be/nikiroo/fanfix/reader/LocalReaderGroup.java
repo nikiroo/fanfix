@@ -27,6 +27,7 @@ public class LocalReaderGroup extends JPanel {
 	private List<MetaData> stories;
 	private List<LocalReaderBook> books;
 	private JPanel pane;
+	private boolean words; // words or authors (secondary info on books)
 
 	/**
 	 * Create a new {@link LocalReaderGroup}.
@@ -78,7 +79,7 @@ public class LocalReaderGroup extends JPanel {
 	 */
 	public void setActionListener(BookActionListener action) {
 		this.action = action;
-		refreshBooks(stories);
+		refreshBooks(stories, words);
 	}
 
 	/**
@@ -86,9 +87,12 @@ public class LocalReaderGroup extends JPanel {
 	 * 
 	 * @param stories
 	 *            the stories
+	 * @param seeWordcount
+	 *            TRUE to see word counts, FALSE to see authors
 	 */
-	public void refreshBooks(List<MetaData> stories) {
+	public void refreshBooks(List<MetaData> stories, boolean seeWordcount) {
 		this.stories = stories;
+		this.words = seeWordcount;
 
 		books = new ArrayList<LocalReaderBook>();
 		invalidate();
@@ -98,7 +102,7 @@ public class LocalReaderGroup extends JPanel {
 		if (stories != null) {
 			for (MetaData meta : stories) {
 				LocalReaderBook book = new LocalReaderBook(meta,
-						reader.isCached(meta.getLuid()));
+						reader.isCached(meta.getLuid()), seeWordcount);
 				if (backgroundColor != null) {
 					book.setBackground(backgroundColor);
 				}

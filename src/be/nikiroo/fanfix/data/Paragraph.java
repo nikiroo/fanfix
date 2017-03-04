@@ -28,19 +28,7 @@ public class Paragraph {
 
 	private ParagraphType type;
 	private String content;
-
-	/**
-	 * Create a new {@link Paragraph} with the given values.
-	 * 
-	 * @param type
-	 *            the {@link ParagraphType}
-	 * @param content
-	 *            the content of this paragraph
-	 */
-	public Paragraph(ParagraphType type, String content) {
-		this.type = type;
-		this.content = content;
-	}
+	private long words;
 
 	/**
 	 * Create a new {@link Paragraph} with the given image.
@@ -52,8 +40,23 @@ public class Paragraph {
 	 *            the content image of this paragraph
 	 */
 	public Paragraph(URL imageUrl) {
-		this.type = ParagraphType.IMAGE;
-		this.content = imageUrl.toString();
+		this(ParagraphType.IMAGE, imageUrl.toString(), 0);
+	}
+
+	/**
+	 * Create a new {@link Paragraph} with the given values.
+	 * 
+	 * @param type
+	 *            the {@link ParagraphType}
+	 * @param content
+	 *            the content of this paragraph
+	 * @param words
+	 *            the number of words
+	 */
+	public Paragraph(ParagraphType type, String content, long words) {
+		this.type = type;
+		this.content = content;
+		this.words = words;
 	}
 
 	/**
@@ -92,6 +95,25 @@ public class Paragraph {
 	 */
 	public void setContent(String content) {
 		this.content = content;
+	}
+
+	/**
+	 * The number of words in this {@link Paragraph}.
+	 * 
+	 * @return the number of words
+	 */
+	public long getWords() {
+		return words;
+	}
+
+	/**
+	 * The number of words in this {@link Paragraph}.
+	 * 
+	 * @param words
+	 *            the number of words to set
+	 */
+	public void setWords(long words) {
+		this.words = words;
 	}
 
 	/**

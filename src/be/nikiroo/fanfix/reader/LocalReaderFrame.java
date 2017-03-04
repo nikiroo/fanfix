@@ -61,6 +61,7 @@ class LocalReaderFrame extends JFrame {
 	private ProgressBar pgBar;
 	private JMenuBar bar;
 	private LocalReaderBook selectedBook;
+	private boolean words; // words or authors (secondary info on books)
 
 	/**
 	 * Create a new {@link LocalReaderFrame}.
@@ -191,13 +192,13 @@ class LocalReaderFrame extends JFrame {
 		for (LocalReaderGroup group : booksByType.keySet()) {
 			List<MetaData> stories = Instance.getLibrary().getListByType(
 					booksByType.get(group));
-			group.refreshBooks(stories);
+			group.refreshBooks(stories, words);
 		}
 
 		for (LocalReaderGroup group : booksByAuthor.keySet()) {
 			List<MetaData> stories = Instance.getLibrary().getListByAuthor(
 					booksByAuthor.get(group));
-			group.refreshBooks(stories);
+			group.refreshBooks(stories, words);
 		}
 
 		pane.repaint();
@@ -254,6 +255,28 @@ class LocalReaderFrame extends JFrame {
 		edit.add(createMenuItemDelete());
 
 		bar.add(edit);
+
+		JMenu view = new JMenu("View");
+		view.setMnemonic(KeyEvent.VK_V);
+		JMenuItem vauthors = new JMenuItem("Author");
+		vauthors.setMnemonic(KeyEvent.VK_A);
+		vauthors.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				words = false;
+				refreshBooks();
+			}
+		});
+		view.add(vauthors);
+		JMenuItem vwords = new JMenuItem("Word count");
+		vwords.setMnemonic(KeyEvent.VK_W);
+		vwords.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				words = true;
+				refreshBooks();
+			}
+		});
+		view.add(vwords);
+		bar.add(view);
 
 		JMenu sources = new JMenu("Sources");
 		sources.setMnemonic(KeyEvent.VK_S);

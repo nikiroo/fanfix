@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -333,6 +334,10 @@ public abstract class BasicSupport {
 
 			Story story = new Story();
 			MetaData meta = getMeta(url, getInput());
+			if (meta.getCreationDate() == null
+					|| meta.getCreationDate().isEmpty()) {
+				meta.setCreationDate(StringUtils.fromTime(new Date().getTime()));
+			}
 			story.setMeta(meta);
 
 			if (meta != null && meta.getCover() == null) {
@@ -408,14 +413,19 @@ public abstract class BasicSupport {
 				Progress pgChaps = new Progress(0, chapters.size());
 				pg.addProgress(pgChaps, 80);
 
+				long words = 0;
 				for (Entry<String, URL> chap : chapters) {
 					setCurrentReferer(chap.getValue());
 					InputStream chapIn = Instance.getCache().open(
 							chap.getValue(), this, true);
 					try {
-						story.getChapters().add(
-								makeChapter(url, i, chap.getKey(),
-										getChapterContent(url, chapIn, i)));
+						Chapter cc = makeChapter(url, i, chap.getKey(),
+								getChapterContent(url, chapIn, i));
+						words += cc.getWords();
+						story.getChapters().add(cc);
+						if (story.getMeta() != null) {
+							story.getMeta().setWords(words);
+						}
 					} finally {
 						chapIn.close();
 					}
@@ -554,7 +564,13 @@ public abstract class BasicSupport {
 		Chapter chap = new Chapter(number, chapterName);
 
 		if (content != null) {
-			chap.setParagraphs(makeParagraphs(source, content));
+			List<Paragraph> paras = makeParagraphs(source, content);
+			long words = 0;
+			for (Paragraph para : paras) {
+				words += para.getWords();
+			}
+			chap.setParagraphs(paras);
+			chap.setWords(words);
 		}
 
 		return chap;
@@ -929,7 +945,8 @@ public abstract class BasicSupport {
 
 			if (!singleQ && !doubleQ) {
 				line = openDoubleQuote + line + closeDoubleQuote;
-				newParas.add(new Paragraph(ParagraphType.QUOTE, line));
+				newParas.add(new Paragraph(ParagraphType.QUOTE, line, para
+						.getWords()));
 			} else {
 				char open = singleQ ? openQuote : openDoubleQuote;
 				char close = singleQ ? closeQuote : closeDoubleQuote;
@@ -952,7 +969,13 @@ public abstract class BasicSupport {
 				if (posDot >= 0) {
 					String rest = line.substring(posDot + 1).trim();
 					line = line.substring(0, posDot + 1).trim();
-					newParas.add(new Paragraph(ParagraphType.QUOTE, line));
+					long words = 1;
+					for (char car : line.toCharArray()) {
+						if (car == ' ') {
+							words++;
+						}
+					}
+					newParas.add(new Paragraph(ParagraphType.QUOTE, line, words));
 					if (!rest.isEmpty()) {
 						newParas.addAll(requotify(processPara(rest)));
 					}
@@ -986,6 +1009,7 @@ public abstract class BasicSupport {
 		boolean tentativeCloseQuote = false;
 		char prev = '\0';
 		int dashCount = 0;
+		long words = 1;
 
 		StringBuilder builder = new StringBuilder();
 		for (char car : line.toCharArray()) {
@@ -1019,6 +1043,10 @@ public abstract class BasicSupport {
 			case '\t':
 			case '\n': // just in case
 			case '\r': // just in case
+				if (builder.length() > 0
+						&& builder.charAt(builder.length() - 1) != ' ') {
+					words++;
+				}
 				builder.append(' ');
 				break;
 
@@ -1171,7 +1199,7 @@ public abstract class BasicSupport {
 			type = ParagraphType.QUOTE;
 		}
 
-		return new Paragraph(type, line);
+		return new Paragraph(type, line, words);
 	}
 
 	/**

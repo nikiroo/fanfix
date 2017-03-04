@@ -14,6 +14,7 @@ public class Chapter implements Iterable<Paragraph> {
 	private int number;
 	private List<Paragraph> paragraphs = new ArrayList<Paragraph>();
 	private List<Paragraph> empty = new ArrayList<Paragraph>();
+	private long words;
 
 	/**
 	 * Create a new {@link Chapter} with the given information.
@@ -90,6 +91,25 @@ public class Chapter implements Iterable<Paragraph> {
 	 */
 	public Iterator<Paragraph> iterator() {
 		return paragraphs == null ? empty.iterator() : paragraphs.iterator();
+	}
+
+	/**
+	 * The number of words in this {@link Chapter}.
+	 * 
+	 * @return the number of words
+	 */
+	public long getWords() {
+		return words;
+	}
+
+	/**
+	 * The number of words in this {@link Chapter}.
+	 * 
+	 * @param words
+	 *            the number of words to set
+	 */
+	public void setWords(long words) {
+		this.words = words;
 	}
 
 	/**

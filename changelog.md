@@ -1,5 +1,10 @@
 # Fanfix
 
+## Version (in progress)
+
+- Remember the word count and the date of creation of Fanfix stories
+- UI: option to show the word count instead of the author below the book title
+
 ## Version 1.3.1
 
 - UI: can now display books by Author

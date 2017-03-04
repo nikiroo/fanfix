@@ -50,7 +50,7 @@ public class BasicSupportTest extends TestLauncher {
 							}
 
 							@Override
-							protected List<Paragraph> requotify(Paragraph para) {
+							public List<Paragraph> requotify(Paragraph para) {
 								List<Paragraph> paras = new ArrayList<Paragraph>(
 										1);
 								paras.add(para);
@@ -223,6 +223,79 @@ public class BasicSupportTest extends TestLauncher {
 						assertEquals(text, para.getContent());
 					}
 				});
+
+				addTest(new TestCase("BasicSupport.processPara() words count") {
+					@Override
+					public void test() throws Exception {
+						BasicSupportEmpty support = new BasicSupportEmpty() {
+							@Override
+							protected boolean isHtml() {
+								return true;
+							}
+						};
+
+						Paragraph para;
+
+						para = support.processPara("«Yes, my Lord!»");
+						assertEquals(3, para.getWords());
+
+						para = support.processPara("One, twee, trois.");
+						assertEquals(3, para.getWords());
+					}
+				});
+
+				addTest(new TestCase("BasicSupport.requotify() words count") {
+					@Override
+					public void test() throws Exception {
+						BasicSupportEmpty support = new BasicSupportEmpty();
+
+						char openDoubleQuote = Instance.getTrans().getChar(
+								StringId.OPEN_DOUBLE_QUOTE);
+						char closeDoubleQuote = Instance.getTrans().getChar(
+								StringId.CLOSE_DOUBLE_QUOTE);
+
+						String content = null;
+						Paragraph para = null;
+						List<Paragraph> paras = null;
+						long words = 0;
+
+						content = "One, twee, trois.";
+						para = new Paragraph(ParagraphType.NORMAL, content,
+								content.split(" ").length);
+						paras = support.requotify(para);
+						words = 0;
+						for (Paragraph p : paras) {
+							words += p.getWords();
+						}
+						assertEquals("Bad words count in a single paragraph",
+								para.getWords(), words);
+
+						content = "Such WoW! So Web2.0! With Colours!";
+						para = new Paragraph(ParagraphType.NORMAL, content,
+								content.split(" ").length);
+						paras = support.requotify(para);
+						words = 0;
+						for (Paragraph p : paras) {
+							words += p.getWords();
+						}
+						assertEquals("Bad words count in a single paragraph",
+								para.getWords(), words);
+
+						content = openDoubleQuote + "Such a good idea!"
+								+ closeDoubleQuote
+								+ ", she said. This ought to be a new para.";
+						para = new Paragraph(ParagraphType.QUOTE, content,
+								content.split(" ").length);
+						paras = support.requotify(para);
+						words = 0;
+						for (Paragraph p : paras) {
+							words += p.getWords();
+						}
+						assertEquals(
+								"Bad words count in a requotified paragraph",
+								para.getWords(), words);
+					}
+				});
 			}
 		});
 
@@ -371,6 +444,12 @@ public class BasicSupportTest extends TestLauncher {
 		// and make it public!
 		public Paragraph processPara(String line) {
 			return super.processPara(line);
+		}
+
+		@Override
+		// and make it public!
+		public List<Paragraph> requotify(Paragraph para) {
+			return super.requotify(para);
 		}
 	}
 }

@@ -95,14 +95,26 @@ class LocalReaderBook extends JPanel {
 	 *            the story {@code}link MetaData}
 	 * @param cached
 	 *            TRUE if it is locally cached
+	 * @param seeWordcount
+	 *            TRUE to see word counts, FALSE to see authors
 	 */
-	public LocalReaderBook(MetaData meta, boolean cached) {
+	public LocalReaderBook(MetaData meta, boolean cached, boolean seeWordCount) {
 		this.cached = cached;
 		this.meta = meta;
 
-		String optAuthor = meta.getAuthor();
-		if (optAuthor != null && !optAuthor.isEmpty()) {
-			optAuthor = "(" + optAuthor + ")";
+		String optSecondary = meta.getAuthor();
+		if (seeWordCount) {
+			if (meta.getWords() >= 4000) {
+				optSecondary = (meta.getWords() / 1000) + "k words";
+			} else if (meta.getWords() > 0) {
+				optSecondary = meta.getWords() + " words";
+			} else {
+				optSecondary = "empty";
+			}
+		}
+
+		if (optSecondary != null && !optSecondary.isEmpty()) {
+			optSecondary = "(" + optSecondary + ")";
 		}
 
 		icon = new JLabel(generateCoverIcon(meta.getCover()));
@@ -114,7 +126,7 @@ class LocalReaderBook extends JPanel {
 								+ "%s" + "<br>" + "<span style='color: %s;'>"
 								+ "%s" + "</span>" + "</body>" + "</html>",
 						TEXT_WIDTH, TEXT_HEIGHT, meta.getTitle(), AUTHOR_COLOR,
-						optAuthor));
+						optSecondary));
 
 		setLayout(new BorderLayout(10, 10));
 		add(icon, BorderLayout.CENTER);

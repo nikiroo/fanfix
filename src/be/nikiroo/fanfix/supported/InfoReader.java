@@ -54,6 +54,12 @@ public class InfoReader {
 		meta.setImageDocument(getInfoTagBoolean(in, "IMAGES_DOCUMENT", false));
 		meta.setCover(BasicSupport.getImage(null, sourceInfoFile,
 				getInfoTag(in, "COVER")));
+		try {
+			meta.setWords(Long.parseLong(getInfoTag(in, "WORDCOUNT")));
+		} catch (NumberFormatException e) {
+			meta.setWords(0);
+		}
+		meta.setCreationDate(getInfoTag(in, "CREATION_DATE"));
 
 		if (meta.getCover() == null) {
 			meta.setCover(BasicSupport.getDefaultCover(meta.getSubject()));

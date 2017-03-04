@@ -25,6 +25,8 @@ public class MetaData implements Cloneable, Comparable<MetaData> {
 	private String publisher;
 	private String type;
 	private boolean imageDocument;
+	private long words;
+	private String creationDate;
 
 	/**
 	 * The title of the story.
@@ -313,6 +315,44 @@ public class MetaData implements Cloneable, Comparable<MetaData> {
 	 */
 	public void setImageDocument(boolean imageDocument) {
 		this.imageDocument = imageDocument;
+	}
+
+	/**
+	 * The number of words in the related {@link Story}.
+	 * 
+	 * @return the number of words
+	 */
+	public long getWords() {
+		return words;
+	}
+
+	/**
+	 * The number of words in the related {@link Story}.
+	 * 
+	 * @param words
+	 *            the number of words to set
+	 */
+	public void setWords(long words) {
+		this.words = words;
+	}
+
+	/**
+	 * The (Fanfix) {@link Story} creation date.
+	 * 
+	 * @return the creationDate
+	 */
+	public String getCreationDate() {
+		return creationDate;
+	}
+
+	/**
+	 * The (Fanfix) {@link Story} creation date.
+	 * 
+	 * @param creationDate
+	 *            the creationDate to set
+	 */
+	public void setCreationDate(String creationDate) {
+		this.creationDate = creationDate;
 	}
 
 	public int compareTo(MetaData o) {
