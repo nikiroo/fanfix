@@ -63,8 +63,8 @@ public class LocalReaderGroup extends JPanel {
 
 			JLabel label = new JLabel();
 			label.setText(String.format("<html>"
-					+ "<body style='text-align: center'><br>" + "%s"
-					+ "</body>" + "</html>", title));
+					+ "<body style='text-align: center; color: gray;'><br><b>"
+					+ "%s" + "</b></body>" + "</html>", title));
 			label.setHorizontalAlignment(JLabel.CENTER);
 			add(label, BorderLayout.NORTH);
 		}
