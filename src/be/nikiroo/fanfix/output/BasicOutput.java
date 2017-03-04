@@ -67,6 +67,10 @@ public abstract class BasicOutput {
 				desc = Instance.getTrans().getString(id, this);
 			}
 
+			if (desc == null) {
+				desc = this.toString();
+			}
+
 			return desc;
 		}
 

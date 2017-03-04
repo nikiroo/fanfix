@@ -89,6 +89,10 @@ Note that calling ```make libs``` will export the libraries into the src/ direct
 ## TODO
 
 Currently missing, but either in progress or planned:
+- [ ] Support new websites
+  - [x] YiffStar
+  - [ ] [Two Kinds](http://twokinds.keenspot.com/)
+  - [ ] [Slightly damned](http://www.sdamned.com/)
 - [ ] A GUI (work in progress)
   - [x] Make one
   - [x] Make it run when no args passed
@@ -96,24 +100,30 @@ Currently missing, but either in progress or planned:
   - [x] Work on the UI thread is BAD
   - [x] Allow export
   - [x] Allow delete/refresh
-  - [ ] Show a list of types
+  - [x] Show a list of types
     - [x] ..in the menu
-    - [ ] ..as a screen view
+    - [x] ..as a screen view
   - [ ] options screen
 - [ ] A TUI reader
 - [ ] Check if it can work on Android
+  - [x] First checks: it should work, but with changes
+  - [ ] Adapt work on images :(
+  - [ ] Partial/Conditional compilation
+  - [ ] APK export
 - [ ] Translations
   - [x] i18n system in place
   - [x] Make use of it
-  - [x] Use it for most user ouput
   - [ ] Use it for all user output
   - [ ] French translation
-- [x] Allow lauching a custom application instead of Desktop.start ?
-  - [ ] Make a wrapper for firefox to create a new, empty profile ?
+- [x] Allow lauching a custom application instead of Desktop.start
 - [x] Install a mechanism to handle stories import/export progress update
   - [x] Progress system
   - [x] in support classes (import)
   - [x] in output classes (export)
   - [x] CLI usage of such
   - [x] GUI usage of such
+- [ ] Version
+  - [x] Use a version number
+  - [x] Show it in UI
+  - [ ] A check-update feature
 

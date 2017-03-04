@@ -318,6 +318,7 @@ class LocalReaderFrame extends JFrame {
 		for (OutputType type : OutputType.values()) {
 			String ext = type.getDefaultExtension(false);
 			String desc = type.getDesc(false);
+
 			if (ext == null || ext.isEmpty()) {
 				filters.put(createAllFilter(desc), type);
 			} else {
@@ -343,21 +344,24 @@ class LocalReaderFrame extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				if (selectedBook != null) {
 					fc.showDialog(LocalReaderFrame.this, "Save");
-					final OutputType type = filters.get(fc.getFileFilter());
-					final String path = fc.getSelectedFile().getAbsolutePath()
-							+ type.getDefaultExtension(false);
-					final Progress pg = new Progress();
-					outOfUi(pg, new Runnable() {
-						public void run() {
-							try {
-								Instance.getLibrary().export(
-										selectedBook.getMeta().getLuid(), type,
-										path, pg);
-							} catch (IOException e) {
-								Instance.syserr(e);
+					if (fc.getSelectedFile() != null) {
+						final OutputType type = filters.get(fc.getFileFilter());
+						final String path = fc.getSelectedFile()
+								.getAbsolutePath()
+								+ type.getDefaultExtension(false);
+						final Progress pg = new Progress();
+						outOfUi(pg, new Runnable() {
+							public void run() {
+								try {
+									Instance.getLibrary().export(
+											selectedBook.getMeta().getLuid(),
+											type, path, pg);
+								} catch (IOException e) {
+									Instance.syserr(e);
+								}
 							}
-						}
-					});
+						});
+					}
 				}
 			}
 		});
