@@ -4,6 +4,7 @@
 
 - Remember the word count and the date of creation of Fanfix stories
 - UI: option to show the word count instead of the author below the book title
+- CBZ: do not include the first page twice anymore for no-cover websites
 
 ## Version 1.3.1
 
