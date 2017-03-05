@@ -1,5 +1,11 @@
 # Fanfix
 
+## Version 1.4.1
+
+- Fix some bad line breaks on HTML supports (including FanFiction.net)
+- UI: progress bar now working correctly
+- nikiroo-utils update to show all steps in the progress bars
+
 ## Version 1.4.0
 
 - Remember the word count and the date of creation of Fanfix stories
