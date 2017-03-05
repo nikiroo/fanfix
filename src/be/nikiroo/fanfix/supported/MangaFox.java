@@ -14,6 +14,7 @@ import java.util.Scanner;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 
 class MangaFox extends BasicSupport {
@@ -197,7 +198,8 @@ class MangaFox extends BasicSupport {
 	}
 
 	@Override
-	protected List<Entry<String, URL>> getChapters(URL source, InputStream in) {
+	protected List<Entry<String, URL>> getChapters(URL source, InputStream in,
+			Progress pg) {
 		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
 
 		String volumeAt = "<h3 class=\"volume\">";
@@ -240,9 +242,6 @@ class MangaFox extends BasicSupport {
 					}
 				}
 
-				// to help with the retry and the originalUrl
-				refresh(url);
-
 				try {
 					final String key = name;
 					final URL value = new URL(url);
@@ -265,6 +264,19 @@ class MangaFox extends BasicSupport {
 			}
 		}
 
+		if (pg == null) {
+			pg = new Progress(0, urls.size());
+		} else {
+			pg.setMinMax(0, urls.size());
+		}
+
+		int i = 1;
+		for (Entry<String, URL> entry : urls) {
+			// to help with the retry and the originalUrl
+			refresh(entry.getValue().toString());
+			pg.setProgress(i++);
+		}
+
 		// the chapters are in reversed order
 		Collections.reverse(urls);
 
@@ -272,12 +284,22 @@ class MangaFox extends BasicSupport {
 	}
 
 	@Override
-	protected String getChapterContent(URL source, InputStream in, int number) {
+	protected String getChapterContent(URL source, InputStream in, int number,
+			Progress pg) {
+		if (pg == null) {
+			pg = new Progress();
+		} else {
+			// Since we have no idea how many images we have, we cycle from 0
+			// to max, then again, then again...
+			pg.setMinMax(0, 20);
+		}
+
 		StringBuilder builder = new StringBuilder();
 		String base = getCurrentReferer().toString();
 		int pos = base.lastIndexOf('/');
 		base = base.substring(0, pos + 1); // including the '/' at the end
 
+		int i = 1;
 		boolean close = false;
 		while (in != null) {
 			String linkNextLine = getLine(in, "return enlarge()", 0);
@@ -317,6 +339,7 @@ class MangaFox extends BasicSupport {
 
 			// to help with the retry and the originalUrl, part 2
 			refresh(linkImage);
+			pg.setProgress((i++) % pg.getMax());
 
 			if (close) {
 				try {
@@ -333,6 +356,7 @@ class MangaFox extends BasicSupport {
 					url = new URL(base + linkNext);
 					in = openEx(base + linkNext);
 					setCurrentReferer(url);
+					pg.setProgress((i++) % pg.getMax());
 				} catch (IOException e) {
 					Instance.syserr(new IOException(
 							"Cannot get the next manga page which is: "

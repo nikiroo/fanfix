@@ -15,6 +15,7 @@ import java.util.Scanner;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 
 /**
@@ -210,7 +211,8 @@ class Fanfiction extends BasicSupport {
 	}
 
 	@Override
-	protected List<Entry<String, URL>> getChapters(URL source, InputStream in) {
+	protected List<Entry<String, URL>> getChapters(URL source, InputStream in,
+			Progress pg) {
 		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
 
 		String base = source.toString();
@@ -286,7 +288,8 @@ class Fanfiction extends BasicSupport {
 	}
 
 	@Override
-	protected String getChapterContent(URL source, InputStream in, int number) {
+	protected String getChapterContent(URL source, InputStream in, int number,
+			Progress pg) {
 		StringBuilder builder = new StringBuilder();
 		String startAt = "class='storytext ";
 		String endAt1 = "function review_init";

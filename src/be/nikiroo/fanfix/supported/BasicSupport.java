@@ -216,6 +216,8 @@ public abstract class BasicSupport {
 	 *            the source of the story
 	 * @param in
 	 *            the input (the main resource)
+	 * @param pg
+	 *            the optional progress reporter
 	 * 
 	 * @return the chapters
 	 * 
@@ -223,7 +225,7 @@ public abstract class BasicSupport {
 	 *             in case of I/O error
 	 */
 	protected abstract List<Entry<String, URL>> getChapters(URL source,
-			InputStream in) throws IOException;
+			InputStream in, Progress pg) throws IOException;
 
 	/**
 	 * Return the content of the chapter (possibly HTML encoded, if
@@ -235,6 +237,8 @@ public abstract class BasicSupport {
 	 *            the input (the main resource)
 	 * @param number
 	 *            the chapter number
+	 * @param pg
+	 *            the optional progress reporter
 	 * 
 	 * @return the content
 	 * 
@@ -242,7 +246,7 @@ public abstract class BasicSupport {
 	 *             in case of I/O error
 	 */
 	protected abstract String getChapterContent(URL source, InputStream in,
-			int number) throws IOException;
+			int number, Progress pg) throws IOException;
 
 	/**
 	 * Log into the support (can be a no-op depending upon the support).
@@ -298,7 +302,7 @@ public abstract class BasicSupport {
 	 *             in case of I/O error
 	 */
 	public Story processMeta(URL url) throws IOException {
-		return processMeta(url, true, false);
+		return processMeta(url, true, false, null);
 	}
 
 	/**
@@ -310,15 +314,24 @@ public abstract class BasicSupport {
 	 * 
 	 * @param close
 	 *            close "this" and "in" when done
+	 * @param pg
+	 *            the optional progress reporter
 	 * 
 	 * @return the {@link Story}
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	protected Story processMeta(URL url, boolean close, boolean getDesc)
-			throws IOException {
+	protected Story processMeta(URL url, boolean close, boolean getDesc,
+			Progress pg) throws IOException {
+		if (pg == null) {
+			pg = new Progress();
+		} else {
+			pg.setMinMax(0, 100);
+		}
+
 		login();
+		pg.setProgress(10);
 
 		url = getCanonicalUrl(url);
 
@@ -331,6 +344,7 @@ public abstract class BasicSupport {
 
 		try {
 			preprocess(url, getInput());
+			pg.setProgress(30);
 
 			Story story = new Story();
 			MetaData meta = getMeta(url, getInput());
@@ -340,18 +354,23 @@ public abstract class BasicSupport {
 			}
 			story.setMeta(meta);
 
+			pg.setProgress(50);
+
 			if (meta != null && meta.getCover() == null) {
 				meta.setCover(getDefaultCover(meta.getSubject()));
 			}
+
+			pg.setProgress(60);
 
 			if (getDesc) {
 				String descChapterName = Instance.getTrans().getString(
 						StringId.DESCRIPTION);
 				story.getMeta().setResume(
 						makeChapter(url, 0, descChapterName,
-								getDesc(url, getInput())));
+								getDesc(url, getInput()), null));
 			}
 
+			pg.setProgress(100);
 			return story;
 		} finally {
 			if (close) {
@@ -394,10 +413,15 @@ public abstract class BasicSupport {
 		url = getCanonicalUrl(url);
 		pg.setProgress(1);
 		try {
-			Story story = processMeta(url, false, true);
-			pg.setProgress(10);
+			Progress pgMeta = new Progress();
+			pg.addProgress(pgMeta, 10);
+			Story story = processMeta(url, false, true, pgMeta);
+			if (!pgMeta.isDone()) {
+				pgMeta.setProgress(pgMeta.getMax()); // 10%
+			}
+
 			if (story == null) {
-				pg.setProgress(100);
+				pg.setProgress(90);
 				return null;
 			}
 
@@ -405,24 +429,47 @@ public abstract class BasicSupport {
 
 			setCurrentReferer(url);
 
+			Progress pgGetChapters = new Progress();
+			pg.addProgress(pgGetChapters, 10);
 			story.setChapters(new ArrayList<Chapter>());
+			List<Entry<String, URL>> chapters = getChapters(url, getInput(),
+					pgGetChapters);
+			if (!pgGetChapters.isDone()) {
+				pgGetChapters.setProgress(pgGetChapters.getMax()); // 20%
+			}
 
-			List<Entry<String, URL>> chapters = getChapters(url, getInput());
-			pg.setProgress(20);
-
-			int i = 1;
 			if (chapters != null) {
-				Progress pgChaps = new Progress(0, chapters.size());
+				Progress pgChaps = new Progress("Extracting chapters", 0,
+						chapters.size() * 300);
 				pg.addProgress(pgChaps, 80);
 
 				long words = 0;
+				int i = 1;
 				for (Entry<String, URL> chap : chapters) {
+					pgChaps.setName("Extracting chapter " + i);
 					setCurrentReferer(chap.getValue());
 					InputStream chapIn = Instance.getCache().open(
 							chap.getValue(), this, true);
+					pgChaps.setProgress(i * 100);
 					try {
+						Progress pgGetChapterContent = new Progress();
+						Progress pgMakeChapter = new Progress();
+						pgChaps.addProgress(pgGetChapterContent, 100);
+						pgChaps.addProgress(pgMakeChapter, 100);
+
+						String content = getChapterContent(url, chapIn, i,
+								pgGetChapterContent);
+						if (!pgGetChapterContent.isDone()) {
+							pgGetChapterContent.setProgress(pgGetChapterContent
+									.getMax());
+						}
+
 						Chapter cc = makeChapter(url, i, chap.getKey(),
-								getChapterContent(url, chapIn, i));
+								content, pgMakeChapter);
+						if (!pgMakeChapter.isDone()) {
+							pgMakeChapter.setProgress(pgMakeChapter.getMax());
+						}
+
 						words += cc.getWords();
 						story.getChapters().add(cc);
 						if (story.getMeta() != null) {
@@ -432,10 +479,12 @@ public abstract class BasicSupport {
 						chapIn.close();
 					}
 
-					pgChaps.setProgress(i++);
+					i++;
 				}
+
+				pgChaps.setName("Extracting chapters");
 			} else {
-				pg.setProgress(100);
+				pg.setProgress(80);
 			}
 
 			return story;
@@ -531,6 +580,8 @@ public abstract class BasicSupport {
 	 *            the chapter name
 	 * @param content
 	 *            the chapter content
+	 * @param pg
+	 *            the optional progress reporter
 	 * 
 	 * @return the {@link Chapter}
 	 * 
@@ -538,7 +589,7 @@ public abstract class BasicSupport {
 	 *             in case of I/O error
 	 */
 	protected Chapter makeChapter(URL source, int number, String name,
-			String content) throws IOException {
+			String content, Progress pg) throws IOException {
 		// Chapter name: process it correctly, then remove the possible
 		// redundant "Chapter x: " in front of it
 		String chapterName = processPara(name).getContent().trim();
@@ -566,7 +617,7 @@ public abstract class BasicSupport {
 		Chapter chap = new Chapter(number, chapterName);
 
 		if (content != null) {
-			List<Paragraph> paras = makeParagraphs(source, content);
+			List<Paragraph> paras = makeParagraphs(source, content, pg);
 			long words = 0;
 			for (Paragraph para : paras) {
 				words += para.getWords();
@@ -586,14 +637,20 @@ public abstract class BasicSupport {
 	 *            the source URL of the story
 	 * @param content
 	 *            the textual content
+	 * @param pg
+	 *            the optional progress reporter
 	 * 
 	 * @return the {@link Paragraph}s
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	protected List<Paragraph> makeParagraphs(URL source, String content)
-			throws IOException {
+	protected List<Paragraph> makeParagraphs(URL source, String content,
+			Progress pg) throws IOException {
+		if (pg == null) {
+			pg = new Progress();
+		}
+
 		if (isHtml()) {
 			// Special <HR> processing:
 			content = content.replaceAll("(<hr [^>]*>)|(<hr/>)|(<hr>)",
@@ -604,10 +661,19 @@ public abstract class BasicSupport {
 
 		if (content != null && !content.trim().isEmpty()) {
 			if (isHtml()) {
-				for (String line : content.split("(<p>|</p>|<br>|<br/>)")) {
+				String[] tab = content.split("(<p>|</p>|<br>|<br/>)");
+				pg.setMinMax(0, tab.length);
+				int i = 1;
+				for (String line : tab) {
+					if (line.startsWith("[") && line.endsWith("]")) {
+						pg.setName("Extracting image " + i);
+					}
 					paras.add(makeParagraph(source, line.trim()));
+					pg.setProgress(i++);
 				}
+				pg.setName(null);
 			} else {
+				List<String> lines = new ArrayList<String>();
 				BufferedReader buff = null;
 				try {
 					buff = new BufferedReader(
@@ -615,13 +681,24 @@ public abstract class BasicSupport {
 									content.getBytes("UTF-8")), "UTF-8"));
 					for (String line = buff.readLine(); line != null; line = buff
 							.readLine()) {
-						paras.add(makeParagraph(source, line.trim()));
+						lines.add(line.trim());
 					}
 				} finally {
 					if (buff != null) {
 						buff.close();
 					}
 				}
+
+				pg.setMinMax(0, lines.size());
+				int i = 0;
+				for (String line : lines) {
+					if (line.startsWith("[") && line.endsWith("]")) {
+						pg.setName("Extracting image " + i);
+					}
+					paras.add(makeParagraph(source, line));
+					pg.setProgress(i++);
+				}
+				pg.setName(null);
 			}
 
 			// Check quotes for "bad" format

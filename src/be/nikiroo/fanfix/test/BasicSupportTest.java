@@ -17,6 +17,7 @@ import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.test.TestCase;
 import be.nikiroo.utils.test.TestLauncher;
 
@@ -60,13 +61,13 @@ public class BasicSupportTest extends TestLauncher {
 
 						List<Paragraph> paras = null;
 
-						paras = support.makeParagraphs(null, "");
+						paras = support.makeParagraphs(null, "", null);
 						assertEquals(
 								"An empty content should not generate paragraphs",
 								0, paras.size());
 
 						paras = support.makeParagraphs(null,
-								"Line 1</p><p>Line 2</p><p>Line 3</p>");
+								"Line 1</p><p>Line 2</p><p>Line 3</p>", null);
 						assertEquals(5, paras.size());
 						assertEquals("Line 1", paras.get(0).getContent());
 						assertEquals(ParagraphType.BLANK, paras.get(1)
@@ -77,7 +78,7 @@ public class BasicSupportTest extends TestLauncher {
 						assertEquals("Line 3", paras.get(4).getContent());
 
 						paras = support.makeParagraphs(null,
-								"<p>Line1</p><p>Line2</p><p>Line3</p>");
+								"<p>Line1</p><p>Line2</p><p>Line3</p>", null);
 						assertEquals(6, paras.size());
 					}
 				});
@@ -95,34 +96,39 @@ public class BasicSupportTest extends TestLauncher {
 						List<Paragraph> paras = null;
 
 						paras = support
-								.makeParagraphs(null,
-										"<p>Line1</p><p>Line2</p><p>Line3<br/><br><p></p>");
+								.makeParagraphs(
+										null,
+										"<p>Line1</p><p>Line2</p><p>Line3<br/><br><p></p>",
+										null);
 						assertEquals(5, paras.size());
 
 						paras = support
-								.makeParagraphs(null,
-										"<p>Line1</p><p>Line2</p><p>Line3<br/><br><p></p>* * *");
+								.makeParagraphs(
+										null,
+										"<p>Line1</p><p>Line2</p><p>Line3<br/><br><p></p>* * *",
+										null);
 						assertEquals(5, paras.size());
 
-						paras = support.makeParagraphs(null, "1<p>* * *<p>2");
+						paras = support.makeParagraphs(null, "1<p>* * *<p>2",
+								null);
 						assertEquals(3, paras.size());
 						assertEquals(ParagraphType.BREAK, paras.get(1)
 								.getType());
 
 						paras = support.makeParagraphs(null,
-								"1<p><br/><p>* * *<p>2");
+								"1<p><br/><p>* * *<p>2", null);
 						assertEquals(3, paras.size());
 						assertEquals(ParagraphType.BREAK, paras.get(1)
 								.getType());
 
 						paras = support.makeParagraphs(null,
-								"1<p>* * *<br/><p><br><p>2");
+								"1<p>* * *<br/><p><br><p>2", null);
 						assertEquals(3, paras.size());
 						assertEquals(ParagraphType.BREAK, paras.get(1)
 								.getType());
 
 						paras = support.makeParagraphs(null,
-								"1<p><br/><br>* * *<br/><p><br><p>2");
+								"1<p><br/><br>* * *<br/><p><br><p>2", null);
 						assertEquals(3, paras.size());
 						assertEquals(ParagraphType.BREAK, paras.get(1)
 								.getType());
@@ -417,21 +423,21 @@ public class BasicSupportTest extends TestLauncher {
 
 		@Override
 		protected List<Entry<String, URL>> getChapters(URL source,
-				InputStream in) throws IOException {
+				InputStream in, Progress pg) throws IOException {
 			return null;
 		}
 
 		@Override
 		protected String getChapterContent(URL source, InputStream in,
-				int number) throws IOException {
+				int number, Progress pg) throws IOException {
 			return null;
 		}
 
 		@Override
 		// and make it public!
-		public List<Paragraph> makeParagraphs(URL source, String content)
-				throws IOException {
-			return super.makeParagraphs(source, content);
+		public List<Paragraph> makeParagraphs(URL source, String content,
+				Progress pg) throws IOException {
+			return super.makeParagraphs(source, content, pg);
 		}
 
 		@Override

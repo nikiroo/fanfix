@@ -90,7 +90,7 @@ class E621 extends BasicSupport {
 	private BufferedImage getCover(URL source) throws IOException {
 		InputStream in = Instance.getCache().open(source, this, true);
 		String images = getChapterContent(new URL(source.toString() + "?page="
-				+ 1), in, 1);
+				+ 1), in, 1, null);
 		if (!images.isEmpty()) {
 			int pos = images.indexOf("<br/>");
 			if (pos >= 0) {
@@ -191,8 +191,8 @@ class E621 extends BasicSupport {
 	}
 
 	@Override
-	protected List<Entry<String, URL>> getChapters(URL source, InputStream in)
-			throws IOException {
+	protected List<Entry<String, URL>> getChapters(URL source, InputStream in,
+			Progress pg) throws IOException {
 		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
 		int last = 1; // no pool/show when only one page
 
@@ -240,8 +240,8 @@ class E621 extends BasicSupport {
 	}
 
 	@Override
-	protected String getChapterContent(URL source, InputStream in, int number)
-			throws IOException {
+	protected String getChapterContent(URL source, InputStream in, int number,
+			Progress pg) throws IOException {
 		StringBuilder builder = new StringBuilder();
 		String staticSite = "https://static1.e621.net";
 		if (source.getHost().contains("e926")) {

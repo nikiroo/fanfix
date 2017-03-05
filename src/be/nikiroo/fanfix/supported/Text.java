@@ -14,6 +14,7 @@ import java.util.Scanner;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.utils.Progress;
 
 /**
  * Support class for local stories encoded in textual format, with a few rules:
@@ -147,7 +148,7 @@ class Text extends BasicSupport {
 
 	@Override
 	protected String getDesc(URL source, InputStream in) throws IOException {
-		return getChapterContent(source, in, 0);
+		return getChapterContent(source, in, 0, null);
 	}
 
 	private BufferedImage getCover(URL source) throws IOException {
@@ -169,8 +170,8 @@ class Text extends BasicSupport {
 	}
 
 	@Override
-	protected List<Entry<String, URL>> getChapters(URL source, InputStream in)
-			throws IOException {
+	protected List<Entry<String, URL>> getChapters(URL source, InputStream in,
+			Progress pg) throws IOException {
 		List<Entry<String, URL>> chaps = new ArrayList<Entry<String, URL>>();
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
@@ -208,8 +209,8 @@ class Text extends BasicSupport {
 	}
 
 	@Override
-	protected String getChapterContent(URL source, InputStream in, int number)
-			throws IOException {
+	protected String getChapterContent(URL source, InputStream in, int number,
+			Progress pg) throws IOException {
 		StringBuilder builder = new StringBuilder();
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");

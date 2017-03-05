@@ -65,14 +65,19 @@ class Cbz extends Epub {
 			pg.setMinMax(0, 100);
 		}
 
-		Story story = processMeta(url, false, true);
+		Progress pgMeta = new Progress();
+		pg.addProgress(pgMeta, 10);
+		Story story = processMeta(url, false, true, pgMeta);
+		if (!pgMeta.isDone()) {
+			pgMeta.setProgress(pgMeta.getMax()); // 10%
+		}
+
 		story.setChapters(new ArrayList<Chapter>());
 		Chapter chap = new Chapter(1, null);
 		story.getChapters().add(chap);
 
 		ZipInputStream zipIn = new ZipInputStream(getInput());
 
-		pg.setProgress(10);
 		List<String> images = new ArrayList<String>();
 		for (ZipEntry entry = zipIn.getNextEntry(); entry != null; entry = zipIn
 				.getNextEntry()) {

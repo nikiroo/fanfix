@@ -16,6 +16,7 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.MarkableFileInputStream;
+import be.nikiroo.utils.Progress;
 
 /**
  * Support class for EPUB files created with this program (as we need some
@@ -60,22 +61,22 @@ class Epub extends InfoText {
 	}
 
 	@Override
-	protected List<Entry<String, URL>> getChapters(URL source, InputStream in)
-			throws IOException {
+	protected List<Entry<String, URL>> getChapters(URL source, InputStream in,
+			Progress pg) throws IOException {
 		if (fakeIn != null) {
 			fakeIn.reset();
-			return super.getChapters(fakeSource, fakeIn);
+			return super.getChapters(fakeSource, fakeIn, pg);
 		}
 
 		return null;
 	}
 
 	@Override
-	protected String getChapterContent(URL source, InputStream in, int number)
-			throws IOException {
+	protected String getChapterContent(URL source, InputStream in, int number,
+			Progress pg) throws IOException {
 		if (fakeIn != null) {
 			fakeIn.reset();
-			return super.getChapterContent(fakeSource, fakeIn, number);
+			return super.getChapterContent(fakeSource, fakeIn, number, pg);
 		}
 
 		return null;

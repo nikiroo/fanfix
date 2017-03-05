@@ -15,6 +15,7 @@ import java.util.Scanner;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 
 /**
@@ -130,7 +131,7 @@ class YiffStar extends BasicSupport {
 	private BufferedImage getCover(URL source, InputStream in)
 			throws IOException {
 
-		List<Entry<String, URL>> chaps = getChapters(source, in);
+		List<Entry<String, URL>> chaps = getChapters(source, in, null);
 		if (!chaps.isEmpty()) {
 			in = Instance.getCache().open(chaps.get(0).getValue(), this, true);
 			String line = getLine(in, " name=\"og:image\"", 0);
@@ -185,8 +186,8 @@ class YiffStar extends BasicSupport {
 	}
 
 	@Override
-	protected List<Entry<String, URL>> getChapters(URL source, InputStream in)
-			throws IOException {
+	protected List<Entry<String, URL>> getChapters(URL source, InputStream in,
+			Progress pg) throws IOException {
 		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
 
 		@SuppressWarnings("resource")
@@ -225,8 +226,8 @@ class YiffStar extends BasicSupport {
 	}
 
 	@Override
-	protected String getChapterContent(URL source, InputStream in, int number)
-			throws IOException {
+	protected String getChapterContent(URL source, InputStream in, int number,
+			Progress pg) throws IOException {
 		StringBuilder builder = new StringBuilder();
 
 		String startAt = "id=\"sfContentBody";

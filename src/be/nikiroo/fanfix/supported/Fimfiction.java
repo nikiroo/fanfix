@@ -14,6 +14,7 @@ import java.util.Scanner;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 
 /**
@@ -176,7 +177,8 @@ class Fimfiction extends BasicSupport {
 	}
 
 	@Override
-	protected List<Entry<String, URL>> getChapters(URL source, InputStream in) {
+	protected List<Entry<String, URL>> getChapters(URL source, InputStream in,
+			Progress pg) {
 		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
@@ -232,7 +234,8 @@ class Fimfiction extends BasicSupport {
 	}
 
 	@Override
-	protected String getChapterContent(URL source, InputStream in, int number) {
+	protected String getChapterContent(URL source, InputStream in, int number,
+			Progress pg) {
 		return getLine(in, "<div id=\"chapter_container\">", 1);
 	}
 
