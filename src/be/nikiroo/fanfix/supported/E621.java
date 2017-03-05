@@ -92,7 +92,7 @@ class E621 extends BasicSupport {
 		String images = getChapterContent(new URL(source.toString() + "?page="
 				+ 1), in, 1);
 		if (!images.isEmpty()) {
-			int pos = images.indexOf('\n');
+			int pos = images.indexOf("<br/>");
 			if (pos >= 0) {
 				images = images.substring(1, pos - 1);
 				return getImage(this, null, images);
@@ -268,7 +268,7 @@ class E621 extends BasicSupport {
 							id = id.substring(0, dotPos);
 							builder.append("[");
 							builder.append(id);
-							builder.append("]\n");
+							builder.append("]<br/>");
 						}
 					}
 				}

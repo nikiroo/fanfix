@@ -312,7 +312,7 @@ class MangaFox extends BasicSupport {
 				builder.append("[");
 				// to help with the retry and the originalUrl, part 1
 				builder.append(withoutQuery(linkImage));
-				builder.append("]\n");
+				builder.append("]<br/>");
 			}
 
 			// to help with the retry and the originalUrl, part 2

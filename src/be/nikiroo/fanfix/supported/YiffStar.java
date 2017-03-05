@@ -247,7 +247,7 @@ class YiffStar extends BasicSupport {
 
 			if (ok) {
 				builder.append(line);
-				builder.append('\n');
+				builder.append(' ');
 			}
 		}
 
