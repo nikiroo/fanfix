@@ -1,3 +1,12 @@
+Version 1.3.4
+-------------
+
+Improve TestCase error reporting
+	We know display the full stack trace even for AssertionErrors
+
+Extends Version
+	...with new methods: isOlderThan(Version) and isNewerThan(Version)
+
 Version 1.3.3
 -------------
 

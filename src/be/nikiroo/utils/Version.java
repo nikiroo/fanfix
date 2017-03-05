@@ -9,11 +9,18 @@ import java.io.InputStream;
  * 
  * @author niki
  */
-public class Version {
+public class Version implements Comparable<Version> {
 	private String version;
 	private int major;
 	private int minor;
 	private int patch;
+
+	/**
+	 * Create a new, empty {@link Version}.
+	 * 
+	 */
+	public Version() {
+	}
 
 	/**
 	 * Create a new {@link Version} with the given values.
@@ -96,10 +103,44 @@ public class Version {
 	 * <p>
 	 * An empty {@link Version} is always <tt>0.0.0</tt>.
 	 * 
-	 * @return TRUS if it is empty
+	 * @return TRUE if it is empty
 	 */
 	public boolean isEmpty() {
 		return major == 0 && minor == 0 && patch == 0;
+	}
+
+	/**
+	 * Check if we are more recent than the given {@link Version}.
+	 * 
+	 * @param o
+	 *            the other {@link Version}
+	 * @return TRUE if this {@link Version} is more recent than the given one
+	 */
+	public boolean isNewerThan(Version o) {
+		if (major > o.major) {
+			return true;
+		}
+
+		if (major == o.major && minor > o.minor) {
+			return true;
+		}
+
+		if (major == o.major && minor == o.minor && patch > o.patch) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if we are older than the given {@link Version}.
+	 * 
+	 * @param o
+	 *            the other {@link Version}
+	 * @return TRUE if this {@link Version} is older than the given one
+	 */
+	public boolean isOlderThan(Version o) {
+		return !equals(o) && !isNewerThan(o);
 	}
 
 	/**
@@ -129,6 +170,31 @@ public class Version {
 		}
 
 		return new Version(version);
+	}
+
+	public int compareTo(Version o) {
+		if (equals(o)) {
+			return 0;
+		} else if (isNewerThan(o)) {
+			return 1;
+		} else {
+			return -1;
+		}
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof Version) {
+			Version o = (Version) obj;
+			return o.major == major && o.minor == minor && o.patch == patch;
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return version == null ? 0 : version.hashCode();
 	}
 
 	/**

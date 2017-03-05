@@ -51,5 +51,29 @@ class VersionTest extends TestLauncher {
 						Version.getCurrentVersion().isEmpty());
 			}
 		});
+
+		addTest(new TestCase("Comparing versions") {
+			@Override
+			public void test() throws Exception {
+				assertEquals(true,
+						new Version(1, 1, 1).isNewerThan(new Version(1, 1, 0)));
+				assertEquals(true,
+						new Version(2, 0, 0).isNewerThan(new Version(1, 1, 1)));
+				assertEquals(true,
+						new Version(10, 7, 8).isNewerThan(new Version(9, 9, 9)));
+				assertEquals(true,
+						new Version(0, 0, 0).isOlderThan(new Version(0, 0, 1)));
+				assertEquals(1,
+						new Version(1, 1, 1).compareTo(new Version(0, 1, 1)));
+				assertEquals(-1,
+						new Version(0, 0, 1).compareTo(new Version(0, 1, 1)));
+				assertEquals(0,
+						new Version(0, 0, 1).compareTo(new Version(0, 0, 1)));
+				assertEquals(true,
+						new Version(0, 0, 1).equals(new Version(0, 0, 1)));
+				assertEquals(false,
+						new Version(0, 2, 1).equals(new Version(0, 0, 1)));
+			}
+		});
 	}
 }
