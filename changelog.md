@@ -1,5 +1,9 @@
 # Fanfix
 
+## Version 1.4.2
+
+- Fix for images documents which were not working any more
+
 ## Version 1.4.1
 
 - Fix some bad line breaks on HTML supports (including FanFiction.net)
