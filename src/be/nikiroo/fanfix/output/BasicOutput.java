@@ -175,15 +175,19 @@ public abstract class BasicOutput {
 			throws IOException {
 		storyPg = pg;
 
-		target = new File(target).getAbsolutePath();
-		File targetDir = new File(target).getParentFile();
-		String targetName = new File(target).getName();
+		File targetDir = null;
+		String targetName = null;
+		if (target != null) {
+			target = new File(target).getAbsolutePath();
+			targetDir = new File(target).getParentFile();
+			targetName = new File(target).getName();
 
-		String ext = getDefaultExtension(false);
-		if (ext != null && !ext.isEmpty()) {
-			if (targetName.toLowerCase().endsWith(ext)) {
-				targetName = targetName.substring(0,
-						targetName.length() - ext.length());
+			String ext = getDefaultExtension(false);
+			if (ext != null && !ext.isEmpty()) {
+				if (targetName.toLowerCase().endsWith(ext)) {
+					targetName = targetName.substring(0, targetName.length()
+							- ext.length());
+				}
 			}
 		}
 

@@ -562,7 +562,7 @@ class LocalReaderFrame extends JFrame {
 	 */
 	private void outOfUi(Progress progress, final Runnable run) {
 		final Progress pg = new Progress();
-		final Progress reload = new Progress("Reload local caches");
+		final Progress reload = new Progress("Reload books");
 		if (progress == null) {
 			progress = new Progress();
 		}

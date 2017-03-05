@@ -597,55 +597,69 @@ public abstract class BasicSupport {
 		if (isHtml()) {
 			// Special <HR> processing:
 			content = content.replaceAll("(<hr [^>]*>)|(<hr/>)|(<hr>)",
-					"\n* * *\n");
+					"<br/>* * *<br/>");
 		}
 
 		List<Paragraph> paras = new ArrayList<Paragraph>();
-		InputStream in = new ByteArrayInputStream(content.getBytes("UTF-8"));
-		try {
-			BufferedReader buff = new BufferedReader(new InputStreamReader(in,
-					"UTF-8"));
 
-			for (String encodedLine = buff.readLine(); encodedLine != null; encodedLine = buff
-					.readLine()) {
-				String lines[];
-				if (isHtml()) {
-					lines = encodedLine.split("(<p>|</p>|<br>|<br/>|\\n)");
-				} else {
-					lines = new String[] { encodedLine };
+		if (content != null && !content.trim().isEmpty()) {
+			if (isHtml()) {
+				for (String line : content.split("(<p>|</p>|<br>|<br/>)")) {
+					paras.add(makeParagraph(source, line.trim()));
 				}
-
-				for (String aline : lines) {
-					String line = aline.trim();
-
-					URL image = null;
-					if (line.startsWith("[") && line.endsWith("]")) {
-						image = getImageUrl(this, source,
-								line.substring(1, line.length() - 1).trim());
+			} else {
+				BufferedReader buff = null;
+				try {
+					buff = new BufferedReader(
+							new InputStreamReader(new ByteArrayInputStream(
+									content.getBytes("UTF-8")), "UTF-8"));
+					for (String line = buff.readLine(); line != null; line = buff
+							.readLine()) {
+						paras.add(makeParagraph(source, line.trim()));
 					}
-
-					if (image != null) {
-						paras.add(new Paragraph(image));
-					} else {
-						paras.add(processPara(line));
+				} finally {
+					if (buff != null) {
+						buff.close();
 					}
 				}
 			}
-		} finally {
-			in.close();
-		}
 
-		// Check quotes for "bad" format
-		List<Paragraph> newParas = new ArrayList<Paragraph>();
-		for (Paragraph para : paras) {
-			newParas.addAll(requotify(para));
-		}
-		paras = newParas;
+			// Check quotes for "bad" format
+			List<Paragraph> newParas = new ArrayList<Paragraph>();
+			for (Paragraph para : paras) {
+				newParas.addAll(requotify(para));
+			}
+			paras = newParas;
 
-		// Remove double blanks/brks
-		fixBlanksBreaks(paras);
+			// Remove double blanks/brks
+			fixBlanksBreaks(paras);
+		}
 
 		return paras;
+	}
+
+	/**
+	 * Convert the given line into a single {@link Paragraph}.
+	 * 
+	 * @param source
+	 *            the source URL of the story
+	 * @param line
+	 *            the textual content of the paragraph
+	 * 
+	 * @return the {@link Paragraph}
+	 */
+	private Paragraph makeParagraph(URL source, String line) {
+		URL image = null;
+		if (line.startsWith("[") && line.endsWith("]")) {
+			image = getImageUrl(this, source,
+					line.substring(1, line.length() - 1).trim());
+		}
+
+		if (image != null) {
+			return new Paragraph(image);
+		} else {
+			return processPara(line);
+		}
 	}
 
 	/**
