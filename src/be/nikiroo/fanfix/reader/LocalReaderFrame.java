@@ -97,6 +97,22 @@ class LocalReaderFrame extends JFrame {
 		pgBar = new ProgressBar();
 		add(pgBar, BorderLayout.SOUTH);
 
+		pgBar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				invalidate();
+				pgBar.setProgress(null);
+				validate();
+				setEnabled(true);
+			}
+		});
+
+		pgBar.addUpdateListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				revalidate();
+				repaint();
+			}
+		});
+
 		setJMenuBar(createMenu());
 
 		booksByType = new HashMap<LocalReaderGroup, String>();
@@ -185,8 +201,6 @@ class LocalReaderFrame extends JFrame {
 	/**
 	 * Refresh the list of {@link LocalReaderBook}s from disk.
 	 * 
-	 * @param type
-	 *            the type of {@link Story} to load, or NULL for all types
 	 */
 	private void refreshBooks() {
 		for (LocalReaderGroup group : booksByType.keySet()) {
@@ -427,7 +441,8 @@ class LocalReaderFrame extends JFrame {
 				if (selectedBook != null) {
 					outOfUi(null, new Runnable() {
 						public void run() {
-							reader.refresh(selectedBook.getMeta().getLuid());
+							reader.clearLocalReaderCache(selectedBook.getMeta()
+									.getLuid());
 							selectedBook.setCached(false);
 							SwingUtilities.invokeLater(new Runnable() {
 								public void run() {
@@ -453,12 +468,13 @@ class LocalReaderFrame extends JFrame {
 		refresh.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (selectedBook != null) {
-					imprt(selectedBook.getMeta().getUrl(), new Runnable() {
+					final MetaData meta = selectedBook.getMeta();
+					imprt(meta.getUrl(), new Runnable() {
 						public void run() {
-							reader.delete(selectedBook.getMeta().getLuid());
-							selectedBook = null;
+							reader.delete(meta.getLuid());
+							LocalReaderFrame.this.selectedBook = null;
 						}
-					});
+					}, "Removing old copy");
 				}
 			}
 		});
@@ -480,11 +496,6 @@ class LocalReaderFrame extends JFrame {
 						public void run() {
 							reader.delete(selectedBook.getMeta().getLuid());
 							selectedBook = null;
-							SwingUtilities.invokeLater(new Runnable() {
-								public void run() {
-									refreshBooks();
-								}
-							});
 						}
 					});
 				}
@@ -549,31 +560,32 @@ class LocalReaderFrame extends JFrame {
 	 * @param run
 	 *            the action to run
 	 */
-	private void outOfUi(final Progress pg, final Runnable run) {
-		pgBar.setProgress(pg);
+	private void outOfUi(Progress progress, final Runnable run) {
+		final Progress pg = new Progress();
+		final Progress reload = new Progress("Reload local caches");
+		if (progress == null) {
+			progress = new Progress();
+		}
 
+		pg.addProgress(progress, 90);
+		pg.addProgress(reload, 10);
+
+		invalidate();
+		pgBar.setProgress(pg);
+		validate();
 		setEnabled(false);
-		pgBar.addActioListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				pgBar.setProgress(null);
-				setEnabled(true);
-			}
-		});
 
 		new Thread(new Runnable() {
 			public void run() {
 				run.run();
-				if (pg == null) {
-					SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							setEnabled(true);
-						}
-					});
-				} else if (!pg.isDone()) {
+				refreshBooks();
+				reload.setProgress(100);
+				if (!pg.isDone()) {
+					// will trigger pgBar ActionListener:
 					pg.setProgress(pg.getMax());
 				}
 			}
-		}).start();
+		}, "outOfUi thread").start();
 	}
 
 	/**
@@ -612,7 +624,7 @@ class LocalReaderFrame extends JFrame {
 		}
 
 		if (url != null && !url.toString().isEmpty()) {
-			imprt(url.toString(), null);
+			imprt(url.toString(), null, null);
 		}
 	}
 
@@ -626,13 +638,20 @@ class LocalReaderFrame extends JFrame {
 	 * @param onSuccess
 	 *            Action to execute on success
 	 */
-	private void imprt(final String url, final Runnable onSuccess) {
-		final Progress pg = new Progress("Importing " + url);
+	private void imprt(final String url, final Runnable onSuccess,
+			String onSuccessPgName) {
+		final Progress pg = new Progress();
+		final Progress pgImprt = new Progress();
+		final Progress pgOnSuccess = new Progress(onSuccessPgName);
+		pg.addProgress(pgImprt, 95);
+		pg.addProgress(pgOnSuccess, 5);
+
 		outOfUi(pg, new Runnable() {
 			public void run() {
 				Exception ex = null;
 				try {
-					Instance.getLibrary().imprt(BasicReader.getUrl(url), pg);
+					Instance.getLibrary().imprt(BasicReader.getUrl(url),
+							pgImprt);
 				} catch (IOException e) {
 					ex = e;
 				}
@@ -640,25 +659,24 @@ class LocalReaderFrame extends JFrame {
 				final Exception e = ex;
 
 				final boolean ok = (e == null);
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						if (!ok) {
-							Instance.syserr(e);
+
+				pgOnSuccess.setProgress(0);
+				if (!ok) {
+					Instance.syserr(e);
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
 							JOptionPane.showMessageDialog(
 									LocalReaderFrame.this, "Cannot import: "
 											+ url, e.getMessage(),
 									JOptionPane.ERROR_MESSAGE);
-
-							setEnabled(true);
-						} else {
-							refreshBooks();
-							if (onSuccess != null) {
-								onSuccess.run();
-								refreshBooks();
-							}
 						}
+					});
+				} else {
+					if (onSuccess != null) {
+						onSuccess.run();
 					}
-				});
+				}
+				pgOnSuccess.setProgress(100);
 			}
 		});
 	}

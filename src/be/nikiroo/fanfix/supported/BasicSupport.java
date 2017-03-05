@@ -401,6 +401,8 @@ public abstract class BasicSupport {
 				return null;
 			}
 
+			pg.setName("Retrieving " + story.getMeta().getTitle());
+
 			setCurrentReferer(url);
 
 			story.setChapters(new ArrayList<Chapter>());

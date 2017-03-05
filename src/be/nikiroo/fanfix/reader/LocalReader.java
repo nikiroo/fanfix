@@ -211,8 +211,8 @@ class LocalReader extends BasicReader {
 		});
 	}
 
-	// refresh = delete from LocalReader cache (TODO: rename?)
-	void refresh(String luid) {
+	// delete from local reader library
+	void clearLocalReaderCache(String luid) {
 		lib.delete(luid);
 	}
 
