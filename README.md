@@ -2,7 +2,7 @@
 
 Fanfix is a small Java program that can download stories from some supported websites and render them offline.
 
-(If you are interested in the recent changes, please check the [Changelog](changelog.md).)
+(If you are interested in the recent changes, please check the [Changelog](changelog.md) -- note that starting from version 1.4.0, the changelog is checked at startup (unless the option is disabled))
 
 ![Main GUI](screenshots/fanfix-1.3.2.png?raw=true "Main GUI")
 
@@ -76,6 +76,10 @@ Some environment variables are recognized by the program:
 ```./configure.sh && make```
 
 You can also import the java sources into, say, [Eclipse](https://eclipse.org/), and create a runnable JAR file from there.
+
+There are some unit tests you can run, too:
+
+```./configure.sh && make build test run-test```
 
 ### Dependant libraries (included)
 
