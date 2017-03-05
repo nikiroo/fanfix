@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Progress reporting system, possibly nested.
@@ -18,7 +19,7 @@ public class Progress {
 		 * A progression event.
 		 * 
 		 * @param progress
-		 *            the {@link Progress} object that generated it, or a parent
+		 *            the {@link Progress} object that generated it
 		 * @param name
 		 *            the first non-null name of the {@link Progress} step that
 		 *            generated this event
@@ -188,7 +189,7 @@ public class Progress {
 	public void setProgress(int progress) {
 		int diff = this.progress - this.localProgress;
 		this.localProgress = progress;
-		setTotalProgress(name, progress + diff);
+		setTotalProgress(this, name, progress + diff);
 	}
 
 	/**
@@ -212,21 +213,33 @@ public class Progress {
 	}
 
 	/**
+	 * Return the list of direct children of this {@link Progress}.
+	 * 
+	 * @return the children (who will think of them??)
+	 */
+	public Set<Progress> getChildren() {
+		return children.keySet();
+	}
+
+	/**
 	 * Set the total progress value (including the optional children
 	 * {@link Progress}), on a {@link Progress#getMin()} to
 	 * {@link Progress#getMax()} scale.
 	 * 
+	 * @param pg
+	 *            the {@link Progress} to report as the progression emitter
 	 * @param name
 	 *            the current name (if it is NULL, the first non-null name in
-	 *            the hierarchy will overwrite it)
+	 *            the hierarchy will overwrite it) of the {@link Progress} who
+	 *            emitted this change
 	 * @param progress
 	 *            the progress to set
 	 */
-	private void setTotalProgress(String name, int progress) {
+	private void setTotalProgress(Progress pg, String name, int progress) {
 		this.progress = progress;
 
 		for (ProgressListener l : listeners) {
-			l.progress(this, name);
+			l.progress(pg, name);
 		}
 	}
 
@@ -270,7 +283,8 @@ public class Progress {
 					name = Progress.this.name;
 				}
 
-				setTotalProgress(name, (int) Math.round(total * (max - min)));
+				setTotalProgress(progress, name,
+						(int) Math.round(total * (max - min)));
 			}
 		});
 
