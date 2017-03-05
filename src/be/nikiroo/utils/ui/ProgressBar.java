@@ -14,112 +14,156 @@ import javax.swing.SwingUtilities;
 
 import be.nikiroo.utils.Progress;
 
+/**
+ * A graphical control to show the progress of a {@link Progress}.
+ * <p>
+ * This control is <b>NOT</b> thread-safe.
+ * 
+ * @author niki
+ */
 public class ProgressBar extends JPanel {
 	private static final long serialVersionUID = 1L;
 
 	private Map<Progress, JProgressBar> bars;
-	private List<ActionListener> listeners;
+	private List<ActionListener> actionListeners;
+	private List<ActionListener> updateListeners;
 	private Progress pg;
 
 	public ProgressBar() {
 		bars = new HashMap<Progress, JProgressBar>();
-		listeners = new ArrayList<ActionListener>();
+		actionListeners = new ArrayList<ActionListener>();
+		updateListeners = new ArrayList<ActionListener>();
 	}
 
 	public void setProgress(final Progress pg) {
 		this.pg = pg;
 
-		if (pg == null) {
-			setPresent(false);
-		} else {
-			final JProgressBar bar = new JProgressBar();
-			bar.setStringPainted(true);
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				if (pg != null) {
+					final JProgressBar bar = new JProgressBar();
+					bar.setStringPainted(true);
 
-			bars.clear();
-			bars.put(pg, bar);
+					bars.clear();
+					bars.put(pg, bar);
 
-			bar.setMinimum(pg.getMin());
-			bar.setMaximum(pg.getMax());
-			bar.setValue(pg.getProgress());
-			bar.setString(pg.getName());
+					bar.setMinimum(pg.getMin());
+					bar.setMaximum(pg.getMax());
+					bar.setValue(pg.getProgress());
+					bar.setString(pg.getName());
 
-			pg.addProgressListener(new Progress.ProgressListener() {
-				public void progress(Progress progress, String name) {
+					pg.addProgressListener(new Progress.ProgressListener() {
+						public void progress(Progress progress, String name) {
+							final Progress.ProgressListener l = this;
+							SwingUtilities.invokeLater(new Runnable() {
+								public void run() {
+									Map<Progress, JProgressBar> newBars = new HashMap<Progress, JProgressBar>();
+									newBars.put(pg, bar);
 
-					SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							Map<Progress, JProgressBar> newBars = new HashMap<Progress, JProgressBar>();
-							newBars.put(pg, bar);
+									bar.setMinimum(pg.getMin());
+									bar.setMaximum(pg.getMax());
+									bar.setValue(pg.getProgress());
+									bar.setString(pg.getName());
 
-							bar.setMinimum(pg.getMin());
-							bar.setMaximum(pg.getMax());
-							bar.setValue(pg.getProgress());
-							bar.setString(pg.getName());
+									for (Progress pg : getChildrenAsOrderedList(pg)) {
+										JProgressBar bar = bars.get(pg);
+										if (bar == null) {
+											bar = new JProgressBar();
+											bar.setStringPainted(true);
+										}
 
-							for (Progress pg : getChildrenAsOrderedList(pg)) {
-								JProgressBar bar = bars.get(pg);
-								if (bar == null) {
-									bar = new JProgressBar();
-									bar.setStringPainted(true);
+										newBars.put(pg, bar);
+
+										bar.setMinimum(pg.getMin());
+										bar.setMaximum(pg.getMax());
+										bar.setValue(pg.getProgress());
+										bar.setString(pg.getName());
+									}
+
+									if (ProgressBar.this.pg == null) {
+										bars.clear();
+									} else {
+										bars = newBars;
+
+										if (pg.isDone()) {
+											pg.removeProgressListener(l);
+											for (ActionListener listener : actionListeners) {
+												listener.actionPerformed(new ActionEvent(
+														ProgressBar.this, 0,
+														"done"));
+											}
+										}
+
+										update();
+									}
 								}
-
-								newBars.put(pg, bar);
-
-								bar.setMinimum(pg.getMin());
-								bar.setMaximum(pg.getMax());
-								bar.setValue(pg.getProgress());
-								bar.setString(pg.getName());
-							}
-
-							bars = newBars;
-
-							if (pg.isDone()) {
-								for (ActionListener listener : listeners) {
-									listener.actionPerformed(new ActionEvent(
-											ProgressBar.this, 0, "done"));
-								}
-							}
-
-							setPresent(true);
+							});
 						}
 					});
 				}
-			});
 
-			setPresent(true);
-		}
+				update();
+			}
+		});
 	}
 
-	public void addActioListener(ActionListener l) {
-		listeners.add(l);
+	public void addActionListener(ActionListener l) {
+		actionListeners.add(l);
 	}
 
 	public void clearActionListeners() {
-		listeners.clear();
+		actionListeners.clear();
 	}
 
+	public void addUpdateListener(ActionListener l) {
+		updateListeners.add(l);
+	}
+
+	public void clearUpdateListeners() {
+		updateListeners.clear();
+	}
+
+	public int getProgress() {
+		if (pg == null) {
+			return 0;
+		}
+
+		return pg.getProgress();
+	}
+
+	// only named ones
 	private List<Progress> getChildrenAsOrderedList(Progress pg) {
 		List<Progress> children = new ArrayList<Progress>();
 		for (Progress child : pg.getChildren()) {
-			children.add(child);
+			if (child.getName() != null && !child.getName().isEmpty()) {
+				children.add(child);
+			}
 			children.addAll(getChildrenAsOrderedList(child));
 		}
 
 		return children;
 	}
 
-	private void setPresent(boolean present) {
+	private void update() {
+		invalidate();
 		removeAll();
 
-		if (present) {
+		if (pg != null) {
 			setLayout(new GridLayout(bars.size(), 1));
 			add(bars.get(pg), 0);
 			for (Progress child : getChildrenAsOrderedList(pg)) {
-				add(bars.get(child));
+				JProgressBar jbar = bars.get(child);
+				if (jbar != null) {
+					add(jbar);
+				}
 			}
 		}
 
-		revalidate();
+		validate();
 		repaint();
+
+		for (ActionListener listener : updateListeners) {
+			listener.actionPerformed(new ActionEvent(this, 0, "update"));
+		}
 	}
 }

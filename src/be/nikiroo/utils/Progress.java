@@ -94,6 +94,18 @@ public class Progress {
 	}
 
 	/**
+	 * The name of this {@link Progress} step.
+	 * 
+	 * @param name
+	 *            the new name
+	 */
+	public void setName(String name) {
+		this.name = name;
+		// will fire an action event:
+		setProgress(this.localProgress);
+	}
+
+	/**
 	 * The minimum progress value.
 	 * 
 	 * @return the min
@@ -251,6 +263,18 @@ public class Progress {
 	 */
 	public void addProgressListener(ProgressListener l) {
 		this.listeners.add(l);
+	}
+
+	/**
+	 * Remove a {@link ProgressListener} that would trigger on progress changes.
+	 * 
+	 * @param l
+	 *            the listener
+	 * 
+	 * @return TRUE if it was found (and removed)
+	 */
+	public boolean removeProgressListener(ProgressListener l) {
+		return this.listeners.remove(l);
 	}
 
 	/**

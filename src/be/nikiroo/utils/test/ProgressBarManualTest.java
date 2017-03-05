@@ -28,6 +28,7 @@ public class ProgressBarManualTest extends JFrame {
 				switch (i) {
 				case 0:
 					pg.setProgress(10);
+					pg2.setProgress(0);
 					b.setText("Set pg to 20%");
 					break;
 				case 1:
@@ -41,7 +42,8 @@ public class ProgressBarManualTest extends JFrame {
 					break;
 				case 3:
 					pg2.setProgress(100);
-					b.setText("");
+					b.setText("Set pg to 10%");
+					i = -1;
 					break;
 				}
 
