@@ -4,14 +4,23 @@ import java.awt.Desktop;
 import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.Library;
+import be.nikiroo.fanfix.VersionCheck;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.utils.Progress;
+import be.nikiroo.utils.Version;
 
 class LocalReader extends BasicReader {
 	private Library lib;
@@ -140,9 +149,62 @@ class LocalReader extends BasicReader {
 
 	@Override
 	public void start(String type) {
+		// TODO: improve presentation of update message
+		final VersionCheck updates = VersionCheck.check();
+		StringBuilder builder = new StringBuilder();
+
+		final JEditorPane updateMessage = new JEditorPane("text/html", "");
+		if (updates.isNewVersionAvailable()) {
+			builder.append("A new version of the program is available at <span style='color: blue;'>https://github.com/nikiroo/fanfix/releases</span>");
+			builder.append("<br>");
+			builder.append("<br>");
+			for (Version v : updates.getNewer()) {
+				builder.append("\t<b>Version " + v + "</b>");
+				builder.append("<br>");
+				builder.append("<ul>");
+				for (String item : updates.getChanges().get(v)) {
+					builder.append("<li>" + item + "</li>");
+				}
+				builder.append("</ul>");
+			}
+
+			// html content
+			updateMessage.setText("<html><body>" //
+					+ builder//
+					+ "</body></html>");
+
+			// handle link events
+			updateMessage.addHyperlinkListener(new HyperlinkListener() {
+				public void hyperlinkUpdate(HyperlinkEvent e) {
+					if (e.getEventType().equals(
+							HyperlinkEvent.EventType.ACTIVATED))
+						try {
+							Desktop.getDesktop().browse(e.getURL().toURI());
+						} catch (IOException ee) {
+							Instance.syserr(ee);
+						} catch (URISyntaxException ee) {
+							Instance.syserr(ee);
+						}
+				}
+			});
+			updateMessage.setEditable(false);
+			updateMessage.setBackground(new JLabel().getBackground());
+		}
+
 		final String typeFinal = type;
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
+				if (updates.isNewVersionAvailable()) {
+					int rep = JOptionPane.showConfirmDialog(null,
+							updateMessage, "Updates available",
+							JOptionPane.OK_CANCEL_OPTION);
+					if (rep == JOptionPane.OK_OPTION) {
+						updates.ok();
+					} else {
+						updates.ignore();
+					}
+				}
+
 				new LocalReaderFrame(LocalReader.this, typeFinal)
 						.setVisible(true);
 			}

@@ -2,6 +2,7 @@ package be.nikiroo.fanfix;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.ConfigBundle;
@@ -9,6 +10,7 @@ import be.nikiroo.fanfix.bundles.StringIdBundle;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.bundles.UiConfigBundle;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
+import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.resources.Bundles;
 
 /**
@@ -25,48 +27,48 @@ public class Instance {
 	private static boolean debug;
 	private static File coverDir;
 	private static File readerTmp;
+	private static String configDir;
 
 	static {
 		// Most of the rest is dependent upon this:
 		config = new ConfigBundle();
 
-		String configDir = System.getProperty("CONFIG_DIR");
+		configDir = System.getProperty("CONFIG_DIR");
 		if (configDir == null) {
 			configDir = System.getenv("CONFIG_DIR");
 		}
+
 		if (configDir == null) {
 			configDir = new File(System.getProperty("user.home"), ".fanfix")
 					.getPath();
 		}
 
-		if (configDir != null) {
-			if (!new File(configDir).exists()) {
-				new File(configDir).mkdirs();
-			} else {
-				Bundles.setDirectory(configDir);
-			}
-
-			try {
-				config = new ConfigBundle();
-				config.updateFile(configDir);
-			} catch (IOException e) {
-				syserr(e);
-			}
-			try {
-				uiconfig = new UiConfigBundle();
-				uiconfig.updateFile(configDir);
-			} catch (IOException e) {
-				syserr(e);
-			}
-			try {
-				trans = new StringIdBundle(getLang());
-				trans.updateFile(configDir);
-			} catch (IOException e) {
-				syserr(e);
-			}
-
+		if (!new File(configDir).exists()) {
+			new File(configDir).mkdirs();
+		} else {
 			Bundles.setDirectory(configDir);
 		}
+
+		try {
+			config = new ConfigBundle();
+			config.updateFile(configDir);
+		} catch (IOException e) {
+			syserr(e);
+		}
+		try {
+			uiconfig = new UiConfigBundle();
+			uiconfig.updateFile(configDir);
+		} catch (IOException e) {
+			syserr(e);
+		}
+		try {
+			trans = new StringIdBundle(getLang());
+			trans.updateFile(configDir);
+		} catch (IOException e) {
+			syserr(e);
+		}
+
+		Bundles.setDirectory(configDir);
 
 		uiconfig = new UiConfigBundle();
 		trans = new StringIdBundle(getLang());
@@ -181,6 +183,45 @@ public class Instance {
 	 */
 	public static File getReaderDir() {
 		return readerTmp;
+	}
+
+	/**
+	 * Check if we need to check that a new version of Fanfix is available.
+	 * 
+	 * @return TRUE if we need to
+	 */
+	public static boolean isVersionCheckNeeded() {
+		try {
+			long wait = config.getInteger(Config.UPDATE_INTERVAL, 1) * 24 * 60 * 60;
+			if (wait >= 0) {
+				String lastUpString = IOUtils.readSmallFile(new File(configDir,
+						"LAST_UPDATE"));
+				long delay = new Date().getTime()
+						- Long.parseLong(lastUpString);
+				if (delay > wait) {
+					return true;
+				}
+			} else {
+				return false;
+			}
+		} catch (Exception e) {
+			// No file or bad file:
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Notify that we checked for a new version of Fanfix.
+	 */
+	public static void setVersionChecked() {
+		try {
+			IOUtils.writeSmallFile(new File(configDir), "LAST_UPDATE",
+					Long.toString(new Date().getTime()));
+		} catch (IOException e) {
+			syserr(e);
+		}
 	}
 
 	/**

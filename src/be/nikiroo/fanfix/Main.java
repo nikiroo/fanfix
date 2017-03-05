@@ -189,17 +189,38 @@ public class Main {
 		Progress pg = new Progress();
 		mainProgress.addProgress(pg, mainProgress.getMax());
 
+		VersionCheck updates = VersionCheck.check();
+		if (updates.isNewVersionAvailable()) {
+			// Sent to syserr so not to cause problem if one tries to capture a
+			// story content in text mode
+			System.err
+					.println("A new version of the program is available at https://github.com/nikiroo/fanfix/releases");
+			System.err.println("");
+			for (Version v : updates.getNewer()) {
+				System.err.println("\tVersion " + v);
+				System.err.println("\t-------------");
+				System.err.println("");
+				for (String item : updates.getChanges().get(v)) {
+					System.err.println("\t- " + item);
+				}
+				System.err.println("");
+			}
+		}
+
 		if (exitCode != 255) {
 			switch (action) {
 			case IMPORT:
 				exitCode = imprt(urlString, pg);
+				updates.ok(); // we consider it read
 				break;
 			case EXPORT:
 				exitCode = export(luid, typeString, target, pg);
+				updates.ok(); // we consider it read
 				break;
 			case CONVERT:
 				exitCode = convert(urlString, typeString, target,
 						plusInfo == null ? false : plusInfo, pg);
+				updates.ok(); // we consider it read
 				break;
 			case LIST:
 				exitCode = list(typeString);
@@ -222,6 +243,7 @@ public class Main {
 								+ "\nhttps://github.com/nikiroo/fanfix/"
 								+ "\n\tWritten by Nikiroo",
 								Version.getCurrentVersion()));
+				updates.ok(); // we consider it read
 				break;
 			case START:
 				UIUtils.setLookAndFeel();
