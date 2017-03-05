@@ -108,7 +108,8 @@ class LocalReaderFrame extends JFrame {
 
 		pgBar.addUpdateListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				revalidate();
+				invalidate();
+				validate();
 				repaint();
 			}
 		});
