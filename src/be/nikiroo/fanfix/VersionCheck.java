@@ -107,18 +107,22 @@ public class VersionCheck {
 				BufferedReader reader = new BufferedReader(
 						new InputStreamReader(in, "UTF-8"));
 				try {
+					Version version = new Version();
 					for (String line = reader.readLine(); line != null; line = reader
 							.readLine()) {
 						if (line.startsWith("## Version ")) {
-							String v = line.substring("## Version ".length());
-							Version version = new Version(v);
+							version = new Version(line.substring("## Version "
+									.length()));
 							if (version.isNewerThan(current)) {
 								newer.add(version);
 								changes.put(version, new ArrayList<String>());
+							} else {
+								version = new Version();
 							}
-						} else if (!newer.isEmpty() && !line.isEmpty()) {
-							Version version = newer.get(newer.size() - 1);
-							List<String> ch = changes.get(version);
+						} else if (!version.isEmpty() && !newer.isEmpty()
+								&& !line.isEmpty()) {
+							List<String> ch = changes.get(newer.get(newer
+									.size() - 1));
 							if (!ch.isEmpty() && !line.startsWith("- ")) {
 								int i = ch.size() - 1;
 								ch.set(i, ch.get(i) + " " + line.trim());

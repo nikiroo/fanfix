@@ -1,11 +1,9 @@
 # Fanfix
 
-## Version 1.4.2
-
-- Fix for images documents which were not working any more
-
 ## Version 1.4.1
 
+- Fix UpdateChecker which showed the changes of ALL versions instead of the newer ones only
+- Fix for images documents which were not working any more
 - Fix some bad line breaks on HTML supports (including FanFiction.net)
 - UI: progress bar now working correctly
 - nikiroo-utils update to show all steps in the progress bars
