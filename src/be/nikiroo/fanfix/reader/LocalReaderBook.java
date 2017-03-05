@@ -109,7 +109,7 @@ class LocalReaderBook extends JPanel {
 			} else if (meta.getWords() > 0) {
 				optSecondary = meta.getWords() + " words";
 			} else {
-				optSecondary = "empty";
+				optSecondary = "";
 			}
 		}
 

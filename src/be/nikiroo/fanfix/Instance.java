@@ -192,7 +192,8 @@ public class Instance {
 	 */
 	public static boolean isVersionCheckNeeded() {
 		try {
-			long wait = config.getInteger(Config.UPDATE_INTERVAL, 1) * 24 * 60 * 60;
+			long wait = config.getInteger(Config.UPDATE_INTERVAL, 1) * 24 * 60
+					* 60 * 1000;
 			if (wait >= 0) {
 				String lastUpString = IOUtils.readSmallFile(new File(configDir,
 						"LAST_UPDATE"));
