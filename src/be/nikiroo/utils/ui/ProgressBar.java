@@ -65,19 +65,20 @@ public class ProgressBar extends JPanel {
 									bar.setValue(pg.getProgress());
 									bar.setString(pg.getName());
 
-									for (Progress pg : getChildrenAsOrderedList(pg)) {
-										JProgressBar bar = bars.get(pg);
-										if (bar == null) {
-											bar = new JProgressBar();
-											bar.setStringPainted(true);
+									for (Progress pgChild : getChildrenAsOrderedList(pg)) {
+										JProgressBar barChild = bars
+												.get(pgChild);
+										if (barChild == null) {
+											barChild = new JProgressBar();
+											barChild.setStringPainted(true);
 										}
 
-										newBars.put(pg, bar);
+										newBars.put(pgChild, barChild);
 
-										bar.setMinimum(pg.getMin());
-										bar.setMaximum(pg.getMax());
-										bar.setValue(pg.getProgress());
-										bar.setString(pg.getName());
+										barChild.setMinimum(pgChild.getMin());
+										barChild.setMaximum(pgChild.getMax());
+										barChild.setValue(pgChild.getProgress());
+										barChild.setString(pgChild.getName());
 									}
 
 									if (ProgressBar.this.pg == null) {
