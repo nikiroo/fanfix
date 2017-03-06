@@ -296,7 +296,7 @@ public class Progress {
 		// Note: this is quite inefficient, especially with many children
 		// TODO: improve it?
 		progress.addProgressListener(new ProgressListener() {
-			public void progress(Progress progress, String name) {
+			public void progress(Progress pg, String name) {
 				double total = ((double) localProgress) / (max - min);
 				for (Entry<Progress, Double> entry : children.entrySet()) {
 					total += (entry.getValue() / (max - min))
@@ -307,7 +307,7 @@ public class Progress {
 					name = Progress.this.name;
 				}
 
-				setTotalProgress(progress, name,
+				setTotalProgress(pg, name,
 						(int) Math.round(total * (max - min)));
 			}
 		});

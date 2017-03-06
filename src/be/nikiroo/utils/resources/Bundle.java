@@ -12,16 +12,21 @@ import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
 /**
- * This class encapsulate a {@link ResourceBundle} in UTF-8. It only allows to
+ * This class encapsulate a {@link ResourceBundle} in UTF-8. It allows to
  * retrieve values associated to an enumeration, and allows some additional
  * methods.
+ * <p>
+ * It also sports a writable change map, and you can save back the
+ * {@link Bundle} to file with {@link Bundle#updateFile(String)}.
  * 
  * @author niki
  * 
@@ -32,6 +37,7 @@ public class Bundle<E extends Enum<E>> {
 	protected Class<E> type;
 	protected Enum<?> name;
 	private ResourceBundle map;
+	private Map<String, String> changeMap;
 
 	/**
 	 * Create a new {@link Bundles} of the given name.
@@ -45,6 +51,7 @@ public class Bundle<E extends Enum<E>> {
 	protected Bundle(Class<E> type, Enum<?> name) {
 		this.type = type;
 		this.name = name;
+		this.changeMap = new HashMap<String, String>();
 		setBundle(name, Locale.getDefault());
 	}
 
@@ -59,6 +66,19 @@ public class Bundle<E extends Enum<E>> {
 	 */
 	public String getString(E id) {
 		return getStringX(id, null);
+	}
+
+	/**
+	 * Set the value associated to the given id as a {@link String}.
+	 * 
+	 * @param mame
+	 *            the id of the value to get
+	 * @param value
+	 *            the value
+	 * 
+	 */
+	public void setString(E id, String value) {
+		setStringX(id, null, value);
 	}
 
 	/**
@@ -85,6 +105,24 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
+	 * Set the value associated to the given id as a {@link String} suffixed
+	 * with the runtime value "_suffix" (that is, "_" and suffix).
+	 * 
+	 * @param mame
+	 *            the id of the value to get
+	 * @param suffix
+	 *            the runtime suffix
+	 * @param value
+	 *            the value
+	 */
+	public void setStringX(E id, String suffix, String value) {
+		String key = id.name()
+				+ (suffix == null ? "" : "_" + suffix.toUpperCase());
+
+		setString(key, value);
+	}
+
+	/**
 	 * Return the value associated to the given id as a {@link Boolean}.
 	 * 
 	 * @param mame
@@ -108,7 +146,7 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
-	 * Return the value associated to the given id as a {@link boolean}.
+	 * Return the value associated to the given id as a {@link Boolean}.
 	 * 
 	 * @param mame
 	 *            the id of the value to get
@@ -170,13 +208,33 @@ public class Bundle<E extends Enum<E>> {
 	 * 
 	 * @return the associated value
 	 */
-	public char getChar(E id) {
+	public Character getCharacter(E id) {
 		String s = getString(id).trim();
 		if (s.length() > 0) {
 			return s.charAt(0);
 		}
 
-		return ' ';
+		return null;
+	}
+
+	/**
+	 * Return the value associated to the given id as a {@link Character}.
+	 * 
+	 * @param mame
+	 *            the id of the value to get
+	 * @param def
+	 *            the default value when it is not present in the config file or
+	 *            if it is not a char value
+	 * 
+	 * @return the associated value
+	 */
+	public char getCharacter(E id, char def) {
+		String s = getString(id).trim();
+		if (s.length() > 0) {
+			return s.charAt(0);
+		}
+
+		return def;
 	}
 
 	/**
@@ -191,17 +249,42 @@ public class Bundle<E extends Enum<E>> {
 		Color color = null;
 
 		String bg = getString(id).trim();
-		if (bg.startsWith("#") && bg.length() == 7) {
+		if (bg.startsWith("#") && (bg.length() == 7 || bg.length() == 9)) {
 			try {
-				color = new Color(Integer.parseInt(bg.substring(1, 3), 16),
-						Integer.parseInt(bg.substring(3, 5), 16),
-						Integer.parseInt(bg.substring(5, 7), 16));
+				int r = Integer.parseInt(bg.substring(1, 3), 16);
+				int g = Integer.parseInt(bg.substring(3, 5), 16);
+				int b = Integer.parseInt(bg.substring(5, 7), 16);
+				int a = 255;
+				if (bg.length() == 9) {
+					a = Integer.parseInt(bg.substring(7, 9), 16);
+				}
+				color = new Color(r, g, b, a);
 			} catch (NumberFormatException e) {
 				color = null; // no changes
 			}
 		}
 
 		return color;
+	}
+
+	/**
+	 * Set the value associated to the given id as a {@link Color}.
+	 * 
+	 * @param the
+	 *            id of the value to get
+	 * 
+	 * @return the associated value
+	 */
+	public void setColor(E id, Color color) {
+		String r = Integer.toString(color.getRed(), 16);
+		String g = Integer.toString(color.getGreen(), 16);
+		String b = Integer.toString(color.getBlue(), 16);
+		String a = "";
+		if (color.getAlpha() < 255) {
+			a = Integer.toString(color.getAlpha(), 16);
+		}
+
+		setString(id, "#" + r + g + b + a);
 	}
 
 	/**
@@ -261,6 +344,10 @@ public class Bundle<E extends Enum<E>> {
 	 * @return true if it does
 	 */
 	protected boolean containsKey(String key) {
+		if (changeMap.containsKey(key)) {
+			return true;
+		}
+
 		try {
 			map.getObject(key);
 			return true;
@@ -279,11 +366,28 @@ public class Bundle<E extends Enum<E>> {
 	 * @return the value, or NULL
 	 */
 	protected String getString(String key) {
+		if (changeMap.containsKey(key)) {
+			return changeMap.get(key);
+		}
+
 		if (containsKey(key)) {
 			return map.getString(key);
 		}
 
 		return null;
+	}
+
+	/**
+	 * Set the value for this key, in the change map (it is kept in memory, not
+	 * yet on disk).
+	 * 
+	 * @param key
+	 *            the key
+	 * @param value
+	 *            the associated value
+	 */
+	protected void setString(String key, String value) {
+		changeMap.put(key, value);
 	}
 
 	/**
@@ -426,7 +530,7 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
-	 * Change the currently used bundle.
+	 * Change the currently used bundle, and reset all changes.
 	 * 
 	 * @param name
 	 *            the name of the bundle to load
@@ -435,6 +539,7 @@ public class Bundle<E extends Enum<E>> {
 	 */
 	protected void setBundle(Enum<?> name, Locale locale) {
 		map = null;
+		changeMap.clear();
 		String dir = Bundles.getDirectory();
 
 		if (dir != null) {
