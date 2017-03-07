@@ -95,7 +95,7 @@ class ProgressTest extends TestLauncher {
 
 					@Override
 					public void test() throws Exception {
-						Progress p = new Progress();
+						final Progress p = new Progress();
 						Progress child1 = new Progress();
 						Progress child2 = new Progress();
 						p.addProgress(child1, 50);
@@ -103,7 +103,7 @@ class ProgressTest extends TestLauncher {
 
 						p.addProgressListener(new Progress.ProgressListener() {
 							public void progress(Progress progress, String name) {
-								pg = progress.getProgress();
+								pg = p.getProgress();
 							}
 						});
 
@@ -121,7 +121,7 @@ class ProgressTest extends TestLauncher {
 
 					@Override
 					public void test() throws Exception {
-						Progress p = new Progress();
+						final Progress p = new Progress();
 						p.setMax(1000);
 
 						Progress child1 = new Progress();
@@ -133,7 +133,7 @@ class ProgressTest extends TestLauncher {
 
 						p.addProgressListener(new Progress.ProgressListener() {
 							public void progress(Progress progress, String name) {
-								pg = progress.getProgress();
+								pg = p.getProgress();
 							}
 						});
 
@@ -152,7 +152,7 @@ class ProgressTest extends TestLauncher {
 
 					@Override
 					public void test() throws Exception {
-						Progress p = new Progress();
+						final Progress p = new Progress();
 						p.setMax(1000);
 
 						Progress child1 = new Progress();
@@ -165,7 +165,7 @@ class ProgressTest extends TestLauncher {
 
 						p.addProgressListener(new Progress.ProgressListener() {
 							public void progress(Progress progress, String name) {
-								pg = progress.getProgress();
+								pg = p.getProgress();
 							}
 						});
 

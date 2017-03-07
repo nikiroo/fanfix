@@ -19,7 +19,10 @@ public class Progress {
 		 * A progression event.
 		 * 
 		 * @param progress
-		 *            the {@link Progress} object that generated it
+		 *            the {@link Progress} object that generated it, not
+		 *            necessarily the same as the one where the listener was
+		 *            attached (it could be a child {@link Progress} of this
+		 *            {@link Progress}).
 		 * @param name
 		 *            the first non-null name of the {@link Progress} step that
 		 *            generated this event
@@ -257,6 +260,10 @@ public class Progress {
 
 	/**
 	 * Add a {@link ProgressListener} that will trigger on progress changes.
+	 * <p>
+	 * Note: the {@link Progress} that will be reported will be the active
+	 * progress, not necessarily the same as the current one (it could be a
+	 * child {@link Progress} of this {@link Progress}).
 	 * 
 	 * @param l
 	 *            the listener
