@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-import be.nikiroo.utils.resources.Bundles;
-
 /**
  * This class manages a translation-dedicated Bundle.
  * <p>
@@ -171,12 +169,12 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 	private void setLanguage(String language) {
 		defaultLocale = (language == null || language.length() == 0);
 		locale = getLocaleFor(language);
-		setBundle(name, locale);
+		setBundle(name, locale, false);
 	}
 
 	@Override
-	public void reload() {
-		setBundle(name, locale);
+	public void reload(boolean resetToDefault) {
+		setBundle(name, locale, resetToDefault);
 	}
 
 	@Override
@@ -199,16 +197,26 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 	@Override
 	public void updateFile(String path) throws IOException {
 		String prev = locale.getLanguage();
+		Object status = takeChangesSnapshot();
 
-		setLanguage(null); // default locale
+		// default locale
+		setLanguage(null);
+		if (prev.equals(getLocaleFor(null).getLanguage())) {
+			// restore snapshot if default locale = current locale
+			restoreChanges(status);
+		}
 		super.updateFile(path);
 
 		for (String lang : getKnownLanguages()) {
 			setLanguage(lang);
+			if (lang.equals(prev)) {
+				restoreChanges(status);
+			}
 			super.updateFile(path);
 		}
 
 		setLanguage(prev);
+		restoreChanges(status);
 	}
 
 	@Override

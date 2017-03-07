@@ -52,7 +52,7 @@ public class Bundle<E extends Enum<E>> {
 		this.type = type;
 		this.name = name;
 		this.changeMap = new HashMap<String, String>();
-		setBundle(name, Locale.getDefault());
+		setBundle(name, Locale.getDefault(), false);
 	}
 
 	/**
@@ -330,9 +330,14 @@ public class Bundle<E extends Enum<E>> {
 
 	/**
 	 * Reload the {@link Bundle} data files.
+	 * 
+	 * @param resetToDefault
+	 *            reset to the default configuration (do not look into the
+	 *            possible user configuration files, only take the original
+	 *            configuration)
 	 */
-	public void reload() {
-		setBundle(name, null);
+	public void reload(boolean resetToDefault) {
+		setBundle(name, null, resetToDefault);
 	}
 
 	/**
@@ -348,12 +353,15 @@ public class Bundle<E extends Enum<E>> {
 			return true;
 		}
 
-		try {
-			map.getObject(key);
-			return true;
-		} catch (MissingResourceException e) {
-			return false;
+		if (map != null) {
+			try {
+				map.getObject(key);
+				return true;
+			} catch (MissingResourceException e) {
+			}
 		}
+
+		return false;
 	}
 
 	/**
@@ -370,7 +378,7 @@ public class Bundle<E extends Enum<E>> {
 			return changeMap.get(key);
 		}
 
-		if (containsKey(key)) {
+		if (map != null && containsKey(key)) {
 			return map.getString(key);
 		}
 
@@ -536,13 +544,17 @@ public class Bundle<E extends Enum<E>> {
 	 *            the name of the bundle to load
 	 * @param locale
 	 *            the {@link Locale} to use
+	 * @param resetToDefault
+	 *            reset to the default configuration (do not look into the
+	 *            possible user configuration files, only take the original
+	 *            configuration)
 	 */
-	protected void setBundle(Enum<?> name, Locale locale) {
+	protected void setBundle(Enum<?> name, Locale locale, boolean resetToDefault) {
 		map = null;
 		changeMap.clear();
 		String dir = Bundles.getDirectory();
 
-		if (dir != null) {
+		if (!resetToDefault && dir != null) {
 			try {
 				File file = getPropertyFile(dir, name.name(), locale);
 				if (file != null) {
@@ -556,8 +568,47 @@ public class Bundle<E extends Enum<E>> {
 		}
 
 		if (map == null) {
-			map = ResourceBundle.getBundle(type.getPackage().getName() + "."
-					+ name.name(), locale, new FixedResourceBundleControl());
+			try {
+				map = ResourceBundle.getBundle(type.getPackage().getName()
+						+ "." + name.name(), locale,
+						new FixedResourceBundleControl());
+			} catch (Exception e) {
+				// We have no bundle for this Bundle
+				map = null;
+			}
+		}
+	}
+
+	/**
+	 * Take a snapshot of the changes in memory in this {@link Bundle} made by
+	 * the "set" methods ( {@link Bundle#setString(Enum, String)}...) at the
+	 * current time.
+	 * 
+	 * @return a snapshot to use with {@link Bundle#restoreChanges(Object)}
+	 */
+	protected Object takeChangesSnapshot() {
+		return new HashMap<String, String>(changeMap);
+	}
+
+	/**
+	 * Restore a snapshot taken with {@link Bundle}, or reset the current
+	 * changes if the snapshot is NULL.
+	 * 
+	 * @param snap
+	 *            the snapshot or NULL
+	 */
+	@SuppressWarnings("unchecked")
+	protected void restoreChanges(Object snap) {
+		if (snap == null) {
+			changeMap.clear();
+		} else {
+			if (snap instanceof Map) {
+				changeMap = (Map<String, String>) snap;
+			} else {
+				throw new Error(
+						"Restoring changes in a Bundle must be done on a changes snapshot, "
+								+ "or NULL to discard current changes");
+			}
 		}
 	}
 

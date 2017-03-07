@@ -20,7 +20,7 @@ public class TestLauncher {
 	private class SetupException extends Exception {
 		private static final long serialVersionUID = 1L;
 
-		public SetupException(Exception e) {
+		public SetupException(Throwable e) {
 			super(e);
 		}
 	}
@@ -33,7 +33,7 @@ public class TestLauncher {
 	private class TearDownException extends Exception {
 		private static final long serialVersionUID = 1L;
 
-		public TearDownException(Exception e) {
+		public TearDownException(Throwable e) {
 			super(e);
 		}
 	}
@@ -185,20 +185,20 @@ public class TestLauncher {
 		for (TestCase test : tests) {
 			print(depth, test.getName());
 
-			Exception ex = null;
+			Throwable ex = null;
 			try {
 				try {
 					test.setUp();
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					throw new SetupException(e);
 				}
 				test.test();
 				try {
 					test.tearDown();
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					throw new TearDownException(e);
 				}
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				ex = e;
 			}
 
@@ -300,7 +300,7 @@ public class TestLauncher {
 	 * @param error
 	 *            the {@link Exception} it ran into if any
 	 */
-	private void print(int depth, Exception error) {
+	private void print(int depth, Throwable error) {
 		if (error != null) {
 			System.out.println(" " + koString);
 			StringWriter sw = new StringWriter();
