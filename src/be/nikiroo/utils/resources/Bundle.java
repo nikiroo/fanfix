@@ -36,8 +36,8 @@ import java.util.ResourceBundle;
 public class Bundle<E extends Enum<E>> {
 	protected Class<E> type;
 	protected Enum<?> name;
-	private ResourceBundle map;
-	private Map<String, String> changeMap;
+	private Map<String, String> map; // R/O map
+	private Map<String, String> changeMap; // R/W map
 
 	/**
 	 * Create a new {@link Bundles} of the given name.
@@ -51,6 +51,7 @@ public class Bundle<E extends Enum<E>> {
 	protected Bundle(Class<E> type, Enum<?> name) {
 		this.type = type;
 		this.name = name;
+		this.map = new HashMap<String, String>();
 		this.changeMap = new HashMap<String, String>();
 		setBundle(name, Locale.getDefault(), false);
 	}
@@ -65,7 +66,7 @@ public class Bundle<E extends Enum<E>> {
 	 *         resource file)
 	 */
 	public String getString(E id) {
-		return getStringX(id, null);
+		return getString(id.name());
 	}
 
 	/**
@@ -78,12 +79,14 @@ public class Bundle<E extends Enum<E>> {
 	 * 
 	 */
 	public void setString(E id, String value) {
-		setStringX(id, null, value);
+		setString(id.name(), value);
 	}
 
 	/**
 	 * Return the value associated to the given id as a {@link String} suffixed
 	 * with the runtime value "_suffix" (that is, "_" and suffix).
+	 * <p>
+	 * Will only accept suffixes that form an existing id.
 	 * 
 	 * @param mame
 	 *            the id of the value to get
@@ -97,8 +100,11 @@ public class Bundle<E extends Enum<E>> {
 		String key = id.name()
 				+ (suffix == null ? "" : "_" + suffix.toUpperCase());
 
-		if (containsKey(key)) {
-			return getString(key).trim();
+		try {
+			id = Enum.valueOf(type, key);
+			return getString(id);
+		} catch (IllegalArgumentException e) {
+
 		}
 
 		return null;
@@ -107,6 +113,8 @@ public class Bundle<E extends Enum<E>> {
 	/**
 	 * Set the value associated to the given id as a {@link String} suffixed
 	 * with the runtime value "_suffix" (that is, "_" and suffix).
+	 * <p>
+	 * Will only accept suffixes that form an existing id.
 	 * 
 	 * @param mame
 	 *            the id of the value to get
@@ -119,7 +127,12 @@ public class Bundle<E extends Enum<E>> {
 		String key = id.name()
 				+ (suffix == null ? "" : "_" + suffix.toUpperCase());
 
-		setString(key, value);
+		try {
+			id = Enum.valueOf(type, key);
+			setString(id, value);
+		} catch (IllegalArgumentException e) {
+
+		}
 	}
 
 	/**
@@ -293,9 +306,27 @@ public class Bundle<E extends Enum<E>> {
 	 * Will use the most likely candidate as base if the file does not already
 	 * exists and this resource is translatable (for instance, "en_US" will use
 	 * "en" as a base if the resource is a translation file).
+	 * <p>
+	 * Will update the files in {@link Bundles#getDirectory()}; it <b>MUST</b>
+	 * be set.
+	 * 
+	 * @throws IOException
+	 *             in case of IO errors
+	 */
+	public void updateFile() throws IOException {
+		updateFile(Bundles.getDirectory());
+	}
+
+	/**
+	 * Create/update the .properties file.
+	 * <p>
+	 * Will use the most likely candidate as base if the file does not already
+	 * exists and this resource is translatable (for instance, "en_US" will use
+	 * "en" as a base if the resource is a translation file).
 	 * 
 	 * @param path
-	 *            the path where the .properties files are
+	 *            the path where the .properties files are, <b>MUST NOT</b> be
+	 *            NULL
 	 * 
 	 * @throws IOException
 	 *             in case of IO errors
@@ -337,7 +368,7 @@ public class Bundle<E extends Enum<E>> {
 	 *            configuration)
 	 */
 	public void reload(boolean resetToDefault) {
-		setBundle(name, null, resetToDefault);
+		setBundle(name, Locale.getDefault(), resetToDefault);
 	}
 
 	/**
@@ -349,19 +380,7 @@ public class Bundle<E extends Enum<E>> {
 	 * @return true if it does
 	 */
 	protected boolean containsKey(String key) {
-		if (changeMap.containsKey(key)) {
-			return true;
-		}
-
-		if (map != null) {
-			try {
-				map.getObject(key);
-				return true;
-			} catch (MissingResourceException e) {
-			}
-		}
-
-		return false;
+		return changeMap.containsKey(key) || map.containsKey(key);
 	}
 
 	/**
@@ -378,8 +397,8 @@ public class Bundle<E extends Enum<E>> {
 			return changeMap.get(key);
 		}
 
-		if (map != null && containsKey(key)) {
-			return map.getString(key);
+		if (map.containsKey(key)) {
+			return map.get(key);
 		}
 
 		return null;
@@ -395,7 +414,7 @@ public class Bundle<E extends Enum<E>> {
 	 *            the associated value
 	 */
 	protected void setString(String key, String value) {
-		changeMap.put(key, value);
+		changeMap.put(key, value == null ? null : value.trim());
 	}
 
 	/**
@@ -550,31 +569,56 @@ public class Bundle<E extends Enum<E>> {
 	 *            configuration)
 	 */
 	protected void setBundle(Enum<?> name, Locale locale, boolean resetToDefault) {
-		map = null;
 		changeMap.clear();
 		String dir = Bundles.getDirectory();
 
+		boolean found = false;
 		if (!resetToDefault && dir != null) {
 			try {
 				File file = getPropertyFile(dir, name.name(), locale);
 				if (file != null) {
 					Reader reader = new InputStreamReader(new FileInputStream(
 							file), "UTF8");
-					map = new PropertyResourceBundle(reader);
+					resetMap(new PropertyResourceBundle(reader));
+					found = true;
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 
-		if (map == null) {
+		if (!found) {
+			String bname = type.getPackage().getName() + "." + name.name();
 			try {
-				map = ResourceBundle.getBundle(type.getPackage().getName()
-						+ "." + name.name(), locale,
-						new FixedResourceBundleControl());
+				resetMap(ResourceBundle
+						.getBundle(bname, locale, type.getClassLoader(),
+								new FixedResourceBundleControl()));
 			} catch (Exception e) {
 				// We have no bundle for this Bundle
-				map = null;
+				System.err.println("No bundle found for: " + bname);
+				resetMap(null);
+			}
+		}
+	}
+
+	/**
+	 * Reset the backing map to the content of the given bundle, or empty if
+	 * bundle is NULL.
+	 * 
+	 * @param bundle
+	 *            the bundle to copy
+	 */
+	private void resetMap(ResourceBundle bundle) {
+		this.map.clear();
+
+		if (bundle != null) {
+			for (E field : type.getEnumConstants()) {
+				try {
+					String value = bundle.getString(field.name());
+					this.map.put(field.name(),
+							value == null ? null : value.trim());
+				} catch (MissingResourceException e) {
+				}
 			}
 		}
 	}
@@ -584,9 +628,9 @@ public class Bundle<E extends Enum<E>> {
 	 * the "set" methods ( {@link Bundle#setString(Enum, String)}...) at the
 	 * current time.
 	 * 
-	 * @return a snapshot to use with {@link Bundle#restoreChanges(Object)}
+	 * @return a snapshot to use with {@link Bundle#restoreSnapshot(Object)}
 	 */
-	protected Object takeChangesSnapshot() {
+	public Object takeSnapshot() {
 		return new HashMap<String, String>(changeMap);
 	}
 
@@ -598,7 +642,7 @@ public class Bundle<E extends Enum<E>> {
 	 *            the snapshot or NULL
 	 */
 	@SuppressWarnings("unchecked")
-	protected void restoreChanges(Object snap) {
+	public void restoreSnapshot(Object snap) {
 		if (snap == null) {
 			changeMap.clear();
 		} else {

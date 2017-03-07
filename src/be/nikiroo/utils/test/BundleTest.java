@@ -52,18 +52,24 @@ class BundleTest extends TestLauncher {
 				addTest(new TestCase("Reload") {
 					@Override
 					public void test() throws Exception {
-						String now = b.getString(E.ONE);
-						b.reload(true);
 						String def = b.getString(E.ONE);
+						String val = "Something";
+
+						b.setString(E.ONE, val);
+						b.updateFile();
+						b.reload(true);
+
+						assertEquals("We should have reset the bundle", def,
+								b.getString(E.ONE));
+
 						b.reload(false);
 
-						assertEquals("We should not have a bundle to load",
-								null, def);
 						assertEquals("We should have reloaded the same files",
-								now, b.getString(E.ONE));
+								val, b.getString(E.ONE));
 
 						// reset values for next tests
-						b.reload(false);
+						b.reload(true);
+						b.updateFile();
 					}
 				});
 
@@ -77,7 +83,7 @@ class BundleTest extends TestLauncher {
 						assertEquals(val, setGet);
 
 						// reset values for next tests
-						b.restoreChanges(null);
+						b.restoreSnapshot(null);
 					}
 				});
 
@@ -88,19 +94,19 @@ class BundleTest extends TestLauncher {
 						String def = b.getString(E.ONE);
 
 						b.setString(E.ONE, val);
-						Object snap = b.takeChangesSnapshot();
+						Object snap = b.takeSnapshot();
 
-						b.restoreChanges(null);
+						b.restoreSnapshot(null);
 						assertEquals(
 								"restoreChanges(null) should clear the changes",
 								def, b.getString(E.ONE));
-						b.restoreChanges(snap);
+						b.restoreSnapshot(snap);
 						assertEquals(
 								"restoreChanges(snapshot) should restore the changes",
 								val, b.getString(E.ONE));
 
 						// reset values for next tests
-						b.restoreChanges(null);
+						b.restoreSnapshot(null);
 					}
 				});
 
@@ -203,14 +209,14 @@ class BundleTest extends TestLauncher {
 
 		@Override
 		// ...and make it public
-		public Object takeChangesSnapshot() {
-			return super.takeChangesSnapshot();
+		public Object takeSnapshot() {
+			return super.takeSnapshot();
 		}
 
 		@Override
 		// ...and make it public
-		public void restoreChanges(Object snap) {
-			super.restoreChanges(snap);
+		public void restoreSnapshot(Object snap) {
+			super.restoreSnapshot(snap);
 		}
 	}
 

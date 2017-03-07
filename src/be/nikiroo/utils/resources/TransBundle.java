@@ -197,26 +197,26 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 	@Override
 	public void updateFile(String path) throws IOException {
 		String prev = locale.getLanguage();
-		Object status = takeChangesSnapshot();
+		Object status = takeSnapshot();
 
 		// default locale
 		setLanguage(null);
 		if (prev.equals(getLocaleFor(null).getLanguage())) {
 			// restore snapshot if default locale = current locale
-			restoreChanges(status);
+			restoreSnapshot(status);
 		}
 		super.updateFile(path);
 
 		for (String lang : getKnownLanguages()) {
 			setLanguage(lang);
 			if (lang.equals(prev)) {
-				restoreChanges(status);
+				restoreSnapshot(status);
 			}
 			super.updateFile(path);
 		}
 
 		setLanguage(prev);
-		restoreChanges(status);
+		restoreSnapshot(status);
 	}
 
 	@Override
