@@ -34,6 +34,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.Library;
+import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
@@ -41,6 +42,7 @@ import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.LocalReaderBook.BookActionListener;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
+import be.nikiroo.utils.ui.ConfigEditor;
 import be.nikiroo.utils.ui.ProgressBar;
 
 /**
@@ -340,7 +342,63 @@ class LocalReaderFrame extends JFrame {
 
 		bar.add(authors);
 
+		JMenu options = new JMenu("Options");
+		options.setMnemonic(KeyEvent.VK_O);
+		options.add(createMenuItemConfig());
+		options.add(createMenuItemUiConfig());
+		bar.add(options);
+
 		return bar;
+	}
+
+	/**
+	 * Create the Fanfix Configuration menu item.
+	 * 
+	 * @return the item
+	 */
+	private JMenuItem createMenuItemConfig() {
+		final String title = "Fanfix Configuration";
+		JMenuItem item = new JMenuItem(title);
+		item.setMnemonic(KeyEvent.VK_F);
+
+		item.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				ConfigEditor<Config> ed = new ConfigEditor<Config>(
+						Config.class, Instance.getConfig(),
+						"This is where you configure the options of the program.");
+				JFrame frame = new JFrame(title);
+				frame.add(ed);
+				frame.setSize(800, 600);
+				frame.setVisible(true);
+			}
+		});
+
+		return item;
+	}
+
+	/**
+	 * Create the UI Configuration menu item.
+	 * 
+	 * @return the item
+	 */
+	private JMenuItem createMenuItemUiConfig() {
+		final String title = "UI Configuration";
+		JMenuItem item = new JMenuItem(title);
+		item.setMnemonic(KeyEvent.VK_U);
+
+		item.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				ConfigEditor<UiConfig> ed = new ConfigEditor<UiConfig>(
+						UiConfig.class, Instance.getUiConfig(),
+						"This is where you configure the graphical appearence of the program.");
+				JFrame frame = new JFrame(title);
+				frame.add(ed);
+				frame.setSize(800, 600);
+				frame.setVisible(true);
+			}
+		});
+
+		return item;
 	}
 
 	/**

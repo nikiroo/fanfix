@@ -9,13 +9,13 @@ import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 
 class InfoText extends Text {
 	// quote chars
-	private char openQuote = Instance.getTrans().getChar(
+	private char openQuote = Instance.getTrans().getCharacter(
 			StringId.OPEN_SINGLE_QUOTE);
-	private char closeQuote = Instance.getTrans().getChar(
+	private char closeQuote = Instance.getTrans().getCharacter(
 			StringId.CLOSE_SINGLE_QUOTE);
-	private char openDoubleQuote = Instance.getTrans().getChar(
+	private char openDoubleQuote = Instance.getTrans().getCharacter(
 			StringId.OPEN_DOUBLE_QUOTE);
-	private char closeDoubleQuote = Instance.getTrans().getChar(
+	private char closeDoubleQuote = Instance.getTrans().getCharacter(
 			StringId.CLOSE_DOUBLE_QUOTE);
 
 	@Override

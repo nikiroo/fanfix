@@ -1,5 +1,9 @@
 # Fanfix
 
+## Version (wip)
+
+- New Options menu in UI to configure the program (minimalist for now)
+
 ## Version 1.4.1
 
 - Fix UpdateChecker which showed the changes of ALL versions instead of the newer ones only

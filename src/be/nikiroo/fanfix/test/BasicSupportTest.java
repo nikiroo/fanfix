@@ -23,13 +23,13 @@ import be.nikiroo.utils.test.TestLauncher;
 
 public class BasicSupportTest extends TestLauncher {
 	// quote chars
-	private char openQuote = Instance.getTrans().getChar(
+	private char openQuote = Instance.getTrans().getCharacter(
 			StringId.OPEN_SINGLE_QUOTE);
-	private char closeQuote = Instance.getTrans().getChar(
+	private char closeQuote = Instance.getTrans().getCharacter(
 			StringId.CLOSE_SINGLE_QUOTE);
-	private char openDoubleQuote = Instance.getTrans().getChar(
+	private char openDoubleQuote = Instance.getTrans().getCharacter(
 			StringId.OPEN_DOUBLE_QUOTE);
-	private char closeDoubleQuote = Instance.getTrans().getChar(
+	private char closeDoubleQuote = Instance.getTrans().getCharacter(
 			StringId.CLOSE_DOUBLE_QUOTE);
 
 	public BasicSupportTest(String[] args) {
@@ -255,10 +255,10 @@ public class BasicSupportTest extends TestLauncher {
 					public void test() throws Exception {
 						BasicSupportEmpty support = new BasicSupportEmpty();
 
-						char openDoubleQuote = Instance.getTrans().getChar(
-								StringId.OPEN_DOUBLE_QUOTE);
-						char closeDoubleQuote = Instance.getTrans().getChar(
-								StringId.CLOSE_DOUBLE_QUOTE);
+						char openDoubleQuote = Instance.getTrans()
+								.getCharacter(StringId.OPEN_DOUBLE_QUOTE);
+						char closeDoubleQuote = Instance.getTrans()
+								.getCharacter(StringId.CLOSE_DOUBLE_QUOTE);
 
 						String content = null;
 						Paragraph para = null;
