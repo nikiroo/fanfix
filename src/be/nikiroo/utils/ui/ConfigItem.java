@@ -36,7 +36,13 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 		this.setLayout(new BorderLayout());
 		this.setBorder(new EmptyBorder(2, 10, 2, 10));
 
-		JLabel nameLabel = new JLabel(id.toString());
+		String name = id.toString();
+		if (name.length() > 1) {
+			name = name.substring(0, 1) + name.substring(1).toLowerCase();
+			name = name.replace("_", " ");
+		}
+
+		JLabel nameLabel = new JLabel(name);
 		nameLabel.setPreferredSize(new Dimension(400, 0));
 		this.add(nameLabel, BorderLayout.WEST);
 

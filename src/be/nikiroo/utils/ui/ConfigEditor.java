@@ -8,7 +8,10 @@ import java.util.List;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
 import be.nikiroo.utils.resources.Bundle;
@@ -36,24 +39,35 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 	 *            a class instance of the item type to work on
 	 * @param bundle
 	 *            the {@link Bundle} to sort through
+	 * @param title
+	 *            the title to display before the options
 	 */
-	public ConfigEditor(Class<E> type, final Bundle<E> bundle) {
-		this.setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+	public ConfigEditor(Class<E> type, final Bundle<E> bundle, String title) {
+		this.setLayout(new BorderLayout());
+		JPanel main = new JPanel();
+
+		JScrollPane scroll = new JScrollPane(main);
+		scroll.getVerticalScrollBar().setUnitIncrement(16);
+		this.add(scroll, BorderLayout.CENTER);
+
+		main.setLayout(new BoxLayout(main, BoxLayout.PAGE_AXIS));
+
+		main.add(new JLabel(title));
 
 		items = ConfigItem.getItems(type, bundle);
 		for (ConfigItem<E> item : items) {
-			this.add(item);
+			main.add(item);
 		}
 
-		addButton("Reset", new ActionListener() {
+		main.add(createButton("Reset", new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				for (ConfigItem<E> item : items) {
 					item.reload();
 				}
 			}
-		});
+		}));
 
-		addButton("Default", new ActionListener() {
+		main.add(createButton("Default", new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Object snap = bundle.takeSnapshot();
 				bundle.reload(true);
@@ -63,9 +77,9 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 				bundle.reload(false);
 				bundle.restoreSnapshot(snap);
 			}
-		});
+		}));
 
-		addButton("Save", new ActionListener() {
+		main.add(createButton("Save", new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				for (ConfigItem<E> item : items) {
 					item.save();
@@ -77,7 +91,7 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 					e1.printStackTrace();
 				}
 			}
-		});
+		}));
 	}
 
 	/**
@@ -88,7 +102,7 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 	 * @param listener
 	 *            the action
 	 */
-	private void addButton(String title, ActionListener listener) {
+	private JComponent createButton(String title, ActionListener listener) {
 		JButton button = new JButton(title);
 		button.addActionListener(listener);
 
@@ -97,6 +111,6 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 		panel.setBorder(new EmptyBorder(2, 10, 2, 10));
 		panel.add(button, BorderLayout.CENTER);
 
-		this.add(panel);
+		return panel;
 	}
 }
