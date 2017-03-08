@@ -97,6 +97,7 @@ Currently missing, but either in progress or planned:
   - [x] YiffStar
   - [ ] [Two Kinds](http://twokinds.keenspot.com/)
   - [ ] [Slightly damned](http://www.sdamned.com/)
+  - [ ] Others? Any ideas?
 - [ ] A GUI (work in progress)
   - [x] Make one
   - [x] Make it run when no args passed
@@ -126,8 +127,8 @@ Currently missing, but either in progress or planned:
   - [x] in output classes (export)
   - [x] CLI usage of such
   - [x] GUI usage of such
-- [ ] Version
+- [x] Version
   - [x] Use a version number
   - [x] Show it in UI
-  - [ ] A check-update feature
+  - [x] A check-update feature
 
