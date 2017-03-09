@@ -181,6 +181,80 @@ class ProgressTest extends TestLauncher {
 						assertEquals(1000, pg);
 					}
 				});
+
+				addTest(new TestCase("Listeners with children, multi-thread") {
+					int pg;
+					boolean decrease;
+					Object lock1 = new Object();
+					Object lock2 = new Object();
+					int currentStep1;
+					int currentStep2;
+
+					@Override
+					public void test() throws Exception {
+						final Progress p = new Progress(0, 200);
+
+						final Progress child1 = new Progress();
+						final Progress child2 = new Progress();
+						p.addProgress(child1, 100);
+						p.addProgress(child2, 100);
+
+						p.addProgressListener(new Progress.ProgressListener() {
+							public void progress(Progress progress, String name) {
+								int now = p.getProgress();
+								if (now < pg) {
+									decrease = true;
+								}
+								pg = now;
+							}
+						});
+
+						// Run 200 concurrent threads, 2 at a time allowed to
+						// make progress (each on a different child)
+						for (int i = 0; i <= 100; i++) {
+							final int step = i;
+							new Thread(new Runnable() {
+								public void run() {
+									synchronized (lock1) {
+										if (step > currentStep1) {
+											currentStep1 = step;
+											child1.setProgress(step);
+										}
+									}
+								}
+							}).start();
+
+							new Thread(new Runnable() {
+								public void run() {
+									synchronized (lock2) {
+										if (step > currentStep2) {
+											currentStep2 = step;
+											child2.setProgress(step);
+										}
+									}
+								}
+							}).start();
+						}
+
+						int i;
+						int timeout = 20; // in 1/10th of seconds
+						for (i = 0; i < timeout
+								&& (currentStep1 + currentStep2) < 200; i++) {
+							Thread.sleep(100);
+						}
+
+						assertEquals("The test froze at step " + currentStep1
+								+ " + " + currentStep2, true, i < timeout);
+						assertEquals(
+								"There should not have any decresing steps",
+								decrease, false);
+						assertEquals("The progress should have reached 200",
+								200, p.getProgress());
+						assertEquals(
+								"The progress should have reached completion",
+								true, p.isDone());
+					}
+				});
 			}
 		});
 	}

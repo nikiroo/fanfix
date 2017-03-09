@@ -30,6 +30,8 @@ public class Progress {
 		public void progress(Progress progress, String name);
 	}
 
+	private Progress parent = null;
+	private Object lock = new Object();
 	private String name;
 	private Map<Progress, Double> children;
 	private List<ProgressListener> listeners;
@@ -122,18 +124,24 @@ public class Progress {
 	 * 
 	 * @param min
 	 *            the min to set
+	 * 
+	 * 
+	 * @throws Error
+	 *             if min &lt; 0 or if min &gt; max
 	 */
 	public void setMin(int min) {
 		if (min < 0) {
 			throw new Error("negative values not supported");
 		}
 
-		if (min > max) {
-			throw new Error(
-					"The minimum progress value must be <= the maximum progress value");
-		}
+		synchronized (getLock()) {
+			if (min > max) {
+				throw new Error(
+						"The minimum progress value must be <= the maximum progress value");
+			}
 
-		this.min = min;
+			this.min = min;
+		}
 	}
 
 	/**
@@ -150,14 +158,20 @@ public class Progress {
 	 * 
 	 * @param max
 	 *            the max to set
+	 * 
+	 * 
+	 * @throws Error
+	 *             if max &lt; min
 	 */
 	public void setMax(int max) {
-		if (max < min) {
-			throw new Error(
-					"The maximum progress value must be >= the minimum progress value");
-		}
+		synchronized (getLock()) {
+			if (max < min) {
+				throw new Error(
+						"The maximum progress value must be >= the minimum progress value");
+			}
 
-		this.max = max;
+			this.max = max;
+		}
 	}
 
 	/**
@@ -167,6 +181,9 @@ public class Progress {
 	 *            the min
 	 * @param max
 	 *            the max
+	 * 
+	 * @throws Error
+	 *             if min &lt; 0 or if min &gt; max
 	 */
 	public void setMinMax(int min, int max) {
 		if (min < 0) {
@@ -178,8 +195,10 @@ public class Progress {
 					"The minimum progress value must be <= the maximum progress value");
 		}
 
-		this.min = min;
-		this.max = max;
+		synchronized (getLock()) {
+			this.min = min;
+			this.max = max;
+		}
 	}
 
 	/**
@@ -202,9 +221,11 @@ public class Progress {
 	 *            the progress to set
 	 */
 	public void setProgress(int progress) {
-		int diff = this.progress - this.localProgress;
-		this.localProgress = progress;
-		setTotalProgress(this, name, progress + diff);
+		synchronized (getLock()) {
+			int diff = this.progress - this.localProgress;
+			this.localProgress = progress;
+			setTotalProgress(this, name, progress + diff);
+		}
 	}
 
 	/**
@@ -251,10 +272,12 @@ public class Progress {
 	 *            the progress to set
 	 */
 	private void setTotalProgress(Progress pg, String name, int progress) {
-		this.progress = progress;
+		synchronized (getLock()) {
+			this.progress = progress;
 
-		for (ProgressListener l : listeners) {
-			l.progress(pg, name);
+			for (ProgressListener l : listeners) {
+				l.progress(pg, name);
+			}
 		}
 	}
 
@@ -293,32 +316,60 @@ public class Progress {
 	 *            the weight (on a {@link Progress#getMin()} to
 	 *            {@link Progress#getMax()} scale) of this child
 	 *            {@link Progress} in relation to its parent
+	 * 
+	 * @throws Error
+	 *             if weight exceed {@link Progress#getMax()} or if progress
+	 *             already has a parent
 	 */
 	public void addProgress(Progress progress, double weight) {
 		if (weight < min || weight > max) {
-			throw new Error(
-					"A Progress object cannot have a weight outside its parent range");
+			throw new Error(String.format(
+					"Progress object %s cannot have a weight of %f, "
+							+ "it is outside of its parent (%s) range (%f)",
+					progress.name, weight, name, max));
 		}
 
-		// Note: this is quite inefficient, especially with many children
-		// TODO: improve it?
+		if (progress.parent != null) {
+			throw new Error(String.format(
+					"Progress object %s cannot be added to %s, "
+							+ "as it already has a parent (%s)", progress.name,
+					name, progress.parent.name));
+		}
+
 		progress.addProgressListener(new ProgressListener() {
 			public void progress(Progress pg, String name) {
-				double total = ((double) localProgress) / (max - min);
-				for (Entry<Progress, Double> entry : children.entrySet()) {
-					total += (entry.getValue() / (max - min))
-							* entry.getKey().getRelativeProgress();
-				}
+				synchronized (getLock()) {
+					double total = ((double) localProgress) / (max - min);
+					for (Entry<Progress, Double> entry : children.entrySet()) {
+						total += (entry.getValue() / (max - min))
+								* entry.getKey().getRelativeProgress();
+					}
 
-				if (name == null) {
-					name = Progress.this.name;
-				}
+					if (name == null) {
+						name = Progress.this.name;
+					}
 
-				setTotalProgress(pg, name,
-						(int) Math.round(total * (max - min)));
+					setTotalProgress(pg, name,
+							(int) Math.round(total * (max - min)));
+				}
 			}
 		});
 
 		this.children.put(progress, weight);
+	}
+
+	/**
+	 * The lock object to use (this one or the recursively-parent one).
+	 * 
+	 * @return the lock object to use
+	 */
+	private Object getLock() {
+		synchronized (lock) {
+			if (parent != null) {
+				return parent.getLock();
+			}
+
+			return lock;
+		}
 	}
 }
