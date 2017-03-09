@@ -106,8 +106,7 @@ public class Progress {
 	 */
 	public void setName(String name) {
 		this.name = name;
-		// will fire an action event:
-		setProgress(this.localProgress);
+		changed(this);
 	}
 
 	/**
@@ -230,7 +229,7 @@ public class Progress {
 
 	/**
 	 * Check if the action corresponding to this {@link Progress} is done (i.e.,
-	 * if its progress value is >= its max value).
+	 * if its progress value == its max value).
 	 * 
 	 * @return TRUE if it is
 	 */
@@ -251,7 +250,7 @@ public class Progress {
 	/**
 	 * Return the list of direct children of this {@link Progress}.
 	 * 
-	 * @return the children (who will think of them??)
+	 * @return the children (Who will think of the children??)
 	 */
 	public Set<Progress> getChildren() {
 		return children.keySet();
@@ -273,8 +272,28 @@ public class Progress {
 	 */
 	private void setTotalProgress(Progress pg, String name, int progress) {
 		synchronized (getLock()) {
-			this.progress = progress;
+			progress = Math.max(min, progress);
+			progress = Math.min(max, progress);
 
+			if (progress != this.progress) {
+				this.progress = progress;
+				changed(pg);
+			}
+		}
+	}
+
+	/**
+	 * Notify the listeners that this {@link Progress} changed value.
+	 * 
+	 * @param pg
+	 *            the emmiter
+	 */
+	private void changed(Progress pg) {
+		if (pg == null) {
+			pg = this;
+		}
+
+		synchronized (getLock()) {
 			for (ProgressListener l : listeners) {
 				l.progress(pg, name);
 			}

@@ -182,6 +182,54 @@ class ProgressTest extends TestLauncher {
 					}
 				});
 
+				addTest(new TestCase("Listeners with 5+ children, 4+ depth") {
+					int pg;
+
+					@Override
+					public void test() throws Exception {
+						final Progress p = new Progress();
+						Progress child1 = new Progress();
+						Progress child2 = new Progress();
+						p.addProgress(child1, 50);
+						p.addProgress(child2, 50);
+						Progress child11 = new Progress();
+						child1.addProgress(child11, 100);
+						Progress child111 = new Progress();
+						child11.addProgress(child111, 100);
+						Progress child1111 = new Progress();
+						child111.addProgress(child1111, 20);
+						Progress child1112 = new Progress();
+						child111.addProgress(child1112, 20);
+						Progress child1113 = new Progress();
+						child111.addProgress(child1113, 20);
+						Progress child1114 = new Progress();
+						child111.addProgress(child1114, 20);
+						Progress child1115 = new Progress();
+						child111.addProgress(child1115, 20);
+
+						p.addProgressListener(new Progress.ProgressListener() {
+							public void progress(Progress progress, String name) {
+								pg = p.getProgress();
+							}
+						});
+
+						child1111.setProgress(100);
+						child1112.setProgress(50);
+						child1113.setProgress(25);
+						child1114.setProgress(25);
+						child1115.setProgress(50);
+						assertEquals(25, pg);
+						child2.setProgress(100);
+						assertEquals(75, pg);
+						child1111.setProgress(100);
+						child1112.setProgress(100);
+						child1113.setProgress(100);
+						child1114.setProgress(100);
+						child1115.setProgress(100);
+						assertEquals(100, pg);
+					}
+				});
+
 				addTest(new TestCase("Listeners with children, multi-thread") {
 					int pg;
 					boolean decrease;
