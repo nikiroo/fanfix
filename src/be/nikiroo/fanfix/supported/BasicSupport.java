@@ -874,19 +874,35 @@ public abstract class BasicSupport {
 
 		if (line != null) {
 			// try for files
-			String path = null;
 			if (source != null) {
-				path = new File(source.getFile()).getParent();
 				try {
-					String basePath = new File(new File(path), line.trim())
-							.getAbsolutePath();
+
+					String relPath = null;
+					String absPath = null;
+					try {
+						String path = new File(source.getFile()).getParent();
+						relPath = new File(new File(path), line.trim())
+								.getAbsolutePath();
+					} catch (Exception e) {
+						// Cannot be converted to path (one possibility to take
+						// into account: absolute path on Windows)
+					}
+					try {
+						absPath = new File(line.trim()).getAbsolutePath();
+					} catch (Exception e) {
+						// Cannot be converted to path (at all)
+					}
+
 					for (String ext : getImageExt(true)) {
-						if (new File(basePath + ext).exists()) {
-							url = new File(basePath + ext).toURI().toURL();
+						if (absPath != null && new File(absPath + ext).exists()) {
+							url = new File(absPath + ext).toURI().toURL();
+						} else if (relPath != null
+								&& new File(relPath + ext).exists()) {
+							url = new File(relPath + ext).toURI().toURL();
 						}
 					}
 				} catch (Exception e) {
-					// Nothing to do here
+					// Should not happen since we control the correct arguments
 				}
 			}
 
