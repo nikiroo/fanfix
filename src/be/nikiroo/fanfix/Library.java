@@ -1,6 +1,7 @@
 package be.nikiroo.fanfix;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -57,13 +58,23 @@ public class Library {
 	}
 
 	/**
+	 * Refresh the {@link Library}, that is, make sure all stories are loaded.
+	 * 
+	 * @param pg
+	 *            the optional progress reporter
+	 */
+	public void refresh(Progress pg) {
+		getStories(pg);
+	}
+
+	/**
 	 * List all the known types of stories.
 	 * 
 	 * @return the types
 	 */
 	public synchronized List<String> getTypes() {
 		List<String> list = new ArrayList<String>();
-		for (Entry<MetaData, File> entry : getStories().entrySet()) {
+		for (Entry<MetaData, File> entry : getStories(null).entrySet()) {
 			String storyType = entry.getKey().getSource();
 			if (!list.contains(storyType)) {
 				list.add(storyType);
@@ -81,7 +92,7 @@ public class Library {
 	 */
 	public synchronized List<String> getAuthors() {
 		List<String> list = new ArrayList<String>();
-		for (Entry<MetaData, File> entry : getStories().entrySet()) {
+		for (Entry<MetaData, File> entry : getStories(null).entrySet()) {
 			String storyAuthor = entry.getKey().getAuthor();
 			if (!list.contains(storyAuthor)) {
 				list.add(storyAuthor);
@@ -103,7 +114,7 @@ public class Library {
 	 */
 	public synchronized List<MetaData> getListByAuthor(String author) {
 		List<MetaData> list = new ArrayList<MetaData>();
-		for (Entry<MetaData, File> entry : getStories().entrySet()) {
+		for (Entry<MetaData, File> entry : getStories(null).entrySet()) {
 			String storyAuthor = entry.getKey().getAuthor();
 			if (author == null || author.equalsIgnoreCase(storyAuthor)) {
 				list.add(entry.getKey());
@@ -125,7 +136,7 @@ public class Library {
 	 */
 	public synchronized List<MetaData> getListByType(String type) {
 		List<MetaData> list = new ArrayList<MetaData>();
-		for (Entry<MetaData, File> entry : getStories().entrySet()) {
+		for (Entry<MetaData, File> entry : getStories(null).entrySet()) {
 			String storyType = entry.getValue().getParentFile().getName();
 			if (type == null || type.equalsIgnoreCase(storyType)) {
 				list.add(entry.getKey());
@@ -146,7 +157,7 @@ public class Library {
 	 */
 	public synchronized MetaData getInfo(String luid) {
 		if (luid != null) {
-			for (Entry<MetaData, File> entry : getStories().entrySet()) {
+			for (Entry<MetaData, File> entry : getStories(null).entrySet()) {
 				if (luid.equals(entry.getKey().getLuid())) {
 					return entry.getKey();
 				}
@@ -166,7 +177,7 @@ public class Library {
 	 */
 	public synchronized File getFile(String luid) {
 		if (luid != null) {
-			for (Entry<MetaData, File> entry : getStories().entrySet()) {
+			for (Entry<MetaData, File> entry : getStories(null).entrySet()) {
 				if (luid.equals(entry.getKey().getLuid())) {
 					return entry.getValue();
 				}
@@ -188,7 +199,7 @@ public class Library {
 	 */
 	public synchronized Story getStory(String luid, Progress pg) {
 		if (luid != null) {
-			for (Entry<MetaData, File> entry : getStories().entrySet()) {
+			for (Entry<MetaData, File> entry : getStories(null).entrySet()) {
 				if (luid.equals(entry.getKey().getLuid())) {
 					try {
 						SupportType type = SupportType.valueOfAllOkUC(entry
@@ -323,7 +334,7 @@ public class Library {
 		story.setMeta(key);
 
 		if (luid == null || luid.isEmpty()) {
-			getStories(); // refresh lastId if needed
+			getStories(null); // refresh lastId if needed
 			key.setLuid(String.format("%03d", (++lastId)));
 		} else {
 			key.setLuid(luid);
@@ -362,7 +373,7 @@ public class Library {
 		boolean ok = false;
 
 		MetaData meta = getInfo(luid);
-		File file = getStories().get(meta);
+		File file = getStories(null).get(meta);
 
 		if (file != null) {
 			if (file.delete()) {
@@ -442,56 +453,93 @@ public class Library {
 	/**
 	 * Return all the known stories in this {@link Library} object.
 	 * 
+	 * @param pg
+	 *            the optional progress reporter
+	 * 
 	 * @return the stories
 	 */
-	private synchronized Map<MetaData, File> getStories() {
+	private synchronized Map<MetaData, File> getStories(Progress pg) {
+		if (pg == null) {
+			pg = new Progress();
+		} else {
+			pg.setMinMax(0, 100);
+		}
+
 		if (stories.isEmpty()) {
 			lastId = 0;
 
-			String ext = ".info";
-			for (File dir : baseDir.listFiles()) {
-				if (dir.isDirectory()) {
-					for (File file : dir.listFiles()) {
+			File[] dirs = baseDir.listFiles(new FileFilter() {
+				public boolean accept(File file) {
+					return file != null && file.isDirectory();
+				}
+			});
+
+			Progress pgDirs = new Progress(0, 100 * dirs.length);
+			pg.addProgress(pgDirs, 100);
+
+			final String ext = ".info";
+			for (File dir : dirs) {
+				File[] files = dir.listFiles(new FileFilter() {
+					public boolean accept(File file) {
+						return file != null
+								&& file.getPath().toLowerCase().endsWith(ext);
+					}
+				});
+
+				Progress pgFiles = new Progress(0, files.length);
+				pgDirs.addProgress(pgFiles, 100);
+				pgDirs.setName("Loading from: " + dir.getName());
+
+				for (File file : files) {
+					try {
+						pgFiles.setName(file.getName());
+						MetaData meta = InfoReader.readMeta(file);
 						try {
-							if (file.getPath().toLowerCase().endsWith(ext)) {
-								MetaData meta = InfoReader.readMeta(file);
-								try {
-									int id = Integer.parseInt(meta.getLuid());
-									if (id > lastId) {
-										lastId = id;
-									}
-
-									// Replace .info with whatever is needed:
-									String path = file.getPath();
-									path = path.substring(0, path.length()
-											- ext.length());
-
-									String newExt = getOutputType(meta)
-											.getDefaultExtension(true);
-
-									file = new File(path + newExt);
-									//
-
-									stories.put(meta, file);
-
-								} catch (Exception e) {
-									// not normal!!
-									Instance.syserr(new IOException(
-											"Cannot understand the LUID of "
-													+ file.getPath() + ": "
-													+ meta.getLuid(), e));
-								}
+							int id = Integer.parseInt(meta.getLuid());
+							if (id > lastId) {
+								lastId = id;
 							}
-						} catch (IOException e) {
-							// We should not have not-supported files in the
-							// library
+
+							// Replace .info with whatever is needed:
+							String path = file.getPath();
+							path = path.substring(0,
+									path.length() - ext.length());
+
+							String newExt = getOutputType(meta)
+									.getDefaultExtension(true);
+
+							file = new File(path + newExt);
+							//
+
+							stories.put(meta, file);
+
+						} catch (Exception e) {
+							// not normal!!
 							Instance.syserr(new IOException(
-									"Cannot load file from library: "
-											+ file.getPath(), e));
+									"Cannot understand the LUID of "
+											+ file.getPath() + ": "
+											+ meta.getLuid(), e));
 						}
+					} catch (IOException e) {
+						// We should not have not-supported files in the
+						// library
+						Instance.syserr(new IOException(
+								"Cannot load file from library: "
+										+ file.getPath(), e));
+					} finally {
+						pgFiles.setProgress(pgFiles.getProgress() + 1);
+
+						System.out.println("files: " + pgFiles.getProgress()
+								+ "/" + pgFiles.getMax());
+						System.out.println("dirs : " + pgDirs.getProgress()
+								+ "/" + pgDirs.getMax());
 					}
 				}
+
+				pgFiles.setName(null);
 			}
+
+			pgDirs.setName("Loading directories");
 		}
 
 		return stories;

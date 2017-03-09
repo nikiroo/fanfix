@@ -116,13 +116,23 @@ class LocalReaderFrame extends JFrame {
 			}
 		});
 
-		setJMenuBar(createMenu());
-
 		booksByType = new HashMap<LocalReaderGroup, String>();
 		booksByAuthor = new HashMap<LocalReaderGroup, String>();
 
-		addBookPane(type, true);
-		refreshBooks();
+		pane.setVisible(false);
+		final Progress pg = new Progress();
+		final String typeF = type;
+		outOfUi(pg, new Runnable() {
+			public void run() {
+				Instance.getLibrary().refresh(pg);
+				invalidate();
+				setJMenuBar(createMenu());
+				addBookPane(typeF, true);
+				refreshBooks();
+				validate();
+				pane.setVisible(true);
+			}
+		});
 
 		setVisible(true);
 	}
@@ -753,7 +763,10 @@ class LocalReaderFrame extends JFrame {
 	 */
 	@Override
 	public void setEnabled(boolean b) {
-		bar.setEnabled(b);
+		if (bar != null) {
+			bar.setEnabled(b);
+		}
+
 		for (LocalReaderGroup group : booksByType.keySet()) {
 			group.setEnabled(b);
 		}
