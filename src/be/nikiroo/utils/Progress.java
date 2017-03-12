@@ -228,6 +228,18 @@ public class Progress {
 	}
 
 	/**
+	 * Add some value to the current progression of this {@link Progress}.
+	 * 
+	 * @param step
+	 *            the amount to add
+	 */
+	public void add(int step) {
+		synchronized (getLock()) {
+			setProgress(localProgress + step);
+		}
+	}
+
+	/**
 	 * Check if the action corresponding to this {@link Progress} is done (i.e.,
 	 * if its progress value == its max value).
 	 * 
@@ -238,12 +250,23 @@ public class Progress {
 	}
 
 	/**
+	 * Mark the {@link Progress} as done by setting its value to max.
+	 */
+	public void done() {
+		setProgress(getMax());
+	}
+
+	/**
 	 * Get the total progress value (including the optional children
 	 * {@link Progress}) on a 0.0 to 1.0 scale.
 	 * 
 	 * @return the progress
 	 */
 	public double getRelativeProgress() {
+		if (max == min) {
+			return 1;
+		}
+
 		return (((double) progress) / (max - min));
 	}
 
