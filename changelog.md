@@ -1,8 +1,10 @@
 # Fanfix
 
-## Version (wip)
+## Version 1.4.2
 
 - New Options menu in UI to configure the program (minimalist for now)
+- Improve progress reporting (smoother updates, more details)
+- Better cover support for local files
 
 ## Version 1.4.1
 

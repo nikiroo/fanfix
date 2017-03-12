@@ -527,12 +527,7 @@ public class Library {
 								"Cannot load file from library: "
 										+ file.getPath(), e));
 					} finally {
-						pgFiles.setProgress(pgFiles.getProgress() + 1);
-
-						System.out.println("files: " + pgFiles.getProgress()
-								+ "/" + pgFiles.getMax());
-						System.out.println("dirs : " + pgDirs.getProgress()
-								+ "/" + pgDirs.getMax());
+						pgFiles.add(1);
 					}
 				}
 

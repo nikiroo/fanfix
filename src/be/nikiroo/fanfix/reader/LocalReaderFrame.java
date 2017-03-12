@@ -648,10 +648,10 @@ class LocalReaderFrame extends JFrame {
 			public void run() {
 				run.run();
 				refreshBooks();
-				reload.setProgress(100);
+				reload.done();
 				if (!pg.isDone()) {
 					// will trigger pgBar ActionListener:
-					pg.setProgress(pg.getMax());
+					pg.done();
 				}
 			}
 		}, "outOfUi thread").start();
@@ -745,7 +745,7 @@ class LocalReaderFrame extends JFrame {
 						onSuccess.run();
 					}
 				}
-				pgOnSuccess.setProgress(100);
+				pgOnSuccess.done();
 			}
 		});
 	}

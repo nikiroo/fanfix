@@ -98,7 +98,7 @@ Currently missing, but either in progress or planned:
   - [ ] [Two Kinds](http://twokinds.keenspot.com/)
   - [ ] [Slightly damned](http://www.sdamned.com/)
   - [ ] Others? Any ideas?
-- [ ] A GUI (work in progress)
+- [x] A GUI (work in progress)
   - [x] Make one
   - [x] Make it run when no args passed
   - [x] Fix the UI, it is ugly
@@ -108,7 +108,7 @@ Currently missing, but either in progress or planned:
   - [x] Show a list of types
     - [x] ..in the menu
     - [x] ..as a screen view
-  - [ ] options screen
+  - [x] options screen
 - [ ] A TUI reader
 - [ ] Check if it can work on Android
   - [x] First checks: it should work, but with changes
