@@ -1,5 +1,6 @@
 package be.nikiroo.fanfix;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -27,6 +28,9 @@ import be.nikiroo.utils.Progress;
  * <p>
  * Each {@link Story} object will be associated with a (local to the library)
  * unique ID, the LUID, which will be used to identify the {@link Story}.
+ * <p>
+ * Most of the {@link Library} functions work on either the LUID or a partial
+ * (cover not included) {@link MetaData} object.
  * 
  * @author niki
  */
@@ -106,6 +110,8 @@ public class Library {
 	/**
 	 * List all the stories of the given author in the {@link Library}, or all
 	 * the stories if NULL is passed as an author.
+	 * <p>
+	 * Cover images not included.
 	 * 
 	 * @param author
 	 *            the author of the stories to retrieve, or NULL for all
@@ -128,6 +134,8 @@ public class Library {
 	/**
 	 * List all the stories of the given source type in the {@link Library}, or
 	 * all the stories if NULL is passed as a type.
+	 * <p>
+	 * Cover images not included.
 	 * 
 	 * @param type
 	 *            the type of story to retrieve, or NULL for all
@@ -148,7 +156,8 @@ public class Library {
 	}
 
 	/**
-	 * Retrieve a {@link File} corresponding to the given {@link Story}.
+	 * Retrieve a {@link File} corresponding to the given {@link Story}, cover
+	 * image not included.
 	 * 
 	 * @param luid
 	 *            the Library UID of the story
@@ -181,6 +190,29 @@ public class Library {
 				if (luid.equals(entry.getKey().getLuid())) {
 					return entry.getValue();
 				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Return the cover image associated to this story.
+	 * 
+	 * @param luid
+	 *            the Library UID of the story
+	 * 
+	 * @return the cover image
+	 */
+	public synchronized BufferedImage getCover(String luid) {
+		MetaData meta = getInfo(luid);
+		if (meta != null) {
+			try {
+				File infoFile = new File(getFile(meta).getPath() + ".info");
+				meta = readMeta(infoFile, true).getKey();
+				return meta.getCover();
+			} catch (IOException e) {
+				Instance.syserr(e);
 			}
 		}
 
@@ -477,12 +509,12 @@ public class Library {
 			Progress pgDirs = new Progress(0, 100 * dirs.length);
 			pg.addProgress(pgDirs, 100);
 
-			final String ext = ".info";
 			for (File dir : dirs) {
 				File[] files = dir.listFiles(new FileFilter() {
 					public boolean accept(File file) {
 						return file != null
-								&& file.getPath().toLowerCase().endsWith(ext);
+								&& file.getPath().toLowerCase()
+										.endsWith(".info");
 					}
 				});
 
@@ -491,34 +523,22 @@ public class Library {
 				pgDirs.setName("Loading from: " + dir.getName());
 
 				for (File file : files) {
+					pgFiles.setName(file.getName());
 					try {
-						pgFiles.setName(file.getName());
-						MetaData meta = InfoReader.readMeta(file);
+						Entry<MetaData, File> entry = readMeta(file, false);
 						try {
-							int id = Integer.parseInt(meta.getLuid());
+							int id = Integer.parseInt(entry.getKey().getLuid());
 							if (id > lastId) {
 								lastId = id;
 							}
 
-							// Replace .info with whatever is needed:
-							String path = file.getPath();
-							path = path.substring(0,
-									path.length() - ext.length());
-
-							String newExt = getOutputType(meta)
-									.getDefaultExtension(true);
-
-							file = new File(path + newExt);
-							//
-
-							stories.put(meta, file);
-
+							stories.put(entry.getKey(), entry.getValue());
 						} catch (Exception e) {
 							// not normal!!
-							Instance.syserr(new IOException(
+							throw new IOException(
 									"Cannot understand the LUID of "
 											+ file.getPath() + ": "
-											+ meta.getLuid(), e));
+											+ entry.getKey().getLuid(), e);
 						}
 					} catch (IOException e) {
 						// We should not have not-supported files in the
@@ -526,9 +546,8 @@ public class Library {
 						Instance.syserr(new IOException(
 								"Cannot load file from library: "
 										+ file.getPath(), e));
-					} finally {
-						pgFiles.add(1);
 					}
+					pgFiles.add(1);
 				}
 
 				pgFiles.setName(null);
@@ -538,6 +557,35 @@ public class Library {
 		}
 
 		return stories;
+	}
+
+	private Entry<MetaData, File> readMeta(File infoFile, boolean withCover)
+			throws IOException {
+
+		final MetaData meta = InfoReader.readMeta(infoFile, withCover);
+
+		// Replace .info with whatever is needed:
+		String path = infoFile.getPath();
+		path = path.substring(0, path.length() - ".info".length());
+
+		String newExt = getOutputType(meta).getDefaultExtension(true);
+
+		File targetFile = new File(path + newExt);
+
+		final File ffile = targetFile;
+		return new Entry<MetaData, File>() {
+			public File setValue(File value) {
+				return null;
+			}
+
+			public File getValue() {
+				return ffile;
+			}
+
+			public MetaData getKey() {
+				return meta;
+			}
+		};
 	}
 
 	/**

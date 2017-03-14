@@ -140,7 +140,7 @@ class Epub extends InfoText {
 		}
 
 		if (tmpInfo.exists()) {
-			meta = InfoReader.readMeta(tmpInfo);
+			meta = InfoReader.readMeta(tmpInfo, true);
 			if (cover != null) {
 				meta.setCover(cover);
 			}

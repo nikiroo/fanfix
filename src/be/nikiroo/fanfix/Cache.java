@@ -3,6 +3,7 @@ package be.nikiroo.fanfix;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -345,9 +346,30 @@ public class Cache {
 	 *             in case of I/O error
 	 */
 	public File addToCache(InputStream in, String uniqueID) throws IOException {
-		File file = getCached(new File(uniqueID).toURI().toURL());
+		File file = getCached(uniqueID);
 		IOUtils.write(in, file);
 		return file;
+	}
+
+	/**
+	 * Return the {@link InputStream} corresponding to the given unique ID, or
+	 * NULL if none found.
+	 * 
+	 * @param uniqueID
+	 *            the unique ID
+	 *
+	 * @return the content or NULL
+	 */
+	public InputStream getFromCache(String uniqueID) {
+		File file = getCached(uniqueID);
+		if (file.exists()) {
+			try {
+				return new MarkableFileInputStream(new FileInputStream(file));
+			} catch (FileNotFoundException e) {
+			}
+		}
+
+		return null;
 	}
 
 	/**
@@ -500,15 +522,28 @@ public class Cache {
 	 */
 	private File getCached(URL url) {
 		String name = url.getHost();
-		if (name == null || name.length() == 0) {
+		if (name == null || name.isEmpty()) {
 			name = url.getFile();
 		} else {
 			name = url.toString();
 		}
 
-		name = name.replace('/', '_').replace(':', '_');
+		return getCached(name);
+	}
 
-		return new File(dir, name);
+	/**
+	 * Get the cache resource from the cache if it is present for this unique
+	 * ID.
+	 * 
+	 * @param url
+	 *            the url
+	 * @return the cached version if present, NULL if not
+	 */
+	private File getCached(String uniqueID) {
+		uniqueID = uniqueID.replace('/', '_').replace(':', '_')
+				.replace("\\", "_");
+
+		return new File(dir, uniqueID);
 	}
 
 	/**

@@ -27,8 +27,9 @@ class InfoText extends Text {
 	@Override
 	protected MetaData getMeta(URL source, InputStream in) throws IOException {
 		try {
-			MetaData meta = InfoReader.readMeta(new File(new File(source
-					.toURI()).getPath() + ".info"));
+			MetaData meta = InfoReader.readMeta(
+					new File(new File(source.toURI()).getPath() + ".info"),
+					true);
 
 			// Some old .info files don't have those now required fields...
 			String test = meta.getTitle() == null ? "" : meta.getTitle();

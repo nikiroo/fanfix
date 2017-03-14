@@ -1,5 +1,9 @@
 # Fanfix
 
+## Version wip
+- Library: perf improvement when retrieving the stories (cover not loaded when not needed)
+- UI: perf improvement when displaying books (cover resized then cached)
+
 ## Version 1.4.2
 
 - New Options menu in UI to configure the program (minimalist for now)

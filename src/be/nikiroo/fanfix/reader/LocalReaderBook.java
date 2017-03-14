@@ -9,17 +9,25 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EventListener;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.ui.UIUtils;
 
 /**
@@ -117,8 +125,7 @@ class LocalReaderBook extends JPanel {
 			optSecondary = "(" + optSecondary + ")";
 		}
 
-		icon = new JLabel(generateCoverIcon(meta.getCover()));
-
+		icon = new JLabel(generateCoverIcon(meta));
 		title = new JLabel(
 				String.format(
 						"<html>"
@@ -339,29 +346,64 @@ class LocalReaderBook extends JPanel {
 	}
 
 	/**
-	 * Generate a cover icon based upon the given cover image (which may be
-	 * NULL).
+	 * Generate a cover icon based upon the given {@link MetaData}.
 	 * 
-	 * @param image
-	 *            the cover image, or NULL for none
+	 * @param meta
+	 *            the {@link MetaData} about the target {@link Story}
 	 * 
 	 * @return the icon
 	 */
-	private ImageIcon generateCoverIcon(BufferedImage image) {
-		BufferedImage resizedImage = new BufferedImage(SPINE_WIDTH
-				+ COVER_WIDTH, SPINE_HEIGHT + COVER_HEIGHT + HOFFSET,
-				BufferedImage.TYPE_4BYTE_ABGR);
-		Graphics2D g = resizedImage.createGraphics();
-		g.setColor(Color.white);
-		g.fillRect(0, HOFFSET, COVER_WIDTH, COVER_HEIGHT);
-		if (image != null) {
-			g.drawImage(image, 0, HOFFSET, COVER_WIDTH, COVER_HEIGHT, null);
-		} else {
-			g.setColor(Color.black);
-			g.drawLine(0, HOFFSET, COVER_WIDTH, HOFFSET + COVER_HEIGHT);
-			g.drawLine(COVER_WIDTH, HOFFSET, 0, HOFFSET + COVER_HEIGHT);
+	private ImageIcon generateCoverIcon(MetaData meta) {
+		String id = meta.getUuid() + ".thumb_" + SPINE_WIDTH + "x"
+				+ COVER_WIDTH + "+" + SPINE_HEIGHT + "+" + COVER_HEIGHT + "@"
+				+ HOFFSET;
+		BufferedImage resizedImage = null;
+
+		InputStream in = Instance.getCache().getFromCache(id);
+		if (in != null) {
+			try {
+				resizedImage = IOUtils.toImage(in);
+				in.close();
+				in = null;
+			} catch (IOException e) {
+				Instance.syserr(e);
+			}
 		}
-		g.dispose();
+
+		if (resizedImage == null) {
+			try {
+				BufferedImage cover = Instance.getLibrary().getCover(
+						meta.getLuid());
+
+				resizedImage = new BufferedImage(SPINE_WIDTH + COVER_WIDTH,
+						SPINE_HEIGHT + COVER_HEIGHT + HOFFSET,
+						BufferedImage.TYPE_4BYTE_ABGR);
+				Graphics2D g = resizedImage.createGraphics();
+				g.setColor(Color.white);
+				g.fillRect(0, HOFFSET, COVER_WIDTH, COVER_HEIGHT);
+				if (cover != null) {
+					g.drawImage(cover, 0, HOFFSET, COVER_WIDTH, COVER_HEIGHT,
+							null);
+				} else {
+					g.setColor(Color.black);
+					g.drawLine(0, HOFFSET, COVER_WIDTH, HOFFSET + COVER_HEIGHT);
+					g.drawLine(COVER_WIDTH, HOFFSET, 0, HOFFSET + COVER_HEIGHT);
+				}
+				g.dispose();
+
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				ImageIO.write(resizedImage, "png", out);
+				byte[] imageBytes = out.toByteArray();
+				in = new ByteArrayInputStream(imageBytes);
+				Instance.getCache().addToCache(in, id);
+				in.close();
+				in = null;
+			} catch (MalformedURLException e) {
+				Instance.syserr(e);
+			} catch (IOException e) {
+				Instance.syserr(e);
+			}
+		}
 
 		return new ImageIcon(resizedImage);
 	}

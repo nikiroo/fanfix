@@ -14,7 +14,8 @@ import be.nikiroo.utils.MarkableFileInputStream;
 
 // not complete: no "description" tag
 public class InfoReader {
-	public static MetaData readMeta(File infoFile) throws IOException {
+	public static MetaData readMeta(File infoFile, boolean withCover)
+			throws IOException {
 		if (infoFile == null) {
 			throw new IOException("File is null");
 		}
@@ -23,7 +24,7 @@ public class InfoReader {
 			InputStream in = new MarkableFileInputStream(new FileInputStream(
 					infoFile));
 			try {
-				return createMeta(infoFile.toURI().toURL(), in);
+				return createMeta(infoFile.toURI().toURL(), in, withCover);
 			} finally {
 				in.close();
 				in = null;
@@ -35,8 +36,8 @@ public class InfoReader {
 		}
 	}
 
-	private static MetaData createMeta(URL sourceInfoFile, InputStream in)
-			throws IOException {
+	private static MetaData createMeta(URL sourceInfoFile, InputStream in,
+			boolean withCover) throws IOException {
 		MetaData meta = new MetaData();
 
 		meta.setTitle(getInfoTag(in, "TITLE"));
@@ -52,8 +53,10 @@ public class InfoReader {
 		meta.setSubject(getInfoTag(in, "SUBJECT"));
 		meta.setType(getInfoTag(in, "TYPE"));
 		meta.setImageDocument(getInfoTagBoolean(in, "IMAGES_DOCUMENT", false));
-		meta.setCover(BasicSupport.getImage(null, sourceInfoFile,
-				getInfoTag(in, "COVER")));
+		if (withCover) {
+			meta.setCover(BasicSupport.getImage(null, sourceInfoFile,
+					getInfoTag(in, "COVER")));
+		}
 		try {
 			meta.setWords(Long.parseLong(getInfoTag(in, "WORDCOUNT")));
 		} catch (NumberFormatException e) {
@@ -62,7 +65,7 @@ public class InfoReader {
 		meta.setCreationDate(getInfoTag(in, "CREATION_DATE"));
 		meta.setFakeCover(Boolean.parseBoolean(getInfoTag(in, "FAKE_COVER")));
 
-		if (meta.getCover() == null) {
+		if (withCover && meta.getCover() == null) {
 			meta.setCover(BasicSupport.getDefaultCover(meta.getSubject()));
 		}
 
