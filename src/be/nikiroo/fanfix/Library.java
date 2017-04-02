@@ -17,6 +17,7 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
+import be.nikiroo.fanfix.output.InfoCover;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 import be.nikiroo.fanfix.supported.InfoReader;
@@ -72,7 +73,7 @@ public class Library {
 	}
 
 	/**
-	 * List all the known types of stories.
+	 * List all the known types (sources) of stories.
 	 * 
 	 * @return the types
 	 */
@@ -143,6 +144,11 @@ public class Library {
 	 * @return the stories
 	 */
 	public synchronized List<MetaData> getListByType(String type) {
+		if (type != null) {
+			// convert the type to dir name
+			type = getDir(type).getName();
+		}
+
 		List<MetaData> list = new ArrayList<MetaData>();
 		for (Entry<MetaData, File> entry : getStories(null).entrySet()) {
 			String storyType = entry.getValue().getParentFile().getName();
@@ -372,8 +378,8 @@ public class Library {
 			key.setLuid(luid);
 		}
 
-		getDir(key).mkdirs();
-		if (!getDir(key).exists()) {
+		getDir(key.getSource()).mkdirs();
+		if (!getDir(key.getSource()).exists()) {
 			throw new IOException("Cannot create library dir");
 		}
 
@@ -404,44 +410,13 @@ public class Library {
 	public synchronized boolean delete(String luid) {
 		boolean ok = false;
 
-		MetaData meta = getInfo(luid);
-		File file = getStories(null).get(meta);
-
-		if (file != null) {
-			if (file.delete()) {
-				String readerExt = getOutputType(meta)
-						.getDefaultExtension(true);
-				String fileExt = getOutputType(meta).getDefaultExtension(false);
-
-				String path = file.getAbsolutePath();
-				if (readerExt != null && !readerExt.equals(fileExt)) {
-					path = path
-							.substring(0, path.length() - readerExt.length())
-							+ fileExt;
-					file = new File(path);
-					IOUtils.deltree(file);
-				}
-
-				File infoFile = new File(path + ".info");
-				if (!infoFile.exists()) {
-					infoFile = new File(path.substring(0, path.length()
-							- fileExt.length())
-							+ ".info");
-				}
-				infoFile.delete();
-
-				String coverExt = "."
-						+ Instance.getConfig().getString(
-								Config.IMAGE_FORMAT_COVER);
-				File coverFile = new File(path + coverExt);
-				if (!coverFile.exists()) {
-					coverFile = new File(path.substring(0, path.length()
-							- fileExt.length()));
-				}
-				coverFile.delete();
-
-				ok = true;
+		List<File> files = getFiles(luid);
+		if (!files.isEmpty()) {
+			for (File file : files) {
+				IOUtils.deltree(file);
 			}
+
+			ok = true;
 
 			// clear cache
 			stories.clear();
@@ -451,16 +426,121 @@ public class Library {
 	}
 
 	/**
+	 * Change the type (source) of the given {@link Story}.
+	 * 
+	 * @param luid
+	 *            the {@link Story} LUID
+	 * @param newSourcethe
+	 *            new source
+	 * 
+	 * @return TRUE if the {@link Story} was found
+	 */
+	public synchronized boolean changeType(String luid, String newType) {
+		MetaData meta = getInfo(luid);
+		if (meta != null) {
+			meta.setSource(newType);
+			File newDir = getDir(meta.getSource());
+			if (!newDir.exists()) {
+				newDir.mkdir();
+			}
+
+			List<File> files = getFiles(luid);
+			for (File file : files) {
+				if (file.getName().endsWith(".info")) {
+					try {
+						String name = file.getName().replaceFirst("\\.info$",
+								"");
+						InfoCover.writeInfo(newDir, name, meta);
+						file.delete();
+					} catch (IOException e) {
+						Instance.syserr(e);
+					}
+				} else {
+					file.renameTo(new File(newDir, file.getName()));
+				}
+			}
+
+			// clear cache
+			stories.clear();
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Return the list of files/dirs on disk for this {@link Story}.
+	 * <p>
+	 * If the {@link Story} is not found, and empty list is returned.
+	 * 
+	 * @param luid
+	 *            the {@link Story} LUID
+	 * 
+	 * @return the list of {@link File}s
+	 */
+	private List<File> getFiles(String luid) {
+		List<File> files = new ArrayList<File>();
+
+		MetaData meta = getInfo(luid);
+		File file = getStories(null).get(meta);
+
+		if (file != null) {
+			files.add(file);
+
+			String readerExt = getOutputType(meta).getDefaultExtension(true);
+			String fileExt = getOutputType(meta).getDefaultExtension(false);
+
+			String path = file.getAbsolutePath();
+			if (readerExt != null && !readerExt.equals(fileExt)) {
+				path = path.substring(0, path.length() - readerExt.length())
+						+ fileExt;
+				file = new File(path);
+
+				if (file.exists()) {
+					files.add(file);
+				}
+			}
+
+			File infoFile = new File(path + ".info");
+			if (!infoFile.exists()) {
+				infoFile = new File(path.substring(0,
+						path.length() - fileExt.length())
+						+ ".info");
+			}
+
+			if (infoFile.exists()) {
+				files.add(infoFile);
+			}
+
+			String coverExt = "."
+					+ Instance.getConfig().getString(Config.IMAGE_FORMAT_COVER);
+			File coverFile = new File(path + coverExt);
+			if (!coverFile.exists()) {
+				coverFile = new File(path.substring(0,
+						path.length() - fileExt.length())
+						+ coverExt);
+			}
+
+			if (coverFile.exists()) {
+				files.add(coverFile);
+			}
+		}
+
+		return files;
+	}
+
+	/**
 	 * The directory (full path) where the {@link Story} related to this
 	 * {@link MetaData} should be located on disk.
 	 * 
-	 * @param key
-	 *            the {@link Story} {@link MetaData}
+	 * @param type
+	 *            the type (source)
 	 * 
 	 * @return the target directory
 	 */
-	private File getDir(MetaData key) {
-		String source = key.getSource().replaceAll("[^a-zA-Z0-9._+-]", "_");
+	private File getDir(String type) {
+		String source = type.replaceAll("[^a-zA-Z0-9._+-]", "_");
 		return new File(baseDir, source);
 	}
 
@@ -479,7 +559,7 @@ public class Library {
 			title = "";
 		}
 		title = title.replaceAll("[^a-zA-Z0-9._+-]", "_");
-		return new File(getDir(key), key.getLuid() + "_" + title);
+		return new File(getDir(key.getSource()), key.getLuid() + "_" + title);
 	}
 
 	/**

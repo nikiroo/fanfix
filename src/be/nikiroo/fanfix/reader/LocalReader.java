@@ -254,4 +254,9 @@ class LocalReader extends BasicReader {
 
 		}
 	}
+
+	void changeType(String luid, String newType) {
+		lib.changeType(luid, newType);
+		Instance.getLibrary().changeType(luid, newType);
+	}
 }

@@ -13,6 +13,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -142,7 +143,8 @@ class LocalReaderFrame extends JFrame {
 	 * the selected type or author.
 	 * 
 	 * @param value
-	 *            the author or the type
+	 *            the author or the type, or NULL to get all the
+	 *            authors-or-types
 	 * @param type
 	 *            TRUE for type, FALSE for author
 	 */
@@ -188,6 +190,7 @@ class LocalReaderFrame extends JFrame {
 				popup.add(createMenuItemOpenBook());
 				popup.addSeparator();
 				popup.add(createMenuItemExport());
+				popup.add(createMenuItemMove());
 				popup.add(createMenuItemClearCache());
 				popup.add(createMenuItemRedownload());
 				popup.addSeparator();
@@ -265,6 +268,7 @@ class LocalReaderFrame extends JFrame {
 
 		file.add(createMenuItemOpenBook());
 		file.add(createMenuItemExport());
+		file.add(createMenuItemMove());
 		file.addSeparator();
 		file.add(imprt);
 		file.add(imprtF);
@@ -525,6 +529,68 @@ class LocalReaderFrame extends JFrame {
 		});
 
 		return refresh;
+	}
+
+	/**
+	 * Create the delete menu item.
+	 * 
+	 * @return the item
+	 */
+	private JMenuItem createMenuItemMove() {
+		JMenu moveTo = new JMenu("Move to...");
+		moveTo.setMnemonic(KeyEvent.VK_M);
+
+		List<String> types = new ArrayList<String>();
+		types.add(null);
+		types.addAll(Instance.getLibrary().getTypes());
+
+		for (String type : types) {
+			JMenuItem item = new JMenuItem(type == null ? "New type..." : type);
+
+			moveTo.add(item);
+			if (type == null) {
+				moveTo.addSeparator();
+			}
+
+			final String ftype = type;
+			item.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					if (selectedBook != null) {
+						String type = ftype;
+						if (type == null) {
+							Object rep = JOptionPane.showInputDialog(
+									LocalReaderFrame.this, "Move to:",
+									"Moving story",
+									JOptionPane.QUESTION_MESSAGE, null, null,
+									selectedBook.getMeta().getSource());
+							if (rep == null) {
+								return;
+							} else {
+								type = rep.toString();
+							}
+						}
+
+						final String ftype = type;
+						outOfUi(null, new Runnable() {
+							public void run() {
+								reader.changeType(selectedBook.getMeta()
+										.getLuid(), ftype);
+
+								selectedBook = null;
+
+								SwingUtilities.invokeLater(new Runnable() {
+									public void run() {
+										setJMenuBar(createMenu());
+									}
+								});
+							}
+						});
+					}
+				}
+			});
+		}
+
+		return moveTo;
 	}
 
 	/**

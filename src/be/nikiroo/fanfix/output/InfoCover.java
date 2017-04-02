@@ -12,7 +12,7 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
 
-class InfoCover {
+public class InfoCover {
 	public static void writeInfo(File targetDir, String targetName,
 			MetaData meta) throws IOException {
 		File info = new File(targetDir, targetName + ".info");
