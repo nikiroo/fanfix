@@ -1,6 +1,7 @@
 # Fanfix
 
 ## Version wip
+- New website supported following a request: e-hentai.org
 - Library: perf improvement when retrieving the stories (cover not loaded when not needed)
 - Library: fix the covers that were not always removed when deleting a story
 - UI: perf improvement when displaying books (cover resized then cached)

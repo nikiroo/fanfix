@@ -62,6 +62,8 @@ public abstract class BasicSupport {
 		E621,
 		/** Furry website with stories */
 		YIFFSTAR,
+		/** Comics and images groups, mostly but not only NSFW */
+		E_HENTAI,
 		/** CBZ files */
 		CBZ,
 		/** HTML files */
@@ -1389,6 +1391,8 @@ public abstract class BasicSupport {
 			return new E621().setType(type);
 		case YIFFSTAR:
 			return new YiffStar().setType(type);
+		case E_HENTAI:
+			return new EHentai().setType(type);
 		case CBZ:
 			return new Cbz().setType(type);
 		case HTML:
@@ -1478,5 +1482,48 @@ public abstract class BasicSupport {
 		}
 
 		return rep;
+	}
+
+	/**
+	 * Return the text between the key and the endKey (and optional subKey can
+	 * be passed, in this case we will look for the key first, then take the
+	 * text between the subKey and the endKey).
+	 * <p>
+	 * Will only match the first line with the given key if more than one are
+	 * possible. Which also means that if the subKey or endKey is not found on
+	 * that line, NULL will be returned.
+	 * 
+	 * @param in
+	 *            the input
+	 * @param key
+	 *            the key to match
+	 * @param subKey
+	 *            the sub key or NULL if none
+	 * @param endKey
+	 *            the end key or NULL for "up to the end"
+	 * @return the text or NULL if not found
+	 */
+	static String getKeyLine(InputStream in, String key, String subKey,
+			String endKey) {
+		String result = null;
+
+		String line = getLine(in, key, 0);
+		if (line != null && line.contains(key)) {
+			line = line.substring(line.indexOf(key) + key.length());
+			if (subKey == null || subKey.isEmpty() || line.contains(subKey)) {
+				if (subKey != null) {
+					line = line.substring(line.indexOf(subKey)
+							+ subKey.length());
+				}
+				if (endKey == null || line.contains(endKey)) {
+					if (endKey != null) {
+						line = line.substring(0, line.indexOf(endKey));
+						result = line;
+					}
+				}
+			}
+		}
+
+		return result;
 	}
 }

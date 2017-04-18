@@ -78,6 +78,8 @@ public enum StringId {
 	INPUT_DESC_MANGAFOX, //
 	@Meta(what = "input format description", where = "SupportType", format = "", info = "Description of this input type")
 	INPUT_DESC_E621, //
+	@Meta(what = "input format description", where = "SupportType", format = "", info = "Description of this input type")
+	INPUT_DESC_E_HENTAI, //
 	@Meta(what = "output format description", where = "OutputType", format = "%s = type", info = "Default description when the type is not known by i18n")
 	OUTPUT_DESC, //
 	@Meta(what = "output format description", where = "OutputType", format = "", info = "Description of this output type")
