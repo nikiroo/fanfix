@@ -9,6 +9,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.MarkableFileInputStream;
 
@@ -56,6 +58,18 @@ public class InfoReader {
 		if (withCover) {
 			meta.setCover(BasicSupport.getImage(null, sourceInfoFile,
 					getInfoTag(in, "COVER")));
+			// Second chance: try to check for a cover next to the info file
+			if (meta.getCover() == null) {
+				String info = sourceInfoFile.getFile().toString();
+				if (info.endsWith(".info")) {
+					info = info.substring(0, info.length() - ".info".length());
+					String ext = "."
+							+ Instance.getConfig().getString(
+									Config.IMAGE_FORMAT_COVER);
+					meta.setCover(BasicSupport.getImage(null, sourceInfoFile,
+							info + ext));
+				}
+			}
 		}
 		try {
 			meta.setWords(Long.parseLong(getInfoTag(in, "WORDCOUNT")));
