@@ -35,15 +35,15 @@ class EHentai extends BasicSupport {
 
 		meta.setTitle(getTitle(reset(in)));
 		meta.setAuthor(getAuthor(reset(in)));
-		meta.setDate("");
+		meta.setDate(getDate(reset(in)));
 		meta.setTags(getTags(reset(in)));
 		meta.setSource(getSourceName());
 		meta.setUrl(source.toString());
 		meta.setPublisher(getSourceName());
 		meta.setUuid(source.toString());
 		meta.setLuid("");
-		meta.setLang("EN");
-		meta.setSubject("Furry");
+		meta.setLang(getLang(reset(in)));
+		meta.setSubject("Hentai");
 		meta.setType(getType().toString());
 		meta.setImageDocument(true);
 		meta.setCover(getCover(source, reset(in)));
@@ -99,6 +99,45 @@ class EHentai extends BasicSupport {
 		}
 
 		return author;
+	}
+
+	private String getLang(InputStream in) {
+		String lang = null;
+
+		String langLine = getKeyLine(in, "class=\"gdt1\">Language",
+				"class=\"gdt2\"", "</td>");
+		if (langLine != null) {
+			langLine = StringUtils.unhtml(langLine).trim();
+			if (langLine.equalsIgnoreCase("English")) {
+				lang = "EN";
+			} else if (langLine.equalsIgnoreCase("Japanese")) {
+				lang = "JP";
+			} else if (langLine.equalsIgnoreCase("French")) {
+				lang = "FR";
+			} else {
+				// TODO find the code?
+				lang = langLine;
+			}
+		}
+
+		return lang;
+	}
+
+	private String getDate(InputStream in) {
+		String date = null;
+
+		String dateLine = getKeyLine(in, "class=\"gdt1\">Posted",
+				"class=\"gdt2\"", "</td>");
+		if (dateLine != null) {
+			dateLine = StringUtils.unhtml(dateLine).trim();
+			if (dateLine.length() > 10) {
+				dateLine = dateLine.substring(0, 10).trim();
+			}
+
+			date = dateLine;
+		}
+
+		return date;
 	}
 
 	private List<String> getTags(InputStream in) {

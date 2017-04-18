@@ -1,5 +1,8 @@
 # Fanfix
 
+## Version WIP
+- fix some meta data that were missing on e-Hentai
+
 ## Version 1.5.0
 - New website supported following a request: e-hentai.org
 - Library: perf improvement when retrieving the stories (cover not loaded when not needed)
