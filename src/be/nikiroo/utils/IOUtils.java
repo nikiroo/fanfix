@@ -202,20 +202,15 @@ public class IOUtils {
 	 *            the target to delete
 	 */
 	public static void deltree(File target) {
-		for (File file : target.listFiles()) {
-			if (file.isDirectory()) {
+		File[] files = target.listFiles();
+		if (files != null) {
+			for (File file : files) {
 				deltree(file);
-			} else {
-				if (!file.delete()) {
-					System.err.println("Cannot delete file: "
-							+ file.getAbsolutePath());
-				}
 			}
 		}
 
 		if (!target.delete()) {
-			System.err.println("Cannot delete file: "
-					+ target.getAbsolutePath());
+			System.err.println("Cannot delete: " + target.getAbsolutePath());
 		}
 	}
 

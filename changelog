@@ -1,3 +1,12 @@
+Version 1.4.2
+-------------
+
+Bugfix: Deltree
+	Deltree was not OK for files...
+
+Bugfix: unhtml
+	Also replace non-breakable spaces by normal spaces
+
 Version 1.4.1
 -------------
 

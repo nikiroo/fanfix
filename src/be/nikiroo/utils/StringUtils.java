@@ -325,7 +325,9 @@ public class StringUtils {
 			}
 		}
 
-		return HtmlEscape.unescapeHtml(builder.toString());
+		char nbsp = ' '; // non-breakable space (a special char)
+		char space = ' ';
+		return HtmlEscape.unescapeHtml(builder.toString()).replace(nbsp, space);
 	}
 
 	/**
