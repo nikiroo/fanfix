@@ -1496,7 +1496,8 @@ public abstract class BasicSupport {
 	 * @param in
 	 *            the input
 	 * @param key
-	 *            the key to match
+	 *            the key to match (also supports "^" at start to say
+	 *            "only if it starts with" the key)
 	 * @param subKey
 	 *            the sub key or NULL if none
 	 * @param endKey
