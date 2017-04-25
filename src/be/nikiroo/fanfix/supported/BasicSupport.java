@@ -593,7 +593,8 @@ public abstract class BasicSupport {
 	protected Chapter makeChapter(URL source, int number, String name,
 			String content, Progress pg) throws IOException {
 		// Chapter name: process it correctly, then remove the possible
-		// redundant "Chapter x: " in front of it
+		// redundant "Chapter x: " in front of it, or "-" (as in
+		// "Chapter 5: - Fun!" after the ": " was automatically added)
 		String chapterName = processPara(name).getContent().trim();
 		for (String lang : Instance.getConfig().getString(Config.CHAPTER)
 				.split(",")) {
@@ -611,7 +612,7 @@ public abstract class BasicSupport {
 					Integer.toString(number).length()).trim();
 		}
 
-		if (chapterName.startsWith(":")) {
+		while (chapterName.startsWith(":") || chapterName.startsWith("-")) {
 			chapterName = chapterName.substring(1).trim();
 		}
 		//
