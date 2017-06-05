@@ -156,12 +156,12 @@ class Fimfiction extends BasicSupport {
 	@Override
 	protected String getDesc(URL source, InputStream in) {
 		// the og: meta version is the SHORT resume, this is the LONG resume
-		return getLine(in, "class=\"more_button hidden\"", -1);
+		return getLine(in, "class=\"description-text bbcode\"", 1);
 	}
 
 	private BufferedImage getCover(InputStream in) {
 		// Note: the 'og:image' is the SMALL cover, not the full version
-		String cover = getLine(in, "<div class=\"story_image\">", 1);
+		String cover = getLine(in, "class=\"story_container__story_image\"", 1);
 		if (cover != null) {
 			int pos = cover.indexOf('"');
 			if (pos >= 0) {
@@ -183,49 +183,58 @@ class Fimfiction extends BasicSupport {
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
 		scan.useDelimiter("\\n");
+		boolean started = false;
 		while (scan.hasNext()) {
-			String line = scan.next();
-			if (line.contains("class=\"chapter_link\"")
-					|| line.contains("class='chapter_link'")) {
-				// Chapter name
-				String name = line;
-				int pos = name.indexOf('>');
-				if (pos >= 0) {
-					name = name.substring(pos + 1);
-					pos = name.indexOf('<');
-					if (pos >= 0) {
-						name = name.substring(0, pos);
-					}
-				}
-				// Chapter content
-				pos = line.indexOf('/');
-				if (pos >= 0) {
-					line = line.substring(pos); // we take the /, not +1
-					pos = line.indexOf('"');
-					if (pos >= 0) {
-						line = line.substring(0, pos);
-					}
+			String line = scan.next().trim();
+
+			if (!started) {
+				started = line.equals("<!--Chapters-->");
+			} else {
+				if (line.equals("</form>")) {
+					break;
 				}
 
-				try {
-					final String key = name;
-					final URL value = new URL("http://www.fimfiction.net"
-							+ line);
-					urls.add(new Entry<String, URL>() {
-						public URL setValue(URL value) {
-							return null;
+				if (line.startsWith("<a href=")) {
+					// Chapter name
+					String name = line;
+					int pos = name.indexOf('>');
+					if (pos >= 0) {
+						name = name.substring(pos + 1);
+						pos = name.indexOf('<');
+						if (pos >= 0) {
+							name = name.substring(0, pos);
 						}
+					}
+					// Chapter content
+					pos = line.indexOf('/');
+					if (pos >= 0) {
+						line = line.substring(pos); // we take the /, not +1
+						pos = line.indexOf('"');
+						if (pos >= 0) {
+							line = line.substring(0, pos);
+						}
+					}
 
-						public String getKey() {
-							return key;
-						}
+					try {
+						final String key = name;
+						final URL value = new URL("http://www.fimfiction.net"
+								+ line);
+						urls.add(new Entry<String, URL>() {
+							public URL setValue(URL value) {
+								return null;
+							}
 
-						public URL getValue() {
-							return value;
-						}
-					});
-				} catch (MalformedURLException e) {
-					Instance.syserr(e);
+							public String getKey() {
+								return key;
+							}
+
+							public URL getValue() {
+								return value;
+							}
+						});
+					} catch (MalformedURLException e) {
+						Instance.syserr(e);
+					}
 				}
 			}
 		}
@@ -236,7 +245,7 @@ class Fimfiction extends BasicSupport {
 	@Override
 	protected String getChapterContent(URL source, InputStream in, int number,
 			Progress pg) {
-		return getLine(in, "<div id=\"chapter_container\">", 1);
+		return getLine(in, "<div class=\"bbcode\">", 1);
 	}
 
 	@Override

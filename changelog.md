@@ -1,6 +1,7 @@
 # Fanfix
 
-## Version WIP
+## Version 1.5.1
+- Update to FimFiction 4
 - fix some meta data that were missing on e-Hentai
 
 ## Version 1.5.0
