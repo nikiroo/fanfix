@@ -70,21 +70,25 @@ class Fimfiction extends BasicSupport {
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
 		scan.useDelimiter("\\n");
+		boolean started = false;
 		while (scan.hasNext()) {
 			String line = scan.next();
-			if (line.contains("story_category") && !line.contains("title=")) {
-				int pos = line.indexOf('>');
-				if (pos >= 0) {
-					line = line.substring(pos + 1);
-					pos = line.indexOf('<');
-					if (pos >= 0) {
-						line = line.substring(0, pos);
-					}
+
+			if (!started) {
+				started = line.contains("\"story_container\"");
+			}
+
+			if (started && line.contains("class=\"tag-")) {
+				if (line.contains("index.php")) {
+					break; // end of *this story* tags
 				}
 
-				line = line.trim();
-				if (!tags.contains(line)) {
-					tags.add(line);
+				String tab[] = line.split("<li>");
+				for (String subline : tab) {
+					subline = StringUtils.unhtml(subline).trim();
+					if (!subline.isEmpty() && !tags.contains(subline)) {
+						tags.add(subline);
+					}
 				}
 			}
 		}

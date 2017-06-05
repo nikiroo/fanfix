@@ -1,8 +1,11 @@
 # Fanfix
 
+## Version 1.5.2
+- Fix tags metadata on FimFiction 4
+
 ## Version 1.5.1
 - Update to FimFiction 4
-- fix some meta data that were missing on e-Hentai
+- Fix some meta data that were missing on e-Hentai
 
 ## Version 1.5.0
 - New website supported following a request: e-hentai.org
