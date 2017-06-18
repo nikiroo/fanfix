@@ -430,8 +430,8 @@ public class Library {
 	 * 
 	 * @param luid
 	 *            the {@link Story} LUID
-	 * @param newSourcethe
-	 *            new source
+	 * @param newType
+	 *            the new type
 	 * 
 	 * @return TRUE if the {@link Story} was found
 	 */

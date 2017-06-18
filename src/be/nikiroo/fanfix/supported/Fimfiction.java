@@ -83,13 +83,23 @@ class Fimfiction extends BasicSupport {
 					break; // end of *this story* tags
 				}
 
-				String tab[] = line.split("<li>");
-				for (String subline : tab) {
-					subline = StringUtils.unhtml(subline).trim();
-					if (!subline.isEmpty() && !tags.contains(subline)) {
-						tags.add(subline);
+				String keyword = "title=\"";
+				Scanner tagScanner = new Scanner(line);
+				tagScanner.useDelimiter(keyword);
+				if (tagScanner.hasNext()) {
+					tagScanner.next();// Ignore first one
+				}
+				while (tagScanner.hasNext()) {
+					String tag = tagScanner.next();
+					if (tag.contains("\"")) {
+						tag = tag.split("\"")[0];
+						tag = StringUtils.unhtml(tag).trim();
+						if (!tag.isEmpty() && !tags.contains(tag)) {
+							tags.add(tag);
+						}
 					}
 				}
+				tagScanner.close();
 			}
 		}
 
@@ -198,7 +208,8 @@ class Fimfiction extends BasicSupport {
 					break;
 				}
 
-				if (line.startsWith("<a href=")) {
+				if (line.startsWith("<a href=")
+						|| line.contains("class=\"chapter-title\"")) {
 					// Chapter name
 					String name = line;
 					int pos = name.indexOf('>');

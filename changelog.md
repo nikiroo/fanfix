@@ -1,5 +1,8 @@
 # Fanfix
 
+## Version 1.5.3
+- FimFiction: Fix tags and chapter handling for some stories
+
 ## Version 1.5.2
 - Fix tags metadata on FimFiction 4
 
