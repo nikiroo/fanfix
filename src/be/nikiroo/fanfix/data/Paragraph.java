@@ -33,11 +33,8 @@ public class Paragraph {
 	/**
 	 * Create a new {@link Paragraph} with the given image.
 	 * 
-	 * @param support
-	 *            the support that will be used to fetch the image via
-	 *            {@link Paragraph#getContentImage()}.
-	 * @param content
-	 *            the content image of this paragraph
+	 * @param imageUrl
+	 *            the image as an URL
 	 */
 	public Paragraph(URL imageUrl) {
 		this(ParagraphType.IMAGE, imageUrl.toString(), 0);

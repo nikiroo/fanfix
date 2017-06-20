@@ -11,6 +11,9 @@ import be.nikiroo.utils.resources.Bundle;
  * @author niki
  */
 public class ConfigBundle extends Bundle<Config> {
+	/**
+	 * Create a new {@link ConfigBundle}.
+	 */
 	public ConfigBundle() {
 		super(Config.class, Target.config);
 	}

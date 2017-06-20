@@ -106,7 +106,8 @@ public abstract class BasicSupport {
 		}
 
 		/**
-		 * Call {@link SupportType#valueOf(String.toUpperCase())}.
+		 * Call {@link SupportType#valueOf(String)} after conversion to upper
+		 * case.
 		 * 
 		 * @param typeName
 		 *            the possible type name
@@ -119,8 +120,8 @@ public abstract class BasicSupport {
 		}
 
 		/**
-		 * Call {@link SupportType#valueOf(String.toUpperCase())} but return
-		 * NULL for NULL instead of raising exception.
+		 * Call {@link SupportType#valueOf(String)} after conversion to upper
+		 * case but return NULL for NULL instead of raising exception.
 		 * 
 		 * @param typeName
 		 *            the possible type name
@@ -136,8 +137,9 @@ public abstract class BasicSupport {
 		}
 
 		/**
-		 * Call {@link SupportType#valueOf(String.toUpperCase())} but return
-		 * NULL in case of error instead of raising an exception.
+		 * Call {@link SupportType#valueOf(String)} after conversion to upper
+		 * case but return NULL in case of error instead of raising an
+		 * exception.
 		 * 
 		 * @param typeName
 		 *            the possible type name
@@ -192,6 +194,19 @@ public abstract class BasicSupport {
 	 */
 	protected abstract boolean isHtml();
 
+	/**
+	 * Return the {@link MetaData} of this story.
+	 * 
+	 * @param source
+	 *            the source of the story
+	 * @param in
+	 *            the input (the main resource)
+	 * 
+	 * @return the associated {@link MetaData}
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
 	protected abstract MetaData getMeta(URL source, InputStream in)
 			throws IOException;
 
@@ -313,9 +328,10 @@ public abstract class BasicSupport {
 	 * 
 	 * @param url
 	 *            the story resource
-	 * 
 	 * @param close
 	 *            close "this" and "in" when done
+	 * @param getDesc
+	 *            retrieve the description of the story, or not
 	 * @param pg
 	 *            the optional progress reporter
 	 * 
@@ -576,6 +592,8 @@ public abstract class BasicSupport {
 	 * Create a {@link Chapter} object from the given information, formatting
 	 * the content as it should be.
 	 * 
+	 * @param source
+	 *            the source of the story
 	 * @param number
 	 *            the chapter number
 	 * @param name

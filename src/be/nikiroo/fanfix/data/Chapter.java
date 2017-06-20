@@ -79,7 +79,7 @@ public class Chapter implements Iterable<Paragraph> {
 	/**
 	 * The included paragraphs.
 	 * 
-	 * @param paragraphes
+	 * @param paragraphs
 	 *            the paragraphs to set
 	 */
 	public void setParagraphs(List<Paragraph> paragraphs) {

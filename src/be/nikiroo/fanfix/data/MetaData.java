@@ -235,7 +235,7 @@ public class MetaData implements Cloneable, Comparable<MetaData> {
 	/**
 	 * A unique value representing the story in the local library.
 	 * 
-	 * @param uuid
+	 * @param luid
 	 *            the luid to set
 	 */
 	public void setLuid(String luid) {

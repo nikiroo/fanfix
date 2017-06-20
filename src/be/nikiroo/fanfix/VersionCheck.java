@@ -12,6 +12,12 @@ import java.util.Map;
 
 import be.nikiroo.utils.Version;
 
+/**
+ * Version checker: can check the current version of the program against a
+ * remote changelog, and list the missed updates and their description.
+ * 
+ * @author niki
+ */
 public class VersionCheck {
 	private static final String url = "https://github.com/nikiroo/fanfix/raw/master/changelog.md";
 

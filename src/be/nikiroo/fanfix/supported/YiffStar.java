@@ -265,6 +265,7 @@ class YiffStar extends BasicSupport {
 	 * @return the {@link URL}
 	 * 
 	 * @throws MalformedURLException
+	 *             in case of data error
 	 */
 	private URL guest(String link) throws MalformedURLException {
 		if (link.contains("?")) {

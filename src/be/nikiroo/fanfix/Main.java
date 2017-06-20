@@ -323,7 +323,7 @@ public class Main {
 	 * List the stories of the given type from the {@link Library} (unless NULL
 	 * is passed, in which case all stories will be listed).
 	 * 
-	 * @param typeString
+	 * @param type
 	 *            the type to list the known stories of, or NULL to list all
 	 *            stories
 	 * 

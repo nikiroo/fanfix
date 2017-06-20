@@ -94,7 +94,8 @@ public abstract class BasicOutput {
 		}
 
 		/**
-		 * Call {@link OutputType#valueOf(String.toUpperCase())}.
+		 * Call {@link OutputType#valueOf(String)} after conversion to upper
+		 * case.
 		 * 
 		 * @param typeName
 		 *            the possible type name
@@ -107,8 +108,9 @@ public abstract class BasicOutput {
 		}
 
 		/**
-		 * Call {@link OutputType#valueOf(String.toUpperCase())} but return NULL
-		 * for NULL and empty instead of raising an exception.
+		 * Call {@link OutputType#valueOf(String)} after conversion to upper
+		 * case but return NULL for NULL and empty instead of raising an
+		 * exception.
 		 * 
 		 * @param typeName
 		 *            the possible type name
@@ -124,8 +126,9 @@ public abstract class BasicOutput {
 		}
 
 		/**
-		 * Call {@link OutputType#valueOf(String.toUpperCase())} but return NULL
-		 * in case of error instead of raising an exception.
+		 * Call {@link OutputType#valueOf(String)} after conversion to upper
+		 * case but return NULL in case of error instead of raising an
+		 * exception.
 		 * 
 		 * @param typeName
 		 *            the possible type name
@@ -238,9 +241,10 @@ public abstract class BasicOutput {
 	 * 
 	 * @param type
 	 *            the new type
-	 * @param infoCover
-	 *            TRUE to enable the creation of a .info file and a cover if
-	 *            possible
+	 * @param writeInfo
+	 *            TRUE to enable the creation of a .info file
+	 * @param writeCover
+	 *            TRUE to enable the creation of a cover if possible
 	 * 
 	 * @return this
 	 */

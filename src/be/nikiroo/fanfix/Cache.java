@@ -14,7 +14,6 @@ import java.net.CookiePolicy;
 import java.net.CookieStore;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -303,17 +302,13 @@ public class Cache {
 	}
 
 	/**
-	 * Open a resource (will load it from the cache if possible, or save it into
-	 * the cache after downloading if not) as an Image, then save it where
-	 * requested.
-	 * <p>
-	 * This version will not always work properly if the original file was not
-	 * downloaded before.
+	 * Save the given resource as an image on disk using the default image
+	 * format for content.
 	 * 
 	 * @param url
-	 *            the resource to open
-	 * 
-	 * @return the opened resource image
+	 *            the resource
+	 * @param target
+	 *            the target file
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -357,7 +352,7 @@ public class Cache {
 	 * 
 	 * @param uniqueID
 	 *            the unique ID
-	 *
+	 * 
 	 * @return the content or NULL
 	 */
 	public InputStream getFromCache(String uniqueID) {
@@ -428,7 +423,6 @@ public class Cache {
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
-	 * @throws URISyntaxException
 	 */
 	private void save(URL url, BasicSupport support, URL originalUrl)
 			throws IOException {
@@ -518,6 +512,7 @@ public class Cache {
 	 * 
 	 * @param url
 	 *            the url
+	 * 
 	 * @return the cached version if present, NULL if not
 	 */
 	private File getCached(URL url) {
@@ -535,8 +530,9 @@ public class Cache {
 	 * Get the cache resource from the cache if it is present for this unique
 	 * ID.
 	 * 
-	 * @param url
-	 *            the url
+	 * @param uniqueID
+	 *            the id
+	 * 
 	 * @return the cached version if present, NULL if not
 	 */
 	private File getCached(String uniqueID) {
