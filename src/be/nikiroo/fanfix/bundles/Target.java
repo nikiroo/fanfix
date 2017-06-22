@@ -18,4 +18,6 @@ public enum Target {
 	resources,
 	/** UI resources (from colours to behaviour) */
 	ui,
+	/** Description of UI resources. */
+	ui_description,
 }

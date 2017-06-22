@@ -1,53 +1,58 @@
 package be.nikiroo.fanfix.bundles;
 
 import be.nikiroo.utils.resources.Meta;
+import be.nikiroo.utils.resources.Meta.Format;
 
 /**
  * The configuration options.
  * 
  * @author niki
  */
+@SuppressWarnings("javadoc")
 public enum Config {
-	@Meta(what = "language (example: en-GB, fr-BE...) or nothing for default system language", where = "", format = "Locale|''", info = "Force the language (can be overwritten again with the env variable $LANG)")
+	@Meta(description = "language (example: en-GB, fr-BE...) or nothing for default system language", format = Format.LOCALE, info = "Force the language (can be overwritten again with the env variable $LANG)")
 	LANG, //
-	@Meta(what = "reader type (CLI = simple output to console, LOCAL = use local system file handler)", where = "", format = "'CLI'|'LOCAL'", info = "Select the default reader to use to read stories")
+	@Meta(description = "reader type (CLI = simple output to console, LOCAL = use local system file handler)", format = Format.FIXED_LIST, list = {
+			"CLI", "LOCAL" }, info = "Select the default reader to use to read stories")
 	READER_TYPE, //
-	@Meta(what = "absolute path, $HOME variable supported, / is always accepted as dir separator", where = "", format = "Directory", info = "The directory where to store temporary files, defaults to directory 'tmp' in the conig directory (usually $HOME/.fanfix)")
+	@Meta(description = "absolute path, $HOME variable supported, / is always accepted as dir separator", format = Format.DIRECTORY, info = "The directory where to store temporary files, defaults to directory 'tmp' in the conig directory (usually $HOME/.fanfix)")
 	CACHE_DIR, //
-	@Meta(what = "delay in hours, or 0 for no cache, or -1 for infinite time (default)", where = "", format = "int", info = "The delay after which a cached resource that is thought to change ~often is considered too old and triggers a refresh")
+	@Meta(description = "delay in hours, or 0 for no cache, or -1 for infinite time (default)", format = Format.INT, info = "The delay after which a cached resource that is thought to change ~often is considered too old and triggers a refresh")
 	CACHE_MAX_TIME_CHANGING, //
-	@Meta(what = "delay in hours, or 0 for no cache, or -1 for infinite time (default)", where = "", format = "int", info = "The delay after which a cached resource that is thought to change rarely is considered too old and triggers a refresh")
+	@Meta(description = "delay in hours, or 0 for no cache, or -1 for infinite time (default)", format = Format.INT, info = "The delay after which a cached resource that is thought to change rarely is considered too old and triggers a refresh")
 	CACHE_MAX_TIME_STABLE, //
-	@Meta(what = "string", where = "", format = "String", info = "The user-agent to use to download files")
+	@Meta(description = "string", info = "The user-agent to use to download files")
 	USER_AGENT, //
-	@Meta(what = "absolute path, $HOME variable supported, / is always accepted as dir separator", where = "", format = "Directory", info = "The directory where to get the default story covers")
+	@Meta(description = "absolute path, $HOME variable supported, / is always accepted as dir separator", format = Format.DIRECTORY, info = "The directory where to get the default story covers")
 	DEFAULT_COVERS_DIR, //
-	@Meta(what = "absolute path, $HOME variable supported, / is always accepted as dir separator", where = "", format = "Directory", info = "The directory where to store the library")
+	@Meta(description = "absolute path, $HOME variable supported, / is always accepted as dir separator", format = Format.DIRECTORY, info = "The directory where to store the library")
 	LIBRARY_DIR, //
-	@Meta(what = "boolean", where = "", format = "'true'|'false'", info = "Show debug information on errors")
+	@Meta(description = "boolean", format = Format.BOOLEAN, info = "Show debug information on errors")
 	DEBUG_ERR, //
-	@Meta(what = "image format", where = "", format = "'PNG'|JPG'|'BMP'", info = "Image format to use for cover images")
+	@Meta(description = "image format", format = Format.COMBO_LIST, list = {
+			"PNG", "JPG", "BMP" }, info = "Image format to use for cover images")
 	IMAGE_FORMAT_COVER, //
-	@Meta(what = "image format", where = "", format = "'PNG'|JPG'|'BMP'", info = "Image format to use for content images")
+	@Meta(description = "image format", format = Format.COMBO_LIST, list = {
+			"PNG", "JPG", "BMP" }, info = "Image format to use for content images")
 	IMAGE_FORMAT_CONTENT, //
-	// This key is only present to allow access to suffixes, so no Meta
+	@Meta(group = true)
 	LATEX_LANG, //
-	@Meta(what = "LaTeX output language", where = "LaTeX", format = "String", info = "LaTeX full name for English")
+	@Meta(description = "LaTeX output language: English", info = "LaTeX full name")
 	LATEX_LANG_EN, //
-	@Meta(what = "LaTeX output language", where = "LaTeX", format = "String", info = "LaTeX full name for French")
+	@Meta(description = "LaTeX output language: French", info = "LaTeX full name")
 	LATEX_LANG_FR, //
-	@Meta(what = "other 'by' prefixes before author name", where = "", format = "comma-separated list|String", info = "used to identify the author")
+	@Meta(description = "other 'by' prefixes before author name, used to identify the author", array = true)
 	BYS, //
-	@Meta(what = "Chapter identification languages", where = "", format = "comma-separated list|String", info = "used to identify a starting chapter in text mode")
+	@Meta(description = "List of languages codes used for chapter identification (should not be changed)", array = true, info = "EN,FR")
 	CHAPTER, //
-	@Meta(what = "Chapter identification string", where = "String", format = "", info = "used to identify a starting chapter in text mode")
+	@Meta(description = "Chapter identification String: English", info = "used to identify a starting chapter in text mode")
 	CHAPTER_EN, //
-	@Meta(what = "Chapter identification string", where = "String", format = "", info = "used to identify a starting chapter in text mode")
+	@Meta(description = "Chapter identification String: French", info = "used to identify a starting chapter in text mode")
 	CHAPTER_FR, //
-	@Meta(what = "Login information", where = "", format = "String", info = "used to login on YiffStar to have access to all the stories (should not be necessary anymore)")
+	@Meta(description = "Login information (username) for YiffStar to have access to all the stories (should not be necessary anymore)")
 	LOGIN_YIFFSTAR_USER, //
-	@Meta(what = "Login information", where = "", format = "Password", info = "used to login on YiffStar to have access to all the stories (should not be necessary anymore)")
+	@Meta(description = "Login information (password) for YiffStar to have access to all the stories (should not be necessary anymore)", format = Format.PASSWORD)
 	LOGIN_YIFFSTAR_PASS, //
-	@Meta(what = "Minimum time between version update checks in days, or -1 for 'no checks' -- default is 1 day", where = "VersionCheck", format = "int", info = "If the last update check was done at least that many days, check for updates at startup")
+	@Meta(description = "If the last update check was done at least that many days, check for updates at startup (-1 for 'no checks' -- default is 1 day)", format = Format.INT)
 	UPDATE_INTERVAL,
 }
