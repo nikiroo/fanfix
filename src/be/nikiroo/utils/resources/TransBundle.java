@@ -17,6 +17,9 @@ import java.util.regex.Pattern;
  * <li>DUMMY will return "[DUMMY]" (maybe with a suffix and/or "NOUTF")</li>
  * </ul>
  * 
+ * @param <E>
+ *            the enum to use to get values out of this class
+ * 
  * @author niki
  */
 public class TransBundle<E extends Enum<E>> extends Bundle<E> {
@@ -33,7 +36,7 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 	 *            the name of the {@link Bundles}
 	 */
 	public TransBundle(Class<E> type, Enum<?> name) {
-		super(type, name);
+		super(type, name, null);
 		setLanguage(null);
 	}
 
@@ -49,7 +52,7 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 	 *            the language to use
 	 */
 	public TransBundle(Class<E> type, Enum<?> name, String language) {
-		super(type, name);
+		super(type, name, null);
 		setLanguage(language);
 	}
 
@@ -156,7 +159,7 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 	 * @return the known language codes
 	 */
 	public List<String> getKnownLanguages() {
-		return getKnownLanguages(name);
+		return getKnownLanguages(keyType);
 	}
 
 	/**
@@ -169,12 +172,12 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 	private void setLanguage(String language) {
 		defaultLocale = (language == null || language.length() == 0);
 		locale = getLocaleFor(language);
-		setBundle(name, locale, false);
+		setBundle(keyType, locale, false);
 	}
 
 	@Override
 	public void reload(boolean resetToDefault) {
-		setBundle(name, locale, resetToDefault);
+		setBundle(keyType, locale, resetToDefault);
 	}
 
 	@Override
@@ -224,10 +227,10 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 		String code = locale.toString();
 		File file = null;
 		if (!defaultLocale && code.length() > 0) {
-			file = new File(path, name.name() + "_" + code + ".properties");
+			file = new File(path, keyType.name() + "_" + code + ".properties");
 		} else {
 			// Default properties file:
-			file = new File(path, name.name() + ".properties");
+			file = new File(path, keyType.name() + ".properties");
 		}
 
 		return file;

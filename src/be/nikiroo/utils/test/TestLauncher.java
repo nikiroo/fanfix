@@ -278,8 +278,8 @@ public class TestLauncher {
 	 * 
 	 * @param depth
 	 *            the level at which is the launcher (0 = main launcher)
-	 * @param test
-	 *            the {@link TestCase}
+	 * @param name
+	 *            the {@link TestCase} name
 	 */
 	protected void print(int depth, String name) {
 		name = prefix(depth, false)

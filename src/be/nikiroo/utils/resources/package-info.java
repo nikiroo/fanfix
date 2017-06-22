@@ -1,6 +1,6 @@
 /**
  * This package encloses the classes needed to use 
- * {@link be.nikiroo.utils.resources.bundles.Bundle}s
+ * {@link be.nikiroo.utils.resources.Bundle}s
  * <p>
  * Those are basically a <tt>.properties</tt> resource linked to an enumeration
  * listing all the fields you can use. The classes can also be used to update

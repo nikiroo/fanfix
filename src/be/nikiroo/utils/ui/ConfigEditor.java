@@ -15,6 +15,7 @@ import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
 import be.nikiroo.utils.resources.Bundle;
+import be.nikiroo.utils.resources.TransBundle;
 
 /**
  * A configuration panel for a {@link Bundle}.
@@ -24,7 +25,7 @@ import be.nikiroo.utils.resources.Bundle;
  * values.
  * 
  * @author niki
- *
+ * 
  * @param <E>
  *            the type of {@link Bundle} to edit
  */

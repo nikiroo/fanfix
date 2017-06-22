@@ -113,8 +113,8 @@ abstract public class TestCase {
 	/**
 	 * Check that 2 {@link Object}s are equals.
 	 * 
-	 * @param the
-	 *            error message to display if they differ
+	 * @param errorMessage
+	 *            the error message to display if they differ
 	 * @param expected
 	 *            the expected value
 	 * @param actual
@@ -155,8 +155,8 @@ abstract public class TestCase {
 	/**
 	 * Check that 2 {@link Object}s are equals.
 	 * 
-	 * @param the
-	 *            error message to display if they differ
+	 * @param errorMessage
+	 *            the error message to display if they differ
 	 * @param expected
 	 *            the expected value
 	 * @param actual
@@ -189,8 +189,8 @@ abstract public class TestCase {
 	/**
 	 * Check that 2 {@link Object}s are equals.
 	 * 
-	 * @param the
-	 *            error message to display if they differ
+	 * @param errorMessage
+	 *            the error message to display if they differ
 	 * @param expected
 	 *            the expected value
 	 * @param actual
@@ -223,8 +223,8 @@ abstract public class TestCase {
 	/**
 	 * Check that 2 {@link Object}s are equals.
 	 * 
-	 * @param the
-	 *            error message to display if they differ
+	 * @param errorMessage
+	 *            the error message to display if they differ
 	 * @param expected
 	 *            the expected value
 	 * @param actual
@@ -241,8 +241,8 @@ abstract public class TestCase {
 	/**
 	 * Check that given {@link Object} is not NULL.
 	 * 
-	 * @param the
-	 *            error message to display if it is NULL
+	 * @param errorMessage
+	 *            the error message to display if it is NULL
 	 * @param actual
 	 *            the actual value
 	 * 

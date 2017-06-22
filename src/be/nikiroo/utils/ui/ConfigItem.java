@@ -11,30 +11,50 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 import be.nikiroo.utils.resources.Bundle;
+import be.nikiroo.utils.resources.Meta;
 
 /**
  * A graphical item that reflect a configuration option from the given
  * {@link Bundle}.
  * 
  * @author niki
- *
+ * 
  * @param <E>
  *            the type of {@link Bundle} to edit
  */
 public class ConfigItem<E extends Enum<E>> extends JPanel {
 	private static final long serialVersionUID = 1L;
+	private Class<E> type;
 	private final Bundle<E> bundle;
 	private final E id;
+
+	private Meta meta;
 	private String value;
 
 	private JTextField valueField;
 
 	public ConfigItem(Class<E> type, Bundle<E> bundle, E id) {
+		this.type = type;
 		this.bundle = bundle;
 		this.id = id;
 
+		try {
+			this.meta = type.getDeclaredField(id.name()).getAnnotation(
+					Meta.class);
+		} catch (NoSuchFieldException e) {
+		} catch (SecurityException e) {
+		}
+
 		this.setLayout(new BorderLayout());
 		this.setBorder(new EmptyBorder(2, 10, 2, 10));
+
+		String tooltip = null;
+		if (bundle.getDescriptionBundle() != null) {
+			tooltip = bundle.getDescriptionBundle().getString(id);
+			if (tooltip.trim().isEmpty()) {
+				tooltip = null;
+			}
+		}
 
 		String name = id.toString();
 		if (name.length() > 1) {
@@ -43,6 +63,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 		}
 
 		JLabel nameLabel = new JLabel(name);
+		nameLabel.setToolTipText(tooltip);
 		nameLabel.setPreferredSize(new Dimension(400, 0));
 		this.add(nameLabel, BorderLayout.WEST);
 
@@ -73,6 +94,8 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	 * Create a list of {@link ConfigItem}, one for each of the item in the
 	 * given {@link Bundle}.
 	 * 
+	 * @param <E>
+	 *            the type of {@link Bundle} to edit
 	 * @param type
 	 *            a class instance of the item type to work on
 	 * @param bundle

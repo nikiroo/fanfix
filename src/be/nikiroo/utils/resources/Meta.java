@@ -15,32 +15,95 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface Meta {
 	/**
-	 * What kind of item this key represent (a Key, a Label text, a format to
-	 * use for something else...).
+	 * The format of an item (the values it is expected to be of).
+	 * <p>
+	 * Note that the INI file can contain arbitrary data, but it is expected to
+	 * be valid.
+	 * 
+	 * @author niki
+	 */
+	public enum Format {
+		/** An integer value, can be negative. */
+		INT,
+		/** true or false. */
+		BOOLEAN,
+		/** Any text String. */
+		STRING,
+		/** A password field. */
+		PASSWORD,
+		/** A colour (either by name or #rrggbb or #aarrggbb). */
+		COLOR,
+		/** A locale code (e.g., fr-BE, en-GB, es...). */
+		LOCALE,
+		/** A path to a file. */
+		FILE,
+		/** A path to a directory. */
+		DIRECTORY,
+		/** A fixed list of values (see {@link Meta#list()} for the values). */
+		FIXED_LIST,
+		/**
+		 * A fixed list of values (see {@link Meta#list()} for the values) OR a
+		 * custom String value (basically, a {@link Format#FIXED_LIST} with an
+		 * option to enter a not accounted for value).
+		 */
+		COMBO_LIST
+	}
+
+	/**
+	 * A description of this item.
 	 * 
 	 * @return what it is
 	 */
-	String what();
+	String description() default "";
 
 	/**
-	 * Where in the application will this key appear (in the action keys, in a
-	 * menu, in a message...).
+	 * This item is only used as a group, not as an option.
+	 * <p>
+	 * For instance, you could have LANGUAGE_CODE as a group for which you won't
+	 * use the value in the program, and LANGUAGE_CODE_FR, LANGUAGE_CODE_EN
+	 * inside for which the value must be set.
 	 * 
-	 * @return where it is
+	 * @return the group
 	 */
-	String where();
+	boolean group() default false;
 
 	/**
 	 * What format should/must this key be in.
 	 * 
 	 * @return the format it is in
 	 */
-	String format();
+	Format format() default Format.STRING;
 
 	/**
-	 * Free info text to help translate.
+	 * The list of fixed values this item can be (either for
+	 * {@link Format#FIXED_LIST} or {@link Format#COMBO_LIST}).
+	 * 
+	 * @return the list of values
+	 */
+	String[] list() default {};
+
+	/**
+	 * This item can be left unspecified.
+	 * 
+	 * @return TRUE if it can
+	 */
+	boolean nullable() default true;
+
+	/**
+	 * This item is a comma-separated list of values instead of a single value.
+	 * 
+	 * @return TRUE if it is
+	 */
+	boolean array() default false;
+
+	/**
+	 * An addition to the format.
+	 * <p>
+	 * Free info text to help translate, for instance the parameters order and
+	 * type for String translations (i.e., %s = input file name, %d = file size
+	 * in MB).
 	 * 
 	 * @return some info
 	 */
-	String info();
+	String info() default "";
 }

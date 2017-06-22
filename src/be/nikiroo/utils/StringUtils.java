@@ -4,6 +4,7 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,7 +15,9 @@ import java.text.Normalizer.Form;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Scanner;
 import java.util.regex.Pattern;
+import java.util.zip.ZipInputStream;
 
 import javax.imageio.ImageIO;
 
@@ -186,15 +189,15 @@ public class StringUtils {
 	 * Convert between time as a {@link String} to milliseconds in a "static"
 	 * way (to exchange data over the wire, for instance).
 	 * 
-	 * @param time
+	 * @param displayTime
 	 *            the time as a {@link String}
 	 * 
 	 * @return the time in milliseconds
 	 */
-	static public long toTime(String display) {
+	static public long toTime(String displayTime) {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
-			return sdf.parse(display).getTime();
+			return sdf.parse(displayTime).getTime();
 		} catch (ParseException e) {
 			return -1;
 		}
@@ -227,11 +230,11 @@ public class StringUtils {
 	}
 
 	/**
-	 * Convert the given {@link File} image into a Base64 representation of the
-	 * same {@link File}.
+	 * Convert the given image into a Base64 representation of the same
+	 * {@link File}.
 	 * 
-	 * @param file
-	 *            the {@link File} image to convert
+	 * @param in
+	 *            the image to convert
 	 * 
 	 * @return the Base64 representation
 	 * 
@@ -365,5 +368,27 @@ public class StringUtils {
 		return HtmlEscape.escapeHtml(input,
 				HtmlEscapeType.HTML4_NAMED_REFERENCES_DEFAULT_TO_HEXA,
 				HtmlEscapeLevel.LEVEL_1_ONLY_MARKUP_SIGNIFICANT);
+	}
+
+	public static String zip64(String data) {
+		try {
+			return Base64.encodeBytes(data.getBytes(), Base64.GZIP);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public static String unzip64(String data) throws IOException {
+		ByteArrayInputStream in = new ByteArrayInputStream(Base64.decode(data,
+				Base64.GZIP));
+
+		Scanner scan = new Scanner(in);
+		scan.useDelimiter("\\A");
+		try {
+			return scan.next();
+		} finally {
+			scan.close();
+		}
 	}
 }

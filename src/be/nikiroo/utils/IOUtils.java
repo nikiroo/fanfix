@@ -49,7 +49,7 @@ public class IOUtils {
 	 * 
 	 * @param in
 	 *            the data source
-	 * @param target
+	 * @param out
 	 *            the target {@link OutputStream}
 	 * 
 	 * @throws IOException
@@ -118,7 +118,7 @@ public class IOUtils {
 	 *            the source {@link File} (which can be a directory)
 	 * @param dest
 	 *            the destination <tt>.zip</tt> file
-	 * @param srctIsRoot
+	 * @param srcIsRoot
 	 *            FALSE if we need to add a {@link ZipEntry} for src, TRUE to
 	 *            add it at the root of the ZIP
 	 * 

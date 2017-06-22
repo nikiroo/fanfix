@@ -28,29 +28,46 @@ import java.util.ResourceBundle;
  * It also sports a writable change map, and you can save back the
  * {@link Bundle} to file with {@link Bundle#updateFile(String)}.
  * 
- * @author niki
- * 
  * @param <E>
  *            the enum to use to get values out of this class
+ * 
+ * @author niki
  */
+
 public class Bundle<E extends Enum<E>> {
+	/** The type of E. */
 	protected Class<E> type;
-	protected Enum<?> name;
-	private Map<String, String> map; // R/O map
-	private Map<String, String> changeMap; // R/W map
+	/**
+	 * The {@link Enum} associated to this {@link Bundle} (all the keys used in
+	 * this {@link Bundle} will be of this type).
+	 */
+	protected Enum<?> keyType;
+
+	private TransBundle<E> descriptionBundle;
+
+	/** R/O map */
+	private Map<String, String> map;
+	/** R/W map */
+	private Map<String, String> changeMap;
 
 	/**
 	 * Create a new {@link Bundles} of the given name.
 	 * 
 	 * @param type
 	 *            a runtime instance of the class of E
-	 * 
 	 * @param name
 	 *            the name of the {@link Bundles}
+	 * @param descriptionBundle
+	 *            the description {@link TransBundle}, that is, a
+	 *            {@link TransBundle} dedicated to the description of the values
+	 *            of the given {@link Bundle} (can be NULL)
 	 */
-	protected Bundle(Class<E> type, Enum<?> name) {
+	protected Bundle(Class<E> type, Enum<?> name,
+			TransBundle<E> descriptionBundle) {
 		this.type = type;
-		this.name = name;
+		this.keyType = name;
+		this.descriptionBundle = descriptionBundle;
+
 		this.map = new HashMap<String, String>();
 		this.changeMap = new HashMap<String, String>();
 		setBundle(name, Locale.getDefault(), false);
@@ -59,7 +76,7 @@ public class Bundle<E extends Enum<E>> {
 	/**
 	 * Return the value associated to the given id as a {@link String}.
 	 * 
-	 * @param mame
+	 * @param id
 	 *            the id of the value to get
 	 * 
 	 * @return the associated value, or NULL if not found (not present in the
@@ -72,7 +89,7 @@ public class Bundle<E extends Enum<E>> {
 	/**
 	 * Set the value associated to the given id as a {@link String}.
 	 * 
-	 * @param mame
+	 * @param id
 	 *            the id of the value to get
 	 * @param value
 	 *            the value
@@ -88,7 +105,7 @@ public class Bundle<E extends Enum<E>> {
 	 * <p>
 	 * Will only accept suffixes that form an existing id.
 	 * 
-	 * @param mame
+	 * @param id
 	 *            the id of the value to get
 	 * @param suffix
 	 *            the runtime suffix
@@ -116,7 +133,7 @@ public class Bundle<E extends Enum<E>> {
 	 * <p>
 	 * Will only accept suffixes that form an existing id.
 	 * 
-	 * @param mame
+	 * @param id
 	 *            the id of the value to get
 	 * @param suffix
 	 *            the runtime suffix
@@ -138,7 +155,7 @@ public class Bundle<E extends Enum<E>> {
 	/**
 	 * Return the value associated to the given id as a {@link Boolean}.
 	 * 
-	 * @param mame
+	 * @param id
 	 *            the id of the value to get
 	 * 
 	 * @return the associated value
@@ -161,7 +178,7 @@ public class Bundle<E extends Enum<E>> {
 	/**
 	 * Return the value associated to the given id as a {@link Boolean}.
 	 * 
-	 * @param mame
+	 * @param id
 	 *            the id of the value to get
 	 * @param def
 	 *            the default value when it is not present in the config file or
@@ -180,7 +197,7 @@ public class Bundle<E extends Enum<E>> {
 	/**
 	 * Return the value associated to the given id as an {@link Integer}.
 	 * 
-	 * @param mame
+	 * @param id
 	 *            the id of the value to get
 	 * 
 	 * @return the associated value
@@ -195,9 +212,9 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
-	 * Return the value associated to the given id as a {@link int}.
+	 * Return the value associated to the given id as an int.
 	 * 
-	 * @param mame
+	 * @param id
 	 *            the id of the value to get
 	 * @param def
 	 *            the default value when it is not present in the config file or
@@ -216,7 +233,7 @@ public class Bundle<E extends Enum<E>> {
 	/**
 	 * Return the value associated to the given id as a {@link Character}.
 	 * 
-	 * @param mame
+	 * @param id
 	 *            the id of the value to get
 	 * 
 	 * @return the associated value
@@ -233,7 +250,7 @@ public class Bundle<E extends Enum<E>> {
 	/**
 	 * Return the value associated to the given id as a {@link Character}.
 	 * 
-	 * @param mame
+	 * @param id
 	 *            the id of the value to get
 	 * @param def
 	 *            the default value when it is not present in the config file or
@@ -253,8 +270,8 @@ public class Bundle<E extends Enum<E>> {
 	/**
 	 * Return the value associated to the given id as a {@link Color}.
 	 * 
-	 * @param the
-	 *            id of the value to get
+	 * @param id
+	 *            the id of the value to get
 	 * 
 	 * @return the associated value
 	 */
@@ -277,18 +294,41 @@ public class Bundle<E extends Enum<E>> {
 			}
 		}
 
+		// Try by name if still not found
+		if (color == null) {
+			try {
+				Field field = Color.class.getField(bg);
+				color = (Color) field.get(null);
+			} catch (Exception e) {
+			}
+		}
+		//
+
 		return color;
 	}
 
 	/**
 	 * Set the value associated to the given id as a {@link Color}.
 	 * 
-	 * @param the
-	 *            id of the value to get
-	 * 
-	 * @return the associated value
+	 * @param id
+	 *            the id of the value to set
+	 * @param color
+	 *            the new color
 	 */
 	public void setColor(E id, Color color) {
+		// Check for named colours first
+		try {
+			Field[] fields = Color.class.getFields();
+			for (Field field : fields) {
+				if (field.equals(color)) {
+					setString(id, field.getName());
+					return;
+				}
+			}
+		} catch (Exception e) {
+		}
+		//
+
 		String r = Integer.toString(color.getRed(), 16);
 		String g = Integer.toString(color.getGreen(), 16);
 		String b = Integer.toString(color.getBlue(), 16);
@@ -360,6 +400,17 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
+	 * The description {@link TransBundle}, that is, a {@link TransBundle}
+	 * dedicated to the description of the values of the given {@link Bundle}
+	 * (can be NULL).
+	 * 
+	 * @return the description {@link TransBundle}
+	 */
+	public TransBundle<E> getDescriptionBundle() {
+		return descriptionBundle;
+	}
+
+	/**
 	 * Reload the {@link Bundle} data files.
 	 * 
 	 * @param resetToDefault
@@ -368,7 +419,7 @@ public class Bundle<E extends Enum<E>> {
 	 *            configuration)
 	 */
 	public void reload(boolean resetToDefault) {
-		setBundle(name, Locale.getDefault(), resetToDefault);
+		setBundle(keyType, Locale.getDefault(), resetToDefault);
 	}
 
 	/**
@@ -427,43 +478,44 @@ public class Bundle<E extends Enum<E>> {
 	 * @return the information to display or NULL if none
 	 */
 	protected String getMetaInfo(Meta meta) {
-		String what = meta.what();
-		String where = meta.where();
-		String format = meta.format();
+		String desc = meta.description();
+		boolean group = meta.group();
+		Meta.Format format = meta.format();
+		String[] list = meta.list();
+		boolean nullable = meta.nullable();
 		String info = meta.info();
+		boolean array = meta.array();
 
-		int opt = what.length() + where.length() + format.length();
-		if (opt + info.length() == 0)
+		// Default, empty values -> NULL
+		if (desc.length() + list.length + info.length() == 0 && !group
+				&& nullable && format == Meta.Format.STRING) {
 			return null;
-
-		StringBuilder builder = new StringBuilder();
-		builder.append("# ");
-
-		if (opt > 0) {
-			builder.append("(");
-			if (what.length() > 0) {
-				builder.append("WHAT: " + what);
-				if (where.length() + format.length() > 0)
-					builder.append(", ");
-			}
-
-			if (where.length() > 0) {
-				builder.append("WHERE: " + where);
-				if (format.length() > 0)
-					builder.append(", ");
-			}
-
-			if (format.length() > 0) {
-				builder.append("FORMAT: " + format);
-			}
-
-			builder.append(")");
-			if (info.length() > 0) {
-				builder.append("\n# ");
-			}
 		}
 
-		builder.append(info);
+		StringBuilder builder = new StringBuilder();
+		builder.append("# ").append(desc);
+		if (desc.length() > 20) {
+			builder.append("\n#");
+		}
+
+		if (group) {
+			builder.append("This item is used as a group, its content is not expected to be used.");
+		} else {
+			builder.append(" (FORMAT: ").append(format)
+					.append(nullable ? "" : " (required)");
+			builder.append(") ").append(info);
+
+			if (list.length > 0) {
+				builder.append("\n# ALLOWED VALUES:");
+				for (String value : list) {
+					builder.append(" \"").append(value).append("\"");
+				}
+			}
+
+			if (array) {
+				builder.append("\n# (This item accept a list of comma-separated values)");
+			}
+		}
 
 		return builder.toString();
 	}
@@ -474,7 +526,7 @@ public class Bundle<E extends Enum<E>> {
 	 * @return the name
 	 */
 	protected String getBundleDisplayName() {
-		return name.toString();
+		return keyType.toString();
 	}
 
 	/**
@@ -548,12 +600,9 @@ public class Bundle<E extends Enum<E>> {
 	 *            the path where the .properties files are
 	 * 
 	 * @return the source {@link File}
-	 * 
-	 * @throws IOException
-	 *             in case of IO errors
 	 */
 	protected File getUpdateFile(String path) {
-		return new File(path, name.name() + ".properties");
+		return new File(path, keyType.name() + ".properties");
 	}
 
 	/**
@@ -660,9 +709,9 @@ public class Bundle<E extends Enum<E>> {
 	 * Return the resource file that is closer to the {@link Locale}.
 	 * 
 	 * @param dir
-	 *            the dirctory to look into
+	 *            the directory to look into
 	 * @param name
-	 *            the file basename (without <tt>.properties</tt>)
+	 *            the file base name (without <tt>.properties</tt>)
 	 * @param locale
 	 *            the {@link Locale}
 	 * 

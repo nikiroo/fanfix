@@ -6,6 +6,13 @@ package be.nikiroo.utils.test;
  * @author niki
  */
 public class Test extends TestLauncher {
+	/**
+	 * Start the tests.
+	 * 
+	 * @param args
+	 *            the arguments (which are passed as-is to the other test
+	 *            classes)
+	 */
 	public Test(String[] args) {
 		super("Nikiroo-utils", args);
 
@@ -13,6 +20,8 @@ public class Test extends TestLauncher {
 		addSeries(new BundleTest(args));
 		addSeries(new IOUtilsTest(args));
 		addSeries(new VersionTest(args));
+		addSeries(new SerialTest(args));
+		addSeries(new StringUtilsTest(args));
 	}
 
 	/**

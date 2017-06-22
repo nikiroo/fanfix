@@ -204,7 +204,7 @@ class BundleTest extends TestLauncher {
 	 */
 	private class B extends Bundle<E> {
 		protected B() {
-			super(E.class, N.bundle_test);
+			super(E.class, N.bundle_test, null);
 		}
 
 		@Override
@@ -226,13 +226,13 @@ class BundleTest extends TestLauncher {
 	 * @author niki
 	 */
 	private enum E {
-		@Meta(what = "", where = "", format = "", info = "")
+		@Meta
 		ONE, //
-		@Meta(what = "", where = "", format = "", info = "")
+		@Meta
 		ONE_SUFFIX, //
-		@Meta(what = "", where = "", format = "", info = "")
+		@Meta
 		TWO, //
-		@Meta(what = "", where = "", format = "", info = "")
+		@Meta
 		JAPANESE
 	}
 
