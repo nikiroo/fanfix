@@ -1,5 +1,8 @@
 # Fanfix
 
+## Version WIP
+- New reader type: TUI (a text user interface with windows and menus)
+
 ## Version 1.5.3
 - FimFiction: Fix tags and chapter handling for some stories
 

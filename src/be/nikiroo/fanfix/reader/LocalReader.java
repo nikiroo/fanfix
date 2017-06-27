@@ -16,7 +16,6 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.Library;
 import be.nikiroo.fanfix.VersionCheck;
 import be.nikiroo.fanfix.bundles.UiConfig;
-import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.utils.Progress;
@@ -112,29 +111,6 @@ class LocalReader extends BasicReader {
 	}
 
 	/**
-	 * Get the target file related to this {@link Story}.
-	 * 
-	 * @param luid
-	 *            the LUID of the {@link Story}
-	 * @param pg
-	 *            the optional progress reporter
-	 * 
-	 * @return the target file
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
-	public File getTarget(String luid, Progress pg) throws IOException {
-		File file = lib.getFile(luid);
-		if (file == null) {
-			imprt(luid, pg);
-			file = lib.getFile(luid);
-		}
-
-		return file;
-	}
-
-	/**
 	 * Check if the {@link Story} denoted by this Library UID is present in the
 	 * {@link LocalReader} cache.
 	 * 
@@ -224,35 +200,13 @@ class LocalReader extends BasicReader {
 
 	// open the given book
 	void open(String luid, Progress pg) throws IOException {
-		MetaData meta = Instance.getLibrary().getInfo(luid);
-		File target = getTarget(luid, pg);
-
-		String program = null;
-		if (meta.isImageDocument()) {
-			program = Instance.getUiConfig().getString(
-					UiConfig.IMAGES_DOCUMENT_READER);
-		} else {
-			program = Instance.getUiConfig().getString(
-					UiConfig.NON_IMAGES_DOCUMENT_READER);
+		File file = lib.getFile(luid);
+		if (file == null) {
+			imprt(luid, pg);
+			file = lib.getFile(luid);
 		}
 
-		if (program != null && program.trim().isEmpty()) {
-			program = null;
-		}
-
-		if (program == null) {
-			try {
-				Desktop.getDesktop().browse(target.toURI());
-			} catch (UnsupportedOperationException e) {
-				Runtime.getRuntime().exec(
-						new String[] { "xdg-open", target.getAbsolutePath() });
-
-			}
-		} else {
-			Runtime.getRuntime().exec(
-					new String[] { program, target.getAbsolutePath() });
-
-		}
+		open(Instance.getLibrary().getInfo(luid), file);
 	}
 
 	void changeType(String luid, String newType) {

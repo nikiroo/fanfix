@@ -52,8 +52,8 @@ public class Main {
 	 * <li>--read-url [URL] ([chapter number]): convert on the fly and read the
 	 * story, without saving it</li>
 	 * <li>--list ([type]): list the stories present in the library</li>
-	 * <li>--set-reader [reader type]: set the reader type to CLI or LOCAL for
-	 * this command</li>
+	 * <li>--set-reader [reader type]: set the reader type to CLI, TUI or LOCAL
+	 * for this command</li>
 	 * <li>--version: get the version of the program</li>
 	 * </ul>
 	 * 
@@ -157,6 +157,7 @@ public class Main {
 				break;
 			case SET_READER:
 				exitCode = setReaderType(args[i]);
+				action = MainAction.START;
 				break;
 			case START:
 				exitCode = 255; // not supposed to be selected by user
@@ -246,8 +247,7 @@ public class Main {
 				updates.ok(); // we consider it read
 				break;
 			case START:
-				UIUtils.setLookAndFeel();
-				BasicReader.setDefaultReaderType(ReaderType.LOCAL);
+				//BasicReader.setDefaultReaderType(ReaderType.LOCAL);
 				BasicReader.getReader().start(null);
 				break;
 			}

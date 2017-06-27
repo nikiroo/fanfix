@@ -1,5 +1,6 @@
 package be.nikiroo.fanfix.reader;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -8,9 +9,12 @@ import java.net.URL;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.Library;
 import be.nikiroo.fanfix.bundles.Config;
+import be.nikiroo.fanfix.bundles.UiConfig;
+import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.utils.Progress;
+import be.nikiroo.utils.ui.UIUtils;
 
 /**
  * The class that handles the different {@link Story} readers you can use.
@@ -24,10 +28,12 @@ public abstract class BasicReader {
 		/** Simple reader that outputs everything on the console */
 		CLI,
 		/** Reader that starts local programs to handle the stories */
-		LOCAL
+		GUI,
+		/** A text (UTF-8) reader with menu and text windows */
+		TUI,
 	}
 
-	private static ReaderType defaultType = ReaderType.CLI;
+	private static ReaderType defaultType = ReaderType.GUI;
 	private Story story;
 	private ReaderType type;
 
@@ -162,10 +168,13 @@ public abstract class BasicReader {
 		try {
 			if (defaultType != null) {
 				switch (defaultType) {
-				case LOCAL:
-					return new LocalReader().setType(ReaderType.LOCAL);
+				case GUI:
+					UIUtils.setLookAndFeel();
+					return new LocalReader().setType(ReaderType.GUI);
 				case CLI:
 					return new CliReader().setType(ReaderType.CLI);
+				case TUI:
+					return new TuiReader().setType(ReaderType.TUI);
 				}
 			}
 		} catch (IOException e) {
@@ -223,5 +232,42 @@ public abstract class BasicReader {
 		}
 
 		return source;
+	}
+
+	// open with external player the related file
+	public static void open(String luid) throws IOException {
+		MetaData meta = Instance.getLibrary().getInfo(luid);
+		File target = Instance.getLibrary().getFile(luid);
+
+		open(meta, target);
+	}
+
+	// open with external player the related file
+	protected static void open(MetaData meta, File target) throws IOException {
+		String program = null;
+		if (meta.isImageDocument()) {
+			program = Instance.getUiConfig().getString(
+					UiConfig.IMAGES_DOCUMENT_READER);
+		} else {
+			program = Instance.getUiConfig().getString(
+					UiConfig.NON_IMAGES_DOCUMENT_READER);
+		}
+
+		if (program != null && program.trim().isEmpty()) {
+			program = null;
+		}
+
+		if (program == null) {
+			try {
+				Desktop.getDesktop().browse(target.toURI());
+			} catch (UnsupportedOperationException e) {
+				Runtime.getRuntime().exec(
+						new String[] { "xdg-open", target.getAbsolutePath() });
+
+			}
+		} else {
+			Runtime.getRuntime().exec(
+					new String[] { program, target.getAbsolutePath() });
+		}
 	}
 }

@@ -111,6 +111,12 @@ Currently missing, but either in progress or planned:
     - [x] ..as a screen view
   - [x] options screen
 - [ ] A TUI reader
+  - [x] Choose an output (Jexer)
+  - [x] Implement it from --set-reader to the actual window
+  - [x] List the stories
+  - [ ] Fix the UI layout
+  - [ ] Status bar and real menus
+  - [ ] Open a story in the reader and/or natively
 - [ ] Check if it can work on Android
   - [x] First checks: it should work, but with changes
   - [ ] Adapt work on images :(
