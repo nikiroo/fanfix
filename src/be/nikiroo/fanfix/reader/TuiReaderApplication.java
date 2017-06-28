@@ -48,7 +48,7 @@ public class TuiReaderApplication extends TApplication {
 		addWindowMenu();
 		addHelpMenu();
 
-		getBackend().setTitle("Testy");
+		getBackend().setTitle("Fanfix");
 
 		new TuiReaderMainWindow(this, stories);
 	}

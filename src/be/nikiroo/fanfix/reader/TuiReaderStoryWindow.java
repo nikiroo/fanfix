@@ -1,8 +1,6 @@
 package be.nikiroo.fanfix.reader;
 
-import jexer.TApplication;
-import jexer.TText;
-import jexer.TWindow;
+import jexer.*;
 import jexer.event.TResizeEvent;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.Chapter;
@@ -23,17 +21,38 @@ public class TuiReaderStoryWindow extends TWindow {
 		// : xxx.. > >> (max size for name = getWith() - X)
 
 		// TODO: show all meta info before
-
+		// TODO: text.append("Resume:\n\n  "); -> to status bar
+		
+		// -2 because 0-based, 2 for borders, -1 to hide the HScroll
+		textField = addText("", 0, 0, getWidth() - 2, getHeight() - 2);
+		
 		Chapter resume = getStory().getMeta().getResume();
-		StringBuilder text = new StringBuilder();
 		if (resume != null) {
-			// TODO: why does \n not work but \n\n do? bug in jexer?
-			text.append("Resume:\n\n  "); // -> to status bar
 			for (Paragraph para : resume) {
-				text.append(para.getContent()).append("\n\n  ");
+				// TODO: This is not efficient, should be changed
+				for (String line : para.getContent().split("\n")) {
+					textField.addLine(line);
+				}
 			}
 		}
-		textField = addText(text.toString(), 0, 0, getWidth(), getHeight());
+		
+		statusBar = newStatusBar(desc(meta));
+		statusBar.addShortcutKeypress(TKeypress.kbF10, TCommand.cmExit, "Exit");
+		
+		// -3 because 0-based and 2 for borders
+		TButton first = addButton("<<", 0,  getHeight() - 3,
+		    new TAction() {
+			public void DO() {
+			    // TODO
+			}
+		    }
+		);
+		addButton("<", 3,  getHeight() - 3, null);
+		addButton(">", 5,  getHeight() - 3, null);
+		addButton(">>", 7,  getHeight() - 3, null);
+		// TODO: pad with space up to end of window
+		// TODO: do not show "0/x: " for desc, only for other chapters
+		addLabel(String.format(" %d/%d: %s", resume.getNumber(), getStory().getChapters().size(), resume.getName()), 11, getHeight() - 3);
 	}
 
 	@Override
@@ -42,7 +61,7 @@ public class TuiReaderStoryWindow extends TWindow {
 
 		// Resize the text field
 		textField.setWidth(resize.getWidth());
-		textField.setHeight(resize.getHeight());
+		textField.setHeight(resize.getHeight() - 2);
 		textField.reflow();
 	}
 

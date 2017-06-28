@@ -3,12 +3,7 @@ package be.nikiroo.fanfix.reader;
 import java.util.ArrayList;
 import java.util.List;
 
-import jexer.TAction;
-import jexer.TList;
-import jexer.TRadioGroup;
-import jexer.TTreeItem;
-import jexer.TTreeView;
-import jexer.TWindow;
+import jexer.*;
 import be.nikiroo.fanfix.data.MetaData;
 
 public class TuiReaderMainWindow extends TWindow {
@@ -29,7 +24,7 @@ public class TuiReaderMainWindow extends TWindow {
 			List<MetaData> stories) {
 		// Construct a demo window. X and Y don't matter because it will be
 		// centered on screen.
-		super(reader, "Demo Window", 0, 0, 60, 18, CENTERED | RESIZABLE
+		super(reader, "Library", 0, 0, 60, 18, CENTERED | RESIZABLE
 				| UNCLOSABLE);
 
 		this.reader = reader;
@@ -54,6 +49,10 @@ public class TuiReaderMainWindow extends TWindow {
 				}
 			}
 		});
+		
+		// TODO: add the current "type" or filter
+		statusBar = newStatusBar("Library");
+		statusBar.addShortcutKeypress(TKeypress.kbF10, TCommand.cmExit, "Exit");
 
 		if (false) {
 			addLabel("Label (1,1)", 1, 1);
