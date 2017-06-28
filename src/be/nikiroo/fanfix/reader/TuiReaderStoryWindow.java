@@ -41,12 +41,12 @@ public class TuiReaderStoryWindow extends TWindow {
 		statusBar = newStatusBar(desc(meta));
 		statusBar.addShortcutKeypress(TKeypress.kbF10, TCommand.cmExit, "Exit");
 
-		navigationButtons = new ArrayList<TButton>(4);
+		navigationButtons = new ArrayList<TButton>(5);
 
 		// -3 because 0-based and 2 for borders
 		int row = getHeight() - 3;
 
-		addButton(" ", 0, row, null); // for bg colour when << button is pressed
+		navigationButtons.add(addButton(" ", 0, row, null)); // for bg colour when << button is pressed
 		navigationButtons.add(addButton("<<  ", 0, row, new TAction() {
 			public void DO() {
 				setChapter(0);
