@@ -3,7 +3,14 @@ package be.nikiroo.fanfix.reader;
 import java.util.ArrayList;
 import java.util.List;
 
-import jexer.*;
+import jexer.TAction;
+import jexer.TApplication;
+import jexer.TButton;
+import jexer.TCommand;
+import jexer.TKeypress;
+import jexer.TLabel;
+import jexer.TText2;
+import jexer.TWindow;
 import jexer.event.TResizeEvent;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.Chapter;
@@ -14,7 +21,7 @@ import be.nikiroo.fanfix.data.Story;
 public class TuiReaderStoryWindow extends TWindow {
 	private MetaData meta;
 	private Story story;
-	private TText textField;
+	private TText2 textField;
 	private int chapter = -2;
 	private List<TButton> navigationButtons;
 	private TLabel chapterName;
@@ -29,8 +36,7 @@ public class TuiReaderStoryWindow extends TWindow {
 
 		// TODO: show all meta info before?
 
-		// -2 because 0-based, 2 for borders, -1 to hide the HScroll
-		textField = addText("", 0, 0, getWidth() - 2, getHeight() - 2);
+		textField = new TText2(this, "", 0, 0, getWidth() - 2, getHeight() - 2);
 
 		statusBar = newStatusBar(desc(meta));
 		statusBar.addShortcutKeypress(TKeypress.kbF10, TCommand.cmExit, "Exit");
@@ -40,28 +46,29 @@ public class TuiReaderStoryWindow extends TWindow {
 		// -3 because 0-based and 2 for borders
 		int row = getHeight() - 3;
 
-		navigationButtons.add(addButton("<<", 0, row, new TAction() {
+		addButton(" ", 0, row, null); // for bg colour when << button is pressed
+		navigationButtons.add(addButton("<<  ", 0, row, new TAction() {
 			public void DO() {
 				setChapter(0);
 			}
 		}));
-		navigationButtons.add(addButton("<", 3, row, new TAction() {
+		navigationButtons.add(addButton("<  ", 4, row, new TAction() {
 			public void DO() {
 				setChapter(TuiReaderStoryWindow.this.chapter - 1);
 			}
 		}));
-		navigationButtons.add(addButton(">", 5, row, new TAction() {
+		navigationButtons.add(addButton(">  ", 7, row, new TAction() {
 			public void DO() {
 				setChapter(TuiReaderStoryWindow.this.chapter + 1);
 			}
 		}));
-		navigationButtons.add(addButton(">>", 7, row, new TAction() {
+		navigationButtons.add(addButton(">>  ", 10, row, new TAction() {
 			public void DO() {
 				setChapter(getStory().getChapters().size());
 			}
 		}));
 
-		chapterName = addLabel("", 11, row);
+		chapterName = addLabel("", 14, row);
 		chapterName.setWidth(getWidth() - 10);
 		setChapter(chapter);
 	}
@@ -71,7 +78,7 @@ public class TuiReaderStoryWindow extends TWindow {
 		super.onResize(resize);
 
 		// Resize the text field
-		textField.setWidth(resize.getWidth());
+		textField.setWidth(resize.getWidth() - 2);
 		textField.setHeight(resize.getHeight() - 2);
 		textField.reflow();
 
