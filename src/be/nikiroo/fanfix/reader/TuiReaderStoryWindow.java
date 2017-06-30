@@ -67,6 +67,10 @@ public class TuiReaderStoryWindow extends TWindow {
 				setChapter(getStory().getChapters().size());
 			}
 		}));
+		
+		navigationButtons.get(0).setEnabled(false);
+		navigationButtons.get(1).setEnabled(false);
+		navigationButtons.get(2).setEnabled(false);
 
 		chapterName = addLabel("", 14, row);
 		chapterName.setWidth(getWidth() - 10);
@@ -109,6 +113,14 @@ public class TuiReaderStoryWindow extends TWindow {
 
 		if (chapter != this.chapter) {
 			this.chapter = chapter;
+			
+			int max = getStory().getChapters().size();
+			navigationButtons.get(0).setEnabled(chapter > 0);
+			navigationButtons.get(1).setEnabled(chapter > 0);
+			navigationButtons.get(2).setEnabled(chapter > 0);
+			navigationButtons.get(3).setEnabled(chapter < max);
+			navigationButtons.get(4).setEnabled(chapter < max);
+			
 			Chapter chap;
 			String name;
 			if (chapter == 0) {
@@ -116,8 +128,7 @@ public class TuiReaderStoryWindow extends TWindow {
 				name = String.format(" %s", chap.getName());
 			} else {
 				chap = getStory().getChapters().get(chapter - 1);
-				name = String.format(" %d/%d: %s", chapter, getStory()
-						.getChapters().size(), chap.getName());
+				name = String.format(" %d/%d: %s", chapter, max, chap.getName());
 			}
 
 			while (name.length() < getWidth() - chapterName.getX()) {
