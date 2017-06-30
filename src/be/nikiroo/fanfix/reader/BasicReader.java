@@ -15,6 +15,7 @@ import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.ui.UIUtils;
+import be.nikiroo.utils.serial.SerialUtils;
 
 /**
  * The class that handles the different {@link Story} readers you can use.
@@ -31,6 +32,19 @@ public abstract class BasicReader {
 		GUI,
 		/** A text (UTF-8) reader with menu and text windows */
 		TUI,
+		
+		;
+		
+		public String getTypeName() {
+			String pkg = "be.nikiroo.fanfix.reader.";
+			switch (this) {
+				case CLI: return pkg + "CliReader";
+				case TUI: return pkg + "TuiReader";
+				case GUI: return pkg + "LocalReader";
+			}
+			
+			return null;
+		}
 	}
 
 	private static ReaderType defaultType = ReaderType.GUI;
@@ -167,19 +181,12 @@ public abstract class BasicReader {
 	public static BasicReader getReader() {
 		try {
 			if (defaultType != null) {
-				switch (defaultType) {
-				case GUI:
-					UIUtils.setLookAndFeel();
-					return new LocalReader().setType(ReaderType.GUI);
-				case CLI:
-					return new CliReader().setType(ReaderType.CLI);
-				case TUI:
-					return new TuiReader().setType(ReaderType.TUI);
-				}
+				return ((BasicReader)SerialUtils.createObject
+					(defaultType.getTypeName())).setType(defaultType);
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			Instance.syserr(new Exception("Cannot create a reader of type: "
-					+ defaultType, e));
+					+ defaultType + " (Not compiled in?)", e));
 		}
 
 		return null;

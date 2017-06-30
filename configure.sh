@@ -4,16 +4,41 @@
 PREFIX=/usr/local
 PROGS="java javac jar make sed"
 
+CLI=be/nikiroo/fanfix/reader/CliReader
+TUI=be/nikiroo/fanfix/reader/TuiReader
+GUI=be/nikiroo/fanfix/reader/LocalReader
+
 valid=true
 while [ "$*" != "" ]; do
-	key=`echo "$1" | cut -c1-9`
-	val=`echo "$1" | cut -c10-`
+	key=`echo "$1" | cut -f1 -d=`
+	val=`echo "$1" | cut -f2 -d=`
 	case "$key" in
-	--prefix=)
+	--)
+	;;
+	--help) #		This help message
+		echo The following arguments can be used:
+		cat "$0" | grep '^\s*--' | grep '#' | while read ln; do
+			cmd=`echo "$ln" | cut -f1 -d')'`
+			msg=`echo "$ln" | cut -f2 -d'#'`
+			echo "	$cmd$msg"
+		done
+	;;
+	--prefix) #=PATH	Change the prefix to the given path
 		PREFIX="$val"
+	;;
+	--cli) #=no	Disable CLI support (System.out)
+		[ "$val" = no -o "$val" = false ] && CLI=
+	;;
+	--tui) #=no	Disable TUI support (Jexer)
+		[ "$val" = no -o "$val" = false ] && TUI=
+	;;
+	--gui) #=no	Disable GUI support (Swing)
+		[ "$val" = no -o "$val" = false ] && GUI=
 	;;
 	*)
 		echo "Unsupported parameter: '$1'" >&2
+		echo >&2
+		sh "$0" --help >&2
 		valid=false
 	;;
 	esac
@@ -44,6 +69,7 @@ else
 fi;
 
 echo "MAIN = be/nikiroo/fanfix/Main" > Makefile
+echo "MORE = $CLI $TUI $GUI" >> Makefile
 echo "TEST = be/nikiroo/fanfix/test/Test" >> Makefile
 echo "TEST_PARAMS = $cols $ok $ko" >> Makefile
 echo "NAME = fanfix" >> Makefile
