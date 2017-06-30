@@ -108,7 +108,7 @@ test-resources: resources
 
 libs: bin
 	@[ -e bin/libs -o ! -d libs ] || echo Extracting sources from libs...
-	@[ -e bin/libs -o ! -d libs ] || (cd src && for lib in ../libs/*-sources.jar; do \
+	@[ -e bin/libs -o ! -d libs ] || (cd src && for lib in ../libs/*-sources.jar ../libs/*-sources.patch.jar; do \
 		basename "$$lib"; \
 		jar xf "$$lib"; \
 	done )

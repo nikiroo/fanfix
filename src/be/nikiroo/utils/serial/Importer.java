@@ -1,12 +1,11 @@
 package be.nikiroo.utils.serial;
 
+import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Field;
 
-import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.StringUtils;
 
 /**
@@ -36,35 +35,69 @@ public class Importer {
 		this.map = map;
 	}
 
-	public Importer readLine(String line) {
-		try {
-			processLine(line);
-		} catch (Exception e) {
-			throw new IllegalArgumentException(e);
-		}
-		return this;
-	}
+	/**
+	 * Read some data into this {@link Importer}: it can be the full serialised
+	 * content, or a number of lines of it (any given line <b>MUST</b> be
+	 * complete though) and accumulate it with the already present data.
+	 * 
+	 * @param data
+	 *            the data to parse
+	 * 
+	 * @return itself so it can be chained
+	 * 
+	 * @throws NoSuchFieldException
+	 *             if the serialised data contains information about a field
+	 *             which does actually not exist in the class we know of
+	 * @throws NoSuchMethodException
+	 *             if a class described in the serialised data cannot be created
+	 *             because it is not compatible with this code
+	 * @throws ClassNotFoundException
+	 *             if a class described in the serialised data cannot be found
+	 */
+	public Importer read(String data) throws NoSuchFieldException,
+			NoSuchMethodException, ClassNotFoundException {
 
-	public Importer read(String data) {
 		try {
-			if (data.startsWith("ZIP:")) {
-				data = StringUtils.unzip64(data.substring("ZIP:".length()));
-			}
 			Scanner scan = new Scanner(data);
 			scan.useDelimiter("\n");
 			while (scan.hasNext()) {
-				processLine(scan.next());
+				String line = scan.next();
+
+				if (line.startsWith("ZIP:")) {
+					line = StringUtils.unzip64(line.substring("ZIP:".length()));
+				}
+				processLine(line);
+
 			}
 			scan.close();
-		} catch (Exception e) {
-			throw new IllegalArgumentException(e);
+		} catch (IOException e) {
+			throw new NoSuchMethodException(
+					"Internal error when decoding ZIP content: input may be corrupt");
 		}
+
 		return this;
 	}
 
-	public boolean processLine(String line) throws IllegalArgumentException,
-			NoSuchFieldException, SecurityException, IllegalAccessException,
-			NoSuchMethodException, InstantiationException, ClassNotFoundException, InvocationTargetException {
+	/**
+	 * Read a single (whole) line of serialised data into this {@link Importer}
+	 * and accumulate it with the already present data.
+	 * 
+	 * @param line
+	 *            the line to parse
+	 * 
+	 * @return TRUE if we are just done with one object or sub-object
+	 * 
+	 * @throws NoSuchFieldException
+	 *             if the serialised data contains information about a field
+	 *             which does actually not exist in the class we know of
+	 * @throws NoSuchMethodException
+	 *             if a class described in the serialised data cannot be created
+	 *             because it is not compatible with this code
+	 * @throws ClassNotFoundException
+	 *             if a class described in the serialised data cannot be found
+	 */
+	private boolean processLine(String line) throws NoSuchFieldException,
+			NoSuchMethodException, ClassNotFoundException {
 		// Defer to latest child if any
 		if (child != null) {
 			if (child.processLine(line)) {
@@ -118,8 +151,7 @@ public class Importer {
 	}
 
 	private void setField(String name, Object value)
-			throws NoSuchFieldException, SecurityException,
-			IllegalArgumentException, IllegalAccessException {
+			throws NoSuchFieldException {
 
 		try {
 			Field field = me.getClass().getDeclaredField(name);
@@ -130,9 +162,18 @@ public class Importer {
 			throw new NoSuchFieldException(String.format(
 					"Field \"%s\" was not found in object of type \"%s\".",
 					name, me.getClass().getCanonicalName()));
+		} catch (Exception e) {
+			throw new NoSuchFieldException(String.format(
+					"Internal error when setting \"%s.%s\": %s", me.getClass()
+							.getCanonicalName(), name, e.getMessage()));
 		}
 	}
 
+	/**
+	 * Return the current deserialised value.
+	 * 
+	 * @return the current value
+	 */
 	public Object getValue() {
 		return me;
 	}

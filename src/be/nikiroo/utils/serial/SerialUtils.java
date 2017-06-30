@@ -1,15 +1,13 @@
 package be.nikiroo.utils.serial;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.io.NotSerializableException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Small class to help serialise/deserialise objects.
+ * Small class to help with serialisation.
  * <p>
  * Note that we do not support inner classes (but we do support nested classes)
  * and all objects require an empty constructor to be deserialised.
@@ -21,9 +19,9 @@ public class SerialUtils {
 
 	static {
 		customTypes = new HashMap<String, CustomSerializer>();
-		// TODO: add "default" custom serialisers
+		// TODO: add "default" custom serialisers if any (Bitmap?)
 	}
-	
+
 	/**
 	 * Create an empty object of the given type.
 	 * 
@@ -32,18 +30,16 @@ public class SerialUtils {
 	 * 
 	 * @return the new object
 	 * 
-	 * @throws NoSuchMethodException  if the given class is not compatible with this code
-	 * @throws ClassNotFoundException if the class cannot be found or created
+	 * @throws ClassNotFoundException
+	 *             if the class cannot be found
+	 * @throws NoSuchMethodException
+	 *             if the given class is not compatible with this code
 	 */
-	public static Object createObject(String type) throws NoSuchMethodException,
-			ClassNotFoundException {
+	public static Object createObject(String type)
+			throws ClassNotFoundException, NoSuchMethodException {
 
 		try {
 			Class<?> clazz = getClass(type);
-			if (clazz == null) {
-				throw new ClassNotFoundException("Class not found: " + type);
-			}
-
 			String className = clazz.getName();
 			Object[] args = null;
 			Constructor<?> ctor = null;
@@ -60,25 +56,47 @@ public class SerialUtils {
 
 			ctor.setAccessible(true);
 			return ctor.newInstance(args);
+		} catch (ClassNotFoundException e) {
+			throw e;
 		} catch (NoSuchMethodException e) {
-			throw new NoSuchMethodException(
-					String.format(
-							"Objects of type \"%s\" cannot be created by this code: maybe the class"
-									+ " or its enclosing class doesn't have an empty constructor?",
-							type));
-
+			throw e;
+		} catch (Exception e) {
+			throw new NoSuchMethodException("Cannot instantiate: " + type);
 		}
-		catch (SecurityException e) { throw new ClassNotFoundException("Cannot instantiate: " + type, e); }
-		catch (InstantiationException e) { throw new ClassNotFoundException("Cannot instantiate: " + type, e); }
-		catch (IllegalAccessException e) { throw new ClassNotFoundException("Cannot instantiate: " + type, e); }
-		catch (IllegalArgumentException e) { throw new ClassNotFoundException("Cannot instantiate: " + type, e); }
-		catch (InvocationTargetException e) { throw new ClassNotFoundException("Cannot instantiate: " + type, e); }
 	}
 
+	/**
+	 * Insert a custom serialiser that will take precedence over the default one
+	 * or the target class.
+	 * 
+	 * @param serializer
+	 *            the custom serialiser
+	 */
 	static public void addCustomSerializer(CustomSerializer serializer) {
 		customTypes.put(serializer.getType(), serializer);
 	}
 
+	/**
+	 * Serialise the given object into this {@link StringBuilder}.
+	 * <p>
+	 * <b>Important: </b>If the operation fails (with a
+	 * {@link NotSerializableException}), the {@link StringBuilder} will be
+	 * corrupted (will contain bad, most probably not importable data).
+	 * 
+	 * @param builder
+	 *            the output {@link StringBuilder} to serialise to
+	 * @param o
+	 *            the object to serialise
+	 * @param map
+	 *            the map of already serialised objects (if the given object or
+	 *            one of its descendant is already present in it, only an ID
+	 *            will be serialised)
+	 * 
+	 * @throws NotSerializableException
+	 *             if the object cannot be serialised (in this case, the
+	 *             {@link StringBuilder} can contain bad, most probably not
+	 *             importable data)
+	 */
 	static void append(StringBuilder builder, Object o, Map<Integer, Object> map)
 			throws NotSerializableException {
 
@@ -206,9 +224,24 @@ public class SerialUtils {
 			return Integer.parseInt(encodedValue);
 		}
 	}
-	
-	static private Class<?> getClass(String type) throws ClassNotFoundException,
-			NoSuchMethodException {
+
+	/**
+	 * Return the corresponding class or throw an {@link Exception} if it
+	 * cannot.
+	 * 
+	 * @param type
+	 *            the class name to look for
+	 * 
+	 * @return the class (will never be NULL)
+	 * 
+	 * @throws ClassNotFoundException
+	 *             if the class cannot be found
+	 * @throws NoSuchMethodException
+	 *             if the class cannot be created (usually because it or its
+	 *             enclosing class doesn't have an empty constructor)
+	 */
+	static private Class<?> getClass(String type)
+			throws ClassNotFoundException, NoSuchMethodException {
 		Class<?> clazz = null;
 		try {
 			clazz = Class.forName(type);
@@ -235,9 +268,13 @@ public class SerialUtils {
 			}
 		}
 
+		if (clazz == null) {
+			throw new ClassNotFoundException("Class not found: " + type);
+		}
+
 		return clazz;
 	}
-	
+
 	// aa bb -> "aa\tbb"
 	private static void encodeString(StringBuilder builder, String raw) {
 		builder.append('\"');
