@@ -1,11 +1,10 @@
 package be.nikiroo.utils.serial;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Field;
 
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.StringUtils;
@@ -91,7 +90,7 @@ public class Importer {
 			if (link) {
 				me = map.get(ref);
 			} else {
-				me = createSelf(line.substring(4).split("@")[0]);
+				me = SerialUtils.createObject(line.substring(4).split("@")[0]);
 				map.put(ref, me);
 			}
 		} else { // FIELD: new field
@@ -116,89 +115,6 @@ public class Importer {
 		}
 
 		return false;
-	}
-
-	/**
-	 * Create an empty object of the given type.
-	 * 
-	 * @param type
-	 *            the object type
-	 * @return the object
-	 * 
-	 * @throws NoSuchMethodException
-	 * @throws SecurityException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
-	 * @throws ClassNotFoundException
-	 * @throws IllegalArgumentException
-	 * @throws InvocationTargetException
-	 */
-	private Object createSelf(String type) throws NoSuchMethodException,
-			SecurityException, InstantiationException, IllegalAccessException,
-			ClassNotFoundException, IllegalArgumentException,
-			InvocationTargetException {
-
-		try {
-			Class<?> clazz = getClass(type);
-			if (clazz == null) {
-				throw new ClassNotFoundException("Class not found: " + type);
-			}
-
-			String className = clazz.getName();
-			Object[] args = null;
-			Constructor<?> ctor = null;
-			if (className.contains("$")) {
-				Object javaParent = createSelf(className.substring(0,
-						className.lastIndexOf('$')));
-				args = new Object[] { javaParent };
-				ctor = clazz.getDeclaredConstructor(new Class[] { javaParent
-						.getClass() });
-			} else {
-				args = new Object[] {};
-				ctor = clazz.getDeclaredConstructor();
-			}
-
-			ctor.setAccessible(true);
-			return ctor.newInstance(args);
-		} catch (NoSuchMethodException e) {
-			throw new NoSuchMethodException(
-					String.format(
-							"Objects of type \"%s\" cannot be created by this code: maybe the class"
-									+ " or its enclosing class doesn't have an empty constructor?",
-							type));
-
-		}
-	}
-
-	private Class<?> getClass(String type) throws ClassNotFoundException,
-			NoSuchMethodException {
-		Class<?> clazz = null;
-		try {
-			clazz = Class.forName(type);
-		} catch (ClassNotFoundException e) {
-			int pos = type.length();
-			pos = type.lastIndexOf(".", pos);
-			if (pos >= 0) {
-				String parentType = type.substring(0, pos);
-				String nestedType = type.substring(pos + 1);
-				Class<?> javaParent = null;
-				try {
-					javaParent = getClass(parentType);
-					parentType = javaParent.getName();
-					clazz = Class.forName(parentType + "$" + nestedType);
-				} catch (Exception ee) {
-				}
-
-				if (javaParent == null) {
-					throw new NoSuchMethodException(
-							"Class not found: "
-									+ type
-									+ " (the enclosing class cannot be created: maybe it doesn't have an empty constructor?)");
-				}
-			}
-		}
-
-		return clazz;
 	}
 
 	private void setField(String name, Object value)

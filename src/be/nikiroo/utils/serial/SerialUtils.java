@@ -1,5 +1,8 @@
 package be.nikiroo.utils.serial;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.io.NotSerializableException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -13,12 +16,63 @@ import java.util.Map;
  * 
  * @author niki
  */
-class SerialUtils {
+public class SerialUtils {
 	private static Map<String, CustomSerializer> customTypes;
 
 	static {
 		customTypes = new HashMap<String, CustomSerializer>();
 		// TODO: add "default" custom serialisers
+	}
+	
+	/**
+	 * Create an empty object of the given type.
+	 * 
+	 * @param type
+	 *            the object type (its class name)
+	 * 
+	 * @return the new object
+	 * 
+	 * @throws NoSuchMethodException  if the given class is not compatible with this code
+	 * @throws ClassNotFoundException if the class cannot be found or created
+	 */
+	public static Object createObject(String type) throws NoSuchMethodException,
+			ClassNotFoundException {
+
+		try {
+			Class<?> clazz = getClass(type);
+			if (clazz == null) {
+				throw new ClassNotFoundException("Class not found: " + type);
+			}
+
+			String className = clazz.getName();
+			Object[] args = null;
+			Constructor<?> ctor = null;
+			if (className.contains("$")) {
+				Object javaParent = createObject(className.substring(0,
+						className.lastIndexOf('$')));
+				args = new Object[] { javaParent };
+				ctor = clazz.getDeclaredConstructor(new Class[] { javaParent
+						.getClass() });
+			} else {
+				args = new Object[] {};
+				ctor = clazz.getDeclaredConstructor();
+			}
+
+			ctor.setAccessible(true);
+			return ctor.newInstance(args);
+		} catch (NoSuchMethodException e) {
+			throw new NoSuchMethodException(
+					String.format(
+							"Objects of type \"%s\" cannot be created by this code: maybe the class"
+									+ " or its enclosing class doesn't have an empty constructor?",
+							type));
+
+		}
+		catch (SecurityException e) { throw new ClassNotFoundException("Cannot instantiate: " + type, e); }
+		catch (InstantiationException e) { throw new ClassNotFoundException("Cannot instantiate: " + type, e); }
+		catch (IllegalAccessException e) { throw new ClassNotFoundException("Cannot instantiate: " + type, e); }
+		catch (IllegalArgumentException e) { throw new ClassNotFoundException("Cannot instantiate: " + type, e); }
+		catch (InvocationTargetException e) { throw new ClassNotFoundException("Cannot instantiate: " + type, e); }
 	}
 
 	static public void addCustomSerializer(CustomSerializer serializer) {
@@ -152,7 +206,38 @@ class SerialUtils {
 			return Integer.parseInt(encodedValue);
 		}
 	}
+	
+	static private Class<?> getClass(String type) throws ClassNotFoundException,
+			NoSuchMethodException {
+		Class<?> clazz = null;
+		try {
+			clazz = Class.forName(type);
+		} catch (ClassNotFoundException e) {
+			int pos = type.length();
+			pos = type.lastIndexOf(".", pos);
+			if (pos >= 0) {
+				String parentType = type.substring(0, pos);
+				String nestedType = type.substring(pos + 1);
+				Class<?> javaParent = null;
+				try {
+					javaParent = getClass(parentType);
+					parentType = javaParent.getName();
+					clazz = Class.forName(parentType + "$" + nestedType);
+				} catch (Exception ee) {
+				}
 
+				if (javaParent == null) {
+					throw new NoSuchMethodException(
+							"Class not found: "
+									+ type
+									+ " (the enclosing class cannot be created: maybe it doesn't have an empty constructor?)");
+				}
+			}
+		}
+
+		return clazz;
+	}
+	
 	// aa bb -> "aa\tbb"
 	private static void encodeString(StringBuilder builder, String raw) {
 		builder.append('\"');
