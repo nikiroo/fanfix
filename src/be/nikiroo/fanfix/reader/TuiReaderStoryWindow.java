@@ -9,7 +9,7 @@ import jexer.TButton;
 import jexer.TCommand;
 import jexer.TKeypress;
 import jexer.TLabel;
-import jexer.TText2;
+import jexer.TText;
 import jexer.TWindow;
 import jexer.event.TResizeEvent;
 import be.nikiroo.fanfix.Instance;
@@ -21,7 +21,7 @@ import be.nikiroo.fanfix.data.Story;
 public class TuiReaderStoryWindow extends TWindow {
 	private MetaData meta;
 	private Story story;
-	private TText2 textField;
+	private TText textField;
 	private int chapter = -2;
 	private List<TButton> navigationButtons;
 	private TLabel chapterName;
@@ -36,7 +36,7 @@ public class TuiReaderStoryWindow extends TWindow {
 
 		// TODO: show all meta info before?
 
-		textField = new TText2(this, "", 0, 0, getWidth() - 2, getHeight() - 2);
+		textField = new TText(this, "", 0, 0, getWidth() - 2, getHeight() - 2);
 
 		statusBar = newStatusBar(desc(meta));
 		statusBar.addShortcutKeypress(TKeypress.kbF10, TCommand.cmExit, "Exit");
@@ -150,6 +150,7 @@ public class TuiReaderStoryWindow extends TWindow {
 			}
 			textField.setText(builder.toString());
 			textField.reflow();
+			textField.toTop();
 		}
 	}
 
