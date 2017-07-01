@@ -1,3 +1,9 @@
+Version 1.6.1
+-------------
+
+Serialisation utilities
+	Now supports enums and BufferedImages
+
 Version 1.6.0
 -------------
 

@@ -100,6 +100,20 @@ class SerialTest extends TestLauncher {
 						reencoded.replaceAll("@[0-9]*", "@REF"));
 			}
 		});
+
+		addTest(new TestCase("Enum Import/Export") {
+			@Override
+			public void test() throws Exception {
+				Object data = EnumToSend.FANFAN;
+				String encoded = new Exporter().append(data).toString(false);
+				Object redata = new Importer().read(encoded).getValue();
+				String reencoded = new Exporter().append(redata)
+						.toString(false);
+
+				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
+						reencoded.replaceAll("@[0-9]*", "@REF"));
+			}
+		});
 	}
 
 	class DataArray {
@@ -145,5 +159,9 @@ class SerialTest extends TestLauncher {
 		public DataLoop(String value) {
 			this.value = value;
 		}
+	}
+
+	enum EnumToSend {
+		FANFAN, TULIPE,
 	}
 }

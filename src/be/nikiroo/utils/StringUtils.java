@@ -4,7 +4,6 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +16,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
 import java.util.regex.Pattern;
-import java.util.zip.ZipInputStream;
 
 import javax.imageio.ImageIO;
 
@@ -216,10 +214,33 @@ public class StringUtils {
 	 *             in case of IO error
 	 */
 	static public String fromImage(BufferedImage image) throws IOException {
+		return fromImage(image, null);
+	}
+
+	/**
+	 * Convert the given {@link Image} object into a Base64 representation of
+	 * the same {@link Image}. object.
+	 * 
+	 * @param image
+	 *            the {@link Image} object to convert
+	 * @param format
+	 *            the image format to use to serialise it (default is PNG)
+	 * 
+	 * @return the Base64 representation
+	 * 
+	 * @throws IOException
+	 *             in case of IO error
+	 */
+	static public String fromImage(BufferedImage image, String format)
+			throws IOException {
+		if (format == null) {
+			format = "png";
+		}
+
 		String imageString = null;
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-		ImageIO.write(image, "jpeg", out);
+		ImageIO.write(image, format, out);
 		byte[] imageBytes = out.toByteArray();
 
 		imageString = new String(Base64.encodeBytes(imageBytes));

@@ -1,13 +1,17 @@
 package be.nikiroo.utils.serial;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.io.NotSerializableException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UnknownFormatConversionException;
+
+import be.nikiroo.utils.StringUtils;
 
 /**
  * Small class to help with serialisation.
@@ -22,7 +26,6 @@ public class SerialUtils {
 
 	static {
 		customTypes = new HashMap<String, CustomSerializer>();
-		// TODO: add "default" custom serialisers if any (Bitmap?)
 
 		// Array types:
 		customTypes.put("[]", new CustomSerializer() {
@@ -75,6 +78,32 @@ public class SerialUtils {
 
 					return array;
 				} catch (Exception e) {
+					throw new UnknownFormatConversionException(e.getMessage());
+				}
+			}
+		});
+
+		// Images (this is currently the only supported image type by default)
+		customTypes.put("java.awt.image.BufferedImage", new CustomSerializer() {
+			@Override
+			protected String toString(Object value) {
+				try {
+					return StringUtils.fromImage((BufferedImage) value);
+				} catch (IOException e) {
+					throw new UnknownFormatConversionException(e.getMessage());
+				}
+			}
+
+			@Override
+			protected String getType() {
+				return "java.awt.image.BufferedImage";
+			}
+
+			@Override
+			protected Object fromString(String content) {
+				try {
+					return StringUtils.toImage(content);
+				} catch (IOException e) {
 					throw new UnknownFormatConversionException(e.getMessage());
 				}
 			}
@@ -188,8 +217,12 @@ public class SerialUtils {
 				for (Field field : fields) {
 					field.setAccessible(true);
 
-					if (field.getName().startsWith("this$")) {
+					if (field.getName().startsWith("this$")
+							|| field.isSynthetic()
+							|| (field.getModifiers() & Modifier.STATIC) == Modifier.STATIC) {
 						// Do not keep this links of nested classes
+						// Do not keep synthetic fields
+						// Do not keep final fields
 						continue;
 					}
 
@@ -244,6 +277,10 @@ public class SerialUtils {
 			builder.append(value).append('F');
 		} else if (value instanceof Double) {
 			builder.append(value).append('d');
+		} else if (value instanceof Enum) {
+			String type = value.getClass().getCanonicalName();
+			builder.append(type).append(".").append(((Enum<?>) value).name())
+					.append(";");
 		} else {
 			return false;
 		}
@@ -286,6 +323,8 @@ public class SerialUtils {
 			return Float.parseFloat(cut);
 		} else if (encodedValue.endsWith("d")) {
 			return Double.parseDouble(cut);
+		} else if (encodedValue.endsWith(";")) {
+			return decodeEnum(encodedValue);
 		} else {
 			return Integer.parseInt(encodedValue);
 		}
@@ -339,6 +378,22 @@ public class SerialUtils {
 		}
 
 		return clazz;
+	}
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private static Enum<?> decodeEnum(String escaped) {
+		// escaped: be.xxx.EnumType.VALUE;
+		int pos = escaped.lastIndexOf(".");
+		String type = escaped.substring(0, pos);
+		String name = escaped.substring(pos + 1, escaped.length() - 1);
+
+		try {
+			return Enum.valueOf((Class<Enum>) getClass(type), name);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new UnknownFormatConversionException("Unknown enum: <" + type
+					+ "> " + name);
+		}
 	}
 
 	// aa bb -> "aa\tbb"
