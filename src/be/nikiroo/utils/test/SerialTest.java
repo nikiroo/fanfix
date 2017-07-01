@@ -1,9 +1,26 @@
 package be.nikiroo.utils.test;
 
+import be.nikiroo.utils.Version;
+import be.nikiroo.utils.serial.ConnectActionServer;
 import be.nikiroo.utils.serial.Exporter;
 import be.nikiroo.utils.serial.Importer;
+import be.nikiroo.utils.serial.Server;
 
 class SerialTest extends TestLauncher {
+	private void not_used() {
+		// TODO: test Server ; but this will at least help dependency checking
+		try {
+			Server server = new Server(null, 0, false) {
+				@Override
+				protected Object onRequest(ConnectActionServer action,
+						Version clientVersion, Object data) throws Exception {
+					return null;
+				}
+			};
+		} catch (Exception e) {
+		}
+	}
+
 	private SerialTest() {
 		super("Serial test", null);
 	}
@@ -55,6 +72,38 @@ class SerialTest extends TestLauncher {
 						reencoded.replaceAll("@[0-9]*", "@REF"));
 			}
 		});
+
+		addTest(new TestCase("Array in Object Import/Export") {
+			@Override
+			public void test() throws Exception {
+				Object data = new DataArray();// new String[] { "un", "deux" };
+				String encoded = new Exporter().append(data).toString(false);
+				Object redata = new Importer().read(encoded).getValue();
+				String reencoded = new Exporter().append(redata)
+						.toString(false);
+
+				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
+						reencoded.replaceAll("@[0-9]*", "@REF"));
+			}
+		});
+
+		addTest(new TestCase("Array Import/Export") {
+			@Override
+			public void test() throws Exception {
+				Object data = new String[] { "un", "deux" };
+				String encoded = new Exporter().append(data).toString(false);
+				Object redata = new Importer().read(encoded).getValue();
+				String reencoded = new Exporter().append(redata)
+						.toString(false);
+
+				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
+						reencoded.replaceAll("@[0-9]*", "@REF"));
+			}
+		});
+	}
+
+	class DataArray {
+		public String[] data = new String[] { "un", "deux" };
 	}
 
 	@SuppressWarnings("unused")

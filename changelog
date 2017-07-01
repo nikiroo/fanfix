@@ -1,3 +1,10 @@
+Version 1.6.0
+-------------
+
+Serialisation utilities
+	Server class to send/receive objects via network easily
+	Serialiser now supports Arrays + fixes
+
 Version 1.5.1
 -------------
 

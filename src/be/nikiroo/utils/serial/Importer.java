@@ -65,9 +65,10 @@ public class Importer {
 
 				if (line.startsWith("ZIP:")) {
 					line = StringUtils.unzip64(line.substring("ZIP:".length()));
+					read(line);
+				} else {
+					processLine(line);
 				}
-				processLine(line);
-
 			}
 			scan.close();
 		} catch (IOException e) {
@@ -118,18 +119,33 @@ public class Importer {
 		} else if (line.equals("}")) { // STOP: report self to parent
 			return true;
 		} else if (line.startsWith("REF ")) { // REF: create/link self
-			String ref = line.substring(4).split("@")[1];
+			String[] tab = line.substring("REF ".length()).split("@");
+			String type = tab[0];
+			tab = tab[1].split(":");
+			String ref = tab[0];
+
 			link = map.containsKey(ref);
 			if (link) {
 				me = map.get(ref);
 			} else {
-				me = SerialUtils.createObject(line.substring(4).split("@")[0]);
+				if (line.endsWith(":")) {
+					// construct
+					me = SerialUtils.createObject(type);
+				} else {
+					// direct value
+					int pos = line.indexOf(":");
+					String encodedValue = line.substring(pos + 1);
+					me = SerialUtils.decode(encodedValue);
+				}
 				map.put(ref, me);
 			}
-		} else { // FIELD: new field
+		} else { // FIELD: new field *or* direct simple value
 			if (line.endsWith(":")) {
 				// field value is compound
 				currentFieldName = line.substring(0, line.length() - 1);
+			} else if (line.startsWith(":") || !line.contains(":")) {
+				// not a field value but a direct value
+				me = SerialUtils.decode(line);
 			} else {
 				// field value is direct
 				int pos = line.indexOf(":");

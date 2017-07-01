@@ -1,10 +1,13 @@
 package be.nikiroo.utils.serial;
 
 import java.io.NotSerializableException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UnknownFormatConversionException;
 
 /**
  * Small class to help with serialisation.
@@ -20,6 +23,62 @@ public class SerialUtils {
 	static {
 		customTypes = new HashMap<String, CustomSerializer>();
 		// TODO: add "default" custom serialisers if any (Bitmap?)
+
+		// Array types:
+		customTypes.put("[]", new CustomSerializer() {
+			@Override
+			protected String toString(Object value) {
+				String type = value.getClass().getCanonicalName();
+				type = type.substring(0, type.length() - 2); // remove the []
+
+				StringBuilder builder = new StringBuilder();
+				builder.append(type).append("\n");
+				try {
+					for (int i = 0; true; i++) {
+						Object item = Array.get(value, i);
+						// encode it normally if direct value
+						if (!SerialUtils.encode(builder, item)) {
+							try {
+								// use ZIP: if not
+								builder.append(new Exporter().append(item)
+										.toString(true));
+							} catch (NotSerializableException e) {
+								throw new UnknownFormatConversionException(e
+										.getMessage());
+							}
+						}
+						builder.append("\n");
+					}
+				} catch (ArrayIndexOutOfBoundsException e) {
+					// Done.
+				}
+
+				return builder.toString();
+			}
+
+			@Override
+			protected String getType() {
+				return "[]";
+			}
+
+			@Override
+			protected Object fromString(String content) {
+				String[] tab = content.split("\n");
+
+				try {
+					Object array = Array.newInstance(
+							SerialUtils.getClass(tab[0]), tab.length - 1);
+					for (int i = 1; i < tab.length; i++) {
+						Object value = new Importer().read(tab[i]).getValue();
+						Array.set(array, i - 1, value);
+					}
+
+					return array;
+				} catch (Exception e) {
+					throw new UnknownFormatConversionException(e.getMessage());
+				}
+			}
+		});
 	}
 
 	/**
@@ -122,32 +181,37 @@ public class SerialUtils {
 			}
 		}
 
-		builder.append("{\nREF ").append(type).append("@").append(id);
-		try {
-			for (Field field : fields) {
-				field.setAccessible(true);
+		builder.append("{\nREF ").append(type).append("@").append(id)
+				.append(":");
+		if (!encode(builder, o)) { // check if direct value
+			try {
+				for (Field field : fields) {
+					field.setAccessible(true);
 
-				if (field.getName().startsWith("this$")) {
-					// Do not keep this links of nested classes
-					continue;
-				}
+					if (field.getName().startsWith("this$")) {
+						// Do not keep this links of nested classes
+						continue;
+					}
 
-				builder.append("\n");
-				builder.append(field.getName());
-				builder.append(":");
-				Object value;
-
-				value = field.get(o);
-
-				if (!encode(builder, value)) {
 					builder.append("\n");
-					append(builder, value, map);
+					builder.append(field.getName());
+					builder.append(":");
+					Object value;
+
+					value = field.get(o);
+
+					if (!encode(builder, value)) {
+						builder.append("\n");
+						append(builder, value, map);
+					}
 				}
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace(); // should not happen (see
+										// setAccessible)
+			} catch (IllegalAccessException e) {
+				e.printStackTrace(); // should not happen (see
+										// setAccessible)
 			}
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace(); // should not happen (see setAccessible)
-		} catch (IllegalAccessException e) {
-			e.printStackTrace(); // should not happen (see setAccessible)
 		}
 		builder.append("\n}");
 	}
@@ -156,6 +220,8 @@ public class SerialUtils {
 	static boolean encode(StringBuilder builder, Object value) {
 		if (value == null) {
 			builder.append("NULL");
+		} else if (value.getClass().getCanonicalName().endsWith("[]")) {
+			customTypes.get("[]").encode(builder, value);
 		} else if (customTypes.containsKey(value.getClass().getCanonicalName())) {
 			customTypes.get(value.getClass().getCanonicalName())//
 					.encode(builder, value);
@@ -166,7 +232,7 @@ public class SerialUtils {
 		} else if (value instanceof Byte) {
 			builder.append(value).append('b');
 		} else if (value instanceof Character) {
-			encodeString(builder, (String) value);
+			encodeString(builder, "" + value);
 			builder.append('c');
 		} else if (value instanceof Short) {
 			builder.append(value).append('s');
@@ -197,7 +263,7 @@ public class SerialUtils {
 			if (customTypes.containsKey(type)) {
 				return customTypes.get(type).decode(encodedValue);
 			} else {
-				throw new java.util.UnknownFormatConversionException(
+				throw new UnknownFormatConversionException(
 						"Unknown custom type: " + type);
 			}
 		} else if (encodedValue.equals("NULL") || encodedValue.equals("null")) {
