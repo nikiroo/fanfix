@@ -31,6 +31,13 @@ public class Paragraph {
 	private long words;
 
 	/**
+	 * Empty constructor, not to use.
+	 */
+	private Paragraph() {
+		// for serialisation purposes
+	}
+
+	/**
 	 * Create a new {@link Paragraph} with the given image.
 	 * 
 	 * @param imageUrl

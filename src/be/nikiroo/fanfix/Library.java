@@ -38,8 +38,8 @@ import be.nikiroo.utils.Progress;
 public class Library {
 	protected File baseDir;
 	protected boolean localSpeed;
+	protected Map<MetaData, File> stories;
 
-	private Map<MetaData, File> stories;
 	private int lastId;
 	private OutputType text;
 	private OutputType image;
@@ -156,17 +156,12 @@ public class Library {
 	 * 
 	 * @return the stories
 	 */
-	public synchronized List<MetaData> getListByType(String type) {
-		if (type != null) {
-			// convert the type to dir name
-			type = getExpectedDir(type).getName();
-		}
-
+	public synchronized List<MetaData> getListBySource(String type) {
 		List<MetaData> list = new ArrayList<MetaData>();
-		for (Entry<MetaData, File> entry : getStories(null).entrySet()) {
-			String storyType = entry.getValue().getParentFile().getName();
+		for (MetaData meta : getStories(null).keySet()) {
+			String storyType = meta.getSource();
 			if (type == null || type.equalsIgnoreCase(storyType)) {
-				list.add(entry.getKey());
+				list.add(meta);
 			}
 		}
 

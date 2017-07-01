@@ -27,6 +27,7 @@ public class Instance {
 	private static boolean debug;
 	private static File coverDir;
 	private static File readerTmp;
+	private static File remoteDir;
 	private static String configDir;
 
 	static {
@@ -84,6 +85,7 @@ public class Instance {
 		coverDir = getFile(Config.DEFAULT_COVERS_DIR);
 		File tmp = getFile(Config.CACHE_DIR);
 		readerTmp = getFile(UiConfig.CACHE_DIR_LOCAL_READER);
+		remoteDir = new File(getFile(Config.LIBRARY_DIR), "remote");
 
 		if (checkEnv("NOUTF")) {
 			trans.setUnicode(false);
@@ -183,6 +185,25 @@ public class Instance {
 	 */
 	public static File getReaderDir() {
 		return readerTmp;
+	}
+
+	/**
+	 * Return the directory where to store temporary files for the remote
+	 * {@link Library}.
+	 * 
+	 * @param host
+	 *            the remote for this host
+	 * 
+	 * @return the directory
+	 */
+	public static File getRemoteDir(String host) {
+		remoteDir.mkdirs();
+
+		if (host != null) {
+			return new File(remoteDir, host);
+		}
+
+		return remoteDir;
 	}
 
 	/**

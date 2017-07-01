@@ -220,7 +220,7 @@ class LocalReaderFrame extends JFrame {
 	 */
 	private void refreshBooks() {
 		for (LocalReaderGroup group : booksByType.keySet()) {
-			List<MetaData> stories = Instance.getLibrary().getListByType(
+			List<MetaData> stories = Instance.getLibrary().getListBySource(
 					booksByType.get(group));
 			group.refreshBooks(stories, words);
 		}

@@ -20,11 +20,19 @@ import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
+import be.nikiroo.utils.ui.UIUtils;
 
 class LocalReader extends BasicReader {
-	private Library lib;
+	static private boolean nativeLookLoaded;
+
+	private Library localLibrary;
 
 	public LocalReader() throws IOException {
+		if (!nativeLookLoaded) {
+			UIUtils.setLookAndFeel();
+			nativeLookLoaded = true;
+		}
+
 		File dir = Instance.getReaderDir();
 		dir.mkdirs();
 		if (!dir.exists()) {
@@ -58,7 +66,7 @@ class LocalReader extends BasicReader {
 							key, value), e);
 		}
 
-		lib = new Library(dir, text, images);
+		localLibrary = new Library(dir, text, images);
 	}
 
 	@Override
@@ -99,7 +107,7 @@ class LocalReader extends BasicReader {
 		try {
 			Story story = Instance.getLibrary().getStory(luid, pgGetStory);
 			if (story != null) {
-				story = lib.save(story, luid, pgSave);
+				story = localLibrary.save(story, luid, pgSave);
 			} else {
 				throw new IOException("Cannot find story in Library: " + luid);
 			}
@@ -120,11 +128,11 @@ class LocalReader extends BasicReader {
 	 * @return TRUE if it is
 	 */
 	public boolean isCached(String luid) {
-		return lib.getInfo(luid) != null;
+		return localLibrary.getInfo(luid) != null;
 	}
 
 	@Override
-	public void start(String type) {
+	public void browse(String type) {
 		// TODO: improve presentation of update message
 		final VersionCheck updates = VersionCheck.check();
 		StringBuilder builder = new StringBuilder();
@@ -189,28 +197,28 @@ class LocalReader extends BasicReader {
 
 	// delete from local reader library
 	void clearLocalReaderCache(String luid) {
-		lib.delete(luid);
+		localLibrary.delete(luid);
 	}
 
 	// delete from main library
 	void delete(String luid) {
-		lib.delete(luid);
+		localLibrary.delete(luid);
 		Instance.getLibrary().delete(luid);
 	}
 
 	// open the given book
 	void open(String luid, Progress pg) throws IOException {
-		File file = lib.getFile(luid);
+		File file = localLibrary.getFile(luid);
 		if (file == null) {
 			imprt(luid, pg);
-			file = lib.getFile(luid);
+			file = localLibrary.getFile(luid);
 		}
 
-		open(Instance.getLibrary().getInfo(luid), file);
+		open(getLibrary().getInfo(luid), file);
 	}
 
 	void changeType(String luid, String newType) {
-		lib.changeType(luid, newType);
+		localLibrary.changeType(luid, newType);
 		Instance.getLibrary().changeType(luid, newType);
 	}
 }

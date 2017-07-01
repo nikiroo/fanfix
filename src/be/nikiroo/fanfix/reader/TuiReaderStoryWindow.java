@@ -13,12 +13,14 @@ import jexer.TText;
 import jexer.TWindow;
 import jexer.event.TResizeEvent;
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.Library;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
 
 public class TuiReaderStoryWindow extends TWindow {
+	private Library lib;
 	private MetaData meta;
 	private Story story;
 	private TText textField;
@@ -26,12 +28,15 @@ public class TuiReaderStoryWindow extends TWindow {
 	private List<TButton> navigationButtons;
 	private TLabel chapterName;
 
-	public TuiReaderStoryWindow(TApplication app, MetaData meta) {
-		this(app, meta, 0);
+	public TuiReaderStoryWindow(TApplication app, Library lib, MetaData meta) {
+		this(app, lib, meta, 0);
 	}
 
-	public TuiReaderStoryWindow(TApplication app, MetaData meta, int chapter) {
+	public TuiReaderStoryWindow(TApplication app, Library lib, MetaData meta,
+			int chapter) {
 		super(app, desc(meta), 0, 0, 60, 18, CENTERED | RESIZABLE);
+		
+		this.lib = lib;
 		this.meta = meta;
 
 		// TODO: show all meta info before?
@@ -46,7 +51,10 @@ public class TuiReaderStoryWindow extends TWindow {
 		// -3 because 0-based and 2 for borders
 		int row = getHeight() - 3;
 
-		navigationButtons.add(addButton(" ", 0, row, null)); // for bg colour when << button is pressed
+		navigationButtons.add(addButton(" ", 0, row, null)); // for bg colour
+																// when <<
+																// button is
+																// pressed
 		navigationButtons.add(addButton("<<  ", 0, row, new TAction() {
 			public void DO() {
 				setChapter(0);
@@ -67,7 +75,7 @@ public class TuiReaderStoryWindow extends TWindow {
 				setChapter(getStory().getChapters().size());
 			}
 		}));
-		
+
 		navigationButtons.get(0).setEnabled(false);
 		navigationButtons.get(1).setEnabled(false);
 		navigationButtons.get(2).setEnabled(false);
@@ -113,14 +121,14 @@ public class TuiReaderStoryWindow extends TWindow {
 
 		if (chapter != this.chapter) {
 			this.chapter = chapter;
-			
+
 			int max = getStory().getChapters().size();
 			navigationButtons.get(0).setEnabled(chapter > 0);
 			navigationButtons.get(1).setEnabled(chapter > 0);
 			navigationButtons.get(2).setEnabled(chapter > 0);
 			navigationButtons.get(3).setEnabled(chapter < max);
 			navigationButtons.get(4).setEnabled(chapter < max);
-			
+
 			Chapter chap;
 			String name;
 			if (chapter == 0) {
@@ -128,7 +136,8 @@ public class TuiReaderStoryWindow extends TWindow {
 				name = String.format(" %s", chap.getName());
 			} else {
 				chap = getStory().getChapters().get(chapter - 1);
-				name = String.format(" %d/%d: %s", chapter, max, chap.getName());
+				name = String
+						.format(" %d/%d: %s", chapter, max, chap.getName());
 			}
 
 			while (name.length() < getWidth() - chapterName.getX()) {
@@ -157,7 +166,7 @@ public class TuiReaderStoryWindow extends TWindow {
 	private Story getStory() {
 		if (story == null) {
 			// TODO: progress bar?
-			story = Instance.getLibrary().getStory(meta.getLuid(), null);
+			story = lib.getStory(meta.getLuid(), null);
 		}
 		return story;
 	}

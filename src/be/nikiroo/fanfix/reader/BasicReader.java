@@ -14,7 +14,6 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.utils.Progress;
-import be.nikiroo.utils.ui.UIUtils;
 import be.nikiroo.utils.serial.SerialUtils;
 
 /**
@@ -32,22 +31,28 @@ public abstract class BasicReader {
 		GUI,
 		/** A text (UTF-8) reader with menu and text windows */
 		TUI,
-		
+
 		;
-		
+
 		public String getTypeName() {
 			String pkg = "be.nikiroo.fanfix.reader.";
 			switch (this) {
-				case CLI: return pkg + "CliReader";
-				case TUI: return pkg + "TuiReader";
-				case GUI: return pkg + "LocalReader";
+			case CLI:
+				return pkg + "CliReader";
+			case TUI:
+				return pkg + "TuiReader";
+			case GUI:
+				return pkg + "LocalReader";
 			}
-			
+
 			return null;
 		}
 	}
 
+	private static Library defaultLibrary = Instance.getLibrary();
 	private static ReaderType defaultType = ReaderType.GUI;
+
+	private Library lib;
 	private Story story;
 	private ReaderType type;
 
@@ -96,8 +101,33 @@ public abstract class BasicReader {
 	}
 
 	/**
+	 * The {@link Library} to load the stories from (by default, takes the
+	 * default {@link Library}).
+	 * 
+	 * @return the {@link Library}
+	 */
+	public Library getLibrary() {
+		if (lib == null) {
+			lib = defaultLibrary;
+		}
+
+		return lib;
+	}
+
+	/**
+	 * Change the {@link Library} that will be managed by this
+	 * {@link BasicReader}.
+	 * 
+	 * @param lib
+	 *            the new {@link Library}
+	 */
+	public void setLibrary(Library lib) {
+		this.lib = lib;
+	}
+
+	/**
 	 * Create a new {@link BasicReader} for a {@link Story} in the
-	 * {@link Library} .
+	 * {@link Library}.
 	 * 
 	 * @param luid
 	 *            the {@link Story} ID
@@ -108,7 +138,7 @@ public abstract class BasicReader {
 	 *             in case of I/O error
 	 */
 	public void setStory(String luid, Progress pg) throws IOException {
-		story = Instance.getLibrary().getStory(luid, pg);
+		story = lib.getStory(luid, pg);
 		if (story == null) {
 			throw new IOException("Cannot retrieve story from library: " + luid);
 		}
@@ -162,14 +192,17 @@ public abstract class BasicReader {
 	public abstract void read(int chapter) throws IOException;
 
 	/**
-	 * Start the reader in browse mode for the given type (or pass NULL for all
-	 * types).
+	 * Start the reader in browse mode for the given source (or pass NULL for
+	 * all sources).
 	 * 
-	 * @param type
+	 * @param library
+	 *            the library to browse
+	 * 
+	 * @param source
 	 *            the type of {@link Story} to take into account, or NULL for
 	 *            all
 	 */
-	public abstract void start(String type);
+	public abstract void browse(String source);
 
 	/**
 	 * Return a new {@link BasicReader} ready for use if one is configured.
@@ -181,8 +214,8 @@ public abstract class BasicReader {
 	public static BasicReader getReader() {
 		try {
 			if (defaultType != null) {
-				return ((BasicReader)SerialUtils.createObject
-					(defaultType.getTypeName())).setType(defaultType);
+				return ((BasicReader) SerialUtils.createObject(defaultType
+						.getTypeName())).setType(defaultType);
 			}
 		} catch (Exception e) {
 			Instance.syserr(new Exception("Cannot create a reader of type: "
@@ -214,6 +247,16 @@ public abstract class BasicReader {
 	}
 
 	/**
+	 * Change the default {@link Library} to open with the {@link BasicReader}s.
+	 * 
+	 * @param lib
+	 *            the new {@link Library}
+	 */
+	public static void setDefaultLibrary(Library lib) {
+		BasicReader.defaultLibrary = lib;
+	}
+
+	/**
 	 * Return an {@link URL} from this {@link String}, be it a file path or an
 	 * actual {@link URL}.
 	 * 
@@ -242,9 +285,9 @@ public abstract class BasicReader {
 	}
 
 	// open with external player the related file
-	public static void open(String luid) throws IOException {
-		MetaData meta = Instance.getLibrary().getInfo(luid);
-		File target = Instance.getLibrary().getFile(luid);
+	public static void open(Library lib, String luid) throws IOException {
+		MetaData meta = lib.getInfo(luid);
+		File target = lib.getFile(luid);
 
 		open(meta, target);
 	}

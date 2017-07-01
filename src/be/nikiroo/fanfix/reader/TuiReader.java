@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.Library;
 import be.nikiroo.fanfix.data.MetaData;
 
 class TuiReader extends BasicReader {
@@ -13,7 +14,7 @@ class TuiReader extends BasicReader {
 			throw new IOException("No story to read");
 		}
 
-		open(getStory().getMeta().getLuid());
+		open(getLibrary(), getStory().getMeta().getLuid());
 	}
 
 	@Override
@@ -23,8 +24,8 @@ class TuiReader extends BasicReader {
 	}
 
 	@Override
-	public void start(String type) {
-		List<MetaData> stories = Instance.getLibrary().getListByType(type);
+	public void browse(String source) {
+		List<MetaData> stories = getLibrary().getListBySource(source);
 		try {
 			TuiReaderApplication app = new TuiReaderApplication(stories, this);
 			new Thread(app).start();

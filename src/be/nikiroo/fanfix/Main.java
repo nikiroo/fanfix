@@ -16,7 +16,7 @@ import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
-import be.nikiroo.utils.ui.UIUtils;
+import be.nikiroo.utils.serial.Server;
 
 /**
  * Main program entry point.
@@ -25,7 +25,7 @@ import be.nikiroo.utils.ui.UIUtils;
  */
 public class Main {
 	private enum MainAction {
-		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER, START, VERSION,
+		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER, START, VERSION, SERVER, REMOTE,
 	}
 
 	/**
@@ -55,6 +55,8 @@ public class Main {
 	 * <li>--set-reader [reader type]: set the reader type to CLI, TUI or LOCAL
 	 * for this command</li>
 	 * <li>--version: get the version of the program</li>
+	 * <li>--server [port]: start a server on this port</li>
+	 * <li>--remote [host] [port]: use a the given remote library</li>
 	 * </ul>
 	 * 
 	 * @param args
@@ -63,11 +65,13 @@ public class Main {
 	public static void main(String[] args) {
 		String urlString = null;
 		String luid = null;
-		String typeString = null;
+		String sourceString = null;
 		String chapString = null;
 		String target = null;
 		MainAction action = MainAction.START;
 		Boolean plusInfo = null;
+		String host = null;
+		Integer port = null;
 
 		boolean noMoreActions = false;
 
@@ -102,8 +106,8 @@ public class Main {
 			case EXPORT:
 				if (luid == null) {
 					luid = args[i];
-				} else if (typeString == null) {
-					typeString = args[i];
+				} else if (sourceString == null) {
+					sourceString = args[i];
 				} else if (target == null) {
 					target = args[i];
 				} else {
@@ -113,8 +117,8 @@ public class Main {
 			case CONVERT:
 				if (urlString == null) {
 					urlString = args[i];
-				} else if (typeString == null) {
-					typeString = args[i];
+				} else if (sourceString == null) {
+					sourceString = args[i];
 				} else if (target == null) {
 					target = args[i];
 				} else if (plusInfo == null) {
@@ -128,8 +132,8 @@ public class Main {
 				}
 				break;
 			case LIST:
-				if (typeString == null) {
-					typeString = args[i];
+				if (sourceString == null) {
+					sourceString = args[i];
 				} else {
 					exitCode = 255;
 				}
@@ -164,6 +168,30 @@ public class Main {
 				break;
 			case VERSION:
 				exitCode = 255; // no arguments for this option
+				break;
+			case SERVER:
+				if (port == null) {
+					port = Integer.parseInt(args[i]);
+				} else {
+					exitCode = 255;
+				}
+				break;
+			case REMOTE:
+				if (host == null) {
+					host = args[i];
+				} else if (port == null) {
+					port = Integer.parseInt(args[i]);
+					try {
+						BasicReader.setDefaultLibrary(new RemoteLibrary(host,
+								port));
+					} catch (IOException e) {
+						Instance.syserr(e);
+					}
+					action = MainAction.START;
+				} else {
+					exitCode = 255;
+				}
+				break;
 			}
 		}
 
@@ -215,16 +243,16 @@ public class Main {
 				updates.ok(); // we consider it read
 				break;
 			case EXPORT:
-				exitCode = export(luid, typeString, target, pg);
+				exitCode = export(luid, sourceString, target, pg);
 				updates.ok(); // we consider it read
 				break;
 			case CONVERT:
-				exitCode = convert(urlString, typeString, target,
+				exitCode = convert(urlString, sourceString, target,
 						plusInfo == null ? false : plusInfo, pg);
 				updates.ok(); // we consider it read
 				break;
 			case LIST:
-				exitCode = list(typeString);
+				exitCode = list(sourceString);
 				break;
 			case READ:
 				exitCode = read(luid, chapString, true);
@@ -237,6 +265,7 @@ public class Main {
 				exitCode = 0;
 				break;
 			case SET_READER:
+				exitCode = 255;
 				break;
 			case VERSION:
 				System.out
@@ -247,8 +276,23 @@ public class Main {
 				updates.ok(); // we consider it read
 				break;
 			case START:
-				//BasicReader.setDefaultReaderType(ReaderType.LOCAL);
-				BasicReader.getReader().start(null);
+				BasicReader.getReader().browse(null);
+				break;
+			case SERVER:
+				if (port == null) {
+					exitCode = 255;
+					break;
+				}
+				try {
+					Server server = new RemoteLibraryServer(port);
+					server.start();
+					System.out.println("Remote server started on: " + port);
+				} catch (IOException e) {
+					Instance.syserr(e);
+				}
+				return;
+			case REMOTE:
+				exitCode = 255;
 				break;
 			}
 		}
@@ -320,17 +364,17 @@ public class Main {
 	}
 
 	/**
-	 * List the stories of the given type from the {@link Library} (unless NULL
-	 * is passed, in which case all stories will be listed).
+	 * List the stories of the given source from the {@link Library} (unless
+	 * NULL is passed, in which case all stories will be listed).
 	 * 
-	 * @param type
-	 *            the type to list the known stories of, or NULL to list all
+	 * @param source
+	 *            the source to list the known stories of, or NULL to list all
 	 *            stories
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	private static int list(String type) {
-		BasicReader.getReader().start(type);
+	private static int list(String source) {
+		BasicReader.getReader().browse(source);
 		return 0;
 	}
 

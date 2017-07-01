@@ -17,6 +17,13 @@ public class Chapter implements Iterable<Paragraph> {
 	private long words;
 
 	/**
+	 * Empty constructor, not to use.
+	 */
+	private Chapter() {
+		// for serialisation purposes
+	}
+
+	/**
 	 * Create a new {@link Chapter} with the given information.
 	 * 
 	 * @param number

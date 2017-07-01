@@ -2,6 +2,8 @@
 
 ## Version WIP
 - New reader type: TUI (a text user interface with windows and menus)
+- A server option to offer stories on the network
+- A remote library to get said stories from the network
 
 ## Version 1.5.3
 - FimFiction: Fix tags and chapter handling for some stories

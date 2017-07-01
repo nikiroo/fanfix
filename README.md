@@ -4,6 +4,8 @@ Fanfix is a small Java program that can download stories from some supported web
 
 (If you are interested in the recent changes, please check the [Changelog](changelog.md) -- note that starting from version 1.4.0, the changelog is checked at startup (unless the option is disabled))
 
+TODO: new screenshots + TUI screenshots
+
 ![Main GUI](screenshots/fanfix-1.3.2.png?raw=true "Main GUI")
 
 It will convert from a (supported) URL to an .epub file for stories or a .cbz file for comics (a few other output types are also available, like Plain Text, LaTeX, HTML...).
@@ -60,7 +62,9 @@ The following arguments are also allowed:
 - ```--read [id] ([chapter number])```: read the given story denoted by ID from the library
 - ```--read-url [URL] ([chapter number])```: convert on the fly and read the story denoted by ID, without saving it
 - ```--list```: list the stories present in the library and their associated IDs
-- ```--set-reader [reader type]```: set the reader type to CLI or LOCAL for this command (must be the first option)
+- ```--set-reader [reader type]```: set the reader type to CLI, TUI or GUI for this command
+- ```--server [port]```: start a story server on this port
+- ```--remote [host] [port]```: contact this server instead of the usual library
 - ```--help```: display the available options
 
 ### Environment variables
@@ -85,6 +89,7 @@ There are some unit tests you can run, too:
 
 - libs/nikiroo-utils-sources.jar: some shared utility functions I also use elsewhere
 - [libs/unbescape-sources.jar](https://github.com/unbescape/unbescape): a nice library to escape/unescape a lot of text formats; I only use it for HTML
+- [libs/jexer-sources.jar](https://github.com/klamonte/jexer): a small library that offers TUI widgets
 
 Nothing else but Java 1.6+.
 
@@ -115,8 +120,16 @@ Currently missing, but either in progress or planned:
   - [x] Implement it from --set-reader to the actual window
   - [x] List the stories
   - [ ] Fix the UI layout
-  - [ ] Status bar and real menus
-  - [ ] Open a story in the reader and/or natively
+  - [x] Status bar
+  - [ ] Real menus
+  - [x] Open a story in the reader and/or natively
+  - [ ] Update the screenshots
+- [ ] Network support
+  - [x] A server that can send the stories
+  - [x] A network implementation of the Library
+  - [ ] Write access to the library (?)
+  - [ ] Access rights (?)
+  - [ ] More tests, especially with the GUI
 - [ ] Check if it can work on Android
   - [x] First checks: it should work, but with changes
   - [ ] Adapt work on images :(

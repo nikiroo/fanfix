@@ -5,7 +5,6 @@ import java.util.List;
 
 import jexer.TApplication;
 import jexer.TMessageBox;
-import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 
 public class TuiReaderApplication extends TApplication {
@@ -55,21 +54,15 @@ public class TuiReaderApplication extends TApplication {
 
 	public void open(MetaData meta) {
 		// TODO: open in editor + external option
-		if (true) {
-			if (!meta.isImageDocument()) {
-				new TuiReaderStoryWindow(this, meta);
-			} else {
+		if (!meta.isImageDocument()) {
+			new TuiReaderStoryWindow(this, reader.getLibrary(), meta);
+		} else {
+			try {
+				BasicReader.open(reader.getLibrary(), meta.getLuid());
+			} catch (IOException e) {
 				messageBox("Error when trying to open the story",
-						"Images document not yet supported.",
-						TMessageBox.Type.OK);
+						e.getMessage(), TMessageBox.Type.OK);
 			}
-			return;
-		}
-		try {
-			reader.open(meta.getLuid());
-		} catch (IOException e) {
-			messageBox("Error when trying to open the story", e.getMessage(),
-					TMessageBox.Type.OK);
 		}
 	}
 }

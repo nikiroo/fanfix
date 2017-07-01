@@ -78,9 +78,9 @@ class CliReader extends BasicReader {
 	}
 
 	@Override
-	public void start(String type) {
+	public void browse(String source) {
 		List<MetaData> stories;
-		stories = Instance.getLibrary().getListByType(type);
+		stories = getLibrary().getListBySource(source);
 
 		for (MetaData story : stories) {
 			String author = "";
