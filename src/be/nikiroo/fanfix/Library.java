@@ -36,7 +36,9 @@ import be.nikiroo.utils.Progress;
  * @author niki
  */
 public class Library {
-	private File baseDir;
+	protected File baseDir;
+	protected boolean localSpeed;
+
 	private Map<MetaData, File> stories;
 	private int lastId;
 	private OutputType text;
@@ -53,13 +55,24 @@ public class Library {
 	 *            the {@link OutputType} to save the images-focused stories into
 	 */
 	public Library(File dir, OutputType text, OutputType image) {
+		this();
+
 		this.baseDir = dir;
-		this.stories = new HashMap<MetaData, File>();
+
 		this.lastId = 0;
 		this.text = text;
 		this.image = image;
 
 		dir.mkdirs();
+	}
+
+	/**
+	 * Create a new {@link Library} with no link to the local machine.
+	 * <p>
+	 * Reserved for extensions.
+	 */
+	protected Library() {
+		this.stories = new HashMap<MetaData, File>();
 	}
 
 	/**
@@ -146,7 +159,7 @@ public class Library {
 	public synchronized List<MetaData> getListByType(String type) {
 		if (type != null) {
 			// convert the type to dir name
-			type = getDir(type).getName();
+			type = getExpectedDir(type).getName();
 		}
 
 		List<MetaData> list = new ArrayList<MetaData>();
@@ -162,8 +175,8 @@ public class Library {
 	}
 
 	/**
-	 * Retrieve a {@link File} corresponding to the given {@link Story}, cover
-	 * image not included.
+	 * Retrieve a {@link MetaData} corresponding to the given {@link Story},
+	 * cover image <b>MAY</b> not be included.
 	 * 
 	 * @param luid
 	 *            the Library UID of the story
@@ -213,8 +226,10 @@ public class Library {
 	public synchronized BufferedImage getCover(String luid) {
 		MetaData meta = getInfo(luid);
 		if (meta != null) {
+			getFile(luid); // to help remote implementation
 			try {
-				File infoFile = new File(getFile(meta).getPath() + ".info");
+				File infoFile = new File(getExpectedFile(meta).getPath()
+						+ ".info");
 				meta = readMeta(infoFile, true).getKey();
 				return meta.getCover();
 			} catch (IOException e) {
@@ -239,23 +254,24 @@ public class Library {
 		if (luid != null) {
 			for (Entry<MetaData, File> entry : getStories(null).entrySet()) {
 				if (luid.equals(entry.getKey().getLuid())) {
+					MetaData meta = entry.getKey();
+					File file = getFile(luid); // to help remote implementation
 					try {
-						SupportType type = SupportType.valueOfAllOkUC(entry
-								.getKey().getType());
-						URL url = entry.getValue().toURI().toURL();
+						SupportType type = SupportType.valueOfAllOkUC(meta
+								.getType());
+						URL url = file.toURI().toURL();
 						if (type != null) {
 							return BasicSupport.getSupport(type).process(url,
 									pg);
 						} else {
 							throw new IOException("Unknown type: "
-									+ entry.getKey().getType());
+									+ meta.getType());
 						}
 					} catch (IOException e) {
 						// We should not have not-supported files in the
 						// library
 						Instance.syserr(new IOException(
-								"Cannot load file from library: "
-										+ entry.getValue().getPath(), e));
+								"Cannot load file from library: " + file, e));
 					}
 				}
 			}
@@ -378,8 +394,8 @@ public class Library {
 			key.setLuid(luid);
 		}
 
-		getDir(key.getSource()).mkdirs();
-		if (!getDir(key.getSource()).exists()) {
+		getExpectedDir(key.getSource()).mkdirs();
+		if (!getExpectedDir(key.getSource()).exists()) {
 			throw new IOException("Cannot create library dir");
 		}
 
@@ -391,7 +407,7 @@ public class Library {
 		}
 
 		BasicOutput it = BasicOutput.getOutput(out, true);
-		it.process(story, getFile(key).getPath(), pg);
+		it.process(story, getExpectedFile(key).getPath(), pg);
 
 		// empty cache
 		stories.clear();
@@ -439,7 +455,7 @@ public class Library {
 		MetaData meta = getInfo(luid);
 		if (meta != null) {
 			meta.setSource(newType);
-			File newDir = getDir(meta.getSource());
+			File newDir = getExpectedDir(meta.getSource());
 			if (!newDir.exists()) {
 				newDir.mkdir();
 			}
@@ -470,6 +486,18 @@ public class Library {
 	}
 
 	/**
+	 * The library is accessed locally or at local speed (for operations like
+	 * {@link Library#getFile(String)}).
+	 * <p>
+	 * It could be cached, too, it is only about the access speed.
+	 * 
+	 * @return TRUE if it is accessed locally
+	 */
+	public boolean isLocalSpeed() {
+		return localSpeed;
+	}
+
+	/**
 	 * Return the list of files/dirs on disk for this {@link Story}.
 	 * <p>
 	 * If the {@link Story} is not found, and empty list is returned.
@@ -483,7 +511,7 @@ public class Library {
 		List<File> files = new ArrayList<File>();
 
 		MetaData meta = getInfo(luid);
-		File file = getStories(null).get(meta);
+		File file = getFile(luid); // to help remote implementation
 
 		if (file != null) {
 			files.add(file);
@@ -539,7 +567,7 @@ public class Library {
 	 * 
 	 * @return the target directory
 	 */
-	private File getDir(String type) {
+	private File getExpectedDir(String type) {
 		String source = type.replaceAll("[^a-zA-Z0-9._+-]", "_");
 		return new File(baseDir, source);
 	}
@@ -553,13 +581,14 @@ public class Library {
 	 * 
 	 * @return the target
 	 */
-	private File getFile(MetaData key) {
+	private File getExpectedFile(MetaData key) {
 		String title = key.getTitle();
 		if (title == null) {
 			title = "";
 		}
 		title = title.replaceAll("[^a-zA-Z0-9._+-]", "_");
-		return new File(getDir(key.getSource()), key.getLuid() + "_" + title);
+		return new File(getExpectedDir(key.getSource()), key.getLuid() + "_"
+				+ title);
 	}
 
 	/**
@@ -570,7 +599,7 @@ public class Library {
 	 * 
 	 * @return the stories
 	 */
-	private synchronized Map<MetaData, File> getStories(Progress pg) {
+	protected synchronized Map<MetaData, File> getStories(Progress pg) {
 		if (pg == null) {
 			pg = new Progress();
 		} else {
