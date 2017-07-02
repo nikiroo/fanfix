@@ -19,6 +19,7 @@ public class Test extends TestLauncher {
 	public Test(String[] args) {
 		super("Fanfix", args);
 		addSeries(new BasicSupportTest(args));
+		addSeries(new LibraryTest(args));
 	}
 
 	/**
