@@ -31,11 +31,11 @@ import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.ui.UIUtils;
 
 /**
- * A book item presented in a {@link LocalReaderFrame}.
+ * A book item presented in a {@link GuiReaderFrame}.
  * 
  * @author niki
  */
-class LocalReaderBook extends JPanel {
+class GuiReaderBook extends JPanel {
 	/**
 	 * Action on a book item.
 	 * 
@@ -46,27 +46,27 @@ class LocalReaderBook extends JPanel {
 		 * The book was selected (single click).
 		 * 
 		 * @param book
-		 *            the {@link LocalReaderBook} itself
+		 *            the {@link GuiReaderBook} itself
 		 */
-		public void select(LocalReaderBook book);
+		public void select(GuiReaderBook book);
 
 		/**
 		 * The book was double-clicked.
 		 * 
 		 * @param book
-		 *            the {@link LocalReaderBook} itself
+		 *            the {@link GuiReaderBook} itself
 		 */
-		public void action(LocalReaderBook book);
+		public void action(GuiReaderBook book);
 
 		/**
-		 * A popup menu was requested for this {@link LocalReaderBook}.
+		 * A popup menu was requested for this {@link GuiReaderBook}.
 		 * 
 		 * @param book
-		 *            the {@link LocalReaderBook} itself
+		 *            the {@link GuiReaderBook} itself
 		 * @param e
 		 *            the {@link MouseEvent} that generated this call
 		 */
-		public void popupRequested(LocalReaderBook book, MouseEvent e);
+		public void popupRequested(GuiReaderBook book, MouseEvent e);
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -97,16 +97,16 @@ class LocalReaderBook extends JPanel {
 	private boolean cached;
 
 	/**
-	 * Create a new {@link LocalReaderBook} item for the given {@link Story}.
+	 * Create a new {@link GuiReaderBook} item for the given {@link Story}.
 	 * 
 	 * @param meta
-	 *            the story {@code}link MetaData}
+	 *            the story {@link MetaData}
 	 * @param cached
 	 *            TRUE if it is locally cached
-	 * @param seeWordcount
+	 * @param seeWordCount
 	 *            TRUE to see word counts, FALSE to see authors
 	 */
-	public LocalReaderBook(MetaData meta, boolean cached, boolean seeWordCount) {
+	public GuiReaderBook(MetaData meta, boolean cached, boolean seeWordCount) {
 		this.cached = cached;
 		this.meta = meta;
 
@@ -182,7 +182,7 @@ class LocalReaderBook extends JPanel {
 	 * events.
 	 */
 	private void setupListeners() {
-		listeners = new ArrayList<LocalReaderBook.BookActionListener>();
+		listeners = new ArrayList<GuiReaderBook.BookActionListener>();
 		addMouseListener(new MouseListener() {
 			public void mouseReleased(MouseEvent e) {
 				if (e.isPopupTrigger()) {
@@ -221,17 +221,17 @@ class LocalReaderBook extends JPanel {
 			private void click(boolean doubleClick) {
 				for (BookActionListener listener : listeners) {
 					if (doubleClick) {
-						listener.action(LocalReaderBook.this);
+						listener.action(GuiReaderBook.this);
 					} else {
-						listener.select(LocalReaderBook.this);
+						listener.select(GuiReaderBook.this);
 					}
 				}
 			}
 
 			private void popup(MouseEvent e) {
 				for (BookActionListener listener : listeners) {
-					listener.select((LocalReaderBook.this));
-					listener.popupRequested(LocalReaderBook.this, e);
+					listener.select((GuiReaderBook.this));
+					listener.popupRequested(GuiReaderBook.this, e);
 				}
 			}
 		});
@@ -248,7 +248,7 @@ class LocalReaderBook extends JPanel {
 	}
 
 	/**
-	 * The Library {@code}link MetaData} of the book represented by this item.
+	 * The Library {@link MetaData} of the book represented by this item.
 	 * 
 	 * @return the meta
 	 */
@@ -257,19 +257,19 @@ class LocalReaderBook extends JPanel {
 	}
 
 	/**
-	 * This item {@link LocalReader} library cache state.
+	 * This item {@link GuiReader} library cache state.
 	 * 
-	 * @return TRUE if it is present in the {@link LocalReader} cache
+	 * @return TRUE if it is present in the {@link GuiReader} cache
 	 */
 	public boolean isCached() {
 		return cached;
 	}
 
 	/**
-	 * This item {@link LocalReader} library cache state.
+	 * This item {@link GuiReader} library cache state.
 	 * 
 	 * @param cached
-	 *            TRUE if it is present in the {@link LocalReader} cache
+	 *            TRUE if it is present in the {@link GuiReader} cache
 	 */
 	public void setCached(boolean cached) {
 		if (this.cached != cached) {
@@ -279,7 +279,7 @@ class LocalReaderBook extends JPanel {
 	}
 
 	/**
-	 * Paint the item, then call {@link LocalReaderBook#paintOverlay(Graphics)}.
+	 * Paint the item, then call {@link GuiReaderBook#paintOverlay(Graphics)}.
 	 */
 	@Override
 	public void paint(Graphics g) {
@@ -291,6 +291,9 @@ class LocalReaderBook extends JPanel {
 	 * Draw a partially transparent overlay if needed depending upon the
 	 * selection and mouse-hover states on top of the normal component, as well
 	 * as a possible "cached" icon if the item is cached.
+	 * 
+	 * @param g
+	 *            the {@link Graphics} to paint onto
 	 */
 	public void paintOverlay(Graphics g) {
 		Rectangle clip = g.getClipBounds();

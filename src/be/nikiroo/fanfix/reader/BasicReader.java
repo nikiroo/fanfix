@@ -25,6 +25,11 @@ import be.nikiroo.utils.serial.SerialUtils;
  * @author niki
  */
 public abstract class BasicReader {
+	/**
+	 * A type of {@link BasicReader}.
+	 * 
+	 * @author niki
+	 */
 	public enum ReaderType {
 		/** Simple reader that outputs everything on the console */
 		CLI,
@@ -35,6 +40,12 @@ public abstract class BasicReader {
 
 		;
 
+		/**
+		 * Return the full class name of a type that implements said
+		 * {@link ReaderType}.
+		 * 
+		 * @return the class name
+		 */
 		public String getTypeName() {
 			String pkg = "be.nikiroo.fanfix.reader.";
 			switch (this) {
@@ -43,7 +54,7 @@ public abstract class BasicReader {
 			case TUI:
 				return pkg + "TuiReader";
 			case GUI:
-				return pkg + "LocalReader";
+				return pkg + "GuiReader";
 			}
 
 			return null;
@@ -86,6 +97,8 @@ public abstract class BasicReader {
 	 * 
 	 * @param type
 	 *            the new type
+	 * 
+	 * @return the type
 	 */
 	protected BasicReader setType(ReaderType type) {
 		this.type = type;
@@ -196,9 +209,6 @@ public abstract class BasicReader {
 	 * Start the reader in browse mode for the given source (or pass NULL for
 	 * all sources).
 	 * 
-	 * @param library
-	 *            the library to browse
-	 * 
 	 * @param source
 	 *            the type of {@link Story} to take into account, or NULL for
 	 *            all
@@ -286,7 +296,18 @@ public abstract class BasicReader {
 		return source;
 	}
 
-	// open with external player the related file
+	/**
+	 * Open the {@link Story} with an external reader (the program will be
+	 * passed the main file associated with this {@link Story}).
+	 * 
+	 * @param lib
+	 *            the {@link BasicLibrary} to select the {@link Story} from
+	 * @param luid
+	 *            the {@link Story} LUID
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
 	public static void open(BasicLibrary lib, String luid) throws IOException {
 		MetaData meta = lib.getInfo(luid);
 		File target = lib.getFile(luid);
@@ -294,7 +315,18 @@ public abstract class BasicReader {
 		open(meta, target);
 	}
 
-	// open with external player the related file
+	/**
+	 * Open the {@link Story} with an external reader (the program will be
+	 * passed the given target file).
+	 * 
+	 * @param meta
+	 *            the {@link Story} to load
+	 * @param target
+	 *            the target {@link File}
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
 	protected static void open(MetaData meta, File target) throws IOException {
 		String program = null;
 		if (meta.isImageDocument()) {

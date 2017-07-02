@@ -22,12 +22,12 @@ import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.ui.UIUtils;
 
-class LocalReader extends BasicReader {
+class GuiReader extends BasicReader {
 	static private boolean nativeLookLoaded;
 
 	private LocalLibrary localLibrary;
 
-	public LocalReader() throws IOException {
+	public GuiReader() throws IOException {
 		if (!nativeLookLoaded) {
 			UIUtils.setLookAndFeel();
 			nativeLookLoaded = true;
@@ -120,7 +120,7 @@ class LocalReader extends BasicReader {
 
 	/**
 	 * Check if the {@link Story} denoted by this Library UID is present in the
-	 * {@link LocalReader} cache.
+	 * {@link GuiReader} cache.
 	 * 
 	 * @param luid
 	 *            the Library UID
@@ -189,7 +189,7 @@ class LocalReader extends BasicReader {
 					}
 				}
 
-				new LocalReaderFrame(LocalReader.this, typeFinal)
+				new GuiReaderFrame(GuiReader.this, typeFinal)
 						.setVisible(true);
 			}
 		});

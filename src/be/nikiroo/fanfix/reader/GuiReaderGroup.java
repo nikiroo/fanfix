@@ -11,36 +11,36 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import be.nikiroo.fanfix.data.MetaData;
-import be.nikiroo.fanfix.reader.LocalReaderBook.BookActionListener;
+import be.nikiroo.fanfix.reader.GuiReaderBook.BookActionListener;
 import be.nikiroo.utils.ui.WrapLayout;
 
 /**
- * A group of {@link LocalReaderBook}s for display.
+ * A group of {@link GuiReaderBook}s for display.
  * 
  * @author niki
  */
-public class LocalReaderGroup extends JPanel {
+public class GuiReaderGroup extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private BookActionListener action;
 	private Color backgroundColor;
-	private LocalReader reader;
+	private GuiReader reader;
 	private List<MetaData> stories;
-	private List<LocalReaderBook> books;
+	private List<GuiReaderBook> books;
 	private JPanel pane;
 	private boolean words; // words or authors (secondary info on books)
 
 	/**
-	 * Create a new {@link LocalReaderGroup}.
+	 * Create a new {@link GuiReaderGroup}.
 	 * 
 	 * @param reader
-	 *            the {@link LocalReaderBook} used to probe some information
+	 *            the {@link GuiReaderBook} used to probe some information
 	 *            about the stories
 	 * @param title
 	 *            the title of this group
 	 * @param backgroundColor
 	 *            the background colour to use (or NULL for default)
 	 */
-	public LocalReaderGroup(LocalReader reader, String title,
+	public GuiReaderGroup(GuiReader reader, String title,
 			Color backgroundColor) {
 		this.reader = reader;
 		this.backgroundColor = backgroundColor;
@@ -72,7 +72,7 @@ public class LocalReaderGroup extends JPanel {
 
 	/**
 	 * Set the {@link ActionListener} that will be fired on each
-	 * {@link LocalReaderBook} action.
+	 * {@link GuiReaderBook} action.
 	 * 
 	 * @param action
 	 *            the action
@@ -83,7 +83,7 @@ public class LocalReaderGroup extends JPanel {
 	}
 
 	/**
-	 * Refresh the list of {@link LocalReaderBook}s displayed in the control.
+	 * Refresh the list of {@link GuiReaderBook}s displayed in the control.
 	 * 
 	 * @param stories
 	 *            the stories
@@ -94,14 +94,14 @@ public class LocalReaderGroup extends JPanel {
 		this.stories = stories;
 		this.words = seeWordcount;
 
-		books = new ArrayList<LocalReaderBook>();
+		books = new ArrayList<GuiReaderBook>();
 		invalidate();
 		pane.invalidate();
 		pane.removeAll();
 
 		if (stories != null) {
 			for (MetaData meta : stories) {
-				LocalReaderBook book = new LocalReaderBook(meta,
+				GuiReaderBook book = new GuiReaderBook(meta,
 						reader.isCached(meta.getLuid()), seeWordcount);
 				if (backgroundColor != null) {
 					book.setBackground(backgroundColor);
@@ -110,17 +110,17 @@ public class LocalReaderGroup extends JPanel {
 				books.add(book);
 
 				book.addActionListener(new BookActionListener() {
-					public void select(LocalReaderBook book) {
-						for (LocalReaderBook abook : books) {
+					public void select(GuiReaderBook book) {
+						for (GuiReaderBook abook : books) {
 							abook.setSelected(abook == book);
 						}
 					}
 
-					public void popupRequested(LocalReaderBook book,
+					public void popupRequested(GuiReaderBook book,
 							MouseEvent e) {
 					}
 
-					public void action(LocalReaderBook book) {
+					public void action(GuiReaderBook book) {
 					}
 				});
 
@@ -152,7 +152,7 @@ public class LocalReaderGroup extends JPanel {
 	@Override
 	public void setEnabled(boolean b) {
 		if (books != null) {
-			for (LocalReaderBook book : books) {
+			for (GuiReaderBook book : books) {
 				book.setEnabled(b);
 				book.repaint();
 			}

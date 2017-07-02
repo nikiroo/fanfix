@@ -1,11 +1,8 @@
 package be.nikiroo.fanfix.reader;
 
 import java.io.IOException;
-import java.util.List;
 
 import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.LocalLibrary;
-import be.nikiroo.fanfix.data.MetaData;
 
 class TuiReader extends BasicReader {
 	@Override
@@ -25,9 +22,9 @@ class TuiReader extends BasicReader {
 
 	@Override
 	public void browse(String source) {
-		List<MetaData> stories = getLibrary().getListBySource(source);
 		try {
-			TuiReaderApplication app = new TuiReaderApplication(stories, this);
+			TuiReaderApplication app = new TuiReaderApplication(getLibrary()
+					.getListBySource(source), this);
 			new Thread(app).start();
 		} catch (Exception e) {
 			Instance.syserr(e);

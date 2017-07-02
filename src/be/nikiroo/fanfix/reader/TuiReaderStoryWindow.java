@@ -13,14 +13,12 @@ import jexer.TText;
 import jexer.TWindow;
 import jexer.event.TResizeEvent;
 import be.nikiroo.fanfix.BasicLibrary;
-import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.LocalLibrary;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
 
-public class TuiReaderStoryWindow extends TWindow {
+class TuiReaderStoryWindow extends TWindow {
 	private BasicLibrary lib;
 	private MetaData meta;
 	private Story story;

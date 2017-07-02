@@ -3,10 +3,17 @@ package be.nikiroo.fanfix.reader;
 import java.util.ArrayList;
 import java.util.List;
 
-import jexer.*;
+import jexer.TAction;
+import jexer.TCommand;
+import jexer.TKeypress;
+import jexer.TList;
+import jexer.TRadioGroup;
+import jexer.TTreeItem;
+import jexer.TTreeView;
+import jexer.TWindow;
 import be.nikiroo.fanfix.data.MetaData;
 
-public class TuiReaderMainWindow extends TWindow {
+class TuiReaderMainWindow extends TWindow {
 	private TList list;
 	private List<MetaData> listKeys;
 	private List<String> listItems;
@@ -15,10 +22,10 @@ public class TuiReaderMainWindow extends TWindow {
 	/**
 	 * Constructor.
 	 * 
-	 * @param parent
-	 *            the main application
-	 * @param flags
-	 *            bitmask of MODAL, CENTERED, or RESIZABLE
+	 * @param reader
+	 *            the reader and main application
+	 * @param stories
+	 *            the stories to display
 	 */
 	public TuiReaderMainWindow(TuiReaderApplication reader,
 			List<MetaData> stories) {
@@ -49,7 +56,7 @@ public class TuiReaderMainWindow extends TWindow {
 				}
 			}
 		});
-		
+
 		// TODO: add the current "type" or filter
 		statusBar = newStatusBar("Library");
 		statusBar.addShortcutKeypress(TKeypress.kbF10, TCommand.cmExit, "Exit");

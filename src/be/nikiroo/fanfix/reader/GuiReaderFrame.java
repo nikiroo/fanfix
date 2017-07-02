@@ -40,42 +40,42 @@ import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
-import be.nikiroo.fanfix.reader.LocalReaderBook.BookActionListener;
+import be.nikiroo.fanfix.reader.GuiReaderBook.BookActionListener;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.ui.ConfigEditor;
 import be.nikiroo.utils.ui.ProgressBar;
 
 /**
- * A {@link Frame} that will show a {@link LocalReaderBook} item for each
+ * A {@link Frame} that will show a {@link GuiReaderBook} item for each
  * {@link Story} in the main cache ({@link Instance#getCache()}), and offer a
- * way to copy them to the {@link LocalReader} cache ({@link LocalReader#lib}),
- * read them, delete them...
+ * way to copy them to the {@link GuiReader} cache (
+ * {@link BasicReader#getLibrary()}), read them, delete them...
  * 
  * @author niki
  */
-class LocalReaderFrame extends JFrame {
+class GuiReaderFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
-	private LocalReader reader;
-	private Map<LocalReaderGroup, String> booksByType;
-	private Map<LocalReaderGroup, String> booksByAuthor;
+	private GuiReader reader;
+	private Map<GuiReaderGroup, String> booksByType;
+	private Map<GuiReaderGroup, String> booksByAuthor;
 	private JPanel pane;
 	private Color color;
 	private ProgressBar pgBar;
 	private JMenuBar bar;
-	private LocalReaderBook selectedBook;
+	private GuiReaderBook selectedBook;
 	private boolean words; // words or authors (secondary info on books)
 
 	/**
-	 * Create a new {@link LocalReaderFrame}.
+	 * Create a new {@link GuiReaderFrame}.
 	 * 
 	 * @param reader
-	 *            the associated {@link LocalReader} to forward some commands
-	 *            and access its {@link LocalLibrary}
+	 *            the associated {@link GuiReader} to forward some commands and
+	 *            access its {@link LocalLibrary}
 	 * @param type
 	 *            the type of {@link Story} to load, or NULL for all types
 	 */
-	public LocalReaderFrame(LocalReader reader, String type) {
+	public GuiReaderFrame(GuiReader reader, String type) {
 		super(String.format("Fanfix %s Library", Version.getCurrentVersion()));
 
 		this.reader = reader;
@@ -117,8 +117,8 @@ class LocalReaderFrame extends JFrame {
 			}
 		});
 
-		booksByType = new HashMap<LocalReaderGroup, String>();
-		booksByAuthor = new HashMap<LocalReaderGroup, String>();
+		booksByType = new HashMap<GuiReaderGroup, String>();
+		booksByAuthor = new HashMap<GuiReaderGroup, String>();
 
 		pane.setVisible(false);
 		final Progress pg = new Progress();
@@ -139,8 +139,8 @@ class LocalReaderFrame extends JFrame {
 	}
 
 	/**
-	 * Add a new {@link LocalReaderGroup} on the frame to display the books of
-	 * the selected type or author.
+	 * Add a new {@link GuiReaderGroup} on the frame to display the books of the
+	 * selected type or author.
 	 * 
 	 * @param value
 	 *            the author or the type, or NULL to get all the
@@ -167,7 +167,7 @@ class LocalReaderFrame extends JFrame {
 			return;
 		}
 
-		LocalReaderGroup bookPane = new LocalReaderGroup(reader, value, color);
+		GuiReaderGroup bookPane = new GuiReaderGroup(reader, value, color);
 		if (type) {
 			booksByType.put(bookPane, value);
 		} else {
@@ -181,11 +181,11 @@ class LocalReaderFrame extends JFrame {
 		this.validate();
 
 		bookPane.setActionListener(new BookActionListener() {
-			public void select(LocalReaderBook book) {
+			public void select(GuiReaderBook book) {
 				selectedBook = book;
 			}
 
-			public void popupRequested(LocalReaderBook book, MouseEvent e) {
+			public void popupRequested(GuiReaderBook book, MouseEvent e) {
 				JPopupMenu popup = new JPopupMenu();
 				popup.add(createMenuItemOpenBook());
 				popup.addSeparator();
@@ -198,7 +198,7 @@ class LocalReaderFrame extends JFrame {
 				popup.show(e.getComponent(), e.getX(), e.getY());
 			}
 
-			public void action(final LocalReaderBook book) {
+			public void action(final GuiReaderBook book) {
 				openBook(book);
 			}
 		});
@@ -215,17 +215,17 @@ class LocalReaderFrame extends JFrame {
 	}
 
 	/**
-	 * Refresh the list of {@link LocalReaderBook}s from disk.
+	 * Refresh the list of {@link GuiReaderBook}s from disk.
 	 * 
 	 */
 	private void refreshBooks() {
-		for (LocalReaderGroup group : booksByType.keySet()) {
+		for (GuiReaderGroup group : booksByType.keySet()) {
 			List<MetaData> stories = Instance.getLibrary().getListBySource(
 					booksByType.get(group));
 			group.refreshBooks(stories, words);
 		}
 
-		for (LocalReaderGroup group : booksByAuthor.keySet()) {
+		for (GuiReaderGroup group : booksByAuthor.keySet()) {
 			List<MetaData> stories = Instance.getLibrary().getListByAuthor(
 					booksByAuthor.get(group));
 			group.refreshBooks(stories, words);
@@ -261,8 +261,8 @@ class LocalReaderFrame extends JFrame {
 		JMenuItem exit = new JMenuItem("Exit", KeyEvent.VK_X);
 		exit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				LocalReaderFrame.this.dispatchEvent(new WindowEvent(
-						LocalReaderFrame.this, WindowEvent.WINDOW_CLOSING));
+				GuiReaderFrame.this.dispatchEvent(new WindowEvent(
+						GuiReaderFrame.this, WindowEvent.WINDOW_CLOSING));
 			}
 		});
 
@@ -453,7 +453,7 @@ class LocalReaderFrame extends JFrame {
 		export.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if (selectedBook != null) {
-					fc.showDialog(LocalReaderFrame.this, "Save");
+					fc.showDialog(GuiReaderFrame.this, "Save");
 					if (fc.getSelectedFile() != null) {
 						final OutputType type = filters.get(fc.getFileFilter());
 						final String path = fc.getSelectedFile()
@@ -559,7 +559,7 @@ class LocalReaderFrame extends JFrame {
 						String type = ftype;
 						if (type == null) {
 							Object rep = JOptionPane.showInputDialog(
-									LocalReaderFrame.this, "Move to:",
+									GuiReaderFrame.this, "Move to:",
 									"Moving story",
 									JOptionPane.QUESTION_MESSAGE, null, null,
 									selectedBook.getMeta().getSource());
@@ -607,7 +607,7 @@ class LocalReaderFrame extends JFrame {
 					imprt(meta.getUrl(), new Runnable() {
 						public void run() {
 							reader.delete(meta.getLuid());
-							LocalReaderFrame.this.selectedBook = null;
+							GuiReaderFrame.this.selectedBook = null;
 						}
 					}, "Removing old copy");
 				}
@@ -659,12 +659,12 @@ class LocalReaderFrame extends JFrame {
 	}
 
 	/**
-	 * Open a {@link LocalReaderBook} item.
+	 * Open a {@link GuiReaderBook} item.
 	 * 
 	 * @param book
-	 *            the {@link LocalReaderBook} to open
+	 *            the {@link GuiReaderBook} to open
 	 */
-	private void openBook(final LocalReaderBook book) {
+	private void openBook(final GuiReaderBook book) {
 		final Progress pg = new Progress();
 		outOfUi(pg, new Runnable() {
 			public void run() {
@@ -690,7 +690,7 @@ class LocalReaderFrame extends JFrame {
 	 * The code will make sure that the {@link ProgressBar} (if not NULL) is set
 	 * to done when the action is done.
 	 * 
-	 * @param pg
+	 * @param progress
 	 *            the {@link ProgressBar} or NULL
 	 * @param run
 	 *            the action to run
@@ -749,7 +749,7 @@ class LocalReaderFrame extends JFrame {
 				clipboard = "";
 			}
 
-			url = JOptionPane.showInputDialog(LocalReaderFrame.this,
+			url = JOptionPane.showInputDialog(GuiReaderFrame.this,
 					"url of the story to import?", "Importing from URL",
 					JOptionPane.QUESTION_MESSAGE, null, null, clipboard);
 		} else if (fc.showOpenDialog(this) != JFileChooser.CANCEL_OPTION) {
@@ -800,9 +800,8 @@ class LocalReaderFrame extends JFrame {
 					Instance.syserr(e);
 					SwingUtilities.invokeLater(new Runnable() {
 						public void run() {
-							JOptionPane.showMessageDialog(
-									LocalReaderFrame.this, "Cannot import: "
-											+ url, e.getMessage(),
+							JOptionPane.showMessageDialog(GuiReaderFrame.this,
+									"Cannot import: " + url, e.getMessage(),
 									JOptionPane.ERROR_MESSAGE);
 						}
 					});
@@ -833,10 +832,10 @@ class LocalReaderFrame extends JFrame {
 			bar.setEnabled(b);
 		}
 
-		for (LocalReaderGroup group : booksByType.keySet()) {
+		for (GuiReaderGroup group : booksByType.keySet()) {
 			group.setEnabled(b);
 		}
-		for (LocalReaderGroup group : booksByAuthor.keySet()) {
+		for (GuiReaderGroup group : booksByAuthor.keySet()) {
 			group.setEnabled(b);
 		}
 		super.setEnabled(b);

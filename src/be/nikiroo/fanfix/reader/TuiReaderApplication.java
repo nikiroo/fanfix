@@ -7,7 +7,7 @@ import jexer.TApplication;
 import jexer.TMessageBox;
 import be.nikiroo.fanfix.data.MetaData;
 
-public class TuiReaderApplication extends TApplication {
+class TuiReaderApplication extends TApplication {
 	private BasicReader reader;
 
 	private static BackendType guessBackendType() {
