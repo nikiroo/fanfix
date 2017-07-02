@@ -6,8 +6,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import be.nikiroo.fanfix.BasicLibrary;
 import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.Library;
+import be.nikiroo.fanfix.LocalLibrary;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
@@ -49,10 +50,10 @@ public abstract class BasicReader {
 		}
 	}
 
-	private static Library defaultLibrary = Instance.getLibrary();
+	private static BasicLibrary defaultLibrary = Instance.getLibrary();
 	private static ReaderType defaultType = ReaderType.GUI;
 
-	private Library lib;
+	private BasicLibrary lib;
 	private Story story;
 	private ReaderType type;
 
@@ -101,12 +102,12 @@ public abstract class BasicReader {
 	}
 
 	/**
-	 * The {@link Library} to load the stories from (by default, takes the
-	 * default {@link Library}).
+	 * The {@link LocalLibrary} to load the stories from (by default, takes the
+	 * default {@link LocalLibrary}).
 	 * 
-	 * @return the {@link Library}
+	 * @return the {@link LocalLibrary}
 	 */
-	public Library getLibrary() {
+	public BasicLibrary getLibrary() {
 		if (lib == null) {
 			lib = defaultLibrary;
 		}
@@ -115,19 +116,19 @@ public abstract class BasicReader {
 	}
 
 	/**
-	 * Change the {@link Library} that will be managed by this
+	 * Change the {@link LocalLibrary} that will be managed by this
 	 * {@link BasicReader}.
 	 * 
 	 * @param lib
-	 *            the new {@link Library}
+	 *            the new {@link LocalLibrary}
 	 */
-	public void setLibrary(Library lib) {
+	public void setLibrary(LocalLibrary lib) {
 		this.lib = lib;
 	}
 
 	/**
 	 * Create a new {@link BasicReader} for a {@link Story} in the
-	 * {@link Library}.
+	 * {@link LocalLibrary}.
 	 * 
 	 * @param luid
 	 *            the {@link Story} ID
@@ -247,12 +248,13 @@ public abstract class BasicReader {
 	}
 
 	/**
-	 * Change the default {@link Library} to open with the {@link BasicReader}s.
+	 * Change the default {@link LocalLibrary} to open with the
+	 * {@link BasicReader}s.
 	 * 
 	 * @param lib
-	 *            the new {@link Library}
+	 *            the new {@link LocalLibrary}
 	 */
-	public static void setDefaultLibrary(Library lib) {
+	public static void setDefaultLibrary(BasicLibrary lib) {
 		BasicReader.defaultLibrary = lib;
 	}
 
@@ -285,7 +287,7 @@ public abstract class BasicReader {
 	}
 
 	// open with external player the related file
-	public static void open(Library lib, String luid) throws IOException {
+	public static void open(BasicLibrary lib, String luid) throws IOException {
 		MetaData meta = lib.getInfo(luid);
 		File target = lib.getFile(luid);
 

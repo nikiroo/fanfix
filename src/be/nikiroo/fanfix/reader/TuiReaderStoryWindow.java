@@ -12,15 +12,16 @@ import jexer.TLabel;
 import jexer.TText;
 import jexer.TWindow;
 import jexer.event.TResizeEvent;
+import be.nikiroo.fanfix.BasicLibrary;
 import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.Library;
+import be.nikiroo.fanfix.LocalLibrary;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
 
 public class TuiReaderStoryWindow extends TWindow {
-	private Library lib;
+	private BasicLibrary lib;
 	private MetaData meta;
 	private Story story;
 	private TText textField;
@@ -28,14 +29,15 @@ public class TuiReaderStoryWindow extends TWindow {
 	private List<TButton> navigationButtons;
 	private TLabel chapterName;
 
-	public TuiReaderStoryWindow(TApplication app, Library lib, MetaData meta) {
+	public TuiReaderStoryWindow(TApplication app, BasicLibrary lib,
+			MetaData meta) {
 		this(app, lib, meta, 0);
 	}
 
-	public TuiReaderStoryWindow(TApplication app, Library lib, MetaData meta,
-			int chapter) {
+	public TuiReaderStoryWindow(TApplication app, BasicLibrary lib,
+			MetaData meta, int chapter) {
 		super(app, desc(meta), 0, 0, 60, 18, CENTERED | RESIZABLE);
-		
+
 		this.lib = lib;
 		this.meta = meta;
 

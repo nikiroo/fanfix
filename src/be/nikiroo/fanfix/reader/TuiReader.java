@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.Library;
+import be.nikiroo.fanfix.LocalLibrary;
 import be.nikiroo.fanfix.data.MetaData;
 
 class TuiReader extends BasicReader {

@@ -181,12 +181,8 @@ public class Main {
 					host = args[i];
 				} else if (port == null) {
 					port = Integer.parseInt(args[i]);
-					try {
-						BasicReader.setDefaultLibrary(new RemoteLibrary(host,
-								port));
-					} catch (IOException e) {
-						Instance.syserr(e);
-					}
+					BasicReader
+							.setDefaultLibrary(new RemoteLibrary(host, port));
 					action = MainAction.START;
 				} else {
 					exitCode = 255;
@@ -307,7 +303,7 @@ public class Main {
 	}
 
 	/**
-	 * Import the given resource into the {@link Library}.
+	 * Import the given resource into the {@link LocalLibrary}.
 	 * 
 	 * @param urlString
 	 *            the resource to import
@@ -331,7 +327,8 @@ public class Main {
 	}
 
 	/**
-	 * Export the {@link Story} from the {@link Library} to the given target.
+	 * Export the {@link Story} from the {@link LocalLibrary} to the given
+	 * target.
 	 * 
 	 * @param luid
 	 *            the story LUID
@@ -364,8 +361,8 @@ public class Main {
 	}
 
 	/**
-	 * List the stories of the given source from the {@link Library} (unless
-	 * NULL is passed, in which case all stories will be listed).
+	 * List the stories of the given source from the {@link LocalLibrary}
+	 * (unless NULL is passed, in which case all stories will be listed).
 	 * 
 	 * @param source
 	 *            the source to list the known stories of, or NULL to list all
@@ -382,8 +379,8 @@ public class Main {
 	 * Start the CLI reader for this {@link Story}.
 	 * 
 	 * @param story
-	 *            the LUID of the {@link Story} in the {@link Library} <b>or</b>
-	 *            the {@link Story} {@link URL}
+	 *            the LUID of the {@link Story} in the {@link LocalLibrary}
+	 *            <b>or</b> the {@link Story} {@link URL}
 	 * @param chapString
 	 *            which {@link Chapter} to read (starting at 1), or NULL to get
 	 *            the {@link Story} description

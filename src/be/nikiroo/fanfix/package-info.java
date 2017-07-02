@@ -3,7 +3,7 @@
  * which to retrieve stories, then process them into <tt>epub</tt> (or other)
  * files that you can read anywhere.
  * <p>
- * It has support for a {@link be.nikiroo.fanfix.Library} system, too.
+ * It has support for a {@link be.nikiroo.fanfix.BasicLibrary} system, too.
  * 
  * @author niki
  */

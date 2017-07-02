@@ -2,6 +2,7 @@ package be.nikiroo.fanfix;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import be.nikiroo.fanfix.data.MetaData;
@@ -35,9 +36,8 @@ public class RemoteLibraryServer extends Server {
 		if (command != null) {
 			if (command.equals("GET_METADATA")) {
 				if (args != null && args.equals("*")) {
-					Map<MetaData, File> stories = Instance.getLibrary()
-							.getStories(null);
-					return stories.keySet().toArray(new MetaData[] {});
+					List<MetaData> metas = Instance.getLibrary().getMetas(null);
+					return metas.toArray(new MetaData[] {});
 				}
 			} else if (command.equals("GET_STORY")) {
 				if (args != null) {

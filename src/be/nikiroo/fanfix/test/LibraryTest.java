@@ -4,7 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import be.nikiroo.fanfix.Library;
+import be.nikiroo.fanfix.BasicLibrary;
+import be.nikiroo.fanfix.LocalLibrary;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
@@ -15,7 +16,7 @@ import be.nikiroo.utils.test.TestCase;
 import be.nikiroo.utils.test.TestLauncher;
 
 public class LibraryTest extends TestLauncher {
-	private Library lib;
+	private BasicLibrary lib;
 	private File tmp;
 
 	public LibraryTest(String[] args) {
@@ -34,8 +35,7 @@ public class LibraryTest extends TestLauncher {
 				addTest(new TestCase("getList") {
 					@Override
 					public void test() throws Exception {
-						// TODO: getList
-						List<MetaData> metas = lib.getListBySource(null);
+						List<MetaData> metas = lib.getList();
 						assertEquals(0, metas.size());
 					}
 				});
@@ -46,8 +46,7 @@ public class LibraryTest extends TestLauncher {
 						lib.save(story(luid1, "My story 1", source1, author1),
 								luid1, null);
 
-						// TODO: getList
-						List<MetaData> metas = lib.getListBySource(null);
+						List<MetaData> metas = lib.getList();
 						assertEquals(1, metas.size());
 					}
 				});
@@ -60,15 +59,13 @@ public class LibraryTest extends TestLauncher {
 						lib.save(story(luid2, "My story 2", source2, author1),
 								luid2, null);
 
-						// TODO: getList
-						metas = lib.getListBySource(null);
+						metas = lib.getList();
 						assertEquals(2, metas.size());
 
 						lib.save(story(luid3, "My story 3", source2, author1),
 								luid3, null);
 
-						// TODO: getList
-						metas = lib.getListBySource(null);
+						metas = lib.getList();
 						assertEquals(3, metas.size());
 					}
 				});
@@ -77,11 +74,11 @@ public class LibraryTest extends TestLauncher {
 					@Override
 					public void test() throws Exception {
 						// same luid as a previous one
-						lib.save(story(luid3, "My story 3", source2, author2),
-								luid3, null);
+						lib.save(
+								story(luid3, "My story 3 [edited]", source2,
+										author2), luid3, null);
 
-						// TODO: getList
-						List<MetaData> metas = lib.getListBySource(null);
+						List<MetaData> metas = lib.getList();
 						assertEquals(3, metas.size());
 					}
 				});
@@ -89,8 +86,7 @@ public class LibraryTest extends TestLauncher {
 				addTest(new TestCase("getList with results") {
 					@Override
 					public void test() throws Exception {
-						// TODO: getList
-						List<MetaData> metas = lib.getListBySource(null);
+						List<MetaData> metas = lib.getList();
 						assertEquals(3, metas.size());
 					}
 				});
@@ -132,7 +128,7 @@ public class LibraryTest extends TestLauncher {
 					public void test() throws Exception {
 						List<MetaData> metas = null;
 
-						lib.changeType(luid3, source1);
+						lib.changeSource(luid3, source1, null);
 
 						metas = lib.getListBySource(source1);
 						assertEquals(2, metas.size());
@@ -174,7 +170,7 @@ public class LibraryTest extends TestLauncher {
 		tmp.delete();
 		tmp.mkdir();
 
-		lib = new Library(tmp, OutputType.INFO_TEXT, OutputType.CBZ);
+		lib = new LocalLibrary(tmp, OutputType.INFO_TEXT, OutputType.CBZ);
 	}
 
 	@Override

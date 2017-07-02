@@ -23,7 +23,7 @@ public class Instance {
 	private static UiConfigBundle uiconfig;
 	private static StringIdBundle trans;
 	private static Cache cache;
-	private static Library lib;
+	private static LocalLibrary lib;
 	private static boolean debug;
 	private static File coverDir;
 	private static File readerTmp;
@@ -74,7 +74,7 @@ public class Instance {
 		uiconfig = new UiConfigBundle();
 		trans = new StringIdBundle(getLang());
 		try {
-			lib = new Library(getFile(Config.LIBRARY_DIR),
+			lib = new LocalLibrary(getFile(Config.LIBRARY_DIR),
 					OutputType.INFO_TEXT, OutputType.CBZ);
 		} catch (Exception e) {
 			syserr(new IOException("Cannot create library for directory: "
@@ -161,11 +161,11 @@ public class Instance {
 	}
 
 	/**
-	 * Get the (unique) {@link Library} for the program.
+	 * Get the (unique) {@link LocalLibrary} for the program.
 	 * 
-	 * @return the {@link Library}
+	 * @return the {@link LocalLibrary}
 	 */
-	public static Library getLibrary() {
+	public static BasicLibrary getLibrary() {
 		return lib;
 	}
 
@@ -189,7 +189,7 @@ public class Instance {
 
 	/**
 	 * Return the directory where to store temporary files for the remote
-	 * {@link Library}.
+	 * {@link LocalLibrary}.
 	 * 
 	 * @param host
 	 *            the remote for this host

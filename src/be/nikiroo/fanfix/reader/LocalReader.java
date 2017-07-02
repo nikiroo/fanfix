@@ -13,7 +13,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.Library;
+import be.nikiroo.fanfix.LocalLibrary;
 import be.nikiroo.fanfix.VersionCheck;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.Story;
@@ -25,7 +25,7 @@ import be.nikiroo.utils.ui.UIUtils;
 class LocalReader extends BasicReader {
 	static private boolean nativeLookLoaded;
 
-	private Library localLibrary;
+	private LocalLibrary localLibrary;
 
 	public LocalReader() throws IOException {
 		if (!nativeLookLoaded) {
@@ -66,7 +66,7 @@ class LocalReader extends BasicReader {
 							key, value), e);
 		}
 
-		localLibrary = new Library(dir, text, images);
+		localLibrary = new LocalLibrary(dir, text, images);
 	}
 
 	@Override
@@ -197,13 +197,21 @@ class LocalReader extends BasicReader {
 
 	// delete from local reader library
 	void clearLocalReaderCache(String luid) {
-		localLibrary.delete(luid);
+		try {
+			localLibrary.delete(luid);
+		} catch (IOException e) {
+			Instance.syserr(e);
+		}
 	}
 
 	// delete from main library
 	void delete(String luid) {
-		localLibrary.delete(luid);
-		Instance.getLibrary().delete(luid);
+		try {
+			localLibrary.delete(luid);
+			Instance.getLibrary().delete(luid);
+		} catch (IOException e) {
+			Instance.syserr(e);
+		}
 	}
 
 	// open the given book
@@ -218,7 +226,11 @@ class LocalReader extends BasicReader {
 	}
 
 	void changeType(String luid, String newType) {
-		localLibrary.changeType(luid, newType);
-		Instance.getLibrary().changeType(luid, newType);
+		try {
+			localLibrary.changeSource(luid, newType, null);
+			Instance.getLibrary().changeSource(luid, newType, null);
+		} catch (IOException e) {
+			Instance.syserr(e);
+		}
 	}
 }

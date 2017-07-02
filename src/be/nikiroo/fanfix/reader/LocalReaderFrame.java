@@ -34,7 +34,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.Library;
+import be.nikiroo.fanfix.LocalLibrary;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
@@ -71,7 +71,7 @@ class LocalReaderFrame extends JFrame {
 	 * 
 	 * @param reader
 	 *            the associated {@link LocalReader} to forward some commands
-	 *            and access its {@link Library}
+	 *            and access its {@link LocalLibrary}
 	 * @param type
 	 *            the type of {@link Story} to load, or NULL for all types
 	 */
@@ -125,7 +125,7 @@ class LocalReaderFrame extends JFrame {
 		final String typeF = type;
 		outOfUi(pg, new Runnable() {
 			public void run() {
-				Instance.getLibrary().refresh(pg);
+				Instance.getLibrary().refresh(false, pg);
 				invalidate();
 				setJMenuBar(createMenu());
 				addBookPane(typeF, true);
@@ -151,7 +151,7 @@ class LocalReaderFrame extends JFrame {
 	private void addBookPane(String value, boolean type) {
 		if (value == null) {
 			if (type) {
-				for (String tt : Instance.getLibrary().getTypes()) {
+				for (String tt : Instance.getLibrary().getSources()) {
 					if (tt != null) {
 						addBookPane(tt, type);
 					}
@@ -312,7 +312,7 @@ class LocalReaderFrame extends JFrame {
 		JMenu sources = new JMenu("Sources");
 		sources.setMnemonic(KeyEvent.VK_S);
 
-		List<String> tt = Instance.getLibrary().getTypes();
+		List<String> tt = Instance.getLibrary().getSources();
 		tt.add(0, null);
 		for (final String type : tt) {
 			JMenuItem item = new JMenuItem(type == null ? "All" : type);
@@ -542,7 +542,7 @@ class LocalReaderFrame extends JFrame {
 
 		List<String> types = new ArrayList<String>();
 		types.add(null);
-		types.addAll(Instance.getLibrary().getTypes());
+		types.addAll(Instance.getLibrary().getSources());
 
 		for (String type : types) {
 			JMenuItem item = new JMenuItem(type == null ? "New type..." : type);
@@ -724,7 +724,7 @@ class LocalReaderFrame extends JFrame {
 	}
 
 	/**
-	 * Import a {@link Story} into the main {@link Library}.
+	 * Import a {@link Story} into the main {@link LocalLibrary}.
 	 * <p>
 	 * Should be called inside the UI thread.
 	 * 
@@ -764,7 +764,7 @@ class LocalReaderFrame extends JFrame {
 	}
 
 	/**
-	 * Actually import the {@link Story} into the main {@link Library}.
+	 * Actually import the {@link Story} into the main {@link LocalLibrary}.
 	 * <p>
 	 * Should be called inside the UI thread.
 	 * 

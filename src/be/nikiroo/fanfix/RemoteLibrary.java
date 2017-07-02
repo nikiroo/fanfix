@@ -1,8 +1,10 @@
 package be.nikiroo.fanfix;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
@@ -11,56 +13,57 @@ import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.ConnectActionClient;
 
-public class RemoteLibrary extends Library {
+/**
+ * This {@link BasicLibrary} will access a remote server to list the available
+ * stories, and download the one you try to load to the local directory
+ * specified in the configuration.
+ * 
+ * @author niki
+ */
+public class RemoteLibrary extends BasicLibrary {
 	private String host;
 	private int port;
+	private File baseDir;
 
-	private Library lib;
+	private LocalLibrary lib;
+	private List<MetaData> metas;
 
-	public RemoteLibrary(String host, int port) throws IOException {
+	/**
+	 * Create a {@link RemoteLibrary} linked to the given server.
+	 * 
+	 * @param host
+	 *            the host to contact or NULL for localhost
+	 * @param port
+	 *            the port to contact it on
+	 */
+	public RemoteLibrary(String host, int port) {
 		this.host = host;
 		this.port = port;
 
-		this.localSpeed = false;
 		this.baseDir = Instance.getRemoteDir(host);
 		this.baseDir.mkdirs();
 
-		this.lib = new Library(baseDir, OutputType.INFO_TEXT, OutputType.CBZ);
+		this.lib = new LocalLibrary(baseDir, OutputType.INFO_TEXT,
+				OutputType.CBZ);
 	}
 
 	@Override
-	public synchronized Story save(Story story, String luid, Progress pg)
-			throws IOException {
-		throw new java.lang.InternalError(
-				"No write support allowed on remote Libraries");
-	}
-
-	@Override
-	public synchronized boolean delete(String luid) {
-		throw new java.lang.InternalError(
-				"No write support allowed on remote Libraries");
-	}
-
-	@Override
-	public synchronized boolean changeType(String luid, String newType) {
-		throw new java.lang.InternalError(
-				"No write support allowed on remote Libraries");
-	}
-
-	@Override
-	protected synchronized Map<MetaData, File> getStories(Progress pg) {
+	protected List<MetaData> getMetas(Progress pg) {
 		// TODO: progress
-		if (stories.isEmpty()) {
+
+		if (metas == null) {
+			metas = new ArrayList<MetaData>();
+
 			try {
 				new ConnectActionClient(host, port, true, null) {
 					public void action(Version serverVersion) throws Exception {
 						try {
 							Object rep = send("GET_METADATA *");
 							for (MetaData meta : (MetaData[]) rep) {
-								stories.put(meta, null);
+								metas.add(meta);
 							}
 						} catch (Exception e) {
-							e.printStackTrace();
+							Instance.syserr(e);
 						}
 					}
 				}.connect();
@@ -69,7 +72,7 @@ public class RemoteLibrary extends Library {
 			}
 		}
 
-		return stories;
+		return metas;
 	}
 
 	@Override
@@ -101,9 +104,50 @@ public class RemoteLibrary extends Library {
 
 		if (file != null) {
 			MetaData meta = getInfo(luid);
-			stories.put(meta, file);
+			metas.add(meta);
 		}
 
 		return file;
+	}
+
+	@Override
+	public BufferedImage getCover(String luid) {
+		// Retrieve it from the network if needed:
+		if (lib.getInfo(luid) == null) {
+			getFile(luid);
+		}
+
+		return lib.getCover(luid);
+	}
+
+	@Override
+	protected void clearCache() {
+		metas = null;
+		lib.clearCache();
+	}
+
+	@Override
+	public synchronized Story save(Story story, String luid, Progress pg)
+			throws IOException {
+		throw new java.lang.InternalError(
+				"No write support allowed on remote Libraries");
+	}
+
+	@Override
+	protected int getNextId() {
+		throw new java.lang.InternalError(
+				"No write support allowed on remote Libraries");
+	}
+
+	@Override
+	protected void doDelete(String luid) throws IOException {
+		throw new java.lang.InternalError(
+				"No write support allowed on remote Libraries");
+	}
+
+	@Override
+	protected Story doSave(Story story, Progress pg) throws IOException {
+		throw new java.lang.InternalError(
+				"No write support allowed on remote Libraries");
 	}
 }
