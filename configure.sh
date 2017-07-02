@@ -7,6 +7,9 @@ PROGS="java javac jar make sed"
 CLI=be/nikiroo/fanfix/reader/CliReader
 TUI=be/nikiroo/fanfix/reader/TuiReader
 GUI=be/nikiroo/fanfix/reader/GuiReader
+JCLI=
+JTUI="-C bin/ jexer"
+JGUI=
 
 valid=true
 while [ "$*" != "" ]; do
@@ -27,13 +30,13 @@ while [ "$*" != "" ]; do
 		PREFIX="$val"
 	;;
 	--cli) #=no	Disable CLI support (System.out)
-		[ "$val" = no -o "$val" = false ] && CLI=
+		[ "$val" = no -o "$val" = false ] && CLI= && JCLI=
 	;;
 	--tui) #=no	Disable TUI support (Jexer)
-		[ "$val" = no -o "$val" = false ] && TUI=
+		[ "$val" = no -o "$val" = false ] && TUI= && JTUI=
 	;;
 	--gui) #=no	Disable GUI support (Swing)
-		[ "$val" = no -o "$val" = false ] && GUI=
+		[ "$val" = no -o "$val" = false ] && GUI= && JGUI=
 	;;
 	*)
 		echo "Unsupported parameter: '$1'" >&2
@@ -74,7 +77,7 @@ echo "TEST = be/nikiroo/fanfix/test/Test" >> Makefile
 echo "TEST_PARAMS = $cols $ok $ko" >> Makefile
 echo "NAME = fanfix" >> Makefile
 echo "PREFIX = $PREFIX" >> Makefile
-echo "JAR_FLAGS += -C bin/ org -C bin/ jexer -C bin/ be -C bin/ VERSION" >> Makefile
+echo "JAR_FLAGS += -C bin/ org $JCLI $JTUI $JGUI -C bin/ be -C bin/ VERSION" >> Makefile
 #echo "SJAR_FLAGS += -C src/ org -C src/ jexer -C src/ be -C ./ LICENSE -C ./ README.md -C ./ VERSION" >> Makefile
 
 cat Makefile.base >> Makefile
