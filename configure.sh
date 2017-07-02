@@ -6,7 +6,7 @@ PROGS="java javac jar make sed"
 
 CLI=be/nikiroo/fanfix/reader/CliReader
 TUI=be/nikiroo/fanfix/reader/TuiReader
-GUI=be/nikiroo/fanfix/reader/LocalReader
+GUI=be/nikiroo/fanfix/reader/GuiReader
 
 valid=true
 while [ "$*" != "" ]; do
