@@ -33,15 +33,14 @@ public class GuiReaderGroup extends JPanel {
 	 * Create a new {@link GuiReaderGroup}.
 	 * 
 	 * @param reader
-	 *            the {@link GuiReaderBook} used to probe some information
-	 *            about the stories
+	 *            the {@link GuiReaderBook} used to probe some information about
+	 *            the stories
 	 * @param title
 	 *            the title of this group
 	 * @param backgroundColor
 	 *            the background colour to use (or NULL for default)
 	 */
-	public GuiReaderGroup(GuiReader reader, String title,
-			Color backgroundColor) {
+	public GuiReaderGroup(GuiReader reader, String title, Color backgroundColor) {
 		this.reader = reader;
 		this.backgroundColor = backgroundColor;
 
@@ -101,7 +100,7 @@ public class GuiReaderGroup extends JPanel {
 
 		if (stories != null) {
 			for (MetaData meta : stories) {
-				GuiReaderBook book = new GuiReaderBook(meta,
+				GuiReaderBook book = new GuiReaderBook(reader, meta,
 						reader.isCached(meta.getLuid()), seeWordcount);
 				if (backgroundColor != null) {
 					book.setBackground(backgroundColor);
@@ -116,8 +115,7 @@ public class GuiReaderGroup extends JPanel {
 						}
 					}
 
-					public void popupRequested(GuiReaderBook book,
-							MouseEvent e) {
+					public void popupRequested(GuiReaderBook book, MouseEvent e) {
 					}
 
 					public void action(GuiReaderBook book) {

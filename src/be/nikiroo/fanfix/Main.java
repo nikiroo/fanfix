@@ -8,10 +8,14 @@ import java.net.URL;
 import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.fanfix.library.LocalLibrary;
+import be.nikiroo.fanfix.library.RemoteLibrary;
+import be.nikiroo.fanfix.library.RemoteLibraryServer;
 import be.nikiroo.fanfix.output.BasicOutput;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.BasicReader;
-import be.nikiroo.fanfix.reader.BasicReader.ReaderType;
+import be.nikiroo.fanfix.reader.Reader;
+import be.nikiroo.fanfix.reader.Reader.ReaderType;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 import be.nikiroo.utils.Progress;
@@ -392,7 +396,7 @@ public class Main {
 	 */
 	private static int read(String story, String chapString, boolean library) {
 		try {
-			BasicReader reader = BasicReader.getReader();
+			Reader reader = BasicReader.getReader();
 			if (library) {
 				reader.setStory(story, null);
 			} else {

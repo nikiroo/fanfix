@@ -1,10 +1,9 @@
-package be.nikiroo.fanfix;
+package be.nikiroo.fanfix.library;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
+import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.ConnectActionServer;

@@ -18,7 +18,6 @@ import be.nikiroo.fanfix.data.Story;
  * @author niki
  */
 class CliReader extends BasicReader {
-	@Override
 	public void read() throws IOException {
 		if (getStory() == null) {
 			throw new IOException("No story to read");
@@ -57,7 +56,6 @@ class CliReader extends BasicReader {
 		}
 	}
 
-	@Override
 	public void read(int chapter) throws IOException {
 		if (getStory() == null) {
 			throw new IOException("No story to read");
@@ -77,7 +75,6 @@ class CliReader extends BasicReader {
 		}
 	}
 
-	@Override
 	public void browse(String source) {
 		List<MetaData> stories;
 		stories = getLibrary().getListBySource(source);

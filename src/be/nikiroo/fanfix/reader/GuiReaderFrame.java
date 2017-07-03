@@ -34,11 +34,11 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.LocalLibrary;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.GuiReaderBook.BookActionListener;
 import be.nikiroo.utils.Progress;
@@ -125,7 +125,7 @@ class GuiReaderFrame extends JFrame {
 		final String typeF = type;
 		outOfUi(pg, new Runnable() {
 			public void run() {
-				Instance.getLibrary().refresh(false, pg);
+				GuiReaderFrame.this.reader.getLibrary().refresh(false, pg);
 				invalidate();
 				setJMenuBar(createMenu());
 				addBookPane(typeF, true);
@@ -151,13 +151,13 @@ class GuiReaderFrame extends JFrame {
 	private void addBookPane(String value, boolean type) {
 		if (value == null) {
 			if (type) {
-				for (String tt : Instance.getLibrary().getSources()) {
+				for (String tt : reader.getLibrary().getSources()) {
 					if (tt != null) {
 						addBookPane(tt, type);
 					}
 				}
 			} else {
-				for (String tt : Instance.getLibrary().getAuthors()) {
+				for (String tt : reader.getLibrary().getAuthors()) {
 					if (tt != null) {
 						addBookPane(tt, type);
 					}
@@ -220,13 +220,13 @@ class GuiReaderFrame extends JFrame {
 	 */
 	private void refreshBooks() {
 		for (GuiReaderGroup group : booksByType.keySet()) {
-			List<MetaData> stories = Instance.getLibrary().getListBySource(
+			List<MetaData> stories = reader.getLibrary().getListBySource(
 					booksByType.get(group));
 			group.refreshBooks(stories, words);
 		}
 
 		for (GuiReaderGroup group : booksByAuthor.keySet()) {
-			List<MetaData> stories = Instance.getLibrary().getListByAuthor(
+			List<MetaData> stories = reader.getLibrary().getListByAuthor(
 					booksByAuthor.get(group));
 			group.refreshBooks(stories, words);
 		}
@@ -312,7 +312,7 @@ class GuiReaderFrame extends JFrame {
 		JMenu sources = new JMenu("Sources");
 		sources.setMnemonic(KeyEvent.VK_S);
 
-		List<String> tt = Instance.getLibrary().getSources();
+		List<String> tt = reader.getLibrary().getSources();
 		tt.add(0, null);
 		for (final String type : tt) {
 			JMenuItem item = new JMenuItem(type == null ? "All" : type);
@@ -335,7 +335,7 @@ class GuiReaderFrame extends JFrame {
 		JMenu authors = new JMenu("Authors");
 		authors.setMnemonic(KeyEvent.VK_A);
 
-		List<String> aa = Instance.getLibrary().getAuthors();
+		List<String> aa = reader.getLibrary().getAuthors();
 		aa.add(0, null);
 		for (final String author : aa) {
 			JMenuItem item = new JMenuItem(author == null ? "All"
@@ -463,7 +463,7 @@ class GuiReaderFrame extends JFrame {
 						outOfUi(pg, new Runnable() {
 							public void run() {
 								try {
-									Instance.getLibrary().export(
+									reader.getLibrary().export(
 											selectedBook.getMeta().getLuid(),
 											type, path, pg);
 								} catch (IOException e) {
@@ -542,7 +542,7 @@ class GuiReaderFrame extends JFrame {
 
 		List<String> types = new ArrayList<String>();
 		types.add(null);
-		types.addAll(Instance.getLibrary().getSources());
+		types.addAll(reader.getLibrary().getSources());
 
 		for (String type : types) {
 			JMenuItem item = new JMenuItem(type == null ? "New type..." : type);
@@ -785,8 +785,7 @@ class GuiReaderFrame extends JFrame {
 			public void run() {
 				Exception ex = null;
 				try {
-					Instance.getLibrary().imprt(BasicReader.getUrl(url),
-							pgImprt);
+					reader.getLibrary().imprt(BasicReader.getUrl(url), pgImprt);
 				} catch (IOException e) {
 					ex = e;
 				}

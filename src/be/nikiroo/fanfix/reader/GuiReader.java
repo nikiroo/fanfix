@@ -13,10 +13,10 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.LocalLibrary;
 import be.nikiroo.fanfix.VersionCheck;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
@@ -69,7 +69,6 @@ class GuiReader extends BasicReader {
 		localLibrary = new LocalLibrary(dir, text, images);
 	}
 
-	@Override
 	public void read() throws IOException {
 		if (getStory() == null) {
 			throw new IOException("No story to read");
@@ -78,7 +77,6 @@ class GuiReader extends BasicReader {
 		open(getStory().getMeta().getLuid(), null);
 	}
 
-	@Override
 	public void read(int chapter) throws IOException {
 		// TODO: show a special page?
 		read();
@@ -105,7 +103,7 @@ class GuiReader extends BasicReader {
 		}
 
 		try {
-			Story story = Instance.getLibrary().getStory(luid, pgGetStory);
+			Story story = getLibrary().getStory(luid, pgGetStory);
 			if (story != null) {
 				story = localLibrary.save(story, luid, pgSave);
 			} else {
@@ -131,7 +129,6 @@ class GuiReader extends BasicReader {
 		return localLibrary.getInfo(luid) != null;
 	}
 
-	@Override
 	public void browse(String type) {
 		// TODO: improve presentation of update message
 		final VersionCheck updates = VersionCheck.check();
@@ -189,8 +186,7 @@ class GuiReader extends BasicReader {
 					}
 				}
 
-				new GuiReaderFrame(GuiReader.this, typeFinal)
-						.setVisible(true);
+				new GuiReaderFrame(GuiReader.this, typeFinal).setVisible(true);
 			}
 		});
 	}
@@ -208,7 +204,7 @@ class GuiReader extends BasicReader {
 	void delete(String luid) {
 		try {
 			localLibrary.delete(luid);
-			Instance.getLibrary().delete(luid);
+			getLibrary().delete(luid);
 		} catch (IOException e) {
 			Instance.syserr(e);
 		}
@@ -228,7 +224,7 @@ class GuiReader extends BasicReader {
 	void changeType(String luid, String newType) {
 		try {
 			localLibrary.changeSource(luid, newType, null);
-			Instance.getLibrary().changeSource(luid, newType, null);
+			getLibrary().changeSource(luid, newType, null);
 		} catch (IOException e) {
 			Instance.syserr(e);
 		}

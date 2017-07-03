@@ -9,6 +9,8 @@ import be.nikiroo.fanfix.bundles.ConfigBundle;
 import be.nikiroo.fanfix.bundles.StringIdBundle;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.bundles.UiConfigBundle;
+import be.nikiroo.fanfix.library.BasicLibrary;
+import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.resources.Bundles;

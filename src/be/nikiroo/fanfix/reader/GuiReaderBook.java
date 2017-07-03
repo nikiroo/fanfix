@@ -93,12 +93,15 @@ class GuiReaderBook extends JPanel {
 	private Date lastClick;
 
 	private List<BookActionListener> listeners;
+	private Reader reader;
 	private MetaData meta;
 	private boolean cached;
 
 	/**
 	 * Create a new {@link GuiReaderBook} item for the given {@link Story}.
 	 * 
+	 * @param reader
+	 *            the associated reader
 	 * @param meta
 	 *            the story {@link MetaData}
 	 * @param cached
@@ -106,7 +109,9 @@ class GuiReaderBook extends JPanel {
 	 * @param seeWordCount
 	 *            TRUE to see word counts, FALSE to see authors
 	 */
-	public GuiReaderBook(MetaData meta, boolean cached, boolean seeWordCount) {
+	public GuiReaderBook(Reader reader, MetaData meta, boolean cached,
+			boolean seeWordCount) {
+		this.reader = reader;
 		this.cached = cached;
 		this.meta = meta;
 
@@ -375,7 +380,7 @@ class GuiReaderBook extends JPanel {
 
 		if (resizedImage == null) {
 			try {
-				BufferedImage cover = Instance.getLibrary().getCover(
+				BufferedImage cover = reader.getLibrary().getCover(
 						meta.getLuid());
 
 				resizedImage = new BufferedImage(SPINE_WIDTH + COVER_WIDTH,

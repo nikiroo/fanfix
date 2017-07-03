@@ -1,4 +1,4 @@
-package be.nikiroo.fanfix;
+package be.nikiroo.fanfix.library;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput;

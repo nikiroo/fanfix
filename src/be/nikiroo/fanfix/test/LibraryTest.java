@@ -4,12 +4,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import be.nikiroo.fanfix.BasicLibrary;
-import be.nikiroo.fanfix.LocalLibrary;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.fanfix.library.BasicLibrary;
+import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.test.TestCase;
