@@ -26,6 +26,7 @@ Currently, the following websites are supported:
 - http://mangafox.me/: a well filled repository of mangas, or, as their website states: most popular manga scanlations read online for free at mangafox, as well as a close-knit community to chat and make friends
 - https://e621.net/: a Furry website supporting comics, including MLP
 - https://sofurry.com/: same thing, but story-oriented
+- https://e-hentai.org/: upon request (feel free to ask for more websites!)
 
 ## A note about file support
 
@@ -102,7 +103,7 @@ Currently missing, but either in progress or planned:
   - [x] YiffStar
   - [ ] [Two Kinds](http://twokinds.keenspot.com/)
   - [ ] [Slightly damned](http://www.sdamned.com/)
-  - [ ] Others? Any ideas?
+  - [ ] Others? Any ideas? I'm open for requests
     - [x] [e-Hentai](https://e-hentai.org/) requested
 - [x] A GUI (work in progress)
   - [x] Make one
