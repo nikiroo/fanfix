@@ -63,7 +63,7 @@ public abstract class BasicReader implements Reader {
 	}
 
 	public void setStory(String luid, Progress pg) throws IOException {
-		story = lib.getStory(luid, pg);
+		story = getLibrary().getStory(luid, pg);
 		if (story == null) {
 			throw new IOException("Cannot retrieve story from library: " + luid);
 		}
@@ -82,6 +82,10 @@ public abstract class BasicReader implements Reader {
 							+ source.toString());
 
 		}
+	}
+
+	public void read() throws IOException {
+		read(-1);
 	}
 
 	/**
@@ -177,11 +181,12 @@ public abstract class BasicReader implements Reader {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public static void open(BasicLibrary lib, String luid) throws IOException {
+	public static void openExternal(BasicLibrary lib, String luid)
+			throws IOException {
 		MetaData meta = lib.getInfo(luid);
 		File target = lib.getFile(luid);
 
-		open(meta, target);
+		openExternal(meta, target);
 	}
 
 	/**
@@ -196,7 +201,8 @@ public abstract class BasicReader implements Reader {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	protected static void open(MetaData meta, File target) throws IOException {
+	protected static void openExternal(MetaData meta, File target)
+			throws IOException {
 		String program = null;
 		if (meta.isImageDocument()) {
 			program = Instance.getUiConfig().getString(

@@ -27,11 +27,7 @@ class TuiReaderStoryWindow extends TWindow {
 	private List<TButton> navigationButtons;
 	private TLabel chapterName;
 
-	public TuiReaderStoryWindow(TApplication app, BasicLibrary lib,
-			MetaData meta) {
-		this(app, lib, meta, 0);
-	}
-
+	// chapter: -1 for "none" (0 is desc)
 	public TuiReaderStoryWindow(TApplication app, BasicLibrary lib,
 			MetaData meta, int chapter) {
 		super(app, desc(meta), 0, 0, 60, 18, CENTERED | RESIZABLE);

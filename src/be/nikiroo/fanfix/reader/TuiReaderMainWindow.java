@@ -13,6 +13,12 @@ import jexer.TTreeView;
 import jexer.TWindow;
 import be.nikiroo.fanfix.data.MetaData;
 
+/**
+ * The library window, that will list all the (filtered) stories available in
+ * this {@link Library}.
+ * 
+ * @author niki
+ */
 class TuiReaderMainWindow extends TWindow {
 	private TList list;
 	private List<MetaData> listKeys;
@@ -20,15 +26,49 @@ class TuiReaderMainWindow extends TWindow {
 	private TuiReaderApplication reader;
 
 	/**
-	 * Constructor.
+	 * Create a new {@link TuiReaderMainWindow} with the given stories in the
+	 * list.
 	 * 
 	 * @param reader
 	 *            the reader and main application
-	 * @param stories
+	 * @param metas
 	 *            the stories to display
 	 */
-	public TuiReaderMainWindow(TuiReaderApplication reader,
-			List<MetaData> stories) {
+	public TuiReaderMainWindow(TuiReaderApplication reader, List<MetaData> metas) {
+		this(reader);
+		setMetas(metas);
+	}
+
+	/**
+	 * Create a new {@link TuiReaderMainWindow} with only the given
+	 * {@link MetaData} in the list, and open this {@link MetaData} at the given
+	 * chapter.
+	 * 
+	 * @param reader
+	 *            the reader and main application
+	 * @param meta
+	 *            the story to display
+	 * @param chapter
+	 *            the chapter to open
+	 */
+	public TuiReaderMainWindow(TuiReaderApplication reader, MetaData meta,
+			int chapter) {
+		this(reader);
+
+		List<MetaData> metas = new ArrayList<MetaData>();
+		metas.add(meta);
+		setMetas(metas);
+
+		reader.open(meta, chapter);
+	}
+
+	/**
+	 * Create a new {@link TuiReaderMainWindow} without any stories in the list.
+	 * 
+	 * @param reader
+	 *            the reader and main application
+	 */
+	public TuiReaderMainWindow(TuiReaderApplication reader) {
 		// Construct a demo window. X and Y don't matter because it will be
 		// centered on screen.
 		super(reader, "Library", 0, 0, 60, 18, CENTERED | RESIZABLE
@@ -40,14 +80,6 @@ class TuiReaderMainWindow extends TWindow {
 
 		listKeys = new ArrayList<MetaData>();
 		listItems = new ArrayList<String>();
-
-		if (stories != null) {
-			for (MetaData meta : stories) {
-				listKeys.add(meta);
-				listItems.add(desc(meta));
-			}
-		}
-
 		list = addList(listItems, 0, 0, getWidth(), getHeight(), new TAction() {
 			@Override
 			public void DO() {
@@ -57,7 +89,7 @@ class TuiReaderMainWindow extends TWindow {
 			}
 		});
 
-		// TODO: add the current "type" or filter
+		// TODO: add the current "source/type" or filter
 		statusBar = newStatusBar("Library");
 		statusBar.addShortcutKeypress(TKeypress.kbF10, TCommand.cmExit, "Exit");
 
@@ -85,6 +117,26 @@ class TuiReaderMainWindow extends TWindow {
 			root.addChild("child 2").addChild("sub child");
 
 		}
+	}
+
+	/**
+	 * Update the list of stories displayed in this {@link TWindow}.
+	 * 
+	 * @param metas
+	 *            the new list of stories to display
+	 */
+	public void setMetas(List<MetaData> metas) {
+		listKeys.clear();
+		listItems.clear();
+
+		if (metas != null) {
+			for (MetaData meta : metas) {
+				listKeys.add(meta);
+				listItems.add(desc(meta));
+			}
+		}
+
+		list.setList(listItems);
 	}
 
 	private void enterOnStory(MetaData meta) {

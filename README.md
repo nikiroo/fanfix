@@ -125,6 +125,7 @@ Currently missing, but either in progress or planned:
   - [ ] Real menus
   - [x] Open a story in the reader and/or natively
   - [ ] Update the screenshots
+  - [ ] Remember the current chapter and current read status of stories
 - [ ] Network support
   - [x] A server that can send the stories
   - [x] A network implementation of the Library

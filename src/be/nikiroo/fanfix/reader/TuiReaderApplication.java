@@ -1,42 +1,43 @@
 package be.nikiroo.fanfix.reader;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 
 import jexer.TApplication;
 import jexer.TMessageBox;
+import jexer.TWindow;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.fanfix.library.BasicLibrary;
+import be.nikiroo.fanfix.library.LocalLibrary;
+import be.nikiroo.utils.Progress;
 
-class TuiReaderApplication extends TApplication {
-	private BasicReader reader;
+/**
+ * Manages the TUI reader, links and manages the {@link TWindow}s, starts the
+ * correct output mode.
+ * 
+ * @author niki
+ */
+class TuiReaderApplication extends TApplication implements Reader {
+	private Reader reader;
 
-	private static BackendType guessBackendType() {
-		// Swing is the default backend on Windows unless explicitly
-		// overridden by jexer.Swing.
-		TApplication.BackendType backendType = TApplication.BackendType.XTERM;
-		if (System.getProperty("os.name").startsWith("Windows")) {
-			backendType = TApplication.BackendType.SWING;
-		}
-		if (System.getProperty("os.name").startsWith("Mac")) {
-			backendType = TApplication.BackendType.SWING;
-		}
-		if (System.getProperty("jexer.Swing") != null) {
-			if (System.getProperty("jexer.Swing", "false").equals("true")) {
-				backendType = TApplication.BackendType.SWING;
-			} else {
-				backendType = TApplication.BackendType.XTERM;
-			}
-		}
-		return backendType;
+	public TuiReaderApplication(MetaData meta, int chapter, Reader reader,
+			BackendType backend) throws Exception {
+		this(reader, backend);
+
+		new TuiReaderMainWindow(this, meta, chapter);
 	}
 
-	public TuiReaderApplication(List<MetaData> stories, BasicReader reader)
-			throws Exception {
-		this(stories, reader, guessBackendType());
-	}
-
-	public TuiReaderApplication(List<MetaData> stories, BasicReader reader,
+	public TuiReaderApplication(List<MetaData> stories, Reader reader,
 			TApplication.BackendType backend) throws Exception {
+		this(reader, backend);
+
+		new TuiReaderMainWindow(this, stories);
+	}
+
+	private TuiReaderApplication(Reader reader, TApplication.BackendType backend)
+			throws Exception {
 		super(backend);
 
 		this.reader = reader;
@@ -48,21 +49,55 @@ class TuiReaderApplication extends TApplication {
 		addHelpMenu();
 
 		getBackend().setTitle("Fanfix");
+	}
 
-		new TuiReaderMainWindow(this, stories);
+	public void read() throws IOException {
+		reader.read();
+	}
+
+	public void read(int chapter) throws IOException {
+		reader.read(chapter);
 	}
 
 	public void open(MetaData meta) {
+		open(meta, -1);
+	}
+
+	public void open(MetaData meta, int chapter) {
 		// TODO: open in editor + external option
 		if (!meta.isImageDocument()) {
-			new TuiReaderStoryWindow(this, reader.getLibrary(), meta);
+			new TuiReaderStoryWindow(this, getLibrary(), meta, chapter);
 		} else {
 			try {
-				BasicReader.open(reader.getLibrary(), meta.getLuid());
+				BasicReader.openExternal(getLibrary(), meta.getLuid());
 			} catch (IOException e) {
 				messageBox("Error when trying to open the story",
 						e.getMessage(), TMessageBox.Type.OK);
 			}
 		}
+	}
+
+	public Story getStory() {
+		return reader.getStory();
+	}
+
+	public BasicLibrary getLibrary() {
+		return reader.getLibrary();
+	}
+
+	public void setLibrary(LocalLibrary lib) {
+		reader.setLibrary(lib);
+	}
+
+	public void setStory(String luid, Progress pg) throws IOException {
+		reader.setStory(luid, pg);
+	}
+
+	public void setStory(URL source, Progress pg) throws IOException {
+		reader.setStory(source, pg);
+	}
+
+	public void browse(String source) {
+		reader.browse(source);
 	}
 }

@@ -70,8 +70,8 @@ public interface Reader {
 	public void setLibrary(LocalLibrary lib);
 
 	/**
-	 * Create a new {@link BasicReader} for a {@link Story} in the
-	 * {@link LocalLibrary}.
+	 * Set a {@link Story} from the current {@link Library} into the
+	 * {@link Reader}.
 	 * 
 	 * @param luid
 	 *            the {@link Story} ID
@@ -84,7 +84,7 @@ public interface Reader {
 	public void setStory(String luid, Progress pg) throws IOException;
 
 	/**
-	 * Create a new {@link BasicReader} for an external {@link Story}.
+	 * Set an external {@link Story} into this {@link Reader}.
 	 * 
 	 * @param source
 	 *            the {@link Story} {@link URL}
@@ -106,10 +106,10 @@ public interface Reader {
 	public void read() throws IOException;
 
 	/**
-	 * Read the selected chapter (starting at 1).
+	 * Read the selected chapter (starting at 1, 0 = description, -1 = none).
 	 * 
 	 * @param chapter
-	 *            the chapter
+	 *            the chapter, or -1 for "no chapter"
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error or if the {@link Story} was not
@@ -126,5 +126,4 @@ public interface Reader {
 	 *            all
 	 */
 	public void browse(String source);
-
 }

@@ -218,7 +218,7 @@ class GuiReader extends BasicReader {
 			file = localLibrary.getFile(luid);
 		}
 
-		open(getLibrary().getInfo(luid), file);
+		openExternal(getLibrary().getInfo(luid), file);
 	}
 
 	void changeType(String luid, String newType) {
