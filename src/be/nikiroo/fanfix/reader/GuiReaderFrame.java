@@ -669,7 +669,7 @@ class GuiReaderFrame extends JFrame {
 		outOfUi(pg, new Runnable() {
 			public void run() {
 				try {
-					reader.open(book.getMeta().getLuid(), pg);
+					reader.read(book.getMeta().getLuid(), pg);
 					SwingUtilities.invokeLater(new Runnable() {
 						public void run() {
 							book.setCached(true);

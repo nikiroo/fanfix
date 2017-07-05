@@ -19,24 +19,23 @@ import be.nikiroo.fanfix.data.Story;
  */
 class CliReader extends BasicReader {
 	public void read() throws IOException {
-		if (getStory() == null) {
+		MetaData meta = getMeta();
+
+		if (meta == null) {
 			throw new IOException("No story to read");
 		}
 
 		String title = "";
 		String author = "";
 
-		MetaData meta = getStory().getMeta();
-		if (meta != null) {
-			if (meta.getTitle() != null) {
-				title = meta.getTitle();
-			}
+		if (meta.getTitle() != null) {
+			title = meta.getTitle();
+		}
 
-			if (meta.getAuthor() != null) {
-				author = "©" + meta.getAuthor();
-				if (meta.getDate() != null && !meta.getDate().isEmpty()) {
-					author = author + " (" + meta.getDate() + ")";
-				}
+		if (meta.getAuthor() != null) {
+			author = "©" + meta.getAuthor();
+			if (meta.getDate() != null && !meta.getDate().isEmpty()) {
+				author = author + " (" + meta.getDate() + ")";
 			}
 		}
 
@@ -44,7 +43,8 @@ class CliReader extends BasicReader {
 		System.out.println(author);
 		System.out.println("");
 
-		for (Chapter chap : getStory()) {
+		// TODO: progress?
+		for (Chapter chap : getStory(null)) {
 			if (chap.getName() != null && !chap.getName().isEmpty()) {
 				System.out.println(Instance.getTrans().getString(
 						StringId.CHAPTER_NAMED, chap.getNumber(),
@@ -57,14 +57,17 @@ class CliReader extends BasicReader {
 	}
 
 	public void read(int chapter) throws IOException {
-		if (getStory() == null) {
+		MetaData meta = getMeta();
+
+		if (meta == null) {
 			throw new IOException("No story to read");
 		}
 
-		if (chapter > getStory().getChapters().size()) {
+		// TODO: progress?
+		if (chapter > getStory(null).getChapters().size()) {
 			System.err.println("Chapter " + chapter + ": no such chapter");
 		} else {
-			Chapter chap = getStory().getChapters().get(chapter - 1);
+			Chapter chap = getStory(null).getChapters().get(chapter - 1);
 			System.out.println("Chapter " + chap.getNumber() + ": "
 					+ chap.getName());
 

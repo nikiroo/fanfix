@@ -10,63 +10,52 @@ import jexer.TWindow;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
-import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.utils.Progress;
 
 /**
- * Manages the TUI reader, links and manages the {@link TWindow}s, starts the
- * correct output mode.
+ * Manages the TUI general mode and links and manages the {@link TWindow}s.
+ * <p>
+ * It will also enclose a {@link Reader} and simply handle the reading part
+ * differently (it will create the required sub-windows and display them).
  * 
  * @author niki
  */
 class TuiReaderApplication extends TApplication implements Reader {
 	private Reader reader;
 
-	public TuiReaderApplication(MetaData meta, int chapter, Reader reader,
-			BackendType backend) throws Exception {
-		this(reader, backend);
+	// start reading if meta present
+	public TuiReaderApplication(Reader reader, BackendType backend)
+			throws Exception {
+		super(backend);
+		init(reader);
 
-		new TuiReaderMainWindow(this, meta, chapter);
+		MetaData meta = getMeta();
+
+		new TuiReaderMainWindow(this).setMeta(meta);
+
+		if (meta != null) {
+			read();
+		}
 	}
 
 	public TuiReaderApplication(List<MetaData> stories, Reader reader,
 			TApplication.BackendType backend) throws Exception {
-		this(reader, backend);
-
-		new TuiReaderMainWindow(this, stories);
-	}
-
-	private TuiReaderApplication(Reader reader, TApplication.BackendType backend)
-			throws Exception {
 		super(backend);
+		init(reader);
 
-		this.reader = reader;
-
-		// Add the menus
-		addFileMenu();
-		addEditMenu();
-		addWindowMenu();
-		addHelpMenu();
-
-		getBackend().setTitle("Fanfix");
+		new TuiReaderMainWindow(this).setMetas(stories);
 	}
 
 	public void read() throws IOException {
-		reader.read();
-	}
+		MetaData meta = getMeta();
 
-	public void read(int chapter) throws IOException {
-		reader.read(chapter);
-	}
+		if (meta == null) {
+			throw new IOException("No story to read");
+		}
 
-	public void open(MetaData meta) {
-		open(meta, -1);
-	}
-
-	public void open(MetaData meta, int chapter) {
 		// TODO: open in editor + external option
 		if (!meta.isImageDocument()) {
-			new TuiReaderStoryWindow(this, getLibrary(), meta, chapter);
+			new TuiReaderStoryWindow(this, getLibrary(), meta, getChapter());
 		} else {
 			try {
 				BasicReader.openExternal(getLibrary(), meta.getLuid());
@@ -77,27 +66,55 @@ class TuiReaderApplication extends TApplication implements Reader {
 		}
 	}
 
-	public Story getStory() {
-		return reader.getStory();
+	public MetaData getMeta() {
+		return reader.getMeta();
+	}
+
+	public Story getStory(Progress pg) {
+		return reader.getStory(pg);
 	}
 
 	public BasicLibrary getLibrary() {
 		return reader.getLibrary();
 	}
 
-	public void setLibrary(LocalLibrary lib) {
+	public void setLibrary(BasicLibrary lib) {
 		reader.setLibrary(lib);
 	}
 
-	public void setStory(String luid, Progress pg) throws IOException {
-		reader.setStory(luid, pg);
+	public void setMeta(MetaData meta) throws IOException {
+		reader.setMeta(meta);
 	}
 
-	public void setStory(URL source, Progress pg) throws IOException {
-		reader.setStory(source, pg);
+	public void setMeta(String luid) throws IOException {
+		reader.setMeta(luid);
+	}
+
+	public void setMeta(URL source, Progress pg) throws IOException {
+		reader.setMeta(source, pg);
 	}
 
 	public void browse(String source) {
 		reader.browse(source);
+	}
+
+	public int getChapter() {
+		return reader.getChapter();
+	}
+
+	public void setChapter(int chapter) {
+		reader.setChapter(chapter);
+	}
+
+	private void init(Reader reader) {
+		this.reader = reader;
+
+		// Add the menus
+		addFileMenu();
+		addEditMenu();
+		addWindowMenu();
+		addHelpMenu();
+
+		getBackend().setTitle("Fanfix");
 	}
 }

@@ -23,7 +23,7 @@ class TuiReaderStoryWindow extends TWindow {
 	private MetaData meta;
 	private Story story;
 	private TText textField;
-	private int chapter = -2;
+	private int chapter = -1;
 	private List<TButton> navigationButtons;
 	private TLabel chapterName;
 

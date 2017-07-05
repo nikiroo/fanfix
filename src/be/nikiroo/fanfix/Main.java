@@ -398,14 +398,15 @@ public class Main {
 		try {
 			Reader reader = BasicReader.getReader();
 			if (library) {
-				reader.setStory(story, null);
+				reader.setMeta(story);
 			} else {
-				reader.setStory(BasicReader.getUrl(story), null);
+				reader.setMeta(BasicReader.getUrl(story), null);
 			}
 
 			if (chapString != null) {
 				try {
-					reader.read(Integer.parseInt(chapString));
+					reader.setChapter(Integer.parseInt(chapString));
+					reader.read();
 				} catch (NumberFormatException e) {
 					Instance.syserr(new IOException(
 							"Chapter number cannot be parsed: " + chapString, e));

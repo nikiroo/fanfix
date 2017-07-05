@@ -29,7 +29,9 @@ public abstract class BasicReader implements Reader {
 	private static ReaderType defaultType = ReaderType.GUI;
 
 	private BasicLibrary lib;
+	private MetaData meta;
 	private Story story;
+	private int chapter;
 
 	/**
 	 * Take the default reader type configuration from the config file.
@@ -46,7 +48,11 @@ public abstract class BasicReader implements Reader {
 		}
 	}
 
-	public Story getStory() {
+	public synchronized Story getStory(Progress pg) {
+		if (story == null) {
+			story = getLibrary().getStory(meta.getLuid(), pg);
+		}
+
 		return story;
 	}
 
@@ -58,18 +64,29 @@ public abstract class BasicReader implements Reader {
 		return lib;
 	}
 
-	public void setLibrary(LocalLibrary lib) {
+	public void setLibrary(BasicLibrary lib) {
 		this.lib = lib;
 	}
 
-	public void setStory(String luid, Progress pg) throws IOException {
-		story = getLibrary().getStory(luid, pg);
-		if (story == null) {
+	public MetaData getMeta() {
+		return meta;
+	}
+
+	public synchronized void setMeta(MetaData meta) throws IOException {
+		setMeta(meta == null ? null : meta.getLuid()); // must check the library
+	}
+
+	public synchronized void setMeta(String luid) throws IOException {
+		story = null;
+		meta = getLibrary().getInfo(luid);
+
+		if (meta == null) {
 			throw new IOException("Cannot retrieve story from library: " + luid);
 		}
 	}
 
-	public void setStory(URL source, Progress pg) throws IOException {
+	public synchronized void setMeta(URL source, Progress pg)
+			throws IOException {
 		BasicSupport support = BasicSupport.getSupport(source);
 		if (support == null) {
 			throw new IOException("URL not supported: " + source.toString());
@@ -80,12 +97,17 @@ public abstract class BasicReader implements Reader {
 			throw new IOException(
 					"Cannot retrieve story from external source: "
 							+ source.toString());
-
 		}
+
+		meta = story.getMeta();
 	}
 
-	public void read() throws IOException {
-		read(-1);
+	public int getChapter() {
+		return chapter;
+	}
+
+	public void setChapter(int chapter) {
+		this.chapter = chapter;
 	}
 
 	/**
@@ -110,7 +132,7 @@ public abstract class BasicReader implements Reader {
 	}
 
 	/**
-	 * The default {@link ReaderType} used when calling
+	 * The default {@link Reader.ReaderType} used when calling
 	 * {@link BasicReader#getReader()}.
 	 * 
 	 * @return the default type
@@ -120,7 +142,7 @@ public abstract class BasicReader implements Reader {
 	}
 
 	/**
-	 * The default {@link ReaderType} used when calling
+	 * The default {@link Reader.ReaderType} used when calling
 	 * {@link BasicReader#getReader()}.
 	 * 
 	 * @param defaultType

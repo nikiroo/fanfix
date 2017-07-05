@@ -15,6 +15,7 @@ import javax.swing.event.HyperlinkListener;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.VersionCheck;
 import be.nikiroo.fanfix.bundles.UiConfig;
+import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
@@ -70,16 +71,13 @@ class GuiReader extends BasicReader {
 	}
 
 	public void read() throws IOException {
-		if (getStory() == null) {
+		MetaData meta = getMeta();
+
+		if (meta == null) {
 			throw new IOException("No story to read");
 		}
 
-		open(getStory().getMeta().getLuid(), null);
-	}
-
-	public void read(int chapter) throws IOException {
-		// TODO: show a special page?
-		read();
+		read(meta.getLuid(), null);
 	}
 
 	/**
@@ -211,20 +209,21 @@ class GuiReader extends BasicReader {
 	}
 
 	// open the given book
-	void open(String luid, Progress pg) throws IOException {
+	void read(String luid, Progress pg) throws IOException {
 		File file = localLibrary.getFile(luid);
 		if (file == null) {
 			imprt(luid, pg);
 			file = localLibrary.getFile(luid);
 		}
 
+		// TODO: show a special page for the chapter?
 		openExternal(getLibrary().getInfo(luid), file);
 	}
 
-	void changeType(String luid, String newType) {
+	void changeType(String luid, String newSource) {
 		try {
-			localLibrary.changeSource(luid, newType, null);
-			getLibrary().changeSource(luid, newType, null);
+			localLibrary.changeSource(luid, newSource, null);
+			getLibrary().changeSource(luid, newSource, null);
 		} catch (IOException e) {
 			Instance.syserr(e);
 		}

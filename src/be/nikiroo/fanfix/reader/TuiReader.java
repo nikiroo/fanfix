@@ -49,27 +49,9 @@ class TuiReader extends BasicReader {
 		return backendType;
 	}
 
-	public void read(int chapter) throws IOException {
-		if (getStory() == null) {
-			throw new IOException("No story to read");
-		}
-
-		start(getStory().getMeta(), chapter);
-	}
-
-	public void browse(String source) {
-		start(getLibrary().getListBySource(source));
-	}
-
-	/**
-	 * Start the application with the given stories.
-	 * 
-	 * @param metas
-	 *            the stories to display
-	 */
-	private void start(List<MetaData> metas) {
+	public void read() throws IOException {
 		try {
-			TuiReaderApplication app = new TuiReaderApplication(metas, this,
+			TuiReaderApplication app = new TuiReaderApplication(this,
 					guessBackendType());
 			new Thread(app).start();
 		} catch (Exception e) {
@@ -77,19 +59,11 @@ class TuiReader extends BasicReader {
 		}
 	}
 
-	/**
-	 * Start the application with the given {@link MetaData} at the given open
-	 * chapter.
-	 * 
-	 * @param meta
-	 *            the story to display
-	 * @param chapter
-	 *            the chapter to open
-	 */
-	private void start(MetaData meta, int chapter) {
+	public void browse(String source) {
+		List<MetaData> metas = getLibrary().getListBySource(source);
 		try {
-			TuiReaderApplication app = new TuiReaderApplication(meta, chapter,
-					this, guessBackendType());
+			TuiReaderApplication app = new TuiReaderApplication(metas, this,
+					guessBackendType());
 			new Thread(app).start();
 		} catch (Exception e) {
 			Instance.syserr(e);
