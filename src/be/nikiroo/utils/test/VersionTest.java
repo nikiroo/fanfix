@@ -52,6 +52,24 @@ class VersionTest extends TestLauncher {
 			}
 		});
 
+		addTest(new TestCase("Tag version") {
+			@Override
+			public void test() throws Exception {
+				Version version = new Version("1.0.0-debian0");
+				assertEquals("debian", version.getTag());
+				assertEquals(0, version.getTagVersion());
+				version = new Version("1.0.0-debian.0");
+				assertEquals("debian.", version.getTag());
+				assertEquals(0, version.getTagVersion());
+				version = new Version("1.0.0-debian-0");
+				assertEquals("debian-", version.getTag());
+				assertEquals(0, version.getTagVersion());
+				version = new Version("1.0.0-debian-12");
+				assertEquals("debian-", version.getTag());
+				assertEquals(12, version.getTagVersion());
+			}
+		});
+
 		addTest(new TestCase("Comparing versions") {
 			@Override
 			public void test() throws Exception {
@@ -73,6 +91,16 @@ class VersionTest extends TestLauncher {
 						new Version(0, 0, 1).equals(new Version(0, 0, 1)));
 				assertEquals(false,
 						new Version(0, 2, 1).equals(new Version(0, 0, 1)));
+
+				assertEquals(true,
+						new Version(1, 0, 1, "my.tag.", 2).equals(new Version(
+								1, 0, 1, "my.tag.", 2)));
+				assertEquals(false,
+						new Version(1, 0, 1, "my.tag.", 2).equals(new Version(
+								1, 0, 0, "my.tag.", 2)));
+				assertEquals(false,
+						new Version(1, 0, 1, "my.tag.", 2).equals(new Version(
+								1, 0, 1, "not-my.tag.", 2)));
 			}
 		});
 	}

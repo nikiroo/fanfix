@@ -1,3 +1,10 @@
+Version 1.6.2
+-------------
+
+Version.java
+	Now supports "tag" on the versions (i.e., 0.0.4-niki1)
+	-> tag is "niki", tagVersion is 1
+
 Version 1.6.1
 -------------
 

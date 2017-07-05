@@ -14,6 +14,8 @@ public class Version implements Comparable<Version> {
 	private int major;
 	private int minor;
 	private int patch;
+	private String tag;
+	private int tagVersion;
 
 	/**
 	 * Create a new, empty {@link Version}.
@@ -33,30 +35,110 @@ public class Version implements Comparable<Version> {
 	 *            the patch version
 	 */
 	public Version(int major, int minor, int patch) {
+		this(major, minor, patch, null, -1);
+	}
+
+	/**
+	 * Create a new {@link Version} with the given values.
+	 * 
+	 * @param major
+	 *            the major version
+	 * @param minor
+	 *            the minor version
+	 * @param patch
+	 *            the patch version
+	 * @param tag
+	 *            a tag name for this version
+	 */
+	public Version(int major, int minor, int patch, String tag) {
+		this(major, minor, patch, tag, -1);
+	}
+
+	/**
+	 * Create a new {@link Version} with the given values.
+	 * 
+	 * @param major
+	 *            the major version
+	 * @param minor
+	 *            the minor version
+	 * @param patch
+	 *            the patch version the patch version
+	 * @param tag
+	 *            a tag name for this version
+	 * @param tagVersion
+	 *            the version of the tagged version
+	 */
+	public Version(int major, int minor, int patch, String tag, int tagVersion) {
+		if (tagVersion >= 0 && tag == null) {
+			throw new java.lang.IllegalArgumentException(
+					"A tag version cannot be used without a tag");
+		}
+
 		this.major = major;
 		this.minor = minor;
 		this.patch = patch;
-		this.version = String.format("%d.%d.%d", major, minor, patch);
+		this.tag = tag;
+		this.tagVersion = tagVersion;
+
+		String tagSuffix = "";
+		if (tag != null) {
+			tagSuffix = "-" + tag
+					+ (tagVersion >= 0 ? Integer.toString(tagVersion) : "");
+		}
+
+		this.version = String.format("%d.%d.%d%s", major, minor, patch,
+				tagSuffix);
 	}
 
 	/**
 	 * Create a new {@link Version} with the given value, which must be in the
-	 * form <tt>MAJOR.MINOR.PATCH</tt>.
+	 * form <tt>MAJOR.MINOR.PATCH(-TAG(TAG_VERSION))</tt>.
 	 * 
 	 * @param version
-	 *            the version (<tt>MAJOR.MINOR.PATCH</tt>)
+	 *            the version (<tt>MAJOR.MINOR.PATCH</tt>,
+	 *            <tt>MAJOR.MINOR.PATCH-TAG</tt> or
+	 *            <tt>MAJOR.MINOR.PATCH-TAGVERSIONTAG</tt>)
 	 */
 	public Version(String version) {
 		try {
 			String[] tab = version.split("\\.");
 			this.major = Integer.parseInt(tab[0]);
 			this.minor = Integer.parseInt(tab[1]);
-			this.patch = Integer.parseInt(tab[2]);
-			this.version = version;
+			if (tab[2].contains("-")) {
+				int posInVersion = version.indexOf('.');
+				posInVersion = version.indexOf('.', posInVersion + 1);
+				String rest = version.substring(posInVersion + 1);
+
+				int posInRest = rest.indexOf('-');
+				this.patch = Integer.parseInt(rest.substring(0, posInRest));
+
+				posInVersion = version.indexOf('-');
+				this.tag = version.substring(posInVersion + 1);
+				this.tagVersion = -1;
+
+				StringBuilder str = new StringBuilder();
+				while (!tag.isEmpty() && tag.charAt(tag.length() - 1) >= '0'
+						&& tag.charAt(tag.length() - 1) <= '9') {
+					str.insert(0, tag.charAt(tag.length() - 1));
+					tag = tag.substring(0, tag.length() - 1);
+				}
+
+				if (str.length() > 0) {
+					this.tagVersion = Integer.parseInt(str.toString());
+				}
+			} else {
+				this.patch = Integer.parseInt(tab[2]);
+				this.tag = null;
+				this.tagVersion = -1;
+			}
+
+			this.version = toString();
 		} catch (Exception e) {
 			this.major = 0;
 			this.minor = 0;
 			this.patch = 0;
+			this.tag = null;
+			this.tagVersion = -1;
 			this.version = null;
 		}
 	}
@@ -98,6 +180,24 @@ public class Version implements Comparable<Version> {
 	}
 
 	/**
+	 * A tag name for this version.
+	 * 
+	 * @return the tag
+	 */
+	public String getTag() {
+		return tag;
+	}
+
+	/**
+	 * The version of the tag.
+	 * 
+	 * @return the tag version
+	 */
+	public int getTagVersion() {
+		return tagVersion;
+	}
+
+	/**
 	 * Check if this {@link Version} is "empty" (i.e., the version was not
 	 * parse-able or not given).
 	 * <p>
@@ -106,11 +206,14 @@ public class Version implements Comparable<Version> {
 	 * @return TRUE if it is empty
 	 */
 	public boolean isEmpty() {
-		return major == 0 && minor == 0 && patch == 0;
+		return major == 0 && minor == 0 && patch == 0 && tag == null;
 	}
 
 	/**
 	 * Check if we are more recent than the given {@link Version}.
+	 * <p>
+	 * Note that a tagged version is considered newer than a non-tagged version,
+	 * but two tagged versions with different tags are not comparable.
 	 * 
 	 * @param o
 	 *            the other {@link Version}
@@ -129,6 +232,20 @@ public class Version implements Comparable<Version> {
 			return true;
 		}
 
+		// a tagged version is considered newer than a non-tagged one
+		if (major == o.major && minor == o.minor && patch == o.patch
+				&& tag != null && o.tag == null) {
+			return true;
+		}
+
+		// 2 <> tagged versions are not comparable
+		boolean sameTag = (tag == null && o.tag == null)
+				|| (tag != null && tag.equals(o.tag));
+		if (major == o.major && minor == o.minor && patch == o.patch && sameTag
+				&& tagVersion > o.tagVersion) {
+			return true;
+		}
+
 		return false;
 	}
 
@@ -140,6 +257,14 @@ public class Version implements Comparable<Version> {
 	 * @return TRUE if this {@link Version} is older than the given one
 	 */
 	public boolean isOlderThan(Version o) {
+		// 2 <> tagged versions are not comparable
+		boolean sameTag = (tag == null && o.tag == null)
+				|| (tag != null && tag.equals(o.tag));
+		if (major == o.major && minor == o.minor && patch == o.patch
+				&& !sameTag) {
+			return false;
+		}
+
 		return !equals(o) && !isNewerThan(o);
 	}
 
@@ -186,7 +311,10 @@ public class Version implements Comparable<Version> {
 	public boolean equals(Object obj) {
 		if (obj instanceof Version) {
 			Version o = (Version) obj;
-			return o.major == major && o.minor == minor && o.patch == patch;
+			boolean sameTag = (tag == null && o.tag == null)
+					|| (tag != null && tag.equals(o.tag));
+			return o.major == major && o.minor == minor && o.patch == patch
+					&& sameTag && o.tagVersion == tagVersion;
 		}
 
 		return false;

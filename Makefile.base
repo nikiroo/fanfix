@@ -64,14 +64,16 @@ test: test-resources
 clean:
 	rm -rf bin/
 	@echo Removing sources taken from libs...
-	@for lib in libs/*-sources.jar; do \
-		basename "$$lib"; \
-		jar tf "$$lib" | while read -r ln; do \
-			[ -f "src/$$ln" ] && rm "src/$$ln"; \
-		done; \
-		jar tf "$$lib" | tac | while read -r ln; do \
-			[ -d "src/$$ln" ] && rmdir "src/$$ln" 2>/dev/null || true; \
-		done; \
+	@for lib in libs/*-sources.jar libs/*-sources.patch.jar; do \
+		if [ "$$lib" != 'libs/*-sources.jar' -a "$$lib" != 'libs/*-sources.patch.jar' ]; then \
+			basename "$$lib"; \
+			jar tf "$$lib" | while read -r ln; do \
+				[ -f "src/$$ln" ] && rm "src/$$ln"; \
+			done; \
+			jar tf "$$lib" | tac | while read -r ln; do \
+				[ -d "src/$$ln" ] && rmdir "src/$$ln" 2>/dev/null || true; \
+			done; \
+		fi \
 	done
 
 mrproper: mrpropre
