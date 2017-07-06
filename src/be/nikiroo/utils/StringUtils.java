@@ -1,12 +1,7 @@
 package be.nikiroo.utils;
 
-import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.Normalizer;
@@ -16,8 +11,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
 import java.util.regex.Pattern;
-
-import javax.imageio.ImageIO;
 
 import org.unbescape.html.HtmlEscape;
 import org.unbescape.html.HtmlEscapeLevel;
@@ -202,104 +195,6 @@ public class StringUtils {
 	}
 
 	/**
-	 * Convert the given {@link Image} object into a Base64 representation of
-	 * the same {@link Image}. object.
-	 * 
-	 * @param image
-	 *            the {@link Image} object to convert
-	 * 
-	 * @return the Base64 representation
-	 * 
-	 * @throws IOException
-	 *             in case of IO error
-	 */
-	static public String fromImage(BufferedImage image) throws IOException {
-		return fromImage(image, null);
-	}
-
-	/**
-	 * Convert the given {@link Image} object into a Base64 representation of
-	 * the same {@link Image}. object.
-	 * 
-	 * @param image
-	 *            the {@link Image} object to convert
-	 * @param format
-	 *            the image format to use to serialise it (default is PNG)
-	 * 
-	 * @return the Base64 representation
-	 * 
-	 * @throws IOException
-	 *             in case of IO error
-	 */
-	static public String fromImage(BufferedImage image, String format)
-			throws IOException {
-		if (format == null) {
-			format = "png";
-		}
-
-		String imageString = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-		ImageIO.write(image, format, out);
-		byte[] imageBytes = out.toByteArray();
-
-		imageString = new String(Base64.encodeBytes(imageBytes));
-
-		out.close();
-
-		return imageString;
-	}
-
-	/**
-	 * Convert the given image into a Base64 representation of the same
-	 * {@link File}.
-	 * 
-	 * @param in
-	 *            the image to convert
-	 * 
-	 * @return the Base64 representation
-	 * 
-	 * @throws IOException
-	 *             in case of IO error
-	 */
-	static public String fromStream(InputStream in) throws IOException {
-		String fileString = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-		byte[] buf = new byte[8192];
-
-		int c = 0;
-		while ((c = in.read(buf, 0, buf.length)) > 0) {
-			out.write(buf, 0, c);
-		}
-		out.flush();
-		in.close();
-
-		fileString = new String(Base64.encodeBytes(out.toByteArray()));
-		out.close();
-
-		return fileString;
-	}
-
-	/**
-	 * Convert the given Base64 representation of an image into an {@link Image}
-	 * object.
-	 * 
-	 * @param b64data
-	 *            the {@link Image} in Base64 format
-	 * 
-	 * @return the {@link Image} object
-	 * 
-	 * @throws IOException
-	 *             in case of IO error
-	 */
-	static public BufferedImage toImage(String b64data) throws IOException {
-		ByteArrayInputStream in = new ByteArrayInputStream(
-				Base64.decode(b64data));
-		return IOUtils.toImage(in);
-	}
-
-	/**
 	 * Return a hash of the given {@link String}.
 	 * 
 	 * @param input
@@ -307,7 +202,7 @@ public class StringUtils {
 	 * 
 	 * @return the hash
 	 */
-	static public String getHash(String input) {
+	static public String getMd5Hash(String input) {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
 			md.update(input.getBytes());

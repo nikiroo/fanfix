@@ -50,8 +50,8 @@ echo "TEST = be/nikiroo/utils/test/Test" >> Makefile
 echo "TEST_PARAMS = $cols $ok $ko" >> Makefile
 echo "NAME = nikiroo-utils" >> Makefile
 echo "PREFIX = $PREFIX" >> Makefile
-echo "JAR_FLAGS += -C bin/ be -C bin/ VERSION" >> Makefile
-echo "SJAR_FLAGS += -C src/ be" >> Makefile
+echo "JAR_FLAGS += -C bin/ be -C bin/ org -C bin/ VERSION" >> Makefile
+echo "SJAR_FLAGS += -C src/ org -C src/ be" >> Makefile
 
 cat Makefile.base >> Makefile
 

@@ -657,7 +657,7 @@ public class Bundle<E extends Enum<E>> {
 	 * @param bundle
 	 *            the bundle to copy
 	 */
-	private void resetMap(ResourceBundle bundle) {
+	protected void resetMap(ResourceBundle bundle) {
 		this.map.clear();
 
 		if (bundle != null) {
@@ -671,7 +671,7 @@ public class Bundle<E extends Enum<E>> {
 			}
 		}
 	}
-
+	
 	/**
 	 * Take a snapshot of the changes in memory in this {@link Bundle} made by
 	 * the "set" methods ( {@link Bundle#setString(Enum, String)}...) at the

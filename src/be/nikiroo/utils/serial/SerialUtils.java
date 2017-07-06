@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UnknownFormatConversionException;
 
-import be.nikiroo.utils.StringUtils;
+import be.nikiroo.utils.ImageUtils;
 
 /**
  * Small class to help with serialisation.
@@ -88,7 +88,7 @@ public class SerialUtils {
 			@Override
 			protected String toString(Object value) {
 				try {
-					return StringUtils.fromImage((BufferedImage) value);
+					return ImageUtils.toBase64((BufferedImage) value);
 				} catch (IOException e) {
 					throw new UnknownFormatConversionException(e.getMessage());
 				}
@@ -102,7 +102,7 @@ public class SerialUtils {
 			@Override
 			protected Object fromString(String content) {
 				try {
-					return StringUtils.toImage(content);
+					return ImageUtils.fromBase64(content);
 				} catch (IOException e) {
 					throw new UnknownFormatConversionException(e.getMessage());
 				}
