@@ -1,3 +1,8 @@
+# Makefile base template
+# 
+# Version:
+# - 1.0.0: add a version comment
+
 # Required parameters (the commented out ones are supposed to change per project):
 
 #MAIN = path to main java source to compile

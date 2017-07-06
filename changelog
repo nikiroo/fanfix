@@ -1,3 +1,9 @@
+Version 1.6.3
+-------------
+
+Version.java
+	Fix toString issues + test + update scripts
+
 Version 1.6.2
 -------------
 
