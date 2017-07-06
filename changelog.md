@@ -1,21 +1,27 @@
 # Fanfix
 
 ## Version WIP
+
 - New reader type: TUI (a text user interface with windows and menus)
 - A server option to offer stories on the network
 - A remote library to get said stories from the network
+- Update to latest version of nikiroo-utils
 
 ## Version 1.5.3
+
 - FimFiction: Fix tags and chapter handling for some stories
 
 ## Version 1.5.2
+
 - Fix tags metadata on FimFiction 4
 
 ## Version 1.5.1
+
 - Update to FimFiction 4
 - Fix some meta data that were missing on e-Hentai
 
 ## Version 1.5.0
+
 - New website supported following a request: e-hentai.org
 - Library: perf improvement when retrieving the stories (cover not loaded when not needed)
 - Library: fix the covers that were not always removed when deleting a story

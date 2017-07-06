@@ -25,7 +25,7 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
-import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.ImageUtils;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 
@@ -863,7 +863,7 @@ public abstract class BasicSupport {
 			InputStream in = null;
 			try {
 				in = Instance.getCache().open(url, getSupport(url), true);
-				return IOUtils.toImage(in);
+				return ImageUtils.fromStream(in);
 			} catch (IOException e) {
 			} finally {
 				if (in != null) {

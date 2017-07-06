@@ -27,7 +27,7 @@ import javax.swing.JPanel;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
-import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.ImageUtils;
 import be.nikiroo.utils.ui.UIUtils;
 
 /**
@@ -370,7 +370,7 @@ class GuiReaderBook extends JPanel {
 		InputStream in = Instance.getCache().getFromCache(id);
 		if (in != null) {
 			try {
-				resizedImage = IOUtils.toImage(in);
+				resizedImage = ImageUtils.fromStream(in);
 				in.close();
 				in = null;
 			} catch (IOException e) {

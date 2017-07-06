@@ -26,6 +26,7 @@ import javax.imageio.ImageIO;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.ImageUtils;
 import be.nikiroo.utils.MarkableFileInputStream;
 
 /**
@@ -319,7 +320,7 @@ public class Cache {
 
 		if (!cached.exists() || isOld(cached, true)) {
 			InputStream imageIn = open(url, null, true);
-			ImageIO.write(IOUtils.toImage(imageIn), Instance.getConfig()
+			ImageIO.write(ImageUtils.fromStream(imageIn), Instance.getConfig()
 					.getString(Config.IMAGE_FORMAT_CONTENT).toLowerCase(),
 					cached);
 		}

@@ -13,7 +13,7 @@ import java.util.Scanner;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
-import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.ImageUtils;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 
@@ -186,7 +186,7 @@ class MangaFox extends BasicSupport {
 			try {
 				coverIn = openEx(cover);
 				try {
-					return IOUtils.toImage(coverIn);
+					return ImageUtils.fromStream(coverIn);
 				} finally {
 					coverIn.close();
 				}
