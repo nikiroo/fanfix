@@ -101,6 +101,7 @@ class GuiReaderFrame extends JFrame {
 		add(pgBar, BorderLayout.SOUTH);
 
 		pgBar.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				invalidate();
 				pgBar.setProgress(null);
@@ -110,6 +111,7 @@ class GuiReaderFrame extends JFrame {
 		});
 
 		pgBar.addUpdateListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				invalidate();
 				validate();
@@ -124,6 +126,7 @@ class GuiReaderFrame extends JFrame {
 		final Progress pg = new Progress();
 		final String typeF = type;
 		outOfUi(pg, new Runnable() {
+			@Override
 			public void run() {
 				GuiReaderFrame.this.reader.getLibrary().refresh(false, pg);
 				invalidate();
@@ -181,10 +184,12 @@ class GuiReaderFrame extends JFrame {
 		this.validate();
 
 		bookPane.setActionListener(new BookActionListener() {
+			@Override
 			public void select(GuiReaderBook book) {
 				selectedBook = book;
 			}
 
+			@Override
 			public void popupRequested(GuiReaderBook book, MouseEvent e) {
 				JPopupMenu popup = new JPopupMenu();
 				popup.add(createMenuItemOpenBook());
@@ -198,6 +203,7 @@ class GuiReaderFrame extends JFrame {
 				popup.show(e.getComponent(), e.getX(), e.getY());
 			}
 
+			@Override
 			public void action(final GuiReaderBook book) {
 				openBook(book);
 			}
@@ -248,18 +254,21 @@ class GuiReaderFrame extends JFrame {
 
 		JMenuItem imprt = new JMenuItem("Import URL...", KeyEvent.VK_U);
 		imprt.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				imprt(true);
 			}
 		});
 		JMenuItem imprtF = new JMenuItem("Import File...", KeyEvent.VK_F);
 		imprtF.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				imprt(false);
 			}
 		});
 		JMenuItem exit = new JMenuItem("Exit", KeyEvent.VK_X);
 		exit.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				GuiReaderFrame.this.dispatchEvent(new WindowEvent(
 						GuiReaderFrame.this, WindowEvent.WINDOW_CLOSING));
@@ -292,6 +301,7 @@ class GuiReaderFrame extends JFrame {
 		JMenuItem vauthors = new JMenuItem("Author");
 		vauthors.setMnemonic(KeyEvent.VK_A);
 		vauthors.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				words = false;
 				refreshBooks();
@@ -301,6 +311,7 @@ class GuiReaderFrame extends JFrame {
 		JMenuItem vwords = new JMenuItem("Word count");
 		vwords.setMnemonic(KeyEvent.VK_W);
 		vwords.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				words = true;
 				refreshBooks();
@@ -317,6 +328,7 @@ class GuiReaderFrame extends JFrame {
 		for (final String type : tt) {
 			JMenuItem item = new JMenuItem(type == null ? "All" : type);
 			item.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					removeBookPanes();
 					addBookPane(type, true);
@@ -341,6 +353,7 @@ class GuiReaderFrame extends JFrame {
 			JMenuItem item = new JMenuItem(author == null ? "All"
 					: author.isEmpty() ? "[unknown]" : author);
 			item.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					removeBookPanes();
 					addBookPane(author, false);
@@ -376,6 +389,7 @@ class GuiReaderFrame extends JFrame {
 		item.setMnemonic(KeyEvent.VK_F);
 
 		item.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				ConfigEditor<Config> ed = new ConfigEditor<Config>(
 						Config.class, Instance.getConfig(),
@@ -401,6 +415,7 @@ class GuiReaderFrame extends JFrame {
 		item.setMnemonic(KeyEvent.VK_U);
 
 		item.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				ConfigEditor<UiConfig> ed = new ConfigEditor<UiConfig>(
 						UiConfig.class, Instance.getUiConfig(),
@@ -451,6 +466,7 @@ class GuiReaderFrame extends JFrame {
 
 		JMenuItem export = new JMenuItem("Save as...", KeyEvent.VK_S);
 		export.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (selectedBook != null) {
 					fc.showDialog(GuiReaderFrame.this, "Save");
@@ -461,6 +477,7 @@ class GuiReaderFrame extends JFrame {
 								+ type.getDefaultExtension(false);
 						final Progress pg = new Progress();
 						outOfUi(pg, new Runnable() {
+							@Override
 							public void run() {
 								try {
 									reader.getLibrary().export(
@@ -510,14 +527,17 @@ class GuiReaderFrame extends JFrame {
 	private JMenuItem createMenuItemClearCache() {
 		JMenuItem refresh = new JMenuItem("Clear cache", KeyEvent.VK_C);
 		refresh.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (selectedBook != null) {
 					outOfUi(null, new Runnable() {
+						@Override
 						public void run() {
 							reader.clearLocalReaderCache(selectedBook.getMeta()
 									.getLuid());
 							selectedBook.setCached(false);
 							SwingUtilities.invokeLater(new Runnable() {
+								@Override
 								public void run() {
 									selectedBook.repaint();
 								}
@@ -554,6 +574,7 @@ class GuiReaderFrame extends JFrame {
 
 			final String ftype = type;
 			item.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (selectedBook != null) {
 						String type = ftype;
@@ -563,15 +584,17 @@ class GuiReaderFrame extends JFrame {
 									"Moving story",
 									JOptionPane.QUESTION_MESSAGE, null, null,
 									selectedBook.getMeta().getSource());
+							
 							if (rep == null) {
 								return;
-							} else {
-								type = rep.toString();
 							}
+
+							type = rep.toString();
 						}
 
 						final String ftype = type;
 						outOfUi(null, new Runnable() {
+							@Override
 							public void run() {
 								reader.changeType(selectedBook.getMeta()
 										.getLuid(), ftype);
@@ -579,6 +602,7 @@ class GuiReaderFrame extends JFrame {
 								selectedBook = null;
 
 								SwingUtilities.invokeLater(new Runnable() {
+									@Override
 									public void run() {
 										setJMenuBar(createMenu());
 									}
@@ -601,10 +625,12 @@ class GuiReaderFrame extends JFrame {
 	private JMenuItem createMenuItemRedownload() {
 		JMenuItem refresh = new JMenuItem("Redownload", KeyEvent.VK_R);
 		refresh.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (selectedBook != null) {
 					final MetaData meta = selectedBook.getMeta();
 					imprt(meta.getUrl(), new Runnable() {
+						@Override
 						public void run() {
 							reader.delete(meta.getLuid());
 							GuiReaderFrame.this.selectedBook = null;
@@ -625,9 +651,11 @@ class GuiReaderFrame extends JFrame {
 	private JMenuItem createMenuItemDelete() {
 		JMenuItem delete = new JMenuItem("Delete", KeyEvent.VK_D);
 		delete.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (selectedBook != null) {
 					outOfUi(null, new Runnable() {
+						@Override
 						public void run() {
 							reader.delete(selectedBook.getMeta().getLuid());
 							selectedBook = null;
@@ -648,6 +676,7 @@ class GuiReaderFrame extends JFrame {
 	private JMenuItem createMenuItemOpenBook() {
 		JMenuItem open = new JMenuItem("Open", KeyEvent.VK_O);
 		open.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (selectedBook != null) {
 					openBook(selectedBook);
@@ -667,10 +696,12 @@ class GuiReaderFrame extends JFrame {
 	private void openBook(final GuiReaderBook book) {
 		final Progress pg = new Progress();
 		outOfUi(pg, new Runnable() {
+			@Override
 			public void run() {
 				try {
 					reader.read(book.getMeta().getLuid(), pg);
 					SwingUtilities.invokeLater(new Runnable() {
+						@Override
 						public void run() {
 							book.setCached(true);
 						}
@@ -711,6 +742,7 @@ class GuiReaderFrame extends JFrame {
 		setEnabled(false);
 
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				run.run();
 				refreshBooks();
@@ -782,6 +814,7 @@ class GuiReaderFrame extends JFrame {
 		pg.addProgress(pgOnSuccess, 5);
 
 		outOfUi(pg, new Runnable() {
+			@Override
 			public void run() {
 				Exception ex = null;
 				try {
@@ -798,6 +831,7 @@ class GuiReaderFrame extends JFrame {
 				if (!ok) {
 					Instance.syserr(e);
 					SwingUtilities.invokeLater(new Runnable() {
+						@Override
 						public void run() {
 							JOptionPane.showMessageDialog(GuiReaderFrame.this,
 									"Cannot import: " + url, e.getMessage(),

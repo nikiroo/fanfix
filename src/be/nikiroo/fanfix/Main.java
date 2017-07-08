@@ -199,6 +199,7 @@ public class Main {
 		mainProgress.addProgressListener(new Progress.ProgressListener() {
 			private int current = mainProgress.getMin();
 
+			@Override
 			public void progress(Progress progress, String name) {
 				int diff = progress.getProgress() - current;
 				current += diff;

@@ -142,4 +142,4 @@ public enum StringId {
 		writer.write("# Also, the comments always refer to the key below them.\n");
 		writer.write("# \n");
 	}
-};
+}

@@ -36,7 +36,7 @@ class YiffStar extends BasicSupport {
 		MetaData meta = new MetaData();
 
 		meta.setTitle(getTitle(reset(in)));
-		meta.setAuthor(getAuthor(source, reset(in)));
+		meta.setAuthor(getAuthor(reset(in)));
 		meta.setDate("");
 		meta.setTags(getTags(reset(in)));
 		meta.setSource(getSourceName());
@@ -159,7 +159,7 @@ class YiffStar extends BasicSupport {
 		return null;
 	}
 
-	private String getAuthor(URL source, InputStream in) throws IOException {
+	private String getAuthor(InputStream in) {
 		String author = getLine(in, "class=\"onlinestatus", 0);
 		if (author != null) {
 			return StringUtils.unhtml(author).trim();
@@ -168,7 +168,7 @@ class YiffStar extends BasicSupport {
 		return null;
 	}
 
-	private String getTitle(InputStream in) throws IOException {
+	private String getTitle(InputStream in) {
 		String title = getLine(in, "class=\"sflabel pagetitle", 0);
 		if (title != null) {
 			if (title.contains("(series)")) {
@@ -206,14 +206,17 @@ class YiffStar extends BasicSupport {
 					final URL value = guest(link);
 					final String key = StringUtils.unhtml(line).trim();
 					urls.add(new Entry<String, URL>() {
+						@Override
 						public URL setValue(URL value) {
 							return null;
 						}
 
+						@Override
 						public URL getValue() {
 							return value;
 						}
 
+						@Override
 						public String getKey() {
 							return key;
 						}
@@ -271,11 +274,11 @@ class YiffStar extends BasicSupport {
 		if (link.contains("?")) {
 			if (link.contains("/?")) {
 				return new URL(link.replace("?", "guest?"));
-			} else {
-				return new URL(link.replace("?", "/guest?"));
 			}
-		} else {
-			return new URL(link + "/guest");
+
+			return new URL(link.replace("?", "/guest?"));
 		}
+
+		return new URL(link + "/guest");
 	}
 }

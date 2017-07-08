@@ -48,6 +48,7 @@ public abstract class BasicReader implements Reader {
 		}
 	}
 
+	@Override
 	public synchronized Story getStory(Progress pg) {
 		if (story == null) {
 			story = getLibrary().getStory(meta.getLuid(), pg);
@@ -56,6 +57,7 @@ public abstract class BasicReader implements Reader {
 		return story;
 	}
 
+	@Override
 	public BasicLibrary getLibrary() {
 		if (lib == null) {
 			lib = defaultLibrary;
@@ -64,18 +66,22 @@ public abstract class BasicReader implements Reader {
 		return lib;
 	}
 
+	@Override
 	public void setLibrary(BasicLibrary lib) {
 		this.lib = lib;
 	}
 
+	@Override
 	public MetaData getMeta() {
 		return meta;
 	}
 
+	@Override
 	public synchronized void setMeta(MetaData meta) throws IOException {
 		setMeta(meta == null ? null : meta.getLuid()); // must check the library
 	}
 
+	@Override
 	public synchronized void setMeta(String luid) throws IOException {
 		story = null;
 		meta = getLibrary().getInfo(luid);
@@ -85,6 +91,7 @@ public abstract class BasicReader implements Reader {
 		}
 	}
 
+	@Override
 	public synchronized void setMeta(URL source, Progress pg)
 			throws IOException {
 		BasicSupport support = BasicSupport.getSupport(source);
@@ -102,10 +109,12 @@ public abstract class BasicReader implements Reader {
 		meta = story.getMeta();
 	}
 
+	@Override
 	public int getChapter() {
 		return chapter;
 	}
 
+	@Override
 	public void setChapter(int chapter) {
 		this.chapter = chapter;
 	}

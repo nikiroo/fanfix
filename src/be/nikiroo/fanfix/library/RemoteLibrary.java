@@ -57,6 +57,7 @@ public class RemoteLibrary extends BasicLibrary {
 
 			try {
 				new ConnectActionClient(host, port, true, null) {
+					@Override
 					public void action(Version serverVersion) throws Exception {
 						try {
 							Object rep = send("GET_METADATA *");
@@ -83,6 +84,7 @@ public class RemoteLibrary extends BasicLibrary {
 			final File[] tmp = new File[1];
 			try {
 				new ConnectActionClient(host, port, true, null) {
+					@Override
 					public void action(Version serverVersion) throws Exception {
 						try {
 							Object rep = send("GET_STORY " + luid);

@@ -52,21 +52,25 @@ class TuiReaderStoryWindow extends TWindow {
 																// button is
 																// pressed
 		navigationButtons.add(addButton("<<  ", 0, row, new TAction() {
+			@Override
 			public void DO() {
 				setChapter(0);
 			}
 		}));
 		navigationButtons.add(addButton("<  ", 4, row, new TAction() {
+			@Override
 			public void DO() {
 				setChapter(TuiReaderStoryWindow.this.chapter - 1);
 			}
 		}));
 		navigationButtons.add(addButton(">  ", 7, row, new TAction() {
+			@Override
 			public void DO() {
 				setChapter(TuiReaderStoryWindow.this.chapter + 1);
 			}
 		}));
 		navigationButtons.add(addButton(">>  ", 10, row, new TAction() {
+			@Override
 			public void DO() {
 				setChapter(getStory().getChapters().size());
 			}

@@ -49,7 +49,7 @@ public interface Reader {
 
 			return null;
 		}
-	};
+	}
 
 	/**
 	 * Return the current target {@link MetaData}.

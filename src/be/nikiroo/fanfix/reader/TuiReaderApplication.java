@@ -46,6 +46,8 @@ class TuiReaderApplication extends TApplication implements Reader {
 		new TuiReaderMainWindow(this).setMetas(stories);
 	}
 
+	@SuppressWarnings("unused")
+	@Override
 	public void read() throws IOException {
 		MetaData meta = getMeta();
 
@@ -66,42 +68,52 @@ class TuiReaderApplication extends TApplication implements Reader {
 		}
 	}
 
+	@Override
 	public MetaData getMeta() {
 		return reader.getMeta();
 	}
 
+	@Override
 	public Story getStory(Progress pg) {
 		return reader.getStory(pg);
 	}
 
+	@Override
 	public BasicLibrary getLibrary() {
 		return reader.getLibrary();
 	}
 
+	@Override
 	public void setLibrary(BasicLibrary lib) {
 		reader.setLibrary(lib);
 	}
 
+	@Override
 	public void setMeta(MetaData meta) throws IOException {
 		reader.setMeta(meta);
 	}
 
+	@Override
 	public void setMeta(String luid) throws IOException {
 		reader.setMeta(luid);
 	}
 
+	@Override
 	public void setMeta(URL source, Progress pg) throws IOException {
 		reader.setMeta(source, pg);
 	}
 
+	@Override
 	public void browse(String source) {
 		reader.browse(source);
 	}
 
+	@Override
 	public int getChapter() {
 		return reader.getChapter();
 	}
 
+	@Override
 	public void setChapter(int chapter) {
 		reader.setChapter(chapter);
 	}

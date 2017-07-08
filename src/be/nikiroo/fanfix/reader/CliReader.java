@@ -18,6 +18,7 @@ import be.nikiroo.fanfix.data.Story;
  * @author niki
  */
 class CliReader extends BasicReader {
+	@Override
 	public void read() throws IOException {
 		MetaData meta = getMeta();
 
@@ -78,6 +79,7 @@ class CliReader extends BasicReader {
 		}
 	}
 
+	@Override
 	public void browse(String source) {
 		List<MetaData> stories;
 		stories = getLibrary().getListBySource(source);

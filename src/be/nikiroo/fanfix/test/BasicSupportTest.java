@@ -180,7 +180,7 @@ public class BasicSupportTest extends TestLauncher {
 					public void setUp() throws Exception {
 						super.setUp();
 
-					};
+					}
 
 					@Override
 					public void tearDown() throws Exception {
@@ -325,12 +325,12 @@ public class BasicSupportTest extends TestLauncher {
 										+ "Fanfan." + "\n" + "\n"
 										+ "Chapter 2: Chap2" + "\n" + "\n" //
 										+ "Tulipe." + "\n");
-					};
+					}
 
 					@Override
 					public void tearDown() throws Exception {
 						tmp.delete();
-					};
+					}
 
 					@Override
 					public void test() throws Exception {
@@ -368,12 +368,12 @@ public class BasicSupportTest extends TestLauncher {
 										+ "Fanfan." + "\n" + "\n"
 										+ "Chapter 2: Chap2" + "\n" + "\n" //
 										+ "Tulipe." + "\n");
-					};
+					}
 
 					@Override
 					public void tearDown() throws Exception {
 						tmp.delete();
-					};
+					}
 
 					@Override
 					public void test() throws Exception {

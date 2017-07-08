@@ -78,8 +78,7 @@ class EHentai extends BasicSupport {
 		return true;
 	}
 
-	private BufferedImage getCover(URL source, InputStream in)
-			throws IOException {
+	private BufferedImage getCover(URL source, InputStream in) {
 		BufferedImage author = null;
 		String coverLine = getKeyLine(in, "<div id=\"gd1\"", " url(", ")");
 		if (coverLine != null) {
@@ -167,7 +166,7 @@ class EHentai extends BasicSupport {
 		return tags;
 	}
 
-	private String getTitle(InputStream in) throws IOException {
+	private String getTitle(InputStream in) {
 		String siteName = " - E-Hentai Galleries";
 
 		String title = getLine(in, "<title>", 0);
@@ -233,14 +232,17 @@ class EHentai extends BasicSupport {
 			final String key = Integer.toString(i + 1);
 			final URL value = new URL(source.toString() + "?p=" + i);
 			urls.add(new Entry<String, URL>() {
+				@Override
 				public URL setValue(URL value) {
 					return null;
 				}
 
+				@Override
 				public URL getValue() {
 					return value;
 				}
 
+				@Override
 				public String getKey() {
 					return key;
 				}

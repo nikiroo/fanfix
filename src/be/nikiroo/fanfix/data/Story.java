@@ -55,6 +55,7 @@ public class Story implements Iterable<Chapter> {
 	/**
 	 * Get an iterator on the {@link Chapter}s.
 	 */
+	@Override
 	public Iterator<Chapter> iterator() {
 		return chapters == null ? empty.iterator() : chapters.iterator();
 	}

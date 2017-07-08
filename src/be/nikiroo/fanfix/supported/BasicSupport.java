@@ -374,7 +374,7 @@ public abstract class BasicSupport {
 
 			pg.setProgress(50);
 
-			if (meta != null && meta.getCover() == null) {
+			if (meta.getCover() == null) {
 				meta.setCover(getDefaultCover(meta.getSubject()));
 			}
 
@@ -576,6 +576,7 @@ public abstract class BasicSupport {
 	 * @throws IOException
 	 *             on I/O error
 	 */
+	@SuppressWarnings("unused")
 	protected void preprocess(URL source, InputStream in) throws IOException {
 	}
 
@@ -755,9 +756,9 @@ public abstract class BasicSupport {
 
 		if (image != null) {
 			return new Paragraph(image);
-		} else {
-			return processPara(line);
 		}
+
+		return processPara(line);
 	}
 
 	/**
@@ -840,9 +841,9 @@ public abstract class BasicSupport {
 	static String[] getImageExt(boolean emptyAllowed) {
 		if (emptyAllowed) {
 			return new String[] { "", ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
-		} else {
-			return new String[] { ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
 		}
+
+		return new String[] { ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
 	}
 
 	/**
@@ -1161,9 +1162,9 @@ public abstract class BasicSupport {
 					if (prev == car) {
 						builder.append(closeDoubleQuote);
 						continue;
-					} else {
-						builder.append(closeQuote);
 					}
+
+					builder.append(closeQuote);
 				}
 			}
 

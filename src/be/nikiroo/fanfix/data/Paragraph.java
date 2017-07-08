@@ -33,6 +33,7 @@ public class Paragraph {
 	/**
 	 * Empty constructor, not to use.
 	 */
+	@SuppressWarnings("unused")
 	private Paragraph() {
 		// for serialisation purposes
 	}

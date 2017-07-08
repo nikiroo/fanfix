@@ -189,26 +189,31 @@ class GuiReaderBook extends JPanel {
 	private void setupListeners() {
 		listeners = new ArrayList<GuiReaderBook.BookActionListener>();
 		addMouseListener(new MouseListener() {
+			@Override
 			public void mouseReleased(MouseEvent e) {
 				if (e.isPopupTrigger()) {
 					popup(e);
 				}
 			}
 
+			@Override
 			public void mousePressed(MouseEvent e) {
 				if (e.isPopupTrigger()) {
 					popup(e);
 				}
 			}
 
+			@Override
 			public void mouseExited(MouseEvent e) {
 				setHovered(false);
 			}
 
+			@Override
 			public void mouseEntered(MouseEvent e) {
 				setHovered(true);
 			}
 
+			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (isEnabled()) {
 					Date now = new Date();

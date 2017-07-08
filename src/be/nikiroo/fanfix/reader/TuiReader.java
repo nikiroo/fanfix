@@ -49,6 +49,7 @@ class TuiReader extends BasicReader {
 		return backendType;
 	}
 
+	@Override
 	public void read() throws IOException {
 		try {
 			TuiReaderApplication app = new TuiReaderApplication(this,
@@ -59,6 +60,7 @@ class TuiReader extends BasicReader {
 		}
 	}
 
+	@Override
 	public void browse(String source) {
 		List<MetaData> metas = getLibrary().getListBySource(source);
 		try {

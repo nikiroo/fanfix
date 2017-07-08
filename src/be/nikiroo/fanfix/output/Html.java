@@ -64,9 +64,9 @@ class Html extends BasicOutput {
 	public String getDefaultExtension(boolean readerTarget) {
 		if (readerTarget) {
 			return File.separator + "index.html";
-		} else {
-			return "";
 		}
+
+		return "";
 	}
 
 	@Override

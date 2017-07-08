@@ -109,15 +109,18 @@ public class GuiReaderGroup extends JPanel {
 				books.add(book);
 
 				book.addActionListener(new BookActionListener() {
+					@Override
 					public void select(GuiReaderBook book) {
 						for (GuiReaderBook abook : books) {
 							abook.setSelected(abook == book);
 						}
 					}
 
+					@Override
 					public void popupRequested(GuiReaderBook book, MouseEvent e) {
 					}
 
+					@Override
 					public void action(GuiReaderBook book) {
 					}
 				});

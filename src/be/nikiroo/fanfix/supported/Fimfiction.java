@@ -235,14 +235,17 @@ class Fimfiction extends BasicSupport {
 						final URL value = new URL("http://www.fimfiction.net"
 								+ line);
 						urls.add(new Entry<String, URL>() {
+							@Override
 							public URL setValue(URL value) {
 								return null;
 							}
 
+							@Override
 							public String getKey() {
 								return key;
 							}
 
+							@Override
 							public URL getValue() {
 								return value;
 							}

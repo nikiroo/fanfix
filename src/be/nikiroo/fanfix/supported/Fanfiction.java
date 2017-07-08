@@ -74,7 +74,7 @@ class Fanfiction extends BasicSupport {
 		return null;
 	}
 
-	private List<String> getTags(InputStream in) throws IOException {
+	private List<String> getTags(InputStream in) {
 		List<String> tags = new ArrayList<String>();
 
 		String key = "title=\"Send Private Message\"";
@@ -245,14 +245,17 @@ class Fanfiction extends BasicSupport {
 							final String chapName = name.trim();
 							final URL chapURL = new URL(base + i + suffix);
 							urls.add(new Entry<String, URL>() {
+								@Override
 								public URL setValue(URL value) {
 									return null;
 								}
 
+								@Override
 								public URL getValue() {
 									return chapURL;
 								}
 
+								@Override
 								public String getKey() {
 									return chapName;
 								}
@@ -270,14 +273,17 @@ class Fanfiction extends BasicSupport {
 			final String chapName = getTitle(reset(in));
 			final URL chapURL = source;
 			urls.add(new Entry<String, URL>() {
+				@Override
 				public URL setValue(URL value) {
 					return null;
 				}
 
+				@Override
 				public URL getValue() {
 					return chapURL;
 				}
 
+				@Override
 				public String getKey() {
 					return chapName;
 				}

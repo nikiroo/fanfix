@@ -161,9 +161,9 @@ public class LocalLibrary extends BasicLibrary {
 	private OutputType getOutputType(MetaData meta) {
 		if (meta != null && meta.isImageDocument()) {
 			return image;
-		} else {
-			return text;
 		}
+
+		return text;
 	}
 
 	/**
@@ -238,39 +238,39 @@ public class LocalLibrary extends BasicLibrary {
 		MetaData meta = getInfo(luid);
 		if (meta == null) {
 			throw new IOException("Story not found: " + luid);
-		} else {
-			File infoFile = getStories(null).get(meta)[0];
-			File targetFile = getStories(null).get(meta)[1];
+		}
 
-			files.add(infoFile);
-			files.add(targetFile);
+		File infoFile = getStories(null).get(meta)[0];
+		File targetFile = getStories(null).get(meta)[1];
 
-			String readerExt = getOutputType(meta).getDefaultExtension(true);
-			String fileExt = getOutputType(meta).getDefaultExtension(false);
+		files.add(infoFile);
+		files.add(targetFile);
 
-			String path = targetFile.getAbsolutePath();
-			if (readerExt != null && !readerExt.equals(fileExt)) {
-				path = path.substring(0, path.length() - readerExt.length())
-						+ fileExt;
-				File relatedFile = new File(path);
+		String readerExt = getOutputType(meta).getDefaultExtension(true);
+		String fileExt = getOutputType(meta).getDefaultExtension(false);
 
-				if (relatedFile.exists()) {
-					files.add(relatedFile);
-				}
+		String path = targetFile.getAbsolutePath();
+		if (readerExt != null && !readerExt.equals(fileExt)) {
+			path = path.substring(0, path.length() - readerExt.length())
+					+ fileExt;
+			File relatedFile = new File(path);
+
+			if (relatedFile.exists()) {
+				files.add(relatedFile);
 			}
+		}
 
-			String coverExt = "."
-					+ Instance.getConfig().getString(Config.IMAGE_FORMAT_COVER);
-			File coverFile = new File(path + coverExt);
-			if (!coverFile.exists()) {
-				coverFile = new File(path.substring(0,
-						path.length() - fileExt.length())
-						+ coverExt);
-			}
+		String coverExt = "."
+				+ Instance.getConfig().getString(Config.IMAGE_FORMAT_COVER);
+		File coverFile = new File(path + coverExt);
+		if (!coverFile.exists()) {
+			coverFile = new File(path.substring(0,
+					path.length() - fileExt.length())
+					+ coverExt);
+		}
 
-			if (coverFile.exists()) {
-				files.add(coverFile);
-			}
+		if (coverFile.exists()) {
+			files.add(coverFile);
 		}
 
 		return files;
@@ -301,6 +301,7 @@ public class LocalLibrary extends BasicLibrary {
 			lastId = 0;
 
 			File[] dirs = baseDir.listFiles(new FileFilter() {
+				@Override
 				public boolean accept(File file) {
 					return file != null && file.isDirectory();
 				}
@@ -311,6 +312,7 @@ public class LocalLibrary extends BasicLibrary {
 
 			for (File dir : dirs) {
 				File[] infoFiles = dir.listFiles(new FileFilter() {
+					@Override
 					public boolean accept(File file) {
 						return file != null
 								&& file.getPath().toLowerCase()

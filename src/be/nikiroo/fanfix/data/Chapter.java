@@ -19,6 +19,7 @@ public class Chapter implements Iterable<Paragraph> {
 	/**
 	 * Empty constructor, not to use.
 	 */
+	@SuppressWarnings("unused")
 	private Chapter() {
 		// for serialisation purposes
 	}
@@ -96,6 +97,7 @@ public class Chapter implements Iterable<Paragraph> {
 	/**
 	 * Get an iterator on the {@link Paragraph}s.
 	 */
+	@Override
 	public Iterator<Paragraph> iterator() {
 		return paragraphs == null ? empty.iterator() : paragraphs.iterator();
 	}

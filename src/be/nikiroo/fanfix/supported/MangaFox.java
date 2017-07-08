@@ -118,18 +118,18 @@ class MangaFox extends BasicSupport {
 
 		if (authors.isEmpty()) {
 			return null;
-		} else {
-			StringBuilder builder = new StringBuilder();
-			for (String author : authors) {
-				if (builder.length() > 0) {
-					builder.append(", ");
-				}
+		}
 
-				builder.append(author);
+		StringBuilder builder = new StringBuilder();
+		for (String author : authors) {
+			if (builder.length() > 0) {
+				builder.append(", ");
 			}
 
-			return builder.toString();
+			builder.append(author);
 		}
+
+		return builder.toString();
 	}
 
 	private String getDate(InputStream in) {
@@ -246,14 +246,17 @@ class MangaFox extends BasicSupport {
 					final String key = name;
 					final URL value = new URL(url);
 					urls.add(new Entry<String, URL>() {
+						@Override
 						public URL setValue(URL value) {
 							return null;
 						}
 
+						@Override
 						public String getKey() {
 							return key;
 						}
 
+						@Override
 						public URL getValue() {
 							return value;
 						}

@@ -45,6 +45,7 @@ public abstract class BasicOutput {
 
 		;
 
+		@Override
 		public String toString() {
 			return super.toString().toLowerCase();
 		}
@@ -267,25 +268,32 @@ public abstract class BasicOutput {
 	 * 
 	 * @return the extension
 	 */
-	public String getDefaultExtension(boolean readerTarget) {
+	public String getDefaultExtension(
+			@SuppressWarnings("unused") boolean readerTarget) {
 		return "";
 	}
 
+	@SuppressWarnings("unused")
 	protected void writeStoryHeader(Story story) throws IOException {
 	}
 
+	@SuppressWarnings("unused")
 	protected void writeChapterHeader(Chapter chap) throws IOException {
 	}
 
+	@SuppressWarnings("unused")
 	protected void writeParagraphHeader(Paragraph para) throws IOException {
 	}
 
+	@SuppressWarnings("unused")
 	protected void writeStoryFooter(Story story) throws IOException {
 	}
 
+	@SuppressWarnings("unused")
 	protected void writeChapterFooter(Chapter chap) throws IOException {
 	}
 
+	@SuppressWarnings("unused")
 	protected void writeParagraphFooter(Paragraph para) throws IOException {
 	}
 
@@ -367,6 +375,7 @@ public abstract class BasicOutput {
 		writeParagraphFooter(para);
 	}
 
+	@SuppressWarnings("unused")
 	protected void writeTextLine(ParagraphType type, String line)
 			throws IOException {
 	}

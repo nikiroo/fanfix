@@ -57,7 +57,7 @@ class Text extends BasicSupport {
 		meta.setPublisher("");
 		meta.setUuid(source.toString());
 		meta.setLuid("");
-		meta.setLang(getLang(source, reset(in))); // default is EN
+		meta.setLang(getLang(reset(in))); // default is EN
 		meta.setSubject(getSubject(source));
 		meta.setType(getType().toString());
 		meta.setImageDocument(false);
@@ -77,7 +77,7 @@ class Text extends BasicSupport {
 
 	}
 
-	private String getLang(URL source, InputStream in) throws IOException {
+	private String getLang(InputStream in) {
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
 		scan.useDelimiter("\\n");
@@ -103,14 +103,14 @@ class Text extends BasicSupport {
 		return lang;
 	}
 
-	private String getTitle(InputStream in) throws IOException {
+	private String getTitle(InputStream in) {
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
 		scan.useDelimiter("\\n");
 		return scan.next();
 	}
 
-	private String getAuthor(InputStream in) throws IOException {
+	private String getAuthor(InputStream in) {
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
 		scan.useDelimiter("\\n");
@@ -126,7 +126,7 @@ class Text extends BasicSupport {
 		return fixAuthor(author);
 	}
 
-	private String getDate(InputStream in) throws IOException {
+	private String getDate(InputStream in) {
 		@SuppressWarnings("resource")
 		Scanner scan = new Scanner(in, "UTF-8");
 		scan.useDelimiter("\\n");
@@ -151,7 +151,7 @@ class Text extends BasicSupport {
 		return getChapterContent(source, in, 0, null);
 	}
 
-	private BufferedImage getCover(URL source) throws IOException {
+	private BufferedImage getCover(URL source) {
 		String path;
 		try {
 			path = new File(source.toURI()).getPath();
@@ -188,14 +188,17 @@ class Text extends BasicSupport {
 				final URL value = source;
 				final String key = chapName;
 				chaps.add(new Entry<String, URL>() {
+					@Override
 					public URL setValue(URL value) {
 						return null;
 					}
 
+					@Override
 					public URL getValue() {
 						return value;
 					}
 
+					@Override
 					public String getKey() {
 						return key;
 					}

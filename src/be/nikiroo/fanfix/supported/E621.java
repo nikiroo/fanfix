@@ -102,7 +102,7 @@ class E621 extends BasicSupport {
 		return null;
 	}
 
-	private String getAuthor(URL source, InputStream in) throws IOException {
+	private String getAuthor(URL source, InputStream in) {
 		String author = getLine(in, "href=\"/post/show/", 0);
 		if (author != null) {
 			String key = "href=\"";
@@ -144,7 +144,7 @@ class E621 extends BasicSupport {
 		return null;
 	}
 
-	private String getTitle(InputStream in) throws IOException {
+	private String getTitle(InputStream in) {
 		String title = getLine(in, "<title>", 0);
 		if (title != null) {
 			int pos = title.indexOf('>');
@@ -222,14 +222,17 @@ class E621 extends BasicSupport {
 			final String key = Integer.toString(i);
 			final URL value = new URL(source.toString() + "?page=" + i);
 			urls.add(new Entry<String, URL>() {
+				@Override
 				public URL setValue(URL value) {
 					return null;
 				}
 
+				@Override
 				public URL getValue() {
 					return value;
 				}
 
+				@Override
 				public String getKey() {
 					return key;
 				}

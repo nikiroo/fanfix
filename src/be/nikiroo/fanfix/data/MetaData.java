@@ -377,6 +377,7 @@ public class MetaData implements Cloneable, Comparable<MetaData> {
 		this.fakeCover = fakeCover;
 	}
 
+	@Override
 	public int compareTo(MetaData o) {
 		String oUuid = o == null ? null : o.getUuid();
 		return getUuid().compareTo(oUuid);

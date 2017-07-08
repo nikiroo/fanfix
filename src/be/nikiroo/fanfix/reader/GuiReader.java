@@ -70,6 +70,7 @@ class GuiReader extends BasicReader {
 		localLibrary = new LocalLibrary(dir, text, images);
 	}
 
+	@Override
 	public void read() throws IOException {
 		MetaData meta = getMeta();
 
@@ -127,6 +128,7 @@ class GuiReader extends BasicReader {
 		return localLibrary.getInfo(luid) != null;
 	}
 
+	@Override
 	public void browse(String type) {
 		// TODO: improve presentation of update message
 		final VersionCheck updates = VersionCheck.check();
@@ -154,6 +156,7 @@ class GuiReader extends BasicReader {
 
 			// handle link events
 			updateMessage.addHyperlinkListener(new HyperlinkListener() {
+				@Override
 				public void hyperlinkUpdate(HyperlinkEvent e) {
 					if (e.getEventType().equals(
 							HyperlinkEvent.EventType.ACTIVATED))
@@ -172,6 +175,7 @@ class GuiReader extends BasicReader {
 
 		final String typeFinal = type;
 		EventQueue.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				if (updates.isNewVersionAvailable()) {
 					int rep = JOptionPane.showConfirmDialog(null,

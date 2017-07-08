@@ -396,16 +396,21 @@ public class Cache {
 	 * 
 	 * @param url
 	 *            the resource to open
+	 * @param allowTooOld
+	 *            allow files even if they are considered too old
+	 * @param stable
+	 *            a stable file (that dones't change too often) -- parameter
+	 *            used to check if the file is too old to keep or not
 	 * 
 	 * @return the opened resource if found, NULL i not
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	private InputStream load(URL url, boolean allowOld, boolean stable)
+	private InputStream load(URL url, boolean allowTooOld, boolean stable)
 			throws IOException {
 		File cached = getCached(url);
-		if (cached.exists() && !isOld(cached, stable)) {
+		if (cached.exists() && (allowTooOld || !isOld(cached, stable))) {
 			return new MarkableFileInputStream(new FileInputStream(cached));
 		}
 

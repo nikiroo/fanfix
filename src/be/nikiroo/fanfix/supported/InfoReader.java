@@ -31,11 +31,11 @@ public class InfoReader {
 				in.close();
 				in = null;
 			}
-		} else {
-			throw new FileNotFoundException(
-					"File given as argument does not exists: "
-							+ infoFile.getAbsolutePath());
 		}
+
+		throw new FileNotFoundException(
+				"File given as argument does not exists: "
+						+ infoFile.getAbsolutePath());
 	}
 
 	private static MetaData createMeta(URL sourceInfoFile, InputStream in,
