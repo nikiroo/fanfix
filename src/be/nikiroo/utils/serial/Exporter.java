@@ -41,9 +41,9 @@ public class Exporter {
 
 		if (zip) {
 			return "ZIP:" + StringUtils.zip64(builder.toString());
-		} else {
-			return builder.toString();
 		}
+
+		return builder.toString();
 	}
 
 	/**

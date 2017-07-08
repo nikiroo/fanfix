@@ -299,10 +299,9 @@ public class SerialUtils {
 			String type = CustomSerializer.typeOf(encodedValue);
 			if (customTypes.containsKey(type)) {
 				return customTypes.get(type).decode(encodedValue);
-			} else {
-				throw new UnknownFormatConversionException(
-						"Unknown custom type: " + type);
 			}
+			throw new UnknownFormatConversionException("Unknown custom type: "
+					+ type);
 		} else if (encodedValue.equals("NULL") || encodedValue.equals("null")) {
 			return null;
 		} else if (encodedValue.endsWith("\"")) {

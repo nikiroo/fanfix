@@ -156,12 +156,14 @@ public class ImageText {
 	public String getText() {
 		if (text == null) {
 			if (image == null || size == null || size.width == 0
-					|| size.height == 0)
+					|| size.height == 0) {
 				return "";
+			}
 
 			int mult = 1;
-			if (mode == Mode.DOUBLE_RESOLUTION || mode == Mode.DOUBLE_DITHERING)
+			if (mode == Mode.DOUBLE_RESOLUTION || mode == Mode.DOUBLE_DITHERING) {
 				mult = 2;
+			}
 
 			int w = size.width * mult;
 			int h = size.height * mult;
@@ -191,6 +193,7 @@ public class ImageText {
 			}
 
 			if (gfx.drawImage(image, x, y, w, h, new ImageObserver() {
+				@Override
 				public boolean imageUpdate(Image img, int infoflags, int x,
 						int y, int width, int height) {
 					ImageText.this.ready = true;
@@ -212,8 +215,9 @@ public class ImageText {
 			StringBuilder builder = new StringBuilder();
 
 			for (int row = 0; row < buff.getHeight(); row += mult) {
-				if (row > 0)
+				if (row > 0) {
 					builder.append('\n');
+				}
 
 				for (int col = 0; col < buff.getWidth(); col += mult) {
 					if (mult == 1) {
@@ -313,14 +317,19 @@ public class ImageText {
 	private char getBlockChar(int upperleft, int upperright, int lowerleft,
 			int lowerright, boolean dithering) {
 		int choice = 0;
-		if (getBrightness(upperleft) > 0.5f)
+
+		if (getBrightness(upperleft) > 0.5f) {
 			choice += 1;
-		if (getBrightness(upperright) > 0.5f)
+		}
+		if (getBrightness(upperright) > 0.5f) {
 			choice += 2;
-		if (getBrightness(lowerleft) > 0.5f)
+		}
+		if (getBrightness(lowerleft) > 0.5f) {
 			choice += 4;
-		if (getBrightness(lowerright) > 0.5f)
+		}
+		if (getBrightness(lowerright) > 0.5f) {
 			choice += 8;
+		}
 
 		switch (choice) {
 		case 0:
@@ -363,9 +372,9 @@ public class ImageText {
 				avg /= 4;
 
 				return getDitheringChar(avg, " ░▒▓█");
-			} else {
-				return '█';
 			}
+
+			return '█';
 		}
 
 		return ' ';
@@ -385,8 +394,10 @@ public class ImageText {
 	 * @return the brightness to sue for computations
 	 */
 	private float getBrightness(int argb) {
-		if (invert)
+		if (invert) {
 			return 1 - rgb2hsb(argb, tmp)[2];
+		}
+
 		return rgb2hsb(argb, tmp)[2];
 	}
 
@@ -415,8 +426,10 @@ public class ImageText {
 		g = ((argb & 0x0000ff00) >> 8);
 		b = ((argb & 0x000000ff));
 
-		if (array == null)
+		if (array == null) {
 			array = new float[4];
+		}
+
 		Color.RGBtoHSB(r, g, b, array);
 
 		array[3] = a;

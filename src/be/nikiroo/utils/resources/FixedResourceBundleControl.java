@@ -17,7 +17,7 @@ import java.util.ResourceBundle.Control;
  * the resources.
  * 
  * @author niki
- *
+ * 
  */
 class FixedResourceBundleControl extends Control {
 	@Override
@@ -40,9 +40,9 @@ class FixedResourceBundleControl extends Control {
 				}
 			}
 		} else {
-			if (stream == null)
-				stream = loader.getResourceAsStream(resourceName);
+			stream = loader.getResourceAsStream(resourceName);
 		}
+
 		if (stream != null) {
 			try {
 				// This line is changed to make it to read properties files

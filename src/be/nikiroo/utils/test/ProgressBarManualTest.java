@@ -24,6 +24,7 @@ public class ProgressBarManualTest extends JFrame {
 
 		final JButton b = new JButton("Set pg to 10%");
 		b.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				switch (i) {
 				case 0:

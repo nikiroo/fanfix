@@ -39,6 +39,7 @@ public class ProgressBar extends JPanel {
 		this.pg = pg;
 
 		SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				if (pg != null) {
 					final JProgressBar bar = new JProgressBar();
@@ -53,9 +54,11 @@ public class ProgressBar extends JPanel {
 					bar.setString(pg.getName());
 
 					pg.addProgressListener(new Progress.ProgressListener() {
+						@Override
 						public void progress(Progress progress, String name) {
 							final Progress.ProgressListener l = this;
 							SwingUtilities.invokeLater(new Runnable() {
+								@Override
 								public void run() {
 									Map<Progress, JProgressBar> newBars = new HashMap<Progress, JProgressBar>();
 									newBars.put(pg, bar);

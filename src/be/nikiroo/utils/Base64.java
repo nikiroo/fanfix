@@ -934,62 +934,58 @@ class Base64
         }   // end if: compress
 
         // Else, don't compress. Better not to use streams at all then.
-        else {
-            boolean breakLines = (options & DO_BREAK_LINES) != 0;
+        boolean breakLines = (options & DO_BREAK_LINES) != 0;
 
-            //int    len43   = len * 4 / 3;
-            //byte[] outBuff = new byte[   ( len43 )                      // Main 4:3
-            //                           + ( (len % 3) > 0 ? 4 : 0 )      // Account for padding
-            //                           + (breakLines ? ( len43 / MAX_LINE_LENGTH ) : 0) ]; // New lines
-            // Try to determine more precisely how big the array needs to be.
-            // If we get it right, we don't have to do an array copy, and
-            // we save a bunch of memory.
-            int encLen = ( len / 3 ) * 4 + ( len % 3 > 0 ? 4 : 0 ); // Bytes needed for actual encoding
-            if( breakLines ){
-                encLen += encLen / MAX_LINE_LENGTH; // Plus extra newline characters
-            }
-            byte[] outBuff = new byte[ encLen ];
-
-
-            int d = 0;
-            int e = 0;
-            int len2 = len - 2;
-            int lineLength = 0;
-            for( ; d < len2; d+=3, e+=4 ) {
-                encode3to4( source, d+off, 3, outBuff, e, options );
-
-                lineLength += 4;
-                if( breakLines && lineLength >= MAX_LINE_LENGTH )
-                {
-                    outBuff[e+4] = NEW_LINE;
-                    e++;
-                    lineLength = 0;
-                }   // end if: end of line
-            }   // en dfor: each piece of array
-
-            if( d < len ) {
-                encode3to4( source, d+off, len - d, outBuff, e, options );
-                e += 4;
-            }   // end if: some padding needed
+        //int    len43   = len * 4 / 3;
+        //byte[] outBuff = new byte[   ( len43 )                      // Main 4:3
+        //                           + ( (len % 3) > 0 ? 4 : 0 )      // Account for padding
+        //                           + (breakLines ? ( len43 / MAX_LINE_LENGTH ) : 0) ]; // New lines
+        // Try to determine more precisely how big the array needs to be.
+        // If we get it right, we don't have to do an array copy, and
+        // we save a bunch of memory.
+        int encLen = ( len / 3 ) * 4 + ( len % 3 > 0 ? 4 : 0 ); // Bytes needed for actual encoding
+        if( breakLines ){
+            encLen += encLen / MAX_LINE_LENGTH; // Plus extra newline characters
+        }
+        byte[] outBuff = new byte[ encLen ];
 
 
-            // Only resize array if we didn't guess it right.
-            if( e <= outBuff.length - 1 ){
-                // If breaking lines and the last byte falls right at
-                // the line length (76 bytes per line), there will be
-                // one extra byte, and the array will need to be resized.
-                // Not too bad of an estimate on array size, I'd say.
-                byte[] finalOut = new byte[e];
-                System.arraycopy(outBuff,0, finalOut,0,e);
-                //System.err.println("Having to resize array from " + outBuff.length + " to " + e );
-                return finalOut;
-            } else {
-                //System.err.println("No need to resize array.");
-                return outBuff;
-            }
+        int d = 0;
+        int e = 0;
+        int len2 = len - 2;
+        int lineLength = 0;
+        for( ; d < len2; d+=3, e+=4 ) {
+            encode3to4( source, d+off, 3, outBuff, e, options );
+
+            lineLength += 4;
+            if( breakLines && lineLength >= MAX_LINE_LENGTH )
+            {
+                outBuff[e+4] = NEW_LINE;
+                e++;
+                lineLength = 0;
+            }   // end if: end of line
+        }   // en dfor: each piece of array
+
+        if( d < len ) {
+            encode3to4( source, d+off, len - d, outBuff, e, options );
+            e += 4;
+        }   // end if: some padding needed
+
+
+        // Only resize array if we didn't guess it right.
+        if( e <= outBuff.length - 1 ){
+            // If breaking lines and the last byte falls right at
+            // the line length (76 bytes per line), there will be
+            // one extra byte, and the array will need to be resized.
+            // Not too bad of an estimate on array size, I'd say.
+            byte[] finalOut = new byte[e];
+            System.arraycopy(outBuff,0, finalOut,0,e);
+            //System.err.println("Having to resize array from " + outBuff.length + " to " + e );
+            return finalOut;
+        }
         
-        }   // end else: don't compress
-
+        //System.err.println("No need to resize array.");
+        return outBuff;
     }   // end encodeBytesToBytes
     
 
@@ -1145,7 +1141,8 @@ class Base64
      * @throws java.io.IOException If bogus characters exist in source data
      * @since 1.3
      */
-    public static byte[] decode( byte[] source, int off, int len, int options )
+    @SuppressWarnings("cast")
+	public static byte[] decode( byte[] source, int off, int len, int options )
     throws java.io.IOException {
         
         // Lots of error checking and exception throwing
@@ -1260,7 +1257,8 @@ class Base64
         boolean dontGunzip = (options & DONT_GUNZIP) != 0;
         if( (bytes != null) && (bytes.length >= 4) && (!dontGunzip) ) {
             
-            int head = ((int)bytes[0] & 0xff) | ((bytes[1] << 8) & 0xff00);
+            @SuppressWarnings("cast")
+			int head = ((int)bytes[0] & 0xff) | ((bytes[1] << 8) & 0xff00);
             if( java.util.zip.GZIPInputStream.GZIP_MAGIC == head )  {
                 java.io.ByteArrayInputStream  bais = null;
                 java.util.zip.GZIPInputStream gzis = null;
@@ -1363,9 +1361,8 @@ class Base64
 						Class c = Class.forName(streamClass.getName(), false, loader);
                         if( c == null ){
                             return super.resolveClass(streamClass);
-                        } else {
-                            return c;   // Class loader knows of this class.
-                        }   // end else: not null
+                        }
+                        return c;   // Class loader knows of this class.
                     }   // end resolveClass
                 };  // end ois
             }   // end else: no custom class loader
@@ -1777,26 +1774,21 @@ class Base64
                     lineLength = 0;
                     return '\n';
                 }   // end if
-                else {
-                    lineLength++;   // This isn't important when decoding
-                                    // but throwing an extra "if" seems
-                                    // just as wasteful.
-                    
-                    int b = buffer[ position++ ];
+                lineLength++;   // This isn't important when decoding
+                                // but throwing an extra "if" seems
+                                // just as wasteful.
+                
+                int b = buffer[ position++ ];
 
-                    if( position >= bufferLength ) {
-                        position = -1;
-                    }   // end if: end
+                if( position >= bufferLength ) {
+                    position = -1;
+                }   // end if: end
 
-                    return b & 0xFF; // This is how you "cast" a byte that's
-                                     // intended to be unsigned.
-                }   // end else
+                return b & 0xFF; // This is how you "cast" a byte that's
+                                 // intended to be unsigned.
             }   // end if: position >= 0
             
-            // Else error
-            else {
-                throw new java.io.IOException( "Error in Base64 code reading stream." );
-            }   // end else
+            throw new java.io.IOException( "Error in Base64 code reading stream." );
         }   // end read
         
         

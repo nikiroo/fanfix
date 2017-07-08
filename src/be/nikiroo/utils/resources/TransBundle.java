@@ -127,10 +127,11 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 			result = null;
 		}
 
-		if (values != null && values.length > 0 && result != null)
+		if (values != null && values.length > 0 && result != null) {
 			return String.format(locale, result, values);
-		else
-			return result;
+		}
+
+		return result;
 	}
 
 	/**

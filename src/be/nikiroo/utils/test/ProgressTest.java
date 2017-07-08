@@ -38,6 +38,7 @@ class ProgressTest extends TestLauncher {
 					public void test() throws Exception {
 						Progress p = new Progress();
 						p.addProgressListener(new Progress.ProgressListener() {
+							@Override
 							public void progress(Progress progress, String name) {
 								pg = progress.getProgress();
 							}
@@ -102,6 +103,7 @@ class ProgressTest extends TestLauncher {
 						p.addProgress(child2, 50);
 
 						p.addProgressListener(new Progress.ProgressListener() {
+							@Override
 							public void progress(Progress progress, String name) {
 								pg = p.getProgress();
 							}
@@ -132,6 +134,7 @@ class ProgressTest extends TestLauncher {
 						p.addProgress(child2, 500);
 
 						p.addProgressListener(new Progress.ProgressListener() {
+							@Override
 							public void progress(Progress progress, String name) {
 								pg = p.getProgress();
 							}
@@ -164,6 +167,7 @@ class ProgressTest extends TestLauncher {
 						// 200 = local progress
 
 						p.addProgressListener(new Progress.ProgressListener() {
+							@Override
 							public void progress(Progress progress, String name) {
 								pg = p.getProgress();
 							}
@@ -208,6 +212,7 @@ class ProgressTest extends TestLauncher {
 						child111.addProgress(child1115, 20);
 
 						p.addProgressListener(new Progress.ProgressListener() {
+							@Override
 							public void progress(Progress progress, String name) {
 								pg = p.getProgress();
 							}
@@ -248,6 +253,7 @@ class ProgressTest extends TestLauncher {
 						p.addProgress(child2, 100);
 
 						p.addProgressListener(new Progress.ProgressListener() {
+							@Override
 							public void progress(Progress progress, String name) {
 								int now = p.getProgress();
 								if (now < pg) {
@@ -262,6 +268,7 @@ class ProgressTest extends TestLauncher {
 						for (int i = 0; i <= 100; i++) {
 							final int step = i;
 							new Thread(new Runnable() {
+								@Override
 								public void run() {
 									synchronized (lock1) {
 										if (step > currentStep1) {
@@ -273,6 +280,7 @@ class ProgressTest extends TestLauncher {
 							}).start();
 
 							new Thread(new Runnable() {
+								@Override
 								public void run() {
 									synchronized (lock2) {
 										if (step > currentStep2) {

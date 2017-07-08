@@ -384,7 +384,7 @@ public class Bundle<E extends Enum<E>> {
 		for (Field field : type.getDeclaredFields()) {
 			Meta meta = field.getAnnotation(Meta.class);
 			if (meta != null) {
-				E id = E.valueOf(type, field.getName());
+				E id = Enum.valueOf(type, field.getName());
 				String info = getMetaInfo(meta);
 
 				if (info != null) {
@@ -671,7 +671,7 @@ public class Bundle<E extends Enum<E>> {
 			}
 		}
 	}
-	
+
 	/**
 	 * Take a snapshot of the changes in memory in this {@link Bundle} made by
 	 * the "set" methods ( {@link Bundle#setString(Enum, String)}...) at the
@@ -739,9 +739,9 @@ public class Bundle<E extends Enum<E>> {
 			file = new File(dir, name + loc + ".properties");
 			if (file.exists()) {
 				break;
-			} else {
-				file = null;
 			}
+			
+			file = null;
 		}
 
 		return file;

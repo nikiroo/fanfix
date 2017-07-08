@@ -308,6 +308,7 @@ public class Version implements Comparable<Version> {
 		return new Version(version);
 	}
 
+	@Override
 	public int compareTo(Version o) {
 		if (equals(o)) {
 			return 0;

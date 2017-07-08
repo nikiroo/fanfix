@@ -15,7 +15,6 @@ import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
 import be.nikiroo.utils.resources.Bundle;
-import be.nikiroo.utils.resources.TransBundle;
 
 /**
  * A configuration panel for a {@link Bundle}.
@@ -61,6 +60,7 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 		}
 
 		main.add(createButton("Reset", new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				for (ConfigItem<E> item : items) {
 					item.reload();
@@ -69,6 +69,7 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 		}));
 
 		main.add(createButton("Default", new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Object snap = bundle.takeSnapshot();
 				bundle.reload(true);
@@ -81,6 +82,7 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 		}));
 
 		main.add(createButton("Save", new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				for (ConfigItem<E> item : items) {
 					item.save();

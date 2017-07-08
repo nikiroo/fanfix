@@ -294,6 +294,7 @@ public class Progress {
 	 *            the progress to set
 	 */
 	private void setTotalProgress(Progress pg, String name, int progress) {
+		// TODO: name is not used... and this is probably a bug in this case
 		synchronized (getLock()) {
 			progress = Math.max(min, progress);
 			progress = Math.min(max, progress);
@@ -379,6 +380,7 @@ public class Progress {
 		}
 
 		progress.addProgressListener(new ProgressListener() {
+			@Override
 			public void progress(Progress pg, String name) {
 				synchronized (getLock()) {
 					double total = ((double) localProgress) / (max - min);

@@ -130,10 +130,10 @@ abstract public class TestCase {
 			if (errorMessage == null) {
 				throw new AssertException(generateAssertMessage(expected,
 						actual));
-			} else {
-				throw new AssertException(errorMessage, new AssertException(
-						generateAssertMessage(expected, actual)));
 			}
+
+			throw new AssertException(errorMessage, new AssertException(
+					generateAssertMessage(expected, actual)));
 		}
 	}
 
@@ -258,10 +258,10 @@ abstract public class TestCase {
 
 			if (errorMessage == null) {
 				throw new AssertException(defaultReason);
-			} else {
-				throw new AssertException(errorMessage, new AssertException(
-						defaultReason));
 			}
+
+			throw new AssertException(errorMessage, new AssertException(
+					defaultReason));
 		}
 	}
 

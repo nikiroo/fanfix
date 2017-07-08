@@ -35,6 +35,7 @@ abstract class ConnectAction {
 
 	public void connectAsync() {
 		new Thread(new Runnable() {
+			@Override
 			public void run() {
 				connect();
 			}
@@ -94,12 +95,23 @@ abstract class ConnectAction {
 		return new Importer().read(str).getValue();
 	}
 
-	protected void onClientVersionReceived(Version clientVersion) {
-
+	/**
+	 * Handler called when the client {@link Version} is received.
+	 * 
+	 * @param clientVersion
+	 *            the client {@link Version}
+	 */
+	protected void onClientVersionReceived(
+			@SuppressWarnings("unused") Version clientVersion) {
 	}
 
-	protected void onError(Exception e) {
-
+	/**
+	 * Handler called when an unexpected error occurs in the code.
+	 * 
+	 * @param e
+	 *            the exception that occurred
+	 */
+	protected void onError(@SuppressWarnings("unused") Exception e) {
 	}
 
 	// \n included in line, but not in rep (also, server never get anything)
@@ -111,10 +123,10 @@ abstract class ConnectAction {
 			if (server) {
 				out.flush();
 				return null;
-			} else {
-				contentToSend = true;
-				return flushString();
 			}
+
+			contentToSend = true;
+			return flushString();
 		}
 	}
 
@@ -139,9 +151,9 @@ abstract class ConnectAction {
 				}
 
 				return line;
-			} else {
-				return null;
 			}
+
+			return null;
 		}
 	}
 }

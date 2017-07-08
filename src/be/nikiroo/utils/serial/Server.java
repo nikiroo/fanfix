@@ -16,7 +16,6 @@ import be.nikiroo.utils.Version;
 abstract public class Server implements Runnable {
 	static private final String[] ANON_CIPHERS = getAnonCiphers();
 
-	private Version serverVersion = new Version();
 	private int port;
 	private boolean ssl;
 	private ServerSocket ss;
@@ -26,8 +25,13 @@ abstract public class Server implements Runnable {
 	private Object lock = new Object();
 	private Object counterLock = new Object();
 
-	public Server(Version version, int port, boolean ssl) throws IOException {
-		this.serverVersion = version;
+	@Deprecated
+	public Server(@SuppressWarnings("unused") Version notUsed, int port,
+			boolean ssl) throws IOException {
+		this(port, ssl);
+	}
+
+	public Server(int port, boolean ssl) throws IOException {
 		this.port = port;
 		this.ssl = ssl;
 		this.ss = createSocketServer(port, ssl);
@@ -53,6 +57,7 @@ abstract public class Server implements Runnable {
 			stop(timeout);
 		} else {
 			new Thread(new Runnable() {
+				@Override
 				public void run() {
 					stop(timeout);
 				}
@@ -97,6 +102,7 @@ abstract public class Server implements Runnable {
 		}
 	}
 
+	@Override
 	public void run() {
 		try {
 			while (started && !exiting) {
@@ -129,12 +135,12 @@ abstract public class Server implements Runnable {
 						} finally {
 							count(-1);
 						}
-					};
+					}
 
 					@Override
 					protected void onClientVersionReceived(Version clientVersion) {
 						this.clientVersion = clientVersion;
-					};
+					}
 				}.connectAsync();
 			}
 

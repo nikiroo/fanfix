@@ -7,10 +7,11 @@ import be.nikiroo.utils.serial.Importer;
 import be.nikiroo.utils.serial.Server;
 
 class SerialTest extends TestLauncher {
+	@SuppressWarnings("unused")
 	private void not_used() {
 		// TODO: test Server ; but this will at least help dependency checking
 		try {
-			Server server = new Server(null, 0, false) {
+			Server server = new Server(0, false) {
 				@Override
 				protected Object onRequest(ConnectActionServer action,
 						Version clientVersion, Object data) throws Exception {

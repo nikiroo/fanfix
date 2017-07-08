@@ -66,7 +66,7 @@ class TransBundle_ResourceList {
 		}
 		final Enumeration<? extends ZipEntry> e = zf.entries();
 		while (e.hasMoreElements()) {
-			final ZipEntry ze = (ZipEntry) e.nextElement();
+			final ZipEntry ze = e.nextElement();
 			final String fileName = ze.getName();
 			final boolean accept = pattern.matcher(fileName).matches();
 			if (accept) {
