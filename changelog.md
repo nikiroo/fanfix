@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version 2.1.0
+
+- Better IOUtils
+
 ## Version 2.0.0
 
 - API change

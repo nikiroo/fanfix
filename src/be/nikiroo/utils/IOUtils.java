@@ -4,10 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -173,12 +173,34 @@ public class IOUtils {
 	 *             in case of I/O error
 	 */
 	public static String readSmallFile(File file) throws IOException {
-		BufferedReader reader = new BufferedReader(new FileReader(file));
+		InputStream stream = new FileInputStream(file);
+		try {
+			return readSmallStream(stream);
+		} finally {
+			stream.close();
+		}
+	}
+
+	/**
+	 * Read the whole {@link InputStream} content into a {@link String}.
+	 * 
+	 * @param stream
+	 *            the {@link InputStream}
+	 * 
+	 * @return the content
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public static String readSmallStream(InputStream stream) throws IOException {
+		BufferedReader reader = new BufferedReader(
+				new InputStreamReader(stream));
 		try {
 			StringBuilder builder = new StringBuilder();
 			for (String line = reader.readLine(); line != null; line = reader
 					.readLine()) {
 				builder.append(line);
+				builder.append("\n");
 			}
 			return builder.toString();
 		} finally {

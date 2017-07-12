@@ -2,6 +2,7 @@ package be.nikiroo.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.Normalizer;
@@ -205,7 +206,7 @@ public class StringUtils {
 	static public String getMd5Hash(String input) {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
-			md.update(input.getBytes());
+			md.update(input.getBytes("UTF-8"));
 			byte byteData[] = md.digest();
 
 			StringBuffer hexString = new StringBuffer();
@@ -218,6 +219,8 @@ public class StringUtils {
 
 			return hexString.toString();
 		} catch (NoSuchAlgorithmException e) {
+			return input;
+		} catch (UnsupportedEncodingException e) {
 			return input;
 		}
 	}
