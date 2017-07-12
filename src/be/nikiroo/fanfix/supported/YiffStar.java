@@ -88,7 +88,7 @@ class YiffStar extends BasicSupport {
 			// logged in
 			Instance.getCache()
 					.openNoCache(new URL("https://www.sofurry.com/user/login"),
-							this, post).close();
+							this, post, null, null).close();
 		}
 	}
 

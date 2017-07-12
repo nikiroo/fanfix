@@ -6,6 +6,8 @@
 - A server option to offer stories on the network
 - A remote library to get said stories from the network
 - Update to latest version of nikiroo-utils
+- New option to download from FimFiction via the new beta API
+- Cache update (you may want to clear your current cache)
 
 ## Version 1.5.3
 

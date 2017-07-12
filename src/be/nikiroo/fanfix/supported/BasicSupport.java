@@ -271,8 +271,8 @@ public abstract class BasicSupport {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
+	@SuppressWarnings("unused")
 	public void login() throws IOException {
-
 	}
 
 	/**
@@ -283,12 +283,18 @@ public abstract class BasicSupport {
 	 * it.
 	 * 
 	 * @return the cookies
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
 	 */
-	public Map<String, String> getCookies() throws IOException {
+	public Map<String, String> getCookies() {
 		return new HashMap<String, String>();
+	}
+
+	/**
+	 * OAuth authorisation (aka, "bearer XXXXXXX").
+	 * 
+	 * @return the OAuth string
+	 */
+	public String getOAuth() {
+		return null;
 	}
 
 	/**
@@ -302,6 +308,7 @@ public abstract class BasicSupport {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
+	@SuppressWarnings("unused")
 	public URL getCanonicalUrl(URL source) throws IOException {
 		return source;
 	}
@@ -355,11 +362,7 @@ public abstract class BasicSupport {
 
 		setCurrentReferer(url);
 
-		in = openInput(url);
-		if (in == null) {
-			return null;
-		}
-
+		in = openInput(url); // NULL allowed here
 		try {
 			preprocess(url, getInput());
 			pg.setProgress(30);
@@ -465,9 +468,12 @@ public abstract class BasicSupport {
 				int i = 1;
 				for (Entry<String, URL> chap : chapters) {
 					pgChaps.setName("Extracting chapter " + i);
-					setCurrentReferer(chap.getValue());
-					InputStream chapIn = Instance.getCache().open(
-							chap.getValue(), this, true);
+					InputStream chapIn = null;
+					if (chap.getValue() != null) {
+						setCurrentReferer(chap.getValue());
+						chapIn = Instance.getCache().open(chap.getValue(),
+								this, true);
+					}
 					pgChaps.setProgress(i * 100);
 					try {
 						Progress pgGetChapterContent = new Progress();
@@ -494,7 +500,9 @@ public abstract class BasicSupport {
 							story.getMeta().setWords(words);
 						}
 					} finally {
-						chapIn.close();
+						if (chapIn != null) {
+							chapIn.close();
+						}
 					}
 
 					i++;
@@ -586,6 +594,7 @@ public abstract class BasicSupport {
 	 * @throws IOException
 	 *             on I/O error
 	 */
+	@SuppressWarnings("unused")
 	protected void close() throws IOException {
 	}
 
@@ -972,6 +981,9 @@ public abstract class BasicSupport {
 
 	/**
 	 * Open the input file that will be used through the support.
+	 * <p>
+	 * Can return NULL, in which case you are supposed to work without an
+	 * {@link InputStream}.
 	 * 
 	 * @param source
 	 *            the source {@link URL}
@@ -983,22 +995,6 @@ public abstract class BasicSupport {
 	 */
 	protected InputStream openInput(URL source) throws IOException {
 		return Instance.getCache().open(source, this, false);
-	}
-
-	/**
-	 * Reset the given {@link InputStream} and return it.
-	 * 
-	 * @param in
-	 *            the {@link InputStream} to reset
-	 * 
-	 * @return the same {@link InputStream} after reset
-	 */
-	protected InputStream reset(InputStream in) {
-		try {
-			in.reset();
-		} catch (IOException e) {
-		}
-		return in;
 	}
 
 	/**
@@ -1400,7 +1396,12 @@ public abstract class BasicSupport {
 		case INFO_TEXT:
 			return new InfoText().setType(type);
 		case FIMFICTION:
-			return new Fimfiction().setType(type);
+			try {
+				// Can fail if no client key or NO in options
+				return new FimfictionApi().setType(type);
+			} catch (IOException e) {
+				return new Fimfiction().setType(type);
+			}
 		case FANFICTION:
 			return new Fanfiction().setType(type);
 		case TEXT:
@@ -1423,6 +1424,25 @@ public abstract class BasicSupport {
 	}
 
 	/**
+	 * Reset the given {@link InputStream} and return it.
+	 * 
+	 * @param in
+	 *            the {@link InputStream} to reset
+	 * 
+	 * @return the same {@link InputStream} after reset
+	 */
+	static protected InputStream reset(InputStream in) {
+		try {
+			if (in != null) {
+				in.reset();
+			}
+		} catch (IOException e) {
+		}
+
+		return in;
+	}
+
+	/**
 	 * Return the first line from the given input which correspond to the given
 	 * selectors.
 	 * 
@@ -1438,7 +1458,8 @@ public abstract class BasicSupport {
 	 * 
 	 * @return the line
 	 */
-	static String getLine(InputStream in, String needle, int relativeLine) {
+	static protected String getLine(InputStream in, String needle,
+			int relativeLine) {
 		return getLine(in, needle, relativeLine, true);
 	}
 
@@ -1461,15 +1482,11 @@ public abstract class BasicSupport {
 	 * 
 	 * @return the line
 	 */
-	static String getLine(InputStream in, String needle, int relativeLine,
-			boolean first) {
+	static protected String getLine(InputStream in, String needle,
+			int relativeLine, boolean first) {
 		String rep = null;
 
-		try {
-			in.reset();
-		} catch (IOException e) {
-			Instance.syserr(e);
-		}
+		reset(in);
 
 		List<String> lines = new ArrayList<String>();
 		@SuppressWarnings("resource")
@@ -1524,11 +1541,32 @@ public abstract class BasicSupport {
 	 *            the end key or NULL for "up to the end"
 	 * @return the text or NULL if not found
 	 */
-	static String getKeyLine(InputStream in, String key, String subKey,
+	static protected String getKeyLine(InputStream in, String key,
+			String subKey, String endKey) {
+		return getKeyText(getLine(in, key, 0), key, subKey, endKey);
+	}
+
+	/**
+	 * Return the text between the key and the endKey (and optional subKey can
+	 * be passed, in this case we will look for the key first, then take the
+	 * text between the subKey and the endKey).
+	 * 
+	 * @param in
+	 *            the input
+	 * @param key
+	 *            the key to match (also supports "^" at start to say
+	 *            "only if it starts with" the key)
+	 * @param subKey
+	 *            the sub key or NULL if none
+	 * @param endKey
+	 *            the end key or NULL for "up to the end"
+	 * @return the text or NULL if not found
+	 */
+	static protected String getKeyText(String in, String key, String subKey,
 			String endKey) {
 		String result = null;
 
-		String line = getLine(in, key, 0);
+		String line = in;
 		if (line != null && line.contains(key)) {
 			line = line.substring(line.indexOf(key) + key.length());
 			if (subKey == null || subKey.isEmpty() || line.contains(subKey)) {
@@ -1546,5 +1584,69 @@ public abstract class BasicSupport {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Return the text between the key and the endKey (optional subKeys can be
+	 * passed, in this case we will look for the subKeys first, then take the
+	 * text between the key and the endKey).
+	 * 
+	 * @param in
+	 *            the input
+	 * @param key
+	 *            the key to match
+	 * @param endKey
+	 *            the end key or NULL for "up to the end"
+	 * @param afters
+	 *            the sub-keys to find before checking for key/endKey
+	 * 
+	 * @return the text or NULL if not found
+	 */
+	static protected String getKeyTextAfter(String in, String key,
+			String endKey, String... afters) {
+
+		if (in != null && !in.isEmpty()) {
+			int pos = indexOfAfter(in, 0, afters);
+			if (pos < 0) {
+				return null;
+			}
+
+			in = in.substring(pos);
+		}
+
+		return getKeyText(in, key, null, endKey);
+	}
+
+	/**
+	 * Return the first index after all the given "afters" have been found in
+	 * the {@link String}, or -1 if it was not possible.
+	 * 
+	 * @param in
+	 *            the input
+	 * @param startAt
+	 *            start at this position in the string
+	 * @param afters
+	 *            the sub-keys to find before checking for key/endKey
+	 * 
+	 * @return the text or NULL if not found
+	 */
+	static protected int indexOfAfter(String in, int startAt, String... afters) {
+		int pos = -1;
+		if (in != null && !in.isEmpty()) {
+			pos = startAt;
+			if (afters != null) {
+				for (int i = 0; pos >= 0 && i < afters.length; i++) {
+					String subKey = afters[i];
+					if (!subKey.isEmpty()) {
+						pos = in.indexOf(subKey, pos);
+						if (pos >= 0) {
+							pos += subKey.length();
+						}
+					}
+				}
+			}
+		}
+
+		return pos;
 	}
 }

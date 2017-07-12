@@ -54,5 +54,13 @@ public enum Config {
 	@Meta(description = "Login information (password) for YiffStar to have access to all the stories (should not be necessary anymore)", format = Format.PASSWORD)
 	LOGIN_YIFFSTAR_PASS, //
 	@Meta(description = "If the last update check was done at least that many days, check for updates at startup (-1 for 'no checks' -- default is 1 day)", format = Format.INT)
-	UPDATE_INTERVAL,
+	UPDATE_INTERVAL, //
+	@Meta(description = "An API key required to create a token from FimFiction", format = Format.STRING)
+	LOGIN_FIMFICTION_APIKEY_CLIENT_ID, //
+	@Meta(description = "An API key required to create a token from FimFiction", format = Format.PASSWORD)
+	LOGIN_FIMFICTION_APIKEY_CLIENT_SECRET, //
+	@Meta(description = "Do not use the new API, even if we have a token, and force HTML scraping", format = Format.BOOLEAN)
+	LOGIN_FIMFICTION_APIKEY_FORCE_HTML, //
+	@Meta(description = "A token is required to use the beta APIv2 from FimFiction (see APIKEY_CLIENT_*)", format = Format.PASSWORD)
+	LOGIN_FIMFICTION_APIKEY_TOKEN, //
 }

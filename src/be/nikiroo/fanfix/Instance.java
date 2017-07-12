@@ -263,6 +263,15 @@ public class Instance {
 	}
 
 	/**
+	 * The program is in DEBUG mode (more verbose).
+	 * 
+	 * @return TRUE if it is
+	 */
+	public static boolean isDebug() {
+		return debug;
+	}
+
+	/**
 	 * Return a path, but support the special $HOME variable.
 	 * 
 	 * @return the path

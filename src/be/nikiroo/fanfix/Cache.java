@@ -141,7 +141,13 @@ public class Cache {
 		// MUST NOT return null
 		try {
 			InputStream in = load(originalUrl, false, stable);
+			if (Instance.isDebug()) {
+				System.err.println("Cache " + (in != null ? "hit" : "miss")
+						+ ": " + url);
+			}
+
 			if (in == null) {
+
 				try {
 					save(url, support, originalUrl);
 				} catch (IOException e) {
@@ -176,7 +182,7 @@ public class Cache {
 	 */
 	public InputStream openNoCache(URL url, BasicSupport support)
 			throws IOException {
-		return openNoCache(url, support, url, null);
+		return openNoCache(url, support, url, null, null, null);
 	}
 
 	/**
@@ -189,6 +195,10 @@ public class Cache {
 	 *            the {@link BasicSupport} used for the cookies
 	 * @param postParams
 	 *            the POST parameters
+	 * @param getParams
+	 *            the GET parameters (priority over POST)
+	 * @param oauth
+	 *            OAuth authorization (aka, "bearer XXXXXXX")
 	 * 
 	 * @return the {@link InputStream} of the opened page
 	 * 
@@ -196,8 +206,9 @@ public class Cache {
 	 *             in case of I/O error
 	 */
 	public InputStream openNoCache(URL url, BasicSupport support,
-			Map<String, String> postParams) throws IOException {
-		return openNoCache(url, support, url, postParams);
+			Map<String, String> postParams, Map<String, String> getParams,
+			String oauth) throws IOException {
+		return openNoCache(url, support, url, postParams, getParams, oauth);
 	}
 
 	/**
@@ -212,40 +223,75 @@ public class Cache {
 	 *            the original {@link URL} before any redirection occurs
 	 * @param postParams
 	 *            the POST parameters
-	 * 
+	 * @param getParams
+	 *            the GET parameters (priority over POST)
+	 * @param oauth
+	 *            OAuth authorization (aka, "bearer XXXXXXX")
 	 * @return the {@link InputStream} of the opened page
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
 	private InputStream openNoCache(URL url, BasicSupport support,
-			final URL originalUrl, Map<String, String> postParams)
-			throws IOException {
+			final URL originalUrl, Map<String, String> postParams,
+			Map<String, String> getParams, String oauth) throws IOException {
+
+		if (Instance.isDebug()) {
+			System.err.println("Open no cache: " + url);
+		}
 
 		URLConnection conn = openConnectionWithCookies(url, support);
-		if (postParams != null && conn instanceof HttpURLConnection) {
-			StringBuilder postData = new StringBuilder();
-			for (Map.Entry<String, String> param : postParams.entrySet()) {
-				if (postData.length() != 0)
-					postData.append('&');
-				postData.append(URLEncoder.encode(param.getKey(), "UTF-8"));
-				postData.append('=');
-				postData.append(URLEncoder.encode(
-						String.valueOf(param.getValue()), "UTF-8"));
+		if (support != null) {
+			// priority: arguments
+			if (oauth == null) {
+				oauth = support.getOAuth();
+			}
+		}
+
+		// Priority: GET over POST
+		Map<String, String> params = getParams;
+		if (getParams == null) {
+			params = postParams;
+		}
+
+		if ((params != null || oauth != null)
+				&& conn instanceof HttpURLConnection) {
+			StringBuilder requestData = null;
+			if (params != null) {
+				requestData = new StringBuilder();
+				for (Map.Entry<String, String> param : params.entrySet()) {
+					if (requestData.length() != 0)
+						requestData.append('&');
+					requestData.append(URLEncoder.encode(param.getKey(),
+							"UTF-8"));
+					requestData.append('=');
+					requestData.append(URLEncoder.encode(
+							String.valueOf(param.getValue()), "UTF-8"));
+				}
+
+				conn.setDoOutput(true);
+
+				if (getParams == null && postParams != null) {
+					((HttpURLConnection) conn).setRequestMethod("POST");
+				}
+
+				conn.setRequestProperty("Content-Type",
+						"application/x-www-form-urlencoded");
+				conn.setRequestProperty("charset", "utf-8");
 			}
 
-			conn.setDoOutput(true);
-			((HttpURLConnection) conn).setRequestMethod("POST");
-			conn.setRequestProperty("Content-Type",
-					"application/x-www-form-urlencoded");
-			conn.setRequestProperty("charset", "utf-8");
+			if (oauth != null) {
+				conn.setRequestProperty("Authorization", oauth);
+			}
 
-			OutputStreamWriter writer = new OutputStreamWriter(
-					conn.getOutputStream());
+			if (requestData != null) {
+				OutputStreamWriter writer = new OutputStreamWriter(
+						conn.getOutputStream());
 
-			writer.write(postData.toString());
-			writer.flush();
-			writer.close();
+				writer.write(requestData.toString());
+				writer.flush();
+				writer.close();
+			}
 		}
 
 		conn.connect();
@@ -255,7 +301,7 @@ public class Cache {
 				&& ((HttpURLConnection) conn).getResponseCode() / 100 == 3) {
 			String newUrl = conn.getHeaderField("Location");
 			return openNoCache(new URL(newUrl), support, originalUrl,
-					postParams);
+					postParams, getParams, oauth);
 		}
 
 		InputStream in = conn.getInputStream();
@@ -343,6 +389,9 @@ public class Cache {
 	 */
 	public File addToCache(InputStream in, String uniqueID) throws IOException {
 		File file = getCached(uniqueID);
+		File subdir = new File(file.getParentFile(), "_");
+		file = new File(subdir, file.getName());
+		subdir.mkdir();
 		IOUtils.write(in, file);
 		return file;
 	}
@@ -358,6 +407,8 @@ public class Cache {
 	 */
 	public InputStream getFromCache(String uniqueID) {
 		File file = getCached(uniqueID);
+		File subdir = new File(file.getParentFile(), "_");
+		file = new File(subdir, file.getName());
 		if (file.exists()) {
 			try {
 				return new MarkableFileInputStream(new FileInputStream(file));
@@ -377,17 +428,36 @@ public class Cache {
 	 * @return the number of cleaned items
 	 */
 	public int cleanCache(boolean onlyOld) {
+		return cleanCache(onlyOld, dir);
+	}
+
+	/**
+	 * Clean the cache (delete the cached items) in the given cache directory.
+	 * 
+	 * @param onlyOld
+	 *            only clean the files that are considered too old
+	 * @param cacheDir
+	 *            the cache directory to clean
+	 * 
+	 * @return the number of cleaned items
+	 */
+	private int cleanCache(boolean onlyOld, File cacheDir) {
 		int num = 0;
-		for (File file : dir.listFiles()) {
-			if (!onlyOld || isOld(file, true)) {
-				if (file.delete()) {
-					num++;
-				} else {
-					System.err.println("Cannot delete temporary file: "
-							+ file.getAbsolutePath());
+		for (File file : cacheDir.listFiles()) {
+			if (file.isDirectory()) {
+				num += cleanCache(onlyOld, file);
+			} else {
+				if (!onlyOld || isOld(file, true)) {
+					if (file.delete()) {
+						num++;
+					} else {
+						System.err.println("Cannot delete temporary file: "
+								+ file.getAbsolutePath());
+					}
 				}
 			}
 		}
+
 		return num;
 	}
 
@@ -432,7 +502,8 @@ public class Cache {
 	 */
 	private void save(URL url, BasicSupport support, URL originalUrl)
 			throws IOException {
-		InputStream in = openNoCache(url, support, originalUrl, null);
+		InputStream in = openNoCache(url, support, originalUrl, null, null,
+				null);
 		try {
 			File cached = getCached(originalUrl);
 			BufferedOutputStream out = new BufferedOutputStream(
@@ -513,28 +584,39 @@ public class Cache {
 	}
 
 	/**
-	 * Get the cache resource from the cache if it is present for this
-	 * {@link URL}.
+	 * Return the associated cache {@link File} from this {@link URL}.
 	 * 
 	 * @param url
 	 *            the url
 	 * 
-	 * @return the cached version if present, NULL if not
+	 * @return the cached {@link File} version of this {@link URL}
 	 */
 	private File getCached(URL url) {
+		File subdir = null;
+
 		String name = url.getHost();
 		if (name == null || name.isEmpty()) {
 			name = url.getFile();
 		} else {
-			name = url.toString();
+			File cacheDir = getCached(".").getParentFile();
+			File subsubDir = new File(cacheDir, allowedChars(url.getHost()));
+			subdir = new File(subsubDir, "_" + allowedChars(url.getPath()));
+			name = allowedChars("_" + url.getQuery());
 		}
 
-		return getCached(name);
+		File cacheFile = getCached(name);
+		if (subdir != null) {
+			cacheFile = new File(subdir, cacheFile.getName());
+			subdir.mkdirs();
+		}
+
+		return cacheFile;
 	}
 
 	/**
-	 * Get the cache resource from the cache if it is present for this unique
-	 * ID.
+	 * Get the basic cache resource file corresponding to this unique ID.
+	 * <p>
+	 * Note that you may need to add a sub-directory in some cases.
 	 * 
 	 * @param uniqueID
 	 *            the id
@@ -542,10 +624,19 @@ public class Cache {
 	 * @return the cached version if present, NULL if not
 	 */
 	private File getCached(String uniqueID) {
-		uniqueID = uniqueID.replace('/', '_').replace(':', '_')
-				.replace("\\", "_");
+		return new File(dir, allowedChars(uniqueID));
+	}
 
-		return new File(dir, uniqueID);
+	/**
+	 * Replace not allowed chars (in a {@link File}) by "_".
+	 * 
+	 * @param raw
+	 *            the raw {@link String}
+	 * 
+	 * @return the sanitised {@link String}
+	 */
+	private String allowedChars(String raw) {
+		return raw.replace('/', '_').replace(':', '_').replace("\\", "_");
 	}
 
 	/**
@@ -566,18 +657,14 @@ public class Cache {
 		}
 
 		if (support != null) {
-			try {
-				for (Map.Entry<String, String> set : support.getCookies()
-						.entrySet()) {
-					if (builder.length() > 0) {
-						builder.append(';');
-					}
-					builder.append(set.getKey());
-					builder.append('=');
-					builder.append(set.getValue());
+			for (Map.Entry<String, String> set : support.getCookies()
+					.entrySet()) {
+				if (builder.length() > 0) {
+					builder.append(';');
 				}
-			} catch (IOException e) {
-				Instance.syserr(e);
+				builder.append(set.getKey());
+				builder.append('=');
+				builder.append(set.getValue());
 			}
 		}
 
