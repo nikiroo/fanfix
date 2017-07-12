@@ -281,6 +281,34 @@ class FimfictionApi extends BasicSupport {
 			return null;
 		}
 
-		return getKeyText(json.substring(pos), "\"", null, "\"");
+		String result = null;
+		String wip = json.substring(pos);
+
+		pos = nextUnescapedQuote(wip, 0);
+		if (pos >= 0) {
+			wip = wip.substring(pos + 1);
+			pos = nextUnescapedQuote(wip, 0);
+			if (pos >= 0) {
+				result = wip.substring(0, pos);
+			}
+		}
+
+		return result;
+	}
+
+	// next " but don't take \" into account
+	static private int nextUnescapedQuote(String result, int pos) {
+		while (pos >= 0) {
+			pos = result.indexOf("\"", pos);
+			if (pos == 0 || (pos > 0 && result.charAt(pos - 1) != '\\')) {
+				break;
+			}
+
+			if (pos < result.length()) {
+				pos++;
+			}
+		}
+
+		return pos;
 	}
 }
