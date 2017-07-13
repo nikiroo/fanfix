@@ -159,7 +159,15 @@ class FimfictionApi extends BasicSupport {
 
 	@Override
 	protected String getDesc(URL source, InputStream in) {
-		return getKeyJson(json, 0, "type", "story", "description");
+		String desc = getKeyJson(json, 0, "type", "story", "description");
+
+		// TODO: if the description becomes available in html, use it
+		desc = desc.replace("\\r\\n", "<br/>");
+		desc = desc.replace("[i]", "_").replace("[/i]", "_")
+				.replace("[b]", "*").replace("[/b]", "*");
+		desc = desc.replaceAll("\\[[^\\]]*\\]", "");
+
+		return desc;
 	}
 
 	@Override
