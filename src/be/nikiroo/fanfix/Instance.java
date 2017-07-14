@@ -21,16 +21,56 @@ import be.nikiroo.utils.resources.Bundles;
  * @author niki
  */
 public class Instance {
+	/**
+	 * A handler when a recoverable exception was caught by the program.
+	 * 
+	 * @author niki
+	 */
+	public interface SyserrHandler {
+		/**
+		 * An exception happened, log it.
+		 * 
+		 * @param e
+		 *            the exception
+		 * @param showDetails
+		 *            show more details (usually equivalent to the value of
+		 *            DEBUG)
+		 */
+		public void notify(Exception e, boolean showDetails);
+	}
+
+	/**
+	 * A handler when a trace message is sent.
+	 * 
+	 * @author niki
+	 */
+	public interface TraceHandler {
+		/**
+		 * A trace happened, show it.
+		 * <p>
+		 * Will only be called if TRACE is true.
+		 * 
+		 * @param message
+		 *            the trace message
+		 */
+		public void trace(String message);
+	}
+
 	private static ConfigBundle config;
 	private static UiConfigBundle uiconfig;
 	private static StringIdBundle trans;
 	private static Cache cache;
 	private static LocalLibrary lib;
 	private static boolean debug;
+	private static boolean trace;
 	private static File coverDir;
 	private static File readerTmp;
 	private static File remoteDir;
 	private static String configDir;
+
+	private static SyserrHandler syserrHandler;
+
+	private static TraceHandler traceHandler;
 
 	static {
 		// Most of the rest is dependent upon this:
@@ -84,6 +124,7 @@ public class Instance {
 		}
 
 		debug = Instance.getConfig().getBoolean(Config.DEBUG_ERR, false);
+		trace = Instance.getConfig().getBoolean(Config.DEBUG_TRACE, false);
 		coverDir = getFile(Config.DEFAULT_COVERS_DIR);
 		File tmp = getFile(Config.CACHE_DIR);
 		readerTmp = getFile(UiConfig.CACHE_DIR_LOCAL_READER);
@@ -249,26 +290,57 @@ public class Instance {
 	}
 
 	/**
+	 * Replace the global syserr handler.
+	 * 
+	 * @param syserrHandler
+	 *            the new syserr handler
+	 */
+	public static void setSyserrHandler(SyserrHandler syserrHandler) {
+		Instance.syserrHandler = syserrHandler;
+	}
+
+	/**
+	 * Replace the global trace handler.
+	 * 
+	 * @param traceHandler
+	 *            the new trace handler
+	 */
+	public static void setTraceHandler(TraceHandler traceHandler) {
+		Instance.traceHandler = traceHandler;
+	}
+
+	/**
 	 * Report an error to the user
 	 * 
 	 * @param e
 	 *            the {@link Exception} to report
 	 */
 	public static void syserr(Exception e) {
-		if (debug) {
-			e.printStackTrace();
+		if (syserrHandler != null) {
+			syserrHandler.notify(e, debug);
 		} else {
-			System.err.println(e.getMessage());
+			if (debug) {
+				e.printStackTrace();
+			} else {
+				System.err.println(e.getMessage());
+			}
 		}
 	}
 
 	/**
-	 * The program is in DEBUG mode (more verbose).
+	 * Notify of a debug message.
 	 * 
-	 * @return TRUE if it is
+	 * @param message
+	 *            the message
 	 */
-	public static boolean isDebug() {
-		return debug;
+	public static void trace(String message) {
+		if (trace) {
+			if (traceHandler != null) {
+				traceHandler.trace(message);
+			} else {
+				System.out.println(message);
+			}
+		}
 	}
 
 	/**

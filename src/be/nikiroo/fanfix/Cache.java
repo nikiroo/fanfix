@@ -141,10 +141,8 @@ public class Cache {
 		// MUST NOT return null
 		try {
 			InputStream in = load(originalUrl, false, stable);
-			if (Instance.isDebug()) {
-				System.err.println("Cache " + (in != null ? "hit" : "miss")
-						+ ": " + url);
-			}
+			Instance.trace("Cache " + (in != null ? "hit" : "miss") + ": "
+					+ url);
 
 			if (in == null) {
 
@@ -226,7 +224,7 @@ public class Cache {
 	 * @param getParams
 	 *            the GET parameters (priority over POST)
 	 * @param oauth
-	 *            OAuth authorization (aka, "bearer XXXXXXX")
+	 *            OAuth authorisation (aka, "bearer XXXXXXX")
 	 * @return the {@link InputStream} of the opened page
 	 * 
 	 * @throws IOException
@@ -236,9 +234,7 @@ public class Cache {
 			final URL originalUrl, Map<String, String> postParams,
 			Map<String, String> getParams, String oauth) throws IOException {
 
-		if (Instance.isDebug()) {
-			System.err.println("Open no cache: " + url);
-		}
+		Instance.trace("Open no cache: " + url);
 
 		URLConnection conn = openConnectionWithCookies(url, support);
 		if (support != null) {

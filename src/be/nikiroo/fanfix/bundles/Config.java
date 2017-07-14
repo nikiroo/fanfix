@@ -29,6 +29,8 @@ public enum Config {
 	LIBRARY_DIR, //
 	@Meta(description = "boolean", format = Format.BOOLEAN, info = "Show debug information on errors")
 	DEBUG_ERR, //
+	@Meta(description = "boolean", format = Format.BOOLEAN, info = "Show debug trace information")
+	DEBUG_TRACE, //
 	@Meta(description = "image format", format = Format.COMBO_LIST, list = {
 			"PNG", "JPG", "BMP" }, info = "Image format to use for cover images")
 	IMAGE_FORMAT_COVER, //
@@ -59,7 +61,7 @@ public enum Config {
 	LOGIN_FIMFICTION_APIKEY_CLIENT_ID, //
 	@Meta(description = "An API key required to create a token from FimFiction", format = Format.PASSWORD)
 	LOGIN_FIMFICTION_APIKEY_CLIENT_SECRET, //
-	@Meta(description = "Do not use the new API, even if we have a token, and force HTML scraping", format = Format.BOOLEAN)
+	@Meta(description = "Do not use the new API, even if we have a token, and force HTML scraping (default is false, use API if token or ID present)", format = Format.BOOLEAN)
 	LOGIN_FIMFICTION_APIKEY_FORCE_HTML, //
 	@Meta(description = "A token is required to use the beta APIv2 from FimFiction (see APIKEY_CLIENT_*)", format = Format.PASSWORD)
 	LOGIN_FIMFICTION_APIKEY_TOKEN, //

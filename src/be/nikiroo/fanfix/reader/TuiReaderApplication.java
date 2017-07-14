@@ -7,6 +7,9 @@ import java.util.List;
 import jexer.TApplication;
 import jexer.TMessageBox;
 import jexer.TWindow;
+import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.Instance.SyserrHandler;
+import be.nikiroo.fanfix.Instance.TraceHandler;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
@@ -120,6 +123,22 @@ class TuiReaderApplication extends TApplication implements Reader {
 
 	private void init(Reader reader) {
 		this.reader = reader;
+
+		// Do not allow traces/debug to pollute the screen:
+		Instance.setSyserrHandler(new SyserrHandler() {
+			@Override
+			public void notify(Exception e, boolean showDetails) {
+				// TODO
+			}
+		});
+
+		Instance.setTraceHandler(new TraceHandler() {
+			@Override
+			public void trace(String message) {
+				// TODO
+			}
+		});
+		//
 
 		// Add the menus
 		addFileMenu();

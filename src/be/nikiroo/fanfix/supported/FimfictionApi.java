@@ -160,14 +160,7 @@ class FimfictionApi extends BasicSupport {
 	@Override
 	protected String getDesc(URL source, InputStream in) {
 		String desc = getKeyJson(json, 0, "type", "story", "description");
-
-		// TODO: if the description becomes available in html, use it
-		desc = desc.replace("\\r\\n", "<br/>");
-		desc = desc.replace("[i]", "_").replace("[/i]", "_")
-				.replace("[b]", "*").replace("[/b]", "*");
-		desc = desc.replaceAll("\\[[^\\]]*\\]", "");
-
-		return desc;
+		return unbbcode(desc);
 	}
 
 	@Override
@@ -228,6 +221,24 @@ class FimfictionApi extends BasicSupport {
 				|| "www.fimfiction.net".equals(url.getHost());
 	}
 
+	/**
+	 * Generate a new token from the client ID and secret.
+	 * <p>
+	 * Note that those tokens are long-lived, and it would be badly seen to
+	 * create a lot of them without due cause.
+	 * <p>
+	 * So, please cache and re-use them.
+	 * 
+	 * @param clientId
+	 *            the client ID offered on FimFiction
+	 * @param clientSecret
+	 *            the client secret that goes with it
+	 * 
+	 * @return a new generated token linked to that client ID
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
 	static private String generateOAuth(String clientId, String clientSecret)
 			throws IOException {
 		URL url = new URL("https://www.fimfiction.net/api/v2/token");
@@ -241,17 +252,12 @@ class FimfictionApi extends BasicSupport {
 		String jsonToken = IOUtils.readSmallStream(in);
 
 		// Extract token type and token from: {
-		// token_type = "bearer",
+		// token_type = "Bearer",
 		// access_token = "xxxxxxxxxxxxxx"
 		// }
 
 		String token = getKeyText(jsonToken, "\"access_token\"", "\"", "\"");
 		String tokenType = getKeyText(jsonToken, "\"token_type\"", "\"", "\"");
-
-		// TODO: remove this once the bug is fixed on the server side
-		if ("bearer".equals(tokenType)) {
-			tokenType = "Bearer";
-		}
 
 		return tokenType + " " + token;
 	}
@@ -318,5 +324,14 @@ class FimfictionApi extends BasicSupport {
 		}
 
 		return pos;
+	}
+
+	// quick & dirty filter
+	static private String unbbcode(String bbcode) {
+		String text = bbcode.replace("\\r\\n", "<br/>") //
+				.replace("[i]", "_").replace("[/i]", "_") //
+				.replace("[b]", "*").replace("[/b]", "*") //
+				.replaceAll("\\[[^\\]]*\\]", "");
+		return text;
 	}
 }
