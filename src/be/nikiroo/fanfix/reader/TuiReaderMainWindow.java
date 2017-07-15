@@ -6,12 +6,15 @@ import java.util.List;
 
 import jexer.TAction;
 import jexer.TCommand;
+import jexer.TFileOpenBox.Type;
 import jexer.TKeypress;
 import jexer.TList;
 import jexer.TWindow;
+import jexer.event.TMenuEvent;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.library.BasicLibrary;
+import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 
 /**
  * The library window, that will list all the (filtered) stories available in
@@ -24,23 +27,7 @@ class TuiReaderMainWindow extends TWindow {
 	private List<MetaData> listKeys;
 	private List<String> listItems;
 	private Reader reader;
-
-	/**
-	 * Create a new {@link TuiReaderMainWindow} with the given story in the
-	 * list.
-	 * 
-	 * @param reader
-	 *            the reader and main application
-	 * @param meta
-	 *            the story to display
-	 */
-	public TuiReaderMainWindow(TuiReaderApplication reader, MetaData meta) {
-		this(reader);
-
-		List<MetaData> metas = new ArrayList<MetaData>();
-		metas.add(meta);
-		setMetas(metas);
-	}
+	private String source;
 
 	/**
 	 * Create a new {@link TuiReaderMainWindow} without any stories in the list.
@@ -63,8 +50,9 @@ class TuiReaderMainWindow extends TWindow {
 		list = addList(listItems, 0, 0, getWidth(), getHeight(), new TAction() {
 			@Override
 			public void DO() {
-				if (list.getSelectedIndex() >= 0) {
-					enterOnStory(listKeys.get(list.getSelectedIndex()));
+				MetaData meta = getSelectedMeta();
+				if (meta != null) {
+					readStory(meta);
 				}
 			}
 		});
@@ -99,6 +87,22 @@ class TuiReaderMainWindow extends TWindow {
 	}
 
 	/**
+	 * Change the source filter and display all stories matching this source.
+	 * 
+	 * @param source
+	 *            the new source or NULL for all sources
+	 */
+	public void setSource(String source) {
+		this.source = source;
+		refreshStories();
+	}
+
+	public void refreshStories() {
+		List<MetaData> metas = reader.getLibrary().getListBySource(source);
+		setMetas(metas);
+	}
+
+	/**
 	 * Update the list of stories displayed in this {@link TWindow}.
 	 * 
 	 * @param meta
@@ -119,7 +123,7 @@ class TuiReaderMainWindow extends TWindow {
 	 * @param metas
 	 *            the new list of stories to display
 	 */
-	public void setMetas(List<MetaData> metas) {
+	private void setMetas(List<MetaData> metas) {
 		listKeys.clear();
 		listItems.clear();
 
@@ -133,7 +137,15 @@ class TuiReaderMainWindow extends TWindow {
 		list.setList(listItems);
 	}
 
-	private void enterOnStory(MetaData meta) {
+	public MetaData getSelectedMeta() {
+		if (list.getSelectedIndex() >= 0) {
+			return listKeys.get(list.getSelectedIndex());
+		}
+
+		return null;
+	}
+
+	public void readStory(MetaData meta) {
 		try {
 			reader.setChapter(-1);
 			reader.setMeta(meta);
@@ -145,5 +157,42 @@ class TuiReaderMainWindow extends TWindow {
 
 	private String desc(MetaData meta) {
 		return String.format("%5s: %s", meta.getLuid(), meta.getTitle());
+	}
+
+	@Override
+	public void onMenu(TMenuEvent menu) {
+		MetaData meta = getSelectedMeta();
+		if (meta != null) {
+			switch (menu.getId()) {
+			case TuiReaderApplication.MENU_OPEN:
+				readStory(meta);
+
+				return;
+			case TuiReaderApplication.MENU_EXPORT:
+
+				try {
+					// TODO: choose type, pg, error
+					OutputType outputType = OutputType.EPUB;
+					String path = fileOpenBox(".", Type.SAVE);
+					reader.getLibrary().export(meta.getLuid(), outputType,
+							path, null);
+				} catch (IOException e) {
+					// TODO
+					e.printStackTrace();
+				}
+
+				return;
+			case -1:
+				try {
+					reader.getLibrary().delete(meta.getLuid());
+				} catch (IOException e) {
+					// TODO
+				}
+
+				return;
+			}
+		}
+
+		super.onMenu(menu);
 	}
 }

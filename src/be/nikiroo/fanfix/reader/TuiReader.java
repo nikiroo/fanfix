@@ -1,12 +1,10 @@
 package be.nikiroo.fanfix.reader;
 
 import java.io.IOException;
-import java.util.List;
 
 import jexer.TApplication;
 import jexer.TApplication.BackendType;
 import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.data.MetaData;
 
 /**
  * This {@link Reader}is based upon the TUI widget library 'jexer'
@@ -62,9 +60,8 @@ class TuiReader extends BasicReader {
 
 	@Override
 	public void browse(String source) {
-		List<MetaData> metas = getLibrary().getListBySource(source);
 		try {
-			TuiReaderApplication app = new TuiReaderApplication(metas, this,
+			TuiReaderApplication app = new TuiReaderApplication(this, source,
 					guessBackendType());
 			new Thread(app).start();
 		} catch (Exception e) {
