@@ -141,7 +141,8 @@ public class VersionCheck {
 					reader.close();
 				}
 			} catch (IOException e) {
-				Instance.syserr(e);
+				Instance.syserr(new IOException(
+						"Cannot download latest changelist on github.com", e));
 			}
 		}
 
