@@ -338,7 +338,7 @@ abstract public class BasicLibrary {
 			pg.addProgress(pgOut, 1);
 		}
 
-		BasicOutput out = BasicOutput.getOutput(type, true);
+		BasicOutput out = BasicOutput.getOutput(type, false);
 		if (out == null) {
 			throw new IOException("Output type not supported: " + type);
 		}
@@ -401,6 +401,7 @@ abstract public class BasicLibrary {
 		if (getInfo(luid) != null) {
 			delete(luid);
 		}
+		
 		doSave(story, pg);
 
 		clearCache();

@@ -46,6 +46,7 @@ class Epub extends BasicOutput {
 		File data = new File(tmpDir, "DATA");
 		data.mkdir();
 		new InfoText().process(story, data, targetNameOrig);
+		InfoCover.writeInfo(data, targetNameOrig, story.getMeta());
 		IOUtils.writeSmallFile(data, "version", "3.0");
 
 		super.process(story, targetDir, targetNameOrig);
