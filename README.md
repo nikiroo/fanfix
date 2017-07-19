@@ -10,9 +10,7 @@ TODO: new screenshots + TUI screenshots
 
 It will convert from a (supported) URL to an .epub file for stories or a .cbz file for comics (a few other output types are also available, like Plain Text, LaTeX, HTML...).
 
-To help organize your stories, it can also work as a local library.
-
-In this mode, you can:
+To help organize your stories, it can also work as a local library so you can:
 - Import a story from its URL (or just from a file)
 - Export a story to a file (in any of the supported output types)
 - Display a story from the local library in text format in the console
@@ -26,7 +24,7 @@ Currently, the following websites are supported:
 - http://mangafox.me/: a well filled repository of mangas, or, as their website states: most popular manga scanlations read online for free at mangafox, as well as a close-knit community to chat and make friends
 - https://e621.net/: a Furry website supporting comics, including MLP
 - https://sofurry.com/: same thing, but story-oriented
-- https://e-hentai.org/: upon request (feel free to ask for more websites!)
+- https://e-hentai.org/: done upon request (so, feel free to ask for more websites!)
 
 ## A note about file support
 
@@ -103,9 +101,10 @@ Currently missing, but either in progress or planned:
   - [x] YiffStar
   - [ ] [Two Kinds](http://twokinds.keenspot.com/)
   - [ ] [Slightly damned](http://www.sdamned.com/)
+  - [x] New API on FimFiction.net (faster)
   - [ ] Others? Any ideas? I'm open for requests
     - [x] [e-Hentai](https://e-hentai.org/) requested
-- [x] A GUI (work in progress)
+- [x] A GUI library
   - [x] Make one
   - [x] Make it run when no args passed
   - [x] Fix the UI, it is ugly
@@ -116,7 +115,7 @@ Currently missing, but either in progress or planned:
     - [x] ..in the menu
     - [x] ..as a screen view
   - [x] options screen
-- [ ] A TUI reader
+- [ ] A TUI library
   - [x] Choose an output (Jexer)
   - [x] Implement it from --set-reader to the actual window
   - [x] List the stories
@@ -149,6 +148,7 @@ Currently missing, but either in progress or planned:
   - [x] in output classes (export)
   - [x] CLI usage of such
   - [x] GUI usage of such
+  - [ ] TUI usage of such
 - [x] Version
   - [x] Use a version number
   - [x] Show it in UI
