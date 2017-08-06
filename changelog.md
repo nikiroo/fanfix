@@ -8,6 +8,7 @@
 - Update to latest version of nikiroo-utils
 - New option to download from FimFiction via the new beta API
 - Cache update (you may want to clear your current cache)
+- Bug fixed (moving an unopened book in GUI mode does not fail any more)
 
 ## Version 1.5.3
 
