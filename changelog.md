@@ -1,5 +1,11 @@
 # nikiroo-utils
 
+## Version 2.2.0
+
+- New classes:
+  - Downloader: download URL from recalcitrant websites
+  - Cache: manage a local cache
+
 ## Version 2.1.0
 
 - Better IOUtils
