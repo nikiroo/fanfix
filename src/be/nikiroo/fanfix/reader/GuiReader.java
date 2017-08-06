@@ -226,7 +226,9 @@ class GuiReader extends BasicReader {
 
 	void changeType(String luid, String newSource) {
 		try {
-			localLibrary.changeSource(luid, newSource, null);
+			if (localLibrary.getInfo(luid) != null) {
+				localLibrary.changeSource(luid, newSource, null);
+			}
 			getLibrary().changeSource(luid, newSource, null);
 		} catch (IOException e) {
 			Instance.syserr(e);
