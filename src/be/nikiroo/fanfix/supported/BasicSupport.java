@@ -941,7 +941,8 @@ public abstract class BasicSupport {
 				// try for URLs
 				try {
 					for (String ext : getImageExt(true)) {
-						if (Instance.getCache().check(new URL(line + ext))) {
+						if (Instance.getCache()
+								.check(new URL(line + ext), true)) {
 							url = new URL(line + ext);
 							break;
 						}

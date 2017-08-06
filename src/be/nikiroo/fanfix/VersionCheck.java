@@ -108,8 +108,7 @@ public class VersionCheck {
 
 		if (Instance.isVersionCheckNeeded()) {
 			try {
-				InputStream in = Instance.getCache().openNoCache(new URL(url),
-						null);
+				InputStream in = Instance.getCache().openNoCache(new URL(url));
 				BufferedReader reader = new BufferedReader(
 						new InputStreamReader(in, "UTF-8"));
 				try {

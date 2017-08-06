@@ -59,7 +59,7 @@ public class Instance {
 	private static ConfigBundle config;
 	private static UiConfigBundle uiconfig;
 	private static StringIdBundle trans;
-	private static Cache cache;
+	private static DataLoader cache;
 	private static LocalLibrary lib;
 	private static boolean debug;
 	private static boolean trace;
@@ -160,7 +160,7 @@ public class Instance {
 			int hoursLarge = config
 					.getInteger(Config.CACHE_MAX_TIME_STABLE, -1);
 
-			cache = new Cache(tmp, ua, hours, hoursLarge);
+			cache = new DataLoader(tmp, ua, hours, hoursLarge);
 		} catch (IOException e) {
 			syserr(new IOException(
 					"Cannot create cache (will continue without cache)", e));
@@ -186,11 +186,11 @@ public class Instance {
 	}
 
 	/**
-	 * Get the (unique) {@link Cache} for the program.
+	 * Get the (unique) {@link DataLoader} for the program.
 	 * 
-	 * @return the {@link Cache}
+	 * @return the {@link DataLoader}
 	 */
-	public static Cache getCache() {
+	public static DataLoader getCache() {
 		return cache;
 	}
 
