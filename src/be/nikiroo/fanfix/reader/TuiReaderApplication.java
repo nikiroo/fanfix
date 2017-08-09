@@ -188,7 +188,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 		case MENU_EXIT:
 			if (messageBox("Confirmation", "(TODO: i18n) Exit application?",
 					TMessageBox.Type.YESNO).getResult() == TMessageBox.Result.YES) {
-				exit(false);
+				//exit(false);
 			}
 
 			return true;

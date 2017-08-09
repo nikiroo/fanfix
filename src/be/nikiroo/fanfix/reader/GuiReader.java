@@ -205,7 +205,9 @@ class GuiReader extends BasicReader {
 	// delete from main library
 	void delete(String luid) {
 		try {
-			localLibrary.delete(luid);
+			if (localLibrary.getInfo(luid) != null) {
+				localLibrary.delete(luid);
+			}
 			getLibrary().delete(luid);
 		} catch (IOException e) {
 			Instance.syserr(e);

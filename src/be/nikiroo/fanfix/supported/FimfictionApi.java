@@ -87,19 +87,15 @@ class FimfictionApi extends BasicSupport {
 		// Selectors, so to download all I need and only what I need
 		String storyContent = "fields[story]=title,description,date_published,cover_image";
 		String authorContent = "fields[author]=name";
-		String chapterContent = "fields[chapter]=chapter_number,title,content,authors_note";
-		String contentContent = "fields[content]=html";
-		String authorsNoteContent = "fields[authors_note]=html";
+		String chapterContent = "fields[chapter]=chapter_number,title,content_html,authors_note_html";
 		String includes = "author,chapters,tags";
 
 		String urlString = String.format(
 				"https://www.fimfiction.net/api/v2/stories/%s?" //
-						+ "%s&%s&"//
 						+ "%s&%s&%s&" //
 						+ "include=%s", //
 				storyId, //
-				storyContent, authorContent, //
-				chapterContent, contentContent, authorsNoteContent,//
+				storyContent, authorContent, chapterContent,//
 				includes);
 
 		// URL params must be URL-encoded: "[ ]" <-> "%5B %5D"
@@ -180,8 +176,8 @@ class FimfictionApi extends BasicSupport {
 				final int number = Integer.parseInt(json.substring(posNumber,
 						posComa).trim());
 				final String title = getKeyJson(json, pos, "title");
-				String notes = getKeyJson(json, pos, "authors_note", "html");
-				String content = getKeyJson(json, pos, "content", "html");
+				String notes = getKeyJson(json, pos, "authors_note_html");
+				String content = getKeyJson(json, pos, "content_html");
 
 				chapterNames.put(number, title);
 				chapterContents
