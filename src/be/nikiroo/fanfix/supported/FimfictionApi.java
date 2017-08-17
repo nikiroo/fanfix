@@ -132,8 +132,12 @@ class FimfictionApi extends BasicSupport {
 		meta.setSubject("MLP");
 		meta.setType(getType().toString());
 		meta.setImageDocument(false);
-		meta.setCover(getImage(this, null,
-				getKeyJson(json, 0, "type", "story", "cover_image", "full")));
+		
+		String coverImageLink = 
+				getKeyJson(json, 0, "type", "story", "cover_image", "full");
+		if (!coverImageLink.trim().isEmpty()) {
+			meta.setCover(getImage(this, null, coverImageLink.trim()));
+		}
 
 		return meta;
 	}
@@ -146,7 +150,7 @@ class FimfictionApi extends BasicSupport {
 		while (pos >= 0) {
 			pos = indexOfJsonAfter(json, pos, "type", "story_tag");
 			if (pos >= 0) {
-				tags.add(getKeyJson(json, pos, "name"));
+				tags.add(getKeyJson(json, pos, "name").trim());
 			}
 		}
 
@@ -178,10 +182,14 @@ class FimfictionApi extends BasicSupport {
 				final String title = getKeyJson(json, pos, "title");
 				String notes = getKeyJson(json, pos, "authors_note_html");
 				String content = getKeyJson(json, pos, "content_html");
-
+				
+				if (!notes.trim().isEmpty()) {
+					notes = "<br/>* * *<br/>" + notes;
+				}
+				
 				chapterNames.put(number, title);
 				chapterContents
-						.put(number, content + "<br/>* * *<br/>" + notes);
+						.put(number, content + notes);
 
 				urls.add(new Entry<String, URL>() {
 					@Override
@@ -283,15 +291,15 @@ class FimfictionApi extends BasicSupport {
 	}
 
 	// afters: [name, value] pairs (or "" for any of them), can end without
-	// value
+	// value but will then be empty, not NULL
 	static private String getKeyJson(String json, int startAt,
 			String... afterKeys) {
 		int pos = indexOfJsonAfter(json, startAt, afterKeys);
 		if (pos < 0) {
-			return null;
+			return "";
 		}
 
-		String result = null;
+		String result = "";
 		String wip = json.substring(pos);
 
 		pos = nextUnescapedQuote(wip, 0);
@@ -302,7 +310,10 @@ class FimfictionApi extends BasicSupport {
 				result = wip.substring(0, pos);
 			}
 		}
-
+		
+		result = result.replace("\\t", "\t")
+			.replace("\\\"", "\"");
+		
 		return result;
 	}
 
