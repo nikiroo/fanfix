@@ -2,11 +2,11 @@
 
 ## Version WIP
 
-- New reader type: TUI (a text user interface with windows and menus)
+- TUI (text with windows and menus) -- not compiled by default (configure.sh)
 - A server option to offer stories on the network
 - A remote library to get said stories from the network
 - Update to latest version of nikiroo-utils
-- New option to download from FimFiction via the new beta API
+- Support for FimFiction.net via the new API
 - Cache update (you may want to clear your current cache)
 - Bug fixed (moving an unopened book in GUI mode does not fail any more)
 
