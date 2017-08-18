@@ -1,6 +1,6 @@
 # Fanfix
 
-## Version WIP
+## Version 1.6.0
 
 - TUI (text with windows and menus) -- not compiled by default (configure.sh)
 - A server option to offer stories on the network
