@@ -3,11 +3,15 @@ package be.nikiroo.fanfix.library;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.imageio.ImageIO;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
@@ -18,6 +22,8 @@ import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.output.InfoCover;
 import be.nikiroo.fanfix.supported.InfoReader;
 import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.ImageUtils;
+import be.nikiroo.utils.MarkableFileInputStream;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -28,6 +34,7 @@ import be.nikiroo.utils.Progress;
 public class LocalLibrary extends BasicLibrary {
 	private int lastId;
 	private Map<MetaData, File[]> stories; // Files: [ infoFile, TargetFile ]
+	private Map<String, BufferedImage> sourceCovers;
 
 	private File baseDir;
 	private OutputType text;
@@ -50,6 +57,7 @@ public class LocalLibrary extends BasicLibrary {
 
 		this.lastId = 0;
 		this.stories = null;
+		this.sourceCovers = new HashMap<String, BufferedImage>();
 
 		baseDir.mkdirs();
 	}
@@ -92,10 +100,12 @@ public class LocalLibrary extends BasicLibrary {
 	@Override
 	protected void clearCache() {
 		stories = null;
+		sourceCovers = new HashMap<String, BufferedImage>();
 	}
 
 	@Override
 	protected synchronized int getNextId() {
+		getStories(null); // make sure lastId is set
 		return ++lastId;
 	}
 
@@ -148,6 +158,27 @@ public class LocalLibrary extends BasicLibrary {
 		}
 
 		clearCache();
+	}
+
+	@Override
+	public BufferedImage getSourceCover(String source) {
+		if (!sourceCovers.containsKey(source)) {
+			sourceCovers.put(source, super.getSourceCover(source));
+		}
+
+		return sourceCovers.get(source);
+	}
+
+	@Override
+	public void setSourceCover(String source, String luid) {
+		sourceCovers.put(source, getCover(luid));
+		File cover = new File(getExpectedDir(source), ".cover.png");
+		try {
+			ImageIO.write(sourceCovers.get(source), "png", cover);
+		} catch (IOException e) {
+			Instance.syserr(e);
+			sourceCovers.remove(source);
+		}
 	}
 
 	/**
@@ -324,10 +355,12 @@ public class LocalLibrary extends BasicLibrary {
 				pgDirs.addProgress(pgFiles, 100);
 				pgDirs.setName("Loading from: " + dir.getName());
 
+				String source = null;
 				for (File infoFile : infoFiles) {
 					pgFiles.setName(infoFile.getName());
 					try {
 						MetaData meta = InfoReader.readMeta(infoFile, false);
+						source = meta.getSource();
 						try {
 							int id = Integer.parseInt(meta.getLuid());
 							if (id > lastId) {
@@ -352,6 +385,21 @@ public class LocalLibrary extends BasicLibrary {
 								"Cannot load file from library: " + infoFile, e));
 					}
 					pgFiles.add(1);
+				}
+
+				File cover = new File(dir, ".cover.png");
+				if (cover.exists()) {
+					try {
+						InputStream in = new MarkableFileInputStream(
+								new FileInputStream(cover));
+						try {
+							sourceCovers.put(source, ImageUtils.fromStream(in));
+						} finally {
+							in.close();
+						}
+					} catch (IOException e) {
+						Instance.syserr(e);
+					}
 				}
 
 				pgFiles.setName(null);

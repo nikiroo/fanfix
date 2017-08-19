@@ -1,5 +1,8 @@
 # Fanfix
 
+## Version WIP
+- New option (disabled by default) to show one item per source type in GUI instead of one item per story when showing ALL sources (which is also the start page)
+
 ## Version 1.6.0
 
 - TUI (text with windows and menus) -- not compiled by default (configure.sh)

@@ -141,6 +141,49 @@ class GuiReaderFrame extends JFrame {
 		setVisible(true);
 	}
 
+	private void addSourcePanes() {
+		// Sources -> i18n
+		GuiReaderGroup bookPane = new GuiReaderGroup(reader, "Sources", color);
+
+		List<MetaData> sources = new ArrayList<MetaData>();
+		for (String source : reader.getLibrary().getSources()) {
+			MetaData mSource = new MetaData();
+			mSource.setLuid(null);
+			mSource.setTitle(source);
+			mSource.setSource(source);
+			sources.add(mSource);
+		}
+
+		bookPane.refreshBooks(sources, false);
+
+		this.invalidate();
+		pane.invalidate();
+		pane.add(bookPane);
+		pane.validate();
+		this.validate();
+
+		bookPane.setActionListener(new BookActionListener() {
+			@Override
+			public void select(GuiReaderBook book) {
+				selectedBook = book;
+			}
+
+			@Override
+			public void popupRequested(GuiReaderBook book, MouseEvent e) {
+				JPopupMenu popup = new JPopupMenu();
+				popup.add(createMenuItemOpenBook());
+				popup.show(e.getComponent(), e.getX(), e.getY());
+			}
+
+			@Override
+			public void action(final GuiReaderBook book) {
+				removeBookPanes();
+				addBookPane(book.getMeta().getSource(), true);
+				refreshBooks();
+			}
+		});
+	}
+
 	/**
 	 * Add a new {@link GuiReaderGroup} on the frame to display the books of the
 	 * selected type or author.
@@ -154,9 +197,14 @@ class GuiReaderFrame extends JFrame {
 	private void addBookPane(String value, boolean type) {
 		if (value == null) {
 			if (type) {
-				for (String tt : reader.getLibrary().getSources()) {
-					if (tt != null) {
-						addBookPane(tt, type);
+				if (Instance.getUiConfig().getBoolean(UiConfig.SOURCE_PAGE,
+						false)) {
+					addSourcePanes();
+				} else {
+					for (String tt : reader.getLibrary().getSources()) {
+						if (tt != null) {
+							addBookPane(tt, type);
+						}
 					}
 				}
 			} else {
@@ -196,6 +244,7 @@ class GuiReaderFrame extends JFrame {
 				popup.addSeparator();
 				popup.add(createMenuItemExport());
 				popup.add(createMenuItemMove());
+				popup.add(createMenuItemSetCover());
 				popup.add(createMenuItemClearCache());
 				popup.add(createMenuItemRedownload());
 				popup.addSeparator();
@@ -584,7 +633,7 @@ class GuiReaderFrame extends JFrame {
 									"Moving story",
 									JOptionPane.QUESTION_MESSAGE, null, null,
 									selectedBook.getMeta().getSource());
-							
+
 							if (rep == null) {
 								return;
 							}
@@ -669,7 +718,7 @@ class GuiReaderFrame extends JFrame {
 	}
 
 	/**
-	 * Create the open menu item.
+	 * Create the open menu item for a book or a source (no LUID).
 	 * 
 	 * @return the item
 	 */
@@ -679,7 +728,35 @@ class GuiReaderFrame extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (selectedBook != null) {
-					openBook(selectedBook);
+					if (selectedBook.getMeta().getLuid() == null) {
+						removeBookPanes();
+						addBookPane(selectedBook.getMeta().getSource(), true);
+						refreshBooks();
+					} else {
+						openBook(selectedBook);
+					}
+				}
+			}
+		});
+
+		return open;
+	}
+
+	/**
+	 * Create the SetCover menu item for a book to change the linked source
+	 * cover.
+	 * 
+	 * @return the item
+	 */
+	private JMenuItem createMenuItemSetCover() {
+		JMenuItem open = new JMenuItem("Set as cover for source", KeyEvent.VK_C);
+		open.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (selectedBook != null) {
+					reader.getLibrary().setSourceCover(
+							selectedBook.getMeta().getSource(),
+							selectedBook.getMeta().getLuid());
 				}
 			}
 		});

@@ -22,4 +22,6 @@ public enum UiConfig {
 	NON_IMAGES_DOCUMENT_READER, //
 	@Meta(format = Format.COLOR, description = "The background colour if you don't want the default system one")
 	BACKGROUND_COLOR, //
+	@Meta(format = Format.BOOLEAN, description = "Show one item per source type when in ALL sources mode instead of one per story")
+	SOURCE_PAGE, //
 }

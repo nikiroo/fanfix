@@ -153,4 +153,10 @@ public class RemoteLibrary extends BasicLibrary {
 		throw new java.lang.InternalError(
 				"No write support allowed on remote Libraries");
 	}
+
+	@Override
+	public void setSourceCover(String source, String luid) {
+		throw new java.lang.InternalError(
+				"No write support allowed on remote Libraries");
+	}
 }

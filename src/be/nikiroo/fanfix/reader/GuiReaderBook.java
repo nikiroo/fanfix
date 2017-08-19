@@ -103,7 +103,7 @@ class GuiReaderBook extends JPanel {
 	 * @param reader
 	 *            the associated reader
 	 * @param meta
-	 *            the story {@link MetaData}
+	 *            the story {@link MetaData} or source (if no LUID)
 	 * @param cached
 	 *            TRUE if it is locally cached
 	 * @param seeWordCount
@@ -128,6 +128,8 @@ class GuiReaderBook extends JPanel {
 
 		if (optSecondary != null && !optSecondary.isEmpty()) {
 			optSecondary = "(" + optSecondary + ")";
+		} else {
+			optSecondary = "";
 		}
 
 		icon = new JLabel(generateCoverIcon(meta));
@@ -362,31 +364,39 @@ class GuiReaderBook extends JPanel {
 	 * Generate a cover icon based upon the given {@link MetaData}.
 	 * 
 	 * @param meta
-	 *            the {@link MetaData} about the target {@link Story}
+	 *            the {@link MetaData} about the target {@link Story} or source
+	 *            (if no LUID)
 	 * 
 	 * @return the icon
 	 */
 	private ImageIcon generateCoverIcon(MetaData meta) {
-		String id = meta.getUuid() + ".thumb_" + SPINE_WIDTH + "x"
-				+ COVER_WIDTH + "+" + SPINE_HEIGHT + "+" + COVER_HEIGHT + "@"
-				+ HOFFSET;
 		BufferedImage resizedImage = null;
+		String id = null;
 
-		InputStream in = Instance.getCache().getFromCache(id);
-		if (in != null) {
-			try {
-				resizedImage = ImageUtils.fromStream(in);
-				in.close();
-				in = null;
-			} catch (IOException e) {
-				Instance.syserr(e);
+		if (meta.getLuid() != null) {
+			id = meta.getUuid() + ".thumb_" + SPINE_WIDTH + "x" + COVER_WIDTH
+					+ "+" + SPINE_HEIGHT + "+" + COVER_HEIGHT + "@" + HOFFSET;
+			InputStream in = Instance.getCache().getFromCache(id);
+			if (in != null) {
+				try {
+					resizedImage = ImageUtils.fromStream(in);
+					in.close();
+					in = null;
+				} catch (IOException e) {
+					Instance.syserr(e);
+				}
 			}
 		}
 
 		if (resizedImage == null) {
 			try {
-				BufferedImage cover = reader.getLibrary().getCover(
-						meta.getLuid());
+				BufferedImage cover = null;
+				if (meta.getLuid() == null) {
+					cover = reader.getLibrary()
+							.getSourceCover(meta.getSource());
+				} else {
+					cover = reader.getLibrary().getCover(meta.getLuid());
+				}
 
 				resizedImage = new BufferedImage(SPINE_WIDTH + COVER_WIDTH,
 						SPINE_HEIGHT + COVER_HEIGHT + HOFFSET,
@@ -404,13 +414,15 @@ class GuiReaderBook extends JPanel {
 				}
 				g.dispose();
 
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				ImageIO.write(resizedImage, "png", out);
-				byte[] imageBytes = out.toByteArray();
-				in = new ByteArrayInputStream(imageBytes);
-				Instance.getCache().addToCache(in, id);
-				in.close();
-				in = null;
+				if (id != null) {
+					ByteArrayOutputStream out = new ByteArrayOutputStream();
+					ImageIO.write(resizedImage, "png", out);
+					byte[] imageBytes = out.toByteArray();
+					InputStream in = new ByteArrayInputStream(imageBytes);
+					Instance.getCache().addToCache(in, id);
+					in.close();
+					in = null;
+				}
 			} catch (MalformedURLException e) {
 				Instance.syserr(e);
 			} catch (IOException e) {

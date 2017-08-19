@@ -53,6 +53,35 @@ abstract public class BasicLibrary {
 	public abstract BufferedImage getCover(String luid);
 
 	/**
+	 * Return the cover image associated to this source.
+	 * <p>
+	 * By default, return the cover of the first story with this source.
+	 * 
+	 * @param source
+	 *            the source
+	 * 
+	 * @return the cover image or NULL
+	 */
+	public BufferedImage getSourceCover(String source) {
+		List<MetaData> metas = getListBySource(source);
+		if (metas.size() > 0) {
+			return getCover(metas.get(0).getLuid());
+		}
+
+		return null;
+	}
+
+	/**
+	 * Fix the source cover to the given story cover.
+	 * 
+	 * @param source
+	 *            the source to change
+	 * @param luid
+	 *            the story LUID
+	 */
+	public abstract void setSourceCover(String source, String luid);
+
+	/**
 	 * Return the list of stories (represented by their {@link MetaData}, which
 	 * <b>MAY</b> not have the cover included).
 	 * 
@@ -401,7 +430,7 @@ abstract public class BasicLibrary {
 		if (getInfo(luid) != null) {
 			delete(luid);
 		}
-		
+
 		doSave(story, pg);
 
 		clearCache();
