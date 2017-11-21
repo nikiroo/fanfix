@@ -1,6 +1,6 @@
 # Fanfix
 
-## Version WIP
+## Version 1.6.1
 - New option (disabled by default) to show one item per source type in GUI instead of one item per story when showing ALL sources (which is also the start page)
 - Fix source/type reset when redownloading
 - Show the number of images instead of the number of words for images documents 
