@@ -104,6 +104,7 @@ Currently missing, but either in progress or planned:
   - [x] New API on FimFiction.net (faster)
   - [ ] Others? Any ideas? I'm open for requests
     - [x] [e-Hentai](https://e-hentai.org/) requested
+      - [ ] Fix "content warning" access
 - [x] A GUI library
   - [x] Make one
   - [x] Make it run when no args passed
@@ -153,4 +154,5 @@ Currently missing, but either in progress or planned:
   - [x] Use a version number
   - [x] Show it in UI
   - [x] A check-update feature
+- [x] Fix "redownload also reset the source" bug
 

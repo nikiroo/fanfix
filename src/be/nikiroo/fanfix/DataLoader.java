@@ -231,6 +231,8 @@ public class DataLoader {
 			ImageIO.write(ImageUtils.fromStream(in), Instance.getConfig()
 					.getString(Config.IMAGE_FORMAT_CONTENT).toLowerCase(),
 					target);
+		} catch (IOException e) {
+			throw new IOException("Cannot write image " + url, e);
 		} finally {
 			in.close();
 		}

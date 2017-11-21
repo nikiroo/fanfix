@@ -45,7 +45,7 @@ public class Paragraph {
 	 *            the image as an URL
 	 */
 	public Paragraph(URL imageUrl) {
-		this(ParagraphType.IMAGE, imageUrl.toString(), 0);
+		this(ParagraphType.IMAGE, imageUrl.toString(), 1);
 	}
 
 	/**
@@ -56,7 +56,7 @@ public class Paragraph {
 	 * @param content
 	 *            the content of this paragraph
 	 * @param words
-	 *            the number of words
+	 *            the number of words (or images)
 	 */
 	public Paragraph(ParagraphType type, String content, long words) {
 		this.type = type;
@@ -103,7 +103,7 @@ public class Paragraph {
 	}
 
 	/**
-	 * The number of words in this {@link Paragraph}.
+	 * The number of words (or images) in this {@link Paragraph}.
 	 * 
 	 * @return the number of words
 	 */
@@ -112,7 +112,7 @@ public class Paragraph {
 	}
 
 	/**
-	 * The number of words in this {@link Paragraph}.
+	 * The number of words (or images) in this {@link Paragraph}.
 	 * 
 	 * @param words
 	 *            the number of words to set

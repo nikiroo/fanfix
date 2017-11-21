@@ -103,7 +103,7 @@ public class Chapter implements Iterable<Paragraph> {
 	}
 
 	/**
-	 * The number of words in this {@link Chapter}.
+	 * The number of words (or images) in this {@link Chapter}.
 	 * 
 	 * @return the number of words
 	 */
@@ -112,7 +112,7 @@ public class Chapter implements Iterable<Paragraph> {
 	}
 
 	/**
-	 * The number of words in this {@link Chapter}.
+	 * The number of words (or images) in this {@link Chapter}.
 	 * 
 	 * @param words
 	 *            the number of words to set

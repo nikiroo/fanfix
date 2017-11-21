@@ -118,11 +118,19 @@ class GuiReaderBook extends JPanel {
 		String optSecondary = meta.getAuthor();
 		if (seeWordCount) {
 			if (meta.getWords() >= 4000) {
-				optSecondary = (meta.getWords() / 1000) + "k words";
+				optSecondary = "" + (meta.getWords() / 1000) + "k";
 			} else if (meta.getWords() > 0) {
-				optSecondary = meta.getWords() + " words";
+				optSecondary = "" + meta.getWords();
 			} else {
 				optSecondary = "";
+			}
+
+			if (!optSecondary.isEmpty()) {
+				if (meta.isImageDocument()) {
+					optSecondary += " images";
+				} else {
+					optSecondary += " words";
+				}
 			}
 		}
 

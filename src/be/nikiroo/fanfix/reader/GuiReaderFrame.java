@@ -67,6 +67,21 @@ class GuiReaderFrame extends JFrame {
 	private boolean words; // words or authors (secondary info on books)
 
 	/**
+	 * A {@link Runnable} with a {@link Story} parameter.
+	 * 
+	 * @author niki
+	 */
+	private interface StoryRunnable {
+		/**
+		 * Run the action.
+		 * 
+		 * @param story
+		 *            the story
+		 */
+		public void run(Story story);
+	}
+
+	/**
 	 * Create a new {@link GuiReaderFrame}.
 	 * 
 	 * @param reader
@@ -678,11 +693,16 @@ class GuiReaderFrame extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				if (selectedBook != null) {
 					final MetaData meta = selectedBook.getMeta();
-					imprt(meta.getUrl(), new Runnable() {
+					imprt(meta.getUrl(), new StoryRunnable() {
 						@Override
-						public void run() {
+						public void run(Story story) {
 							reader.delete(meta.getLuid());
 							GuiReaderFrame.this.selectedBook = null;
+							MetaData newMeta = story.getMeta();
+							if (!newMeta.getSource().equals(meta.getSource())) {
+								reader.changeType(newMeta.getLuid(),
+										meta.getSource());
+							}
 						}
 					}, "Removing old copy");
 				}
@@ -882,7 +902,7 @@ class GuiReaderFrame extends JFrame {
 	 * @param onSuccess
 	 *            Action to execute on success
 	 */
-	private void imprt(final String url, final Runnable onSuccess,
+	private void imprt(final String url, final StoryRunnable onSuccess,
 			String onSuccessPgName) {
 		final Progress pg = new Progress();
 		final Progress pgImprt = new Progress();
@@ -894,8 +914,10 @@ class GuiReaderFrame extends JFrame {
 			@Override
 			public void run() {
 				Exception ex = null;
+				Story story = null;
 				try {
-					reader.getLibrary().imprt(BasicReader.getUrl(url), pgImprt);
+					story = reader.getLibrary().imprt(BasicReader.getUrl(url),
+							pgImprt);
 				} catch (IOException e) {
 					ex = e;
 				}
@@ -917,7 +939,7 @@ class GuiReaderFrame extends JFrame {
 					});
 				} else {
 					if (onSuccess != null) {
-						onSuccess.run();
+						onSuccess.run(story);
 					}
 				}
 				pgOnSuccess.done();
