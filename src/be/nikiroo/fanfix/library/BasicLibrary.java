@@ -341,6 +341,41 @@ abstract public class BasicLibrary {
 	}
 
 	/**
+	 * Import the story from one library to another, and keep the same LUID.
+	 * 
+	 * @param other
+	 *            the other library to import from
+	 * @param luid
+	 *            the Library UID
+	 * @param pg
+	 *            the optional progress reporter
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public void imprt(BasicLibrary other, String luid, Progress pg)
+			throws IOException {
+		Progress pgGetStory = new Progress();
+		Progress pgSave = new Progress();
+		if (pg == null) {
+			pg = new Progress();
+		}
+
+		pg.setMinMax(0, 2);
+		pg.addProgress(pgGetStory, 1);
+		pg.addProgress(pgSave, 1);
+
+		Story story = other.getStory(luid, pgGetStory);
+		if (story != null) {
+			story = this.save(story, luid, pgSave);
+			pg.done();
+		} else {
+			pg.done();
+			throw new IOException("Cannot find story in Library: " + luid);
+		}
+	}
+
+	/**
 	 * Export the {@link Story} to the given target in the given format.
 	 * 
 	 * @param luid

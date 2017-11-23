@@ -93,21 +93,8 @@ class GuiReader extends BasicReader {
 	 *             in case of I/O error
 	 */
 	public void imprt(String luid, Progress pg) throws IOException {
-		Progress pgGetStory = new Progress();
-		Progress pgSave = new Progress();
-		if (pg != null) {
-			pg.setMax(2);
-			pg.addProgress(pgGetStory, 1);
-			pg.addProgress(pgSave, 1);
-		}
-
 		try {
-			Story story = getLibrary().getStory(luid, pgGetStory);
-			if (story != null) {
-				story = localLibrary.save(story, luid, pgSave);
-			} else {
-				throw new IOException("Cannot find story in Library: " + luid);
-			}
+			localLibrary.imprt(getLibrary(), luid, pg);
 		} catch (IOException e) {
 			throw new IOException(
 					"Cannot import story from library to LocalReader library: "

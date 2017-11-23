@@ -181,6 +181,59 @@ public class LocalLibrary extends BasicLibrary {
 		}
 	}
 
+	@Override
+	public void imprt(BasicLibrary other, String luid, Progress pg)
+			throws IOException {
+		if (pg == null) {
+			pg = new Progress();
+		}
+
+		// Check if we can simply copy the files instead of the whole process
+		if (other instanceof LocalLibrary) {
+			LocalLibrary otherLibrary = (LocalLibrary) other;
+			MetaData meta = otherLibrary.getInfo(luid);
+			String expectedType = "" + (meta.isImageDocument() ? image : text);
+			if (meta.getType().equals(expectedType)) {
+				File from = otherLibrary.getExpectedDir(meta.getSource());
+				File to = this.getExpectedDir(meta.getSource());
+				List<File> sources = otherLibrary.getRelatedFiles(luid);
+				if (!sources.isEmpty()) {
+					pg.setMinMax(0, sources.size());
+				}
+
+				for (File source : sources) {
+					File target = new File(source.getAbsolutePath().replace(
+							from.getAbsolutePath(), to.getAbsolutePath()));
+					if (!source.equals(target)) {
+						InputStream in = null;
+						try {
+							in = new FileInputStream(source);
+							IOUtils.write(in, target);
+						} catch (IOException e) {
+							if (in != null) {
+								try {
+									in.close();
+								} catch (Exception ee) {
+								}
+							}
+
+							pg.done();
+							throw e;
+						}
+					}
+
+					pg.add(1);
+				}
+
+				clearCache();
+				pg.done();
+				return;
+			}
+		}
+
+		super.imprt(other, luid, pg);
+	}
+
 	/**
 	 * Return the {@link OutputType} for this {@link Story}.
 	 * 
