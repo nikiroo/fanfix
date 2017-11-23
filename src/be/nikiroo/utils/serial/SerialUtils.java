@@ -18,6 +18,26 @@ import be.nikiroo.utils.ImageUtils;
  * <p>
  * Note that we do not support inner classes (but we do support nested classes)
  * and all objects require an empty constructor to be deserialised.
+ * <p>
+ * It is possible to add support to custom types (both the encoder and the
+ * decoder will require the custom classes) -- see {@link CustomSerializer}.
+ * <p>
+ * Default supported types are:
+ * <ul>
+ * <li>NULL (as a null value)</li>
+ * <li>String</li>
+ * <li>Boolean</li>
+ * <li>Byte</li>
+ * <li>Character</li>
+ * <li>Short</li>
+ * <li>Long</li>
+ * <li>Float</li>
+ * <li>Double</li>
+ * <li>Integer</li>
+ * <li>Enum (any enum whose name and value is known by the caller)</li>
+ * <li>java.awt.image.BufferedImage (as a {@link CustomSerializer})</li>
+ * <li>An array of the above (as a {@link CustomSerializer})</li>
+ * </ul>
  * 
  * @author niki
  */
@@ -249,14 +269,24 @@ public class SerialUtils {
 		builder.append("\n}");
 	}
 
-	// return true if encoded (supported)
+	/**
+	 * Encode the object into the given builder if possible (if supported).
+	 * 
+	 * @param builder
+	 *            the builder to append to
+	 * @param value
+	 *            the object to encode (can be NULL, which will be encoded)
+	 * 
+	 * @return TRUE if success, FALSE if not (the content of the builder won't
+	 *         be changed in case of failure)
+	 */
 	static boolean encode(StringBuilder builder, Object value) {
 		if (value == null) {
 			builder.append("NULL");
 		} else if (value.getClass().getCanonicalName().endsWith("[]")) {
-			customTypes.get("[]").encode(builder, value);
+			return customTypes.get("[]").encode(builder, value);
 		} else if (customTypes.containsKey(value.getClass().getCanonicalName())) {
-			customTypes.get(value.getClass().getCanonicalName())//
+			return customTypes.get(value.getClass().getCanonicalName())//
 					.encode(builder, value);
 		} else if (value instanceof String) {
 			encodeString(builder, (String) value);
@@ -288,44 +318,63 @@ public class SerialUtils {
 		return true;
 	}
 
+	/**
+	 * Decode the data into an equivalent source object.
+	 * 
+	 * @param encodedValue
+	 *            the encoded data, cannot be NULL
+	 * 
+	 * @return the object (can be NULL for NULL encoded values)
+	 * 
+	 * @throws UnknownFormatConversionException
+	 *             if the content cannot be converted
+	 */
 	static Object decode(String encodedValue) {
 		String cut = "";
 		if (encodedValue.length() > 1) {
 			cut = encodedValue.substring(0, encodedValue.length() - 1);
 		}
 
-		if (CustomSerializer.isCustom(encodedValue)) {
-			// custom:TYPE_NAME:"content is String-encoded"
-			String type = CustomSerializer.typeOf(encodedValue);
-			if (customTypes.containsKey(type)) {
-				return customTypes.get(type).decode(encodedValue);
+		try {
+			if (CustomSerializer.isCustom(encodedValue)) {
+				// custom:TYPE_NAME:"content is String-encoded"
+				String type = CustomSerializer.typeOf(encodedValue);
+				if (customTypes.containsKey(type)) {
+					return customTypes.get(type).decode(encodedValue);
+				}
+				throw new UnknownFormatConversionException(
+						"Unknown custom type: " + type);
+			} else if (encodedValue.equals("NULL")
+					|| encodedValue.equals("null")) {
+				return null;
+			} else if (encodedValue.endsWith("\"")) {
+				return decodeString(encodedValue);
+			} else if (encodedValue.equals("true")) {
+				return true;
+			} else if (encodedValue.equals("false")) {
+				return false;
+			} else if (encodedValue.endsWith("b")) {
+				return Byte.parseByte(cut);
+			} else if (encodedValue.endsWith("c")) {
+				return decodeString(cut).charAt(0);
+			} else if (encodedValue.endsWith("s")) {
+				return Short.parseShort(cut);
+			} else if (encodedValue.endsWith("L")) {
+				return Long.parseLong(cut);
+			} else if (encodedValue.endsWith("F")) {
+				return Float.parseFloat(cut);
+			} else if (encodedValue.endsWith("d")) {
+				return Double.parseDouble(cut);
+			} else if (encodedValue.endsWith(";")) {
+				return decodeEnum(encodedValue);
+			} else {
+				return Integer.parseInt(encodedValue);
 			}
-			throw new UnknownFormatConversionException("Unknown custom type: "
-					+ type);
-		} else if (encodedValue.equals("NULL") || encodedValue.equals("null")) {
-			return null;
-		} else if (encodedValue.endsWith("\"")) {
-			return decodeString(encodedValue);
-		} else if (encodedValue.equals("true")) {
-			return true;
-		} else if (encodedValue.equals("false")) {
-			return false;
-		} else if (encodedValue.endsWith("b")) {
-			return Byte.parseByte(cut);
-		} else if (encodedValue.endsWith("c")) {
-			return decodeString(cut).charAt(0);
-		} else if (encodedValue.endsWith("s")) {
-			return Short.parseShort(cut);
-		} else if (encodedValue.endsWith("L")) {
-			return Long.parseLong(cut);
-		} else if (encodedValue.endsWith("F")) {
-			return Float.parseFloat(cut);
-		} else if (encodedValue.endsWith("d")) {
-			return Double.parseDouble(cut);
-		} else if (encodedValue.endsWith(";")) {
-			return decodeEnum(encodedValue);
-		} else {
-			return Integer.parseInt(encodedValue);
+		} catch (Exception e) {
+			if (e instanceof UnknownFormatConversionException) {
+				throw (UnknownFormatConversionException) e;
+			}
+			throw new UnknownFormatConversionException(e.getMessage());
 		}
 	}
 
@@ -389,7 +438,6 @@ public class SerialUtils {
 		try {
 			return Enum.valueOf((Class<Enum>) getClass(type), name);
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new UnknownFormatConversionException("Unknown enum: <" + type
 					+ "> " + name);
 		}

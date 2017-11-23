@@ -8,10 +8,26 @@ public abstract class CustomSerializer {
 
 	protected abstract String getType();
 
-	public void encode(StringBuilder builder, Object value) {
+	/**
+	 * Encode the object into the given builder if possible (if supported).
+	 * 
+	 * @param builder
+	 *            the builder to append to
+	 * @param value
+	 *            the object to encode
+	 * @return TRUE if success, FALSE if not (the content of the builder won't
+	 *         be changed in case of failure)
+	 */
+	public boolean encode(StringBuilder builder, Object value) {
+		int prev = builder.length();
 		String customString = toString(value);
 		builder.append("custom:").append(getType()).append(":");
-		SerialUtils.encode(builder, customString);
+		if (!SerialUtils.encode(builder, customString)) {
+			builder.delete(prev, builder.length());
+			return false;
+		}
+
+		return true;
 	}
 
 	public Object decode(String encodedValue) {
