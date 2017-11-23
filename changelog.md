@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version 2.2.1
+
+- Small fixes, especially in Progress
+
 ## Version 2.2.0
 
 - New classes:
