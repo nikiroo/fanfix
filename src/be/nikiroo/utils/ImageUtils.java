@@ -101,7 +101,7 @@ public class ImageUtils {
 
 		return fileString;
 	}
-	
+
 	/**
 	 * Convert the given Base64 representation of an image into an {@link Image}
 	 * object.
@@ -136,9 +136,17 @@ public class ImageUtils {
 	static public BufferedImage fromStream(InputStream in) throws IOException {
 		MarkableFileInputStream tmpIn = null;
 		File tmp = null;
-		try {
-			in.reset();
-		} catch (IOException e) {
+
+		boolean repack = !in.markSupported();
+		if (!repack) {
+			try {
+				in.reset();
+			} catch (IOException e) {
+				repack = true;
+			}
+		}
+
+		if (repack) {
 			tmp = File.createTempFile(".tmp-image", ".tmp");
 			tmp.deleteOnExit();
 			IOUtils.write(in, tmp);

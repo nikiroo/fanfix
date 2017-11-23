@@ -37,8 +37,8 @@ public class Progress {
 	private List<ProgressListener> listeners;
 	private int min;
 	private int max;
-	private int localProgress;
-	private int progress; // children included
+	private double relativeLocalProgress;
+	private double relativeProgress; // children included
 
 	/**
 	 * Create a new default unnamed {@link Progress}, from 0 to 100.
@@ -106,7 +106,7 @@ public class Progress {
 	 */
 	public void setName(String name) {
 		this.name = name;
-		changed(this);
+		changed(this, name);
 	}
 
 	/**
@@ -208,7 +208,7 @@ public class Progress {
 	 * @return the progress the value
 	 */
 	public int getProgress() {
-		return progress;
+		return (int) Math.round(relativeProgress * (max - min));
 	}
 
 	/**
@@ -221,10 +221,57 @@ public class Progress {
 	 */
 	public void setProgress(int progress) {
 		synchronized (getLock()) {
-			int diff = this.progress - this.localProgress;
-			this.localProgress = progress;
-			setTotalProgress(this, name, progress + diff);
+			double childrenProgress = relativeProgress - relativeLocalProgress;
+
+			relativeLocalProgress = ((double) progress) / (max - min);
+
+			setRelativeProgress(this, name, relativeLocalProgress
+					+ childrenProgress);
 		}
+	}
+
+	/**
+	 * Get the total progress value (including the optional children
+	 * {@link Progress}) on a 0.0 to 1.0 scale.
+	 * 
+	 * @return the progress
+	 */
+	public double getRelativeProgress() {
+		return relativeProgress;
+	}
+
+	/**
+	 * Set the total progress value (including the optional children
+	 * {@link Progress}), on a 0 to 1 scale.
+	 * 
+	 * @param pg
+	 *            the {@link Progress} to report as the progression emitter
+	 * @param name
+	 *            the current name (if it is NULL, the first non-null name in
+	 *            the hierarchy will overwrite it) of the {@link Progress} who
+	 *            emitted this change
+	 * @param relativeProgress
+	 *            the progress to set
+	 */
+	private void setRelativeProgress(Progress pg, String name,
+			double relativeProgress) {
+		synchronized (getLock()) {
+			relativeProgress = Math.max(0, relativeProgress);
+			relativeProgress = Math.min(1, relativeProgress);
+			this.relativeProgress = relativeProgress;
+
+			changed(pg, name);
+		}
+	}
+
+	/**
+	 * Get the total progress value (including the optional children
+	 * {@link Progress}) on a 0 to 1 scale.
+	 * 
+	 * @return the progress the value
+	 */
+	private int getLocalProgress() {
+		return (int) Math.round(relativeLocalProgress * (max - min));
 	}
 
 	/**
@@ -235,7 +282,7 @@ public class Progress {
 	 */
 	public void add(int step) {
 		synchronized (getLock()) {
-			setProgress(localProgress + step);
+			setProgress(getLocalProgress() + step);
 		}
 	}
 
@@ -246,7 +293,7 @@ public class Progress {
 	 * @return TRUE if it is
 	 */
 	public boolean isDone() {
-		return progress >= max;
+		return relativeProgress >= 1d;
 	}
 
 	/**
@@ -254,20 +301,6 @@ public class Progress {
 	 */
 	public void done() {
 		setProgress(getMax());
-	}
-
-	/**
-	 * Get the total progress value (including the optional children
-	 * {@link Progress}) on a 0.0 to 1.0 scale.
-	 * 
-	 * @return the progress
-	 */
-	public double getRelativeProgress() {
-		if (max == min) {
-			return 1;
-		}
-
-		return (((double) progress) / (max - min));
 	}
 
 	/**
@@ -280,41 +313,22 @@ public class Progress {
 	}
 
 	/**
-	 * Set the total progress value (including the optional children
-	 * {@link Progress}), on a {@link Progress#getMin()} to
-	 * {@link Progress#getMax()} scale.
-	 * 
-	 * @param pg
-	 *            the {@link Progress} to report as the progression emitter
-	 * @param name
-	 *            the current name (if it is NULL, the first non-null name in
-	 *            the hierarchy will overwrite it) of the {@link Progress} who
-	 *            emitted this change
-	 * @param progress
-	 *            the progress to set
-	 */
-	private void setTotalProgress(Progress pg, String name, int progress) {
-		// TODO: name is not used... and this is probably a bug in this case
-		synchronized (getLock()) {
-			progress = Math.max(min, progress);
-			progress = Math.min(max, progress);
-
-			if (progress != this.progress) {
-				this.progress = progress;
-				changed(pg);
-			}
-		}
-	}
-
-	/**
 	 * Notify the listeners that this {@link Progress} changed value.
 	 * 
 	 * @param pg
 	 *            the emmiter
+	 * @param name
+	 *            the current name (if it is NULL, the first non-null name in
+	 *            the hierarchy will overwrite it) of the {@link Progress} who
+	 *            emitted this change
 	 */
-	private void changed(Progress pg) {
+	private void changed(Progress pg, String name) {
 		if (pg == null) {
 			pg = this;
+		}
+
+		if (name == null) {
+			name = this.name;
 		}
 
 		synchronized (getLock()) {
@@ -383,18 +397,13 @@ public class Progress {
 			@Override
 			public void progress(Progress pg, String name) {
 				synchronized (getLock()) {
-					double total = ((double) localProgress) / (max - min);
+					double total = relativeLocalProgress;
 					for (Entry<Progress, Double> entry : children.entrySet()) {
 						total += (entry.getValue() / (max - min))
 								* entry.getKey().getRelativeProgress();
 					}
 
-					if (name == null) {
-						name = Progress.this.name;
-					}
-
-					setTotalProgress(pg, name,
-							(int) Math.round(total * (max - min)));
+					setRelativeProgress(pg, name, total);
 				}
 			}
 		});

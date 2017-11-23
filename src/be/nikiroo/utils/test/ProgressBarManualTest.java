@@ -17,7 +17,8 @@ public class ProgressBarManualTest extends JFrame {
 	public ProgressBarManualTest() {
 		final ProgressBar bar = new ProgressBar();
 		final Progress pg = new Progress("name");
-		final Progress pg2 = new Progress("second level");
+		final Progress pg2 = new Progress("second level", 0, 2);
+		final Progress pg3 = new Progress("third level");
 
 		setLayout(new BorderLayout());
 		this.add(bar, BorderLayout.SOUTH);
@@ -34,17 +35,33 @@ public class ProgressBarManualTest extends JFrame {
 					break;
 				case 1:
 					pg.setProgress(20);
-					b.setText("Add second pg");
+					b.setText("Add pg2 (0-2)");
 					break;
 				case 2:
 					pg.addProgress(pg2, 80);
 					pg2.setProgress(0);
-					b.setText("set second pg to 100%");
+					b.setText("Add pg3 (0-100)");
 					break;
 				case 3:
-					pg2.setProgress(100);
-					b.setText("Set pg to 10%");
-					i = -1;
+					pg2.addProgress(pg3, 2);
+					pg3.setProgress(0);
+					b.setText("Set pg3 to 10%");
+					break;
+				case 4:
+					pg3.setProgress(10);
+					b.setText("Set pg3 to 20%");
+					break;
+				case 5:
+					pg3.setProgress(20);
+					b.setText("Set pg3 to 60%");
+					break;
+				case 6:
+					pg3.setProgress(60);
+					b.setText("Set pg3 to 100%");
+					break;
+				case 7:
+					pg3.setProgress(100);
+					b.setText("[done]");
 					break;
 				}
 
