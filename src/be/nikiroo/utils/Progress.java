@@ -293,14 +293,18 @@ public class Progress {
 	 * @return TRUE if it is
 	 */
 	public boolean isDone() {
-		return relativeProgress >= 1d;
+		return getProgress() == max;
 	}
 
 	/**
 	 * Mark the {@link Progress} as done by setting its value to max.
 	 */
 	public void done() {
-		setProgress(getMax());
+		synchronized (getLock()) {
+			double childrenProgress = relativeProgress - relativeLocalProgress;
+			relativeLocalProgress = 1 - childrenProgress;
+			setRelativeProgress(this, name, 1d);
+		}
 	}
 
 	/**
