@@ -16,7 +16,7 @@ import be.nikiroo.utils.serial.ConnectActionClient;
 
 /**
  * This {@link BasicLibrary} will access a remote server to list the available
- * stories, and download the one you try to load to the local directory
+ * stories, and download the ones you try to load to the local directory
  * specified in the configuration.
  * 
  * @author niki
@@ -137,19 +137,7 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected int getNextId() {
-		throw new java.lang.InternalError(
-				"No write support allowed on remote Libraries");
-	}
-
-	@Override
-	protected void doDelete(String luid) throws IOException {
-		throw new java.lang.InternalError(
-				"No write support allowed on remote Libraries");
-	}
-
-	@Override
-	protected Story doSave(Story story, Progress pg) throws IOException {
+	public synchronized void delete(String luid) throws IOException {
 		throw new java.lang.InternalError(
 				"No write support allowed on remote Libraries");
 	}
@@ -158,5 +146,23 @@ public class RemoteLibrary extends BasicLibrary {
 	public void setSourceCover(String source, String luid) {
 		throw new java.lang.InternalError(
 				"No write support allowed on remote Libraries");
+	}
+
+	// All the following methods are only used by Save and Delete in
+	// BasicLibrary:
+
+	@Override
+	protected int getNextId() {
+		throw new java.lang.InternalError("Should not have been called");
+	}
+
+	@Override
+	protected void doDelete(String luid) throws IOException {
+		throw new java.lang.InternalError("Should not have been called");
+	}
+
+	@Override
+	protected Story doSave(Story story, Progress pg) throws IOException {
+		throw new java.lang.InternalError("Should not have been called");
 	}
 }
