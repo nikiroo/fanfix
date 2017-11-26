@@ -55,7 +55,6 @@ public class RemoteLibraryServer extends Server {
 	@Override
 	protected Object onRequest(ConnectActionServer action,
 			Version clientVersion, Object data) throws Exception {
-
 		String key = "";
 		String command = "";
 		Object[] args = new Object[0];
@@ -64,7 +63,7 @@ public class RemoteLibraryServer extends Server {
 			if (dataArray.length >= 2) {
 				args = new Object[dataArray.length - 2];
 				for (int i = 2; i < dataArray.length; i++) {
-					args[i] = dataArray[i];
+					args[i - 2] = dataArray[i];
 				}
 
 				key = "" + dataArray[0];

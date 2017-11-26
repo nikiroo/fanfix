@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 
 import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.data.Chapter;
+import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.library.CacheLibrary;
@@ -439,7 +441,18 @@ public class Main {
 	 * @return the exit return code (0 = success)
 	 */
 	private static int list(String source) {
-		BasicReader.getReader().browse(source);
+		List<MetaData> stories;
+		stories = BasicReader.getReader().getLibrary().getListBySource(source);
+
+		for (MetaData story : stories) {
+			String author = "";
+			if (story.getAuthor() != null && !story.getAuthor().isEmpty()) {
+				author = " (" + story.getAuthor() + ")";
+			}
+
+			System.out.println(story.getLuid() + ": " + story.getTitle()
+					+ author);
+		}
 		return 0;
 	}
 
