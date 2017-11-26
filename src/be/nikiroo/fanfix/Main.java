@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.Story;
@@ -23,6 +22,7 @@ import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
+import be.nikiroo.utils.serial.ConnectActionClient;
 import be.nikiroo.utils.serial.Server;
 
 /**
@@ -32,7 +32,7 @@ import be.nikiroo.utils.serial.Server;
  */
 public class Main {
 	private enum MainAction {
-		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER, START, VERSION, SERVER, REMOTE,
+		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER, START, VERSION, SERVER, STOP_SERVER, REMOTE,
 	}
 
 	/**
@@ -63,6 +63,7 @@ public class Main {
 	 * for this command</li>
 	 * <li>--version: get the version of the program</li>
 	 * <li>--server [port]: start a server on this port</li>
+	 * <li>--stop-server [port]: stop the running server on this port if any</li>
 	 * <li>--remote [host] [port]: use a the given remote library</li>
 	 * </ul>
 	 * 
@@ -177,6 +178,7 @@ public class Main {
 				exitCode = 255; // no arguments for this option
 				break;
 			case SERVER:
+			case STOP_SERVER:
 				if (port == null) {
 					port = Integer.parseInt(args[i]);
 				} else {
@@ -194,7 +196,7 @@ public class Main {
 					lib = new CacheLibrary(remoteCacheDir, lib);
 
 					BasicReader.setDefaultLibrary(lib);
-					
+
 					action = MainAction.START;
 				} else {
 					exitCode = 255;
@@ -324,6 +326,28 @@ public class Main {
 					Instance.syserr(e);
 				}
 				return;
+			case STOP_SERVER:
+				if (port == null) {
+					exitCode = 255;
+					break;
+				}
+
+				try {
+					new ConnectActionClient(host, port, true) {
+						@Override
+						public void action(Version serverVersion)
+								throws Exception {
+							try {
+								send(new Object[] { "EXIT" });
+							} catch (Exception e) {
+								Instance.syserr(e);
+							}
+						}
+					}.connect();
+				} catch (IOException e) {
+					Instance.syserr(e);
+				}
+				break;
 			case REMOTE:
 				exitCode = 255; // should not be reachable (REMOTE -> START)
 				break;

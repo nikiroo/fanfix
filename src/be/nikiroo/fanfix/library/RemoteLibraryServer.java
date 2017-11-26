@@ -27,6 +27,7 @@ import be.nikiroo.utils.serial.Server;
  * <li>GET_SOURCE_COVER [source]: return the cover for this source</li>
  * <li>SET_SOURCE_COVER [source], [luid]: set the default cover for the given
  * source to the cover of the story denoted by luid</li>
+ * <li>EXIT: stop the server</li>
  * </ul>
  * 
  * @author niki
@@ -87,6 +88,8 @@ public class RemoteLibraryServer extends Server {
 			return Instance.getLibrary().getSourceCover("" + args[1]);
 		} else if ("SET_SOURCE_COVER".equals(command)) {
 			Instance.getLibrary().setSourceCover("" + args[1], "" + args[2]);
+		} else if ("EXIT".equals(command)) {
+			stop(0, false);
 		}
 
 		return null;
