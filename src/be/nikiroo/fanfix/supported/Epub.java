@@ -18,6 +18,7 @@ import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.ImageUtils;
 import be.nikiroo.utils.MarkableFileInputStream;
 import be.nikiroo.utils.Progress;
+import be.nikiroo.utils.StringUtils;
 
 /**
  * Support class for EPUB files created with this program (as we need some
@@ -26,8 +27,9 @@ import be.nikiroo.utils.Progress;
  * @author niki
  */
 class Epub extends InfoText {
-	private File tmp;
 	protected MetaData meta;
+	private File tmp;
+	private String desc;
 
 	private URL fakeSource;
 	private InputStream fakeIn;
@@ -53,6 +55,10 @@ class Epub extends InfoText {
 
 	@Override
 	protected String getDesc(URL source, InputStream in) throws IOException {
+		if (desc != null) {
+			return desc;
+		}
+
 		if (fakeIn != null) {
 			fakeIn.reset();
 			return super.getDesc(fakeSource, fakeIn);
@@ -92,12 +98,16 @@ class Epub extends InfoText {
 		fakeSource = tmp.toURI().toURL();
 		BufferedImage cover = null;
 
+		String url = source.toString();
+		String title = null;
+		String author = null;
+
 		for (ZipEntry entry = zipIn.getNextEntry(); entry != null; entry = zipIn
 				.getNextEntry()) {
 			if (!entry.isDirectory()
 					&& entry.getName().startsWith(getDataPrefix())) {
 				String entryLName = entry.getName().toLowerCase();
-				
+
 				boolean imageEntry = false;
 				for (String ext : getImageExt(false)) {
 					if (entryLName.endsWith(ext)) {
@@ -121,9 +131,32 @@ class Epub extends InfoText {
 						}
 					}
 				} else if (entry.getName().equals(getDataPrefix() + "URL")) {
-					// Do nothing
+					String[] descArray = StringUtils
+							.unhtml(IOUtils.readSmallStream(zipIn)).trim()
+							.split("\n");
+					if (descArray.length > 0) {
+						url = descArray[0].trim();
+					}
 				} else if (entry.getName().equals(getDataPrefix() + "SUMMARY")) {
-					// Do nothing
+					String[] descArray = StringUtils
+							.unhtml(IOUtils.readSmallStream(zipIn)).trim()
+							.split("\n");
+					int skip = 0;
+					if (descArray.length > 1) {
+						title = descArray[0].trim();
+						skip = 1;
+						if (descArray.length > 2
+								&& descArray[1].startsWith("©")) {
+							author = descArray[1].substring(1).trim();
+							skip = 2;
+						}
+					}
+					this.desc = "";
+					for (int i = skip; i < descArray.length; i++) {
+						this.desc += descArray[i].trim() + "\n";
+					}
+
+					this.desc = this.desc.trim();
 				} else {
 					// Hopefully the data file
 					IOUtils.write(zipIn, tmp);
@@ -148,11 +181,13 @@ class Epub extends InfoText {
 			tmpInfo.delete();
 		} else {
 			meta = new MetaData();
-			meta.setUuid(source.toString());
 			meta.setLang("EN");
 			meta.setTags(new ArrayList<String>());
 			meta.setSource(getSourceName());
-			meta.setUrl(source.toString());
+			meta.setUuid(url);
+			meta.setUrl(url);
+			meta.setTitle(title);
+			meta.setAuthor(author);
 		}
 	}
 

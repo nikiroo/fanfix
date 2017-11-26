@@ -122,8 +122,7 @@
 
 ## Version 1.0.0
 
-The GUI is now good enough to be released (export is still CLI-only though).
-
+- the GUI is now good enough to be released (export is still CLI-only though)
 - bugs fixed
 - GUI improved (a lot)
 - should be good enough for 1.0.0
@@ -147,11 +146,10 @@ The GUI is now good enough to be released (export is still CLI-only though).
 
 ## Version 0.9.2
 
-Minimum JVM version: Java 1.6 (all binary JAR files will be released in 1.6).
-
+- minimum JVM version: Java 1.6 (all binary JAR files will be released in 1.6)
 - bugs fixed
 
 ## Version 0.9.1
 
-Initial version
+- initial version
 

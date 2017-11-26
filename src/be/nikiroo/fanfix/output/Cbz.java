@@ -70,8 +70,6 @@ class Cbz extends BasicOutput {
 			if (meta != null) {
 				writer.write(meta.getUuid());
 			}
-			writer.write("\n\n");
-			writer.write(builder.toString());
 		} finally {
 			writer.close();
 		}
