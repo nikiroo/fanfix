@@ -14,8 +14,6 @@ import jexer.TWindow;
 import jexer.event.TMenuEvent;
 import jexer.menu.TMenu;
 import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.Instance.SyserrHandler;
-import be.nikiroo.fanfix.Instance.TraceHandler;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
@@ -140,21 +138,8 @@ class TuiReaderApplication extends TApplication implements Reader {
 	private void init(Reader reader) {
 		this.reader = reader;
 
-		// Do not allow traces/debug to pollute the screen:
-		Instance.setSyserrHandler(new SyserrHandler() {
-			@Override
-			public void notify(Exception e, boolean showDetails) {
-				// TODO
-			}
-		});
-
-		Instance.setTraceHandler(new TraceHandler() {
-			@Override
-			public void trace(String message) {
-				// TODO
-			}
-		});
-		//
+		// TODO: traces/errors?
+		Instance.setTraceHandler(null);
 
 		// Add the menus TODO: i18n
 		TMenu fileMenu = addMenu("&File");
@@ -188,7 +173,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 		case MENU_EXIT:
 			if (messageBox("Confirmation", "(TODO: i18n) Exit application?",
 					TMessageBox.Type.YESNO).getResult() == TMessageBox.Result.YES) {
-				//exit(false);
+				// exit(false);
 			}
 
 			return true;

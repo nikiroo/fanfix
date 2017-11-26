@@ -12,7 +12,9 @@ import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.bundles.UiConfigBundle;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.library.LocalLibrary;
+import be.nikiroo.utils.Cache;
 import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.TraceHandler;
 import be.nikiroo.utils.resources.Bundles;
 
 /**
@@ -21,56 +23,16 @@ import be.nikiroo.utils.resources.Bundles;
  * @author niki
  */
 public class Instance {
-	/**
-	 * A handler when a recoverable exception was caught by the program.
-	 * 
-	 * @author niki
-	 */
-	public interface SyserrHandler {
-		/**
-		 * An exception happened, log it.
-		 * 
-		 * @param e
-		 *            the exception
-		 * @param showDetails
-		 *            show more details (usually equivalent to the value of
-		 *            DEBUG)
-		 */
-		public void notify(Exception e, boolean showDetails);
-	}
-
-	/**
-	 * A handler when a trace message is sent.
-	 * 
-	 * @author niki
-	 */
-	public interface TraceHandler {
-		/**
-		 * A trace happened, show it.
-		 * <p>
-		 * Will only be called if TRACE is true.
-		 * 
-		 * @param message
-		 *            the trace message
-		 */
-		public void trace(String message);
-	}
-
 	private static ConfigBundle config;
 	private static UiConfigBundle uiconfig;
 	private static StringIdBundle trans;
 	private static DataLoader cache;
 	private static LocalLibrary lib;
-	private static boolean debug;
-	private static boolean trace;
 	private static File coverDir;
 	private static File readerTmp;
 	private static File remoteDir;
 	private static String configDir;
-
-	private static SyserrHandler syserrHandler;
-
-	private static TraceHandler traceHandler;
+	private static TraceHandler tracer;
 
 	static {
 		// Most of the rest is dependent upon this:
@@ -127,8 +89,10 @@ public class Instance {
 					+ getFile(Config.LIBRARY_DIR), e));
 		}
 
-		debug = Instance.getConfig().getBoolean(Config.DEBUG_ERR, false);
-		trace = Instance.getConfig().getBoolean(Config.DEBUG_TRACE, false);
+		boolean debug = Instance.getConfig()
+				.getBoolean(Config.DEBUG_ERR, false);
+		boolean trace = Instance.getConfig().getBoolean(Config.DEBUG_TRACE,
+				false);
 		coverDir = getFile(Config.DEFAULT_COVERS_DIR);
 		File tmp = getFile(Config.CACHE_DIR);
 		readerTmp = getFile(UiConfig.CACHE_DIR_LOCAL_READER);
@@ -141,6 +105,10 @@ public class Instance {
 		if (checkEnv("DEBUG")) {
 			debug = true;
 		}
+
+		tracer = new TraceHandler();
+		tracer.setShowErrorDetails(debug);
+		tracer.setShowTraces(trace);
 
 		// Could have used: System.getProperty("java.io.tmpdir")
 		if (tmp == null) {
@@ -169,6 +137,25 @@ public class Instance {
 			syserr(new IOException(
 					"Cannot create cache (will continue without cache)", e));
 		}
+	}
+
+	/**
+	 * The traces handler for this {@link Cache}.
+	 * 
+	 * @return the traces handler or NULL
+	 */
+	public static TraceHandler getTraceHandler() {
+		return tracer;
+	}
+
+	/**
+	 * The traces handler for this {@link Cache}.
+	 * 
+	 * @param tracer
+	 *            the new traces handler or NULL
+	 */
+	public static void setTraceHandler(TraceHandler tracer) {
+		Instance.tracer = tracer;
 	}
 
 	/**
@@ -294,40 +281,14 @@ public class Instance {
 	}
 
 	/**
-	 * Replace the global syserr handler.
-	 * 
-	 * @param syserrHandler
-	 *            the new syserr handler
-	 */
-	public static void setSyserrHandler(SyserrHandler syserrHandler) {
-		Instance.syserrHandler = syserrHandler;
-	}
-
-	/**
-	 * Replace the global trace handler.
-	 * 
-	 * @param traceHandler
-	 *            the new trace handler
-	 */
-	public static void setTraceHandler(TraceHandler traceHandler) {
-		Instance.traceHandler = traceHandler;
-	}
-
-	/**
 	 * Report an error to the user
 	 * 
 	 * @param e
 	 *            the {@link Exception} to report
 	 */
 	public static void syserr(Exception e) {
-		if (syserrHandler != null) {
-			syserrHandler.notify(e, debug);
-		} else {
-			if (debug) {
-				e.printStackTrace();
-			} else {
-				System.err.println(e.getMessage());
-			}
+		if (tracer != null) {
+			tracer.error(e);
 		}
 	}
 
@@ -338,12 +299,8 @@ public class Instance {
 	 *            the message
 	 */
 	public static void trace(String message) {
-		if (trace) {
-			if (traceHandler != null) {
-				traceHandler.trace(message);
-			} else {
-				System.out.println(message);
-			}
+		if (tracer != null) {
+			tracer.trace(message);
 		}
 	}
 

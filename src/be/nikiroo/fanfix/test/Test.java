@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.ConfigBundle;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.resources.Bundles;
@@ -18,6 +19,7 @@ import be.nikiroo.utils.test.TestLauncher;
 public class Test extends TestLauncher {
 	public Test(String[] args) {
 		super("Fanfix", args);
+		Instance.setTraceHandler(null);
 		addSeries(new BasicSupportTest(args));
 		addSeries(new LibraryTest(args));
 	}

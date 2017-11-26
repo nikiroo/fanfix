@@ -254,6 +254,7 @@ class FimfictionApi extends BasicSupport {
 				null, null);
 
 		String jsonToken = IOUtils.readSmallStream(in);
+		in.close();
 
 		// Extract token type and token from: {
 		// token_type = "Bearer",
