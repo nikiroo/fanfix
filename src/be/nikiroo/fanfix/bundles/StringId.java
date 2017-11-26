@@ -81,6 +81,12 @@ public enum StringId {
 	INPUT_DESC_E621, //
 	@Meta(description = "Description of this input type")
 	INPUT_DESC_E_HENTAI, //
+	@Meta(description = "Description of this input type")
+	INPUT_DESC_YIFFSTAR, //
+	@Meta(description = "Description of this input type")
+	INPUT_DESC_CBZ, //
+	@Meta(description = "Description of this input type")
+	INPUT_DESC_HTML, //
 	@Meta(info = "%s = type", description = "Default description when the type is not known by i18n")
 	OUTPUT_DESC, //
 	@Meta(description = "Description of this output type")

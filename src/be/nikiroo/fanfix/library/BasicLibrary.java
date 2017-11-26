@@ -30,6 +30,17 @@ import be.nikiroo.utils.Progress;
  */
 abstract public class BasicLibrary {
 	/**
+	 * Return a name for this library (the UI may display this).
+	 * <p>
+	 * Must not be NULL.
+	 * 
+	 * @return the name, or an empty {@link String} if none
+	 */
+	public String getLibraryName() {
+		return "";
+	}
+
+	/**
 	 * Retrieve the main {@link File} corresponding to the given {@link Story},
 	 * which can be passed to an external reader or instance.
 	 * <p>

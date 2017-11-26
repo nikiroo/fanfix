@@ -6,6 +6,7 @@ import java.util.Date;
 
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.ConfigBundle;
+import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.bundles.StringIdBundle;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.bundles.UiConfigBundle;
@@ -104,11 +105,16 @@ public class Instance {
 		} catch (IOException e) {
 			syserr(e);
 		}
-		try {
-			trans = new StringIdBundle(getLang());
-			trans.updateFile(configDir);
-		} catch (IOException e) {
-			syserr(e);
+
+		// No updateFile for this one! (we do not want the user to have custom
+		// translations that won't accept updates from newer versions)
+		trans = new StringIdBundle(getLang());
+
+		// Fix an old bug (we used to store custom translation files by
+		// default):
+		if (trans.getString(StringId.INPUT_DESC_CBZ) == null) {
+			// TODO: create the deleteFile method
+			// trans.deleteFile(configDir);
 		}
 
 		Bundles.setDirectory(configDir);

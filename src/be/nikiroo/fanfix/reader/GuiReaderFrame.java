@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -29,6 +30,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -111,6 +113,12 @@ class GuiReaderFrame extends JFrame {
 		JScrollPane scroll = new JScrollPane(pane);
 		scroll.getVerticalScrollBar().setUnitIncrement(16);
 		add(scroll, BorderLayout.CENTER);
+
+		String message = reader.getLibrary().getLibraryName();
+		if (!message.isEmpty()) {
+			JLabel name = new JLabel(message, SwingConstants.CENTER);
+			add(name, BorderLayout.NORTH);
+		}
 
 		pgBar = new ProgressBar();
 		add(pgBar, BorderLayout.SOUTH);

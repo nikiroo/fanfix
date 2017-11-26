@@ -253,12 +253,30 @@ public class Main {
 				updates.ok(); // we consider it read
 				break;
 			case LIST:
+				if (BasicReader.getReader() == null) {
+					Instance.syserr(new Exception(
+							"No reader type has been configured"));
+					exitCode = 10;
+					break;
+				}
 				exitCode = list(sourceString);
 				break;
 			case READ:
+				if (BasicReader.getReader() == null) {
+					Instance.syserr(new Exception(
+							"No reader type has been configured"));
+					exitCode = 10;
+					break;
+				}
 				exitCode = read(luid, chapString, true);
 				break;
 			case READ_URL:
+				if (BasicReader.getReader() == null) {
+					Instance.syserr(new Exception(
+							"No reader type has been configured"));
+					exitCode = 10;
+					break;
+				}
 				exitCode = read(urlString, chapString, false);
 				break;
 			case HELP:
@@ -277,6 +295,12 @@ public class Main {
 				updates.ok(); // we consider it read
 				break;
 			case START:
+				if (BasicReader.getReader() == null) {
+					Instance.syserr(new Exception(
+							"No reader type has been configured"));
+					exitCode = 10;
+					break;
+				}
 				BasicReader.getReader().browse(null);
 				break;
 			case SERVER:
@@ -293,7 +317,7 @@ public class Main {
 				}
 				return;
 			case REMOTE:
-				exitCode = 255;
+				exitCode = 255; // should not be reachable (REMOTE -> START)
 				break;
 			}
 		}

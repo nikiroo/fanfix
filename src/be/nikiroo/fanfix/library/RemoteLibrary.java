@@ -49,6 +49,11 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
+	public String getLibraryName() {
+		return host + ":" + port;
+	}
+
+	@Override
 	protected List<MetaData> getMetas(Progress pg) {
 		// TODO: progress
 
