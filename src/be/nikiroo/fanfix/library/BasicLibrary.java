@@ -48,10 +48,12 @@ abstract public class BasicLibrary {
 	 * 
 	 * @param luid
 	 *            the Library UID of the story
+	 * @param pg
+	 *            the optional {@link Progress}
 	 * 
 	 * @return the corresponding {@link Story}
 	 */
-	public abstract File getFile(String luid);
+	public abstract File getFile(String luid, Progress pg);
 
 	/**
 	 * Return the cover image associated to this story.
@@ -294,21 +296,29 @@ abstract public class BasicLibrary {
 	 * @return the corresponding {@link Story} or NULL if not found
 	 */
 	public synchronized Story getStory(String luid, Progress pg) {
-		// TODO: pg
 		if (pg == null) {
 			pg = new Progress();
 		}
 
+		Progress pgGet = new Progress();
+		Progress pgProcess = new Progress();
+
+		pg.setMinMax(0, 2);
+		pg.addProgress(pgGet, 1);
+		pg.addProgress(pgProcess, 1);
+
 		Story story = null;
 		for (MetaData meta : getMetas(null)) {
 			if (meta.getLuid().equals(luid)) {
-				File file = getFile(luid);
+				File file = getFile(luid, pgGet);
+				pgGet.done();
 				try {
 					SupportType type = SupportType.valueOfAllOkUC(meta
 							.getType());
 					URL url = file.toURI().toURL();
 					if (type != null) {
-						story = BasicSupport.getSupport(type).process(url, pg);
+						story = BasicSupport.getSupport(type).process(url,
+								pgProcess);
 					} else {
 						throw new IOException("Unknown type: " + meta.getType());
 					}
@@ -318,6 +328,7 @@ abstract public class BasicLibrary {
 					Instance.syserr(new IOException(
 							"Cannot load file from library: " + file, e));
 				} finally {
+					pgProcess.done();
 					pg.done();
 				}
 

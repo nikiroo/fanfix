@@ -215,7 +215,7 @@ public abstract class BasicReader implements Reader {
 	public static void openExternal(BasicLibrary lib, String luid)
 			throws IOException {
 		MetaData meta = lib.getInfo(luid);
-		File target = lib.getFile(luid);
+		File target = lib.getFile(luid, null);
 
 		openExternal(meta, target);
 	}

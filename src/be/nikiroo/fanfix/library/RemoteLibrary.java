@@ -23,10 +23,6 @@ import be.nikiroo.utils.serial.ConnectActionClient;
 public class RemoteLibrary extends BasicLibrary {
 	private String host;
 	private int port;
-	private File baseDir;
-
-	private LocalLibrary lib;
-	private List<MetaData> metas;
 
 	/**
 	 * Create a {@link RemoteLibrary} linked to the given server.
@@ -39,11 +35,6 @@ public class RemoteLibrary extends BasicLibrary {
 	public RemoteLibrary(String host, int port) {
 		this.host = host;
 		this.port = port;
-
-		this.baseDir = Instance.getRemoteDir(host);
-		this.baseDir.mkdirs();
-
-		this.lib = new LocalLibrary(baseDir);
 	}
 
 	@Override
@@ -54,34 +45,13 @@ public class RemoteLibrary extends BasicLibrary {
 	@Override
 	protected List<MetaData> getMetas(Progress pg) {
 		// TODO: progress
+		final List<MetaData> metas = new ArrayList<MetaData>();
+		MetaData[] fromNetwork = this
+				.<MetaData[]> getRemoteObject("GET_METADATA *");
 
-		if (metas == null) {
-			metas = new ArrayList<MetaData>();
-
-			try {
-				new ConnectActionClient(host, port, true) {
-					@Override
-					public void action(Version serverVersion) throws Exception {
-						try {
-							Object rep = send("GET_METADATA *");
-							for (MetaData meta : (MetaData[]) rep) {
-								metas.add(meta);
-							}
-						} catch (Exception e) {
-							Instance.syserr(e);
-						}
-					}
-				}.connect();
-			} catch (IOException e) {
-				Instance.syserr(e);
-			}
-
-			List<String> test = new ArrayList<String>();
-			for (MetaData meta : metas) {
-				if (test.contains(meta.getLuid())) {
-					throw new RuntimeException("wwops");
-				}
-				test.add(meta.getLuid());
+		if (fromNetwork != null) {
+			for (MetaData meta : fromNetwork) {
+				metas.add(meta);
 			}
 		}
 
@@ -89,72 +59,17 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public synchronized File getFile(final String luid) {
-		File file = lib.getFile(luid);
-		if (file == null) {
-			final File[] tmp = new File[1];
-			try {
-				new ConnectActionClient(host, port, true) {
-					@Override
-					public void action(Version serverVersion) throws Exception {
-						try {
-							Object rep = send("GET_STORY " + luid);
-							Story story = (Story) rep;
-							if (story != null) {
-								lib.save(story, luid, null);
-								tmp[0] = lib.getFile(luid);
-							}
-						} catch (Exception e) {
-							Instance.syserr(e);
-						}
-					}
-				}.connect();
-			} catch (IOException e) {
-				Instance.syserr(e);
-			}
-
-			file = tmp[0];
-		}
-
-		if (file != null) {
-			MetaData meta = getInfo(luid);
-			metas.add(meta);
-		}
-
-		return file;
+	public BufferedImage getCover(final String luid) {
+		return this.<BufferedImage> getRemoteObject("GET_COVER " + luid);
 	}
 
 	@Override
-	public BufferedImage getCover(final String luid) {
-		// Retrieve it from the cache if possible:
-		if (lib.getInfo(luid) != null) {
-			return lib.getCover(luid);
-		}
-
-		final BufferedImage[] result = new BufferedImage[1];
-		try {
-			new ConnectActionClient(host, port, true) {
-				@Override
-				public void action(Version serverVersion) throws Exception {
-					try {
-						Object rep = send("GET_COVER " + luid);
-						result[0] = (BufferedImage) rep;
-					} catch (Exception e) {
-						Instance.syserr(e);
-					}
-				}
-			}.connect();
-		} catch (IOException e) {
-			Instance.syserr(e);
-		}
-
-		return result[0];
+	public synchronized Story getStory(final String luid, Progress pg) {
+		return this.<Story> getRemoteObject("GET_STORY " + luid);
 	}
 
 	@Override
 	protected void clearCache() {
-		metas = null;
-		lib.clearCache();
 	}
 
 	@Override
@@ -176,8 +91,13 @@ public class RemoteLibrary extends BasicLibrary {
 				"No write support allowed on remote Libraries");
 	}
 
-	// All the following methods are only used by Save and Delete in
-	// BasicLibrary:
+	@Override
+	public synchronized File getFile(final String luid) {
+		throw new java.lang.InternalError(
+				"Operation not supportorted on remote Libraries");
+	}
+
+	// The following methods are only used by Save and Delete in BasicLibrary:
 
 	@Override
 	protected int getNextId() {
@@ -195,11 +115,39 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	/**
-	 * Return the backing local library.
+	 * Return an object from the server.
 	 * 
-	 * @return the library
+	 * @param <T>
+	 *            the expected type of object
+	 * @param command
+	 *            the command to send
+	 * 
+	 * @return the object or NULL
 	 */
-	LocalLibrary getLocalLibrary() {
-		return lib;
+	@SuppressWarnings("unchecked")
+	private <T> T getRemoteObject(final String command) {
+		final Object[] result = new Object[1];
+		try {
+			new ConnectActionClient(host, port, true) {
+				@Override
+				public void action(Version serverVersion) throws Exception {
+					try {
+						Object rep = send(command);
+						result[0] = rep;
+					} catch (Exception e) {
+						Instance.syserr(e);
+					}
+				}
+			}.connect();
+		} catch (IOException e) {
+			Instance.syserr(e);
+		}
+
+		try {
+			return (T) result[0];
+		} catch (Exception e) {
+			Instance.syserr(e);
+			return null;
+		}
 	}
 }

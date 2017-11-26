@@ -14,9 +14,10 @@ import javax.swing.event.HyperlinkListener;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.VersionCheck;
-import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.fanfix.library.BasicLibrary;
+import be.nikiroo.fanfix.library.CacheLibrary;
 import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
@@ -25,7 +26,9 @@ import be.nikiroo.utils.ui.UIUtils;
 class GuiReader extends BasicReader {
 	static private boolean nativeLookLoaded;
 
-	private LocalLibrary localLibrary;
+	private CacheLibrary cacheLib;
+
+	private File cacheDir;
 
 	public GuiReader() throws IOException {
 		if (!nativeLookLoaded) {
@@ -33,16 +36,27 @@ class GuiReader extends BasicReader {
 			nativeLookLoaded = true;
 		}
 
-		File dir = Instance.getReaderDir();
-		dir.mkdirs();
-		if (!dir.exists()) {
+		cacheDir = Instance.getReaderDir();
+		cacheDir.mkdirs();
+		if (!cacheDir.exists()) {
 			throw new IOException(
-					"Cannote create cache directory for local reader: " + dir);
+					"Cannote create cache directory for local reader: "
+							+ cacheDir);
+		}
+	}
+
+	@Override
+	public synchronized BasicLibrary getLibrary() {
+		if (cacheLib == null) {
+			BasicLibrary lib = super.getLibrary();
+			if (lib instanceof CacheLibrary) {
+				cacheLib = (CacheLibrary) lib;
+			} else {
+				cacheLib = new CacheLibrary(cacheDir, lib);
+			}
 		}
 
-		localLibrary = new LocalLibrary(dir, Instance.getUiConfig().getString(
-				UiConfig.GUI_NON_IMAGES_DOCUMENT_TYPE), Instance.getUiConfig()
-				.getString(UiConfig.GUI_IMAGES_DOCUMENT_TYPE), true);
+		return cacheLib;
 	}
 
 	@Override
@@ -57,27 +71,6 @@ class GuiReader extends BasicReader {
 	}
 
 	/**
-	 * Import the story into the local reader library, and keep the same LUID.
-	 * 
-	 * @param luid
-	 *            the Library UID
-	 * @param pg
-	 *            the optional progress reporter
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
-	public void imprt(String luid, Progress pg) throws IOException {
-		try {
-			localLibrary.imprt(getLibrary(), luid, pg);
-		} catch (IOException e) {
-			throw new IOException(
-					"Cannot import story from library to LocalReader library: "
-							+ luid, e);
-		}
-	}
-
-	/**
 	 * Check if the {@link Story} denoted by this Library UID is present in the
 	 * {@link GuiReader} cache.
 	 * 
@@ -87,7 +80,7 @@ class GuiReader extends BasicReader {
 	 * @return TRUE if it is
 	 */
 	public boolean isCached(String luid) {
-		return localLibrary.getInfo(luid) != null;
+		return cacheLib.isCached(luid);
 	}
 
 	@Override
@@ -158,7 +151,7 @@ class GuiReader extends BasicReader {
 	// delete from local reader library
 	void clearLocalReaderCache(String luid) {
 		try {
-			localLibrary.delete(luid);
+			cacheLib.clearFromCache(luid);
 		} catch (IOException e) {
 			Instance.syserr(e);
 		}
@@ -167,10 +160,7 @@ class GuiReader extends BasicReader {
 	// delete from main library
 	void delete(String luid) {
 		try {
-			if (localLibrary.getInfo(luid) != null) {
-				localLibrary.delete(luid);
-			}
-			getLibrary().delete(luid);
+			cacheLib.delete(luid);
 		} catch (IOException e) {
 			Instance.syserr(e);
 		}
@@ -178,11 +168,7 @@ class GuiReader extends BasicReader {
 
 	// open the given book
 	void read(String luid, Progress pg) throws IOException {
-		File file = localLibrary.getFile(luid);
-		if (file == null) {
-			imprt(luid, pg);
-			file = localLibrary.getFile(luid);
-		}
+		File file = cacheLib.getFile(luid, pg);
 
 		// TODO: show a special page for the chapter?
 		openExternal(getLibrary().getInfo(luid), file);
@@ -190,10 +176,7 @@ class GuiReader extends BasicReader {
 
 	void changeType(String luid, String newSource) {
 		try {
-			if (localLibrary.getInfo(luid) != null) {
-				localLibrary.changeSource(luid, newSource, null);
-			}
-			getLibrary().changeSource(luid, newSource, null);
+			cacheLib.changeSource(luid, newSource, null);
 		} catch (IOException e) {
 			Instance.syserr(e);
 		}

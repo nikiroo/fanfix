@@ -57,12 +57,19 @@ public class LocalLibrary extends BasicLibrary {
 	 * 
 	 * @param baseDir
 	 *            the directory where to find the {@link Story} objects
+	 * @param text
+	 *            the {@link OutputType} to use for non-image documents
+	 * @param image
+	 *            the {@link OutputType} to use for image documents
+	 * @param defaultIsHtml
+	 *            if the given text or image is invalid, use HTML by default (if
+	 *            not, it will be INFO_TEXT/CBZ by default)
 	 */
 	public LocalLibrary(File baseDir, String text, String image,
 			boolean defaultIsHtml) {
-		this(baseDir, OutputType.valueOfNullOkUC(text,
+		this(baseDir, OutputType.valueOfAllOkUC(text,
 				defaultIsHtml ? OutputType.HTML : OutputType.INFO_TEXT),
-				OutputType.valueOfNullOkUC(image,
+				OutputType.valueOfAllOkUC(image,
 						defaultIsHtml ? OutputType.HTML : OutputType.CBZ));
 	}
 
@@ -94,8 +101,8 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public File getFile(String luid) {
-		File[] files = getStories(null).get(getInfo(luid));
+	public File getFile(String luid, Progress pg) {
+		File[] files = getStories(pg).get(getInfo(luid));
 		if (files != null) {
 			return files[1];
 		}
@@ -214,17 +221,10 @@ public class LocalLibrary extends BasicLibrary {
 			pg = new Progress();
 		}
 
-		LocalLibrary otherLocalLibrary = null;
-		if (other instanceof RemoteLibrary) {
-			otherLocalLibrary = ((RemoteLibrary) other).getLocalLibrary();
-		}
-
-		if (other instanceof LocalLibrary) {
-			otherLocalLibrary = (LocalLibrary) other;
-		}
-
 		// Check if we can simply copy the files instead of the whole process
-		if (otherLocalLibrary != null) {
+		if (other instanceof LocalLibrary) {
+			LocalLibrary otherLocalLibrary = (LocalLibrary) other;
+
 			MetaData meta = otherLocalLibrary.getInfo(luid);
 			String expectedType = ""
 					+ (meta != null && meta.isImageDocument() ? image : text);

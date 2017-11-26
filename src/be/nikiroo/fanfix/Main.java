@@ -5,9 +5,12 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.fanfix.library.BasicLibrary;
+import be.nikiroo.fanfix.library.CacheLibrary;
 import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.library.RemoteLibrary;
 import be.nikiroo.fanfix.library.RemoteLibraryServer;
@@ -185,8 +188,13 @@ public class Main {
 					host = args[i];
 				} else if (port == null) {
 					port = Integer.parseInt(args[i]);
-					BasicReader
-							.setDefaultLibrary(new RemoteLibrary(host, port));
+
+					File remoteCacheDir = Instance.getRemoteDir(host);
+					BasicLibrary lib = new RemoteLibrary(host, port);
+					lib = new CacheLibrary(remoteCacheDir, lib);
+
+					BasicReader.setDefaultLibrary(lib);
+					
 					action = MainAction.START;
 				} else {
 					exitCode = 255;
