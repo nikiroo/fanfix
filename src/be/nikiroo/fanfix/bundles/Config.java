@@ -15,6 +15,11 @@ public enum Config {
 	@Meta(description = "reader type (CLI = simple output to console, TUI = Text User Interface with menus and windows, GUI = a GUI with locally stored files)", format = Format.FIXED_LIST, list = {
 			"CLI", "GUI", "TUI" }, info = "Select the default reader to use to read stories")
 	READER_TYPE, //
+	@Meta(format = Format.COMBO_LIST, list = { "INFO_TEXT", "EPUB", "HTML",
+			"TEXT" }, info = "One of the known output type", description = "The type of output for the Local Reader for non-images documents")
+	NON_IMAGES_DOCUMENT_TYPE, //
+	@Meta(format = Format.COMBO_LIST, list = { "CBZ", "HTML" }, description = "The type of output for the Local Reader for images documents")
+	IMAGES_DOCUMENT_TYPE, //
 	@Meta(description = "absolute path, $HOME variable supported, / is always accepted as dir separator", format = Format.DIRECTORY, info = "The directory where to store temporary files, defaults to directory 'tmp' in the conig directory (usually $HOME/.fanfix)")
 	CACHE_DIR, //
 	@Meta(description = "delay in hours, or 0 for no cache, or -1 for infinite time (default)", format = Format.INT, info = "The delay after which a cached resource that is thought to change ~often is considered too old and triggers a refresh")

@@ -18,7 +18,6 @@ import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.LocalLibrary;
-import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.ui.UIUtils;
@@ -41,33 +40,9 @@ class GuiReader extends BasicReader {
 					"Cannote create cache directory for local reader: " + dir);
 		}
 
-		OutputType text = null;
-		OutputType images = null;
-
-		try {
-			text = OutputType.valueOfNullOkUC(Instance.getUiConfig().getString(
-					UiConfig.NON_IMAGES_DOCUMENT_TYPE));
-			if (text == null) {
-				text = OutputType.HTML;
-			}
-
-			images = OutputType.valueOfNullOkUC(Instance.getUiConfig()
-					.getString(UiConfig.IMAGES_DOCUMENT_TYPE));
-			if (images == null) {
-				images = OutputType.CBZ;
-			}
-		} catch (Exception e) {
-			UiConfig key = (text == null) ? UiConfig.NON_IMAGES_DOCUMENT_TYPE
-					: UiConfig.IMAGES_DOCUMENT_TYPE;
-			String value = Instance.getUiConfig().getString(key);
-
-			throw new IOException(
-					String.format(
-							"The configuration option %s is not valid: %s",
-							key, value), e);
-		}
-
-		localLibrary = new LocalLibrary(dir, text, images);
+		localLibrary = new LocalLibrary(dir, Instance.getUiConfig().getString(
+				UiConfig.GUI_NON_IMAGES_DOCUMENT_TYPE), Instance.getUiConfig()
+				.getString(UiConfig.GUI_IMAGES_DOCUMENT_TYPE), true);
 	}
 
 	@Override

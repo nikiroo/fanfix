@@ -65,6 +65,10 @@ public class RemoteLibraryServer extends Server {
 			if (args != null) {
 				return Instance.getLibrary().getStory(args, null);
 			}
+		} else if ("GET_COVER".equals(command)) {
+			if (args != null) {
+				return Instance.getLibrary().getCover(args);
+			}
 		}
 
 		return null;

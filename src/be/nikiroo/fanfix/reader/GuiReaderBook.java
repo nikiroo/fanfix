@@ -381,18 +381,22 @@ class GuiReaderBook extends JPanel {
 		BufferedImage resizedImage = null;
 		String id = null;
 
-		if (meta.getLuid() != null) {
-			id = meta.getUuid() + ".thumb_" + SPINE_WIDTH + "x" + COVER_WIDTH
-					+ "+" + SPINE_HEIGHT + "+" + COVER_HEIGHT + "@" + HOFFSET;
-			InputStream in = Instance.getCache().getFromCache(id);
-			if (in != null) {
-				try {
-					resizedImage = ImageUtils.fromStream(in);
-					in.close();
-					in = null;
-				} catch (IOException e) {
-					Instance.syserr(e);
-				}
+		String key = meta.getUuid();
+		if (key == null) {
+			// a fake meta (a source)
+			key = "source_" + meta.getSource();
+		}
+
+		id = key + ".thumb_" + SPINE_WIDTH + "x" + COVER_WIDTH + "+"
+				+ SPINE_HEIGHT + "+" + COVER_HEIGHT + "@" + HOFFSET;
+		InputStream in = Instance.getCache().getFromCache(id);
+		if (in != null) {
+			try {
+				resizedImage = ImageUtils.fromStream(in);
+				in.close();
+				in = null;
+			} catch (IOException e) {
+				Instance.syserr(e);
 			}
 		}
 
@@ -426,7 +430,7 @@ class GuiReaderBook extends JPanel {
 					ByteArrayOutputStream out = new ByteArrayOutputStream();
 					ImageIO.write(resizedImage, "png", out);
 					byte[] imageBytes = out.toByteArray();
-					InputStream in = new ByteArrayInputStream(imageBytes);
+					in = new ByteArrayInputStream(imageBytes);
 					Instance.getCache().addToCache(in, id);
 					in.close();
 					in = null;

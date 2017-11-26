@@ -372,7 +372,7 @@ public class Main {
 	 */
 	public static int export(String luid, String typeString, String target,
 			Progress pg) {
-		OutputType type = OutputType.valueOfNullOkUC(typeString);
+		OutputType type = OutputType.valueOfNullOkUC(typeString, null);
 		if (type == null) {
 			Instance.syserr(new Exception(trans(StringId.OUTPUT_DESC,
 					typeString)));
@@ -477,7 +477,7 @@ public class Main {
 				sourceName = sourceName.substring("file://".length());
 			}
 
-			OutputType type = OutputType.valueOfAllOkUC(typeString);
+			OutputType type = OutputType.valueOfAllOkUC(typeString, null);
 			if (type == null) {
 				Instance.syserr(new IOException(trans(
 						StringId.ERR_BAD_OUTPUT_TYPE, typeString)));

@@ -9,7 +9,6 @@ import java.util.List;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
-import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.ConnectActionClient;
@@ -44,8 +43,7 @@ public class RemoteLibrary extends BasicLibrary {
 		this.baseDir = Instance.getRemoteDir(host);
 		this.baseDir.mkdirs();
 
-		this.lib = new LocalLibrary(baseDir, OutputType.INFO_TEXT,
-				OutputType.CBZ);
+		this.lib = new LocalLibrary(baseDir);
 	}
 
 	@Override
@@ -61,7 +59,7 @@ public class RemoteLibrary extends BasicLibrary {
 			metas = new ArrayList<MetaData>();
 
 			try {
-				new ConnectActionClient(host, port, true, null) {
+				new ConnectActionClient(host, port, true) {
 					@Override
 					public void action(Version serverVersion) throws Exception {
 						try {
@@ -77,6 +75,14 @@ public class RemoteLibrary extends BasicLibrary {
 			} catch (IOException e) {
 				Instance.syserr(e);
 			}
+
+			List<String> test = new ArrayList<String>();
+			for (MetaData meta : metas) {
+				if (test.contains(meta.getLuid())) {
+					throw new RuntimeException("wwops");
+				}
+				test.add(meta.getLuid());
+			}
 		}
 
 		return metas;
@@ -88,7 +94,7 @@ public class RemoteLibrary extends BasicLibrary {
 		if (file == null) {
 			final File[] tmp = new File[1];
 			try {
-				new ConnectActionClient(host, port, true, null) {
+				new ConnectActionClient(host, port, true) {
 					@Override
 					public void action(Version serverVersion) throws Exception {
 						try {
@@ -119,13 +125,30 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public BufferedImage getCover(String luid) {
-		// Retrieve it from the network if needed:
-		if (lib.getInfo(luid) == null) {
-			getFile(luid);
+	public BufferedImage getCover(final String luid) {
+		// Retrieve it from the cache if possible:
+		if (lib.getInfo(luid) != null) {
+			return lib.getCover(luid);
 		}
 
-		return lib.getCover(luid);
+		final BufferedImage[] result = new BufferedImage[1];
+		try {
+			new ConnectActionClient(host, port, true) {
+				@Override
+				public void action(Version serverVersion) throws Exception {
+					try {
+						Object rep = send("GET_COVER " + luid);
+						result[0] = (BufferedImage) rep;
+					} catch (Exception e) {
+						Instance.syserr(e);
+					}
+				}
+			}.connect();
+		} catch (IOException e) {
+			Instance.syserr(e);
+		}
+
+		return result[0];
 	}
 
 	@Override
@@ -169,5 +192,14 @@ public class RemoteLibrary extends BasicLibrary {
 	@Override
 	protected Story doSave(Story story, Progress pg) throws IOException {
 		throw new java.lang.InternalError("Should not have been called");
+	}
+
+	/**
+	 * Return the backing local library.
+	 * 
+	 * @return the library
+	 */
+	LocalLibrary getLocalLibrary() {
+		return lib;
 	}
 }

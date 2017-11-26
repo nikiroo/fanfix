@@ -45,10 +45,36 @@ public class LocalLibrary extends BasicLibrary {
 	 * 
 	 * @param baseDir
 	 *            the directory where to find the {@link Story} objects
+	 */
+	public LocalLibrary(File baseDir) {
+		this(baseDir, Instance.getConfig().getString(
+				Config.NON_IMAGES_DOCUMENT_TYPE), Instance.getConfig()
+				.getString(Config.IMAGES_DOCUMENT_TYPE), false);
+	}
+
+	/**
+	 * Create a new {@link LocalLibrary} with the given back-end directory.
+	 * 
+	 * @param baseDir
+	 *            the directory where to find the {@link Story} objects
+	 */
+	public LocalLibrary(File baseDir, String text, String image,
+			boolean defaultIsHtml) {
+		this(baseDir, OutputType.valueOfNullOkUC(text,
+				defaultIsHtml ? OutputType.HTML : OutputType.INFO_TEXT),
+				OutputType.valueOfNullOkUC(image,
+						defaultIsHtml ? OutputType.HTML : OutputType.CBZ));
+	}
+
+	/**
+	 * Create a new {@link LocalLibrary} with the given back-end directory.
+	 * 
+	 * @param baseDir
+	 *            the directory where to find the {@link Story} objects
 	 * @param text
-	 *            the {@link OutputType} to save the text-focused stories into
+	 *            the {@link OutputType} to use for non-image documents
 	 * @param image
-	 *            the {@link OutputType} to save the images-focused stories into
+	 *            the {@link OutputType} to use for image documents
 	 */
 	public LocalLibrary(File baseDir, OutputType text, OutputType image) {
 		this.baseDir = baseDir;
@@ -188,15 +214,24 @@ public class LocalLibrary extends BasicLibrary {
 			pg = new Progress();
 		}
 
-		// Check if we can simply copy the files instead of the whole process
+		LocalLibrary otherLocalLibrary = null;
+		if (other instanceof RemoteLibrary) {
+			otherLocalLibrary = ((RemoteLibrary) other).getLocalLibrary();
+		}
+
 		if (other instanceof LocalLibrary) {
-			LocalLibrary otherLibrary = (LocalLibrary) other;
-			MetaData meta = otherLibrary.getInfo(luid);
-			String expectedType = "" + (meta.isImageDocument() ? image : text);
-			if (meta.getType().equals(expectedType)) {
-				File from = otherLibrary.getExpectedDir(meta.getSource());
+			otherLocalLibrary = (LocalLibrary) other;
+		}
+
+		// Check if we can simply copy the files instead of the whole process
+		if (otherLocalLibrary != null) {
+			MetaData meta = otherLocalLibrary.getInfo(luid);
+			String expectedType = ""
+					+ (meta != null && meta.isImageDocument() ? image : text);
+			if (meta != null && meta.getType().equals(expectedType)) {
+				File from = otherLocalLibrary.getExpectedDir(meta.getSource());
 				File to = this.getExpectedDir(meta.getSource());
-				List<File> sources = otherLibrary.getRelatedFiles(luid);
+				List<File> sources = otherLocalLibrary.getRelatedFiles(luid);
 				if (!sources.isEmpty()) {
 					pg.setMinMax(0, sources.size());
 				}
@@ -205,6 +240,7 @@ public class LocalLibrary extends BasicLibrary {
 					File target = new File(source.getAbsolutePath().replace(
 							from.getAbsolutePath(), to.getAbsolutePath()));
 					if (!source.equals(target)) {
+						target.getParentFile().mkdirs();
 						InputStream in = null;
 						try {
 							in = new FileInputStream(source);
@@ -232,6 +268,8 @@ public class LocalLibrary extends BasicLibrary {
 		}
 
 		super.imprt(other, luid, pg);
+
+		clearCache();
 	}
 
 	/**

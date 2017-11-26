@@ -110,17 +110,19 @@ public abstract class BasicOutput {
 
 		/**
 		 * Call {@link OutputType#valueOf(String)} after conversion to upper
-		 * case but return NULL for NULL and empty instead of raising an
+		 * case but return def for NULL and empty instead of raising an
 		 * exception.
 		 * 
 		 * @param typeName
 		 *            the possible type name
+		 * @param def
+		 *            the default value
 		 * 
 		 * @return NULL or the type
 		 */
-		public static OutputType valueOfNullOkUC(String typeName) {
+		public static OutputType valueOfNullOkUC(String typeName, OutputType def) {
 			if (typeName == null || typeName.isEmpty()) {
-				return null;
+				return def;
 			}
 
 			return OutputType.valueOfUC(typeName);
@@ -128,19 +130,20 @@ public abstract class BasicOutput {
 
 		/**
 		 * Call {@link OutputType#valueOf(String)} after conversion to upper
-		 * case but return NULL in case of error instead of raising an
-		 * exception.
+		 * case but return def in case of error instead of raising an exception.
 		 * 
 		 * @param typeName
 		 *            the possible type name
+		 * @param def
+		 *            the default value
 		 * 
 		 * @return NULL or the type
 		 */
-		public static OutputType valueOfAllOkUC(String typeName) {
+		public static OutputType valueOfAllOkUC(String typeName, OutputType def) {
 			try {
 				return OutputType.valueOfUC(typeName);
 			} catch (Exception e) {
-				return null;
+				return def;
 			}
 		}
 	}

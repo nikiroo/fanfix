@@ -12,7 +12,6 @@ import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.bundles.UiConfigBundle;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.library.LocalLibrary;
-import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.resources.Bundles;
 
@@ -122,8 +121,7 @@ public class Instance {
 		uiconfig = new UiConfigBundle();
 		trans = new StringIdBundle(getLang());
 		try {
-			lib = new LocalLibrary(getFile(Config.LIBRARY_DIR),
-					OutputType.INFO_TEXT, OutputType.CBZ);
+			lib = new LocalLibrary(getFile(Config.LIBRARY_DIR));
 		} catch (Exception e) {
 			syserr(new IOException("Cannot create library for directory: "
 					+ getFile(Config.LIBRARY_DIR), e));
@@ -134,7 +132,7 @@ public class Instance {
 		coverDir = getFile(Config.DEFAULT_COVERS_DIR);
 		File tmp = getFile(Config.CACHE_DIR);
 		readerTmp = getFile(UiConfig.CACHE_DIR_LOCAL_READER);
-		remoteDir = new File(getFile(Config.LIBRARY_DIR), "remote");
+		remoteDir = new File(configDir, "remote");
 
 		if (checkEnv("NOUTF")) {
 			trans.setUnicode(false);
