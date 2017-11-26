@@ -1,5 +1,10 @@
 # Fanfix
 
+# Version WIP
+
+- Bug fixes
+- Remote server/client improvements
+
 ## Version 1.6.2
 
 - Better progress bars

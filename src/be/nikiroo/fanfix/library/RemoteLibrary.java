@@ -46,8 +46,8 @@ public class RemoteLibrary extends BasicLibrary {
 	protected List<MetaData> getMetas(Progress pg) {
 		// TODO: progress
 		final List<MetaData> metas = new ArrayList<MetaData>();
-		MetaData[] fromNetwork = this
-				.<MetaData[]> getRemoteObject("GET_METADATA *");
+		MetaData[] fromNetwork = this.<MetaData[]> getRemoteObject( //
+				new Object[] { "GET_METADATA", "*" });
 
 		if (fromNetwork != null) {
 			for (MetaData meta : fromNetwork) {
@@ -60,12 +60,19 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public BufferedImage getCover(final String luid) {
-		return this.<BufferedImage> getRemoteObject("GET_COVER " + luid);
+		return this.<BufferedImage> getRemoteObject( //
+				new Object[] { "GET_COVER", luid });
+	}
+
+	@Override
+	public BufferedImage getSourceCover(final String source) {
+		return this.<BufferedImage> getRemoteObject( //
+				new Object[] { "GET_SOURCE_COVER", source });
 	}
 
 	@Override
 	public synchronized Story getStory(final String luid, Progress pg) {
-		return this.<Story> getRemoteObject("GET_STORY " + luid);
+		return this.<Story> getRemoteObject(new Object[] { "GET_STORY", luid });
 	}
 
 	@Override
@@ -75,20 +82,24 @@ public class RemoteLibrary extends BasicLibrary {
 	@Override
 	public synchronized Story save(Story story, String luid, Progress pg)
 			throws IOException {
-		throw new java.lang.InternalError(
-				"No write support allowed on remote Libraries");
+		getRemoteObject(new Object[] { "SAVE_STORY", story, luid });
+
+		// because the meta changed:
+		clearCache();
+		story.setMeta(getInfo(luid));
+
+		return story;
 	}
 
 	@Override
 	public synchronized void delete(String luid) throws IOException {
-		throw new java.lang.InternalError(
-				"No write support allowed on remote Libraries");
+		getRemoteObject(new Object[] { "DELETE_STORY", luid });
 	}
 
 	@Override
 	public void setSourceCover(String source, String luid) {
-		throw new java.lang.InternalError(
-				"No write support allowed on remote Libraries");
+		this.<BufferedImage> getRemoteObject( //
+		new Object[] { "SET_SOURCE_COVER", source, luid });
 	}
 
 	@Override
@@ -125,7 +136,7 @@ public class RemoteLibrary extends BasicLibrary {
 	 * @return the object or NULL
 	 */
 	@SuppressWarnings("unchecked")
-	private <T> T getRemoteObject(final String command) {
+	private <T> T getRemoteObject(final Object[] command) {
 		final Object[] result = new Object[1];
 		try {
 			new ConnectActionClient(host, port, true) {

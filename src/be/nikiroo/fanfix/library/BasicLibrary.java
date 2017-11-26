@@ -319,6 +319,7 @@ abstract public class BasicLibrary {
 					if (type != null) {
 						story = BasicSupport.getSupport(type).process(url,
 								pgProcess);
+						story.setMeta(meta);
 					} else {
 						throw new IOException("Unknown type: " + meta.getType());
 					}

@@ -608,6 +608,7 @@ class GuiReaderFrame extends JFrame {
 							reader.clearLocalReaderCache(selectedBook.getMeta()
 									.getLuid());
 							selectedBook.setCached(false);
+							GuiReaderBook.clearIcon(selectedBook.getMeta());
 							SwingUtilities.invokeLater(new Runnable() {
 								@Override
 								public void run() {
@@ -785,6 +786,9 @@ class GuiReaderFrame extends JFrame {
 					reader.getLibrary().setSourceCover(
 							selectedBook.getMeta().getSource(),
 							selectedBook.getMeta().getLuid());
+					MetaData source = selectedBook.getMeta().clone();
+					source.setLuid(null);
+					GuiReaderBook.clearIcon(source);
 				}
 			}
 		});

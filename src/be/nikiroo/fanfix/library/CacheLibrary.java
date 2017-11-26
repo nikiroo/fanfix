@@ -78,9 +78,7 @@ public class CacheLibrary extends BasicLibrary {
 			try {
 				cacheLib.imprt(lib, luid, pgImport);
 				pgImport.done();
-				Story story = cacheLib.getStory(luid, pgGet);
-				metas.remove(story.getMeta());
-				metas.add(story.getMeta());
+				clearCache();
 			} catch (IOException e) {
 				Instance.syserr(e);
 			}
@@ -98,12 +96,24 @@ public class CacheLibrary extends BasicLibrary {
 
 	@Override
 	public BufferedImage getCover(final String luid) {
-		// Retrieve it from the cache if possible:
 		if (isCached(luid)) {
 			return cacheLib.getCover(luid);
 		}
 
+		// We could update the cache here, but it's not easy
 		return lib.getCover(luid);
+	}
+
+	@Override
+	public BufferedImage getSourceCover(String source) {
+		// no cache for the source cover
+		return lib.getSourceCover(source);
+	}
+
+	@Override
+	public void setSourceCover(String source, String luid) {
+		lib.setSourceCover(source, luid);
+		cacheLib.setSourceCover(source, getSourceCover(source));
 	}
 
 	@Override
@@ -123,15 +133,11 @@ public class CacheLibrary extends BasicLibrary {
 
 	@Override
 	public synchronized void delete(String luid) throws IOException {
-		cacheLib.delete(luid);
+		if (isCached(luid)) {
+			cacheLib.delete(luid);
+		}
 		lib.delete(luid);
 		clearCache();
-	}
-
-	@Override
-	public void setSourceCover(String source, String luid) {
-		cacheLib.setSourceCover(source, luid);
-		lib.setSourceCover(source, luid);
 	}
 
 	@Override

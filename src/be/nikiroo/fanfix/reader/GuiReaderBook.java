@@ -140,7 +140,7 @@ class GuiReaderBook extends JPanel {
 			optSecondary = "";
 		}
 
-		icon = new JLabel(generateCoverIcon(meta));
+		icon = new JLabel(generateCoverIcon());
 		title = new JLabel(
 				String.format(
 						"<html>"
@@ -371,24 +371,12 @@ class GuiReaderBook extends JPanel {
 	/**
 	 * Generate a cover icon based upon the given {@link MetaData}.
 	 * 
-	 * @param meta
-	 *            the {@link MetaData} about the target {@link Story} or source
-	 *            (if no LUID)
-	 * 
 	 * @return the icon
 	 */
-	private ImageIcon generateCoverIcon(MetaData meta) {
+	private ImageIcon generateCoverIcon() {
 		BufferedImage resizedImage = null;
-		String id = null;
+		String id = getIconId(meta);
 
-		String key = meta.getUuid();
-		if (key == null) {
-			// a fake meta (a source)
-			key = "source_" + meta.getSource();
-		}
-
-		id = key + ".thumb_" + SPINE_WIDTH + "x" + COVER_WIDTH + "+"
-				+ SPINE_HEIGHT + "+" + COVER_HEIGHT + "@" + HOFFSET;
 		InputStream in = Instance.getCache().getFromCache(id);
 		if (in != null) {
 			try {
@@ -443,5 +431,39 @@ class GuiReaderBook extends JPanel {
 		}
 
 		return new ImageIcon(resizedImage);
+	}
+
+	/**
+	 * Manually clear the icon set for this item.
+	 * 
+	 * @param meta
+	 *            the meta of the story or source (if luid is null)
+	 */
+	public static void clearIcon(MetaData meta) {
+		String id = getIconId(meta);
+		Instance.getCache().removeFromCache(id);
+	}
+
+	/**
+	 * Get a unique ID from this meta (note that if the luid is null, it is
+	 * considered a source and not a {@link Story}).
+	 * 
+	 * @param meta
+	 *            the meta
+	 * @return the unique ID
+	 */
+	private static String getIconId(MetaData meta) {
+		String id = null;
+
+		String key = meta.getUuid();
+		if (meta.getLuid() == null) {
+			// a fake meta (== a source)
+			key = "source_" + meta.getSource();
+		}
+
+		id = key + ".thumb_" + SPINE_WIDTH + "x" + COVER_WIDTH + "+"
+				+ SPINE_HEIGHT + "+" + COVER_HEIGHT + "@" + HOFFSET;
+
+		return id;
 	}
 }

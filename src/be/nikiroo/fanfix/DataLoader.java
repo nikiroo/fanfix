@@ -269,6 +269,18 @@ public class DataLoader {
 	}
 
 	/**
+	 * Remove the given resource from the cache.
+	 * 
+	 * @param uniqueID
+	 *            a unique ID used to locate the cached resource
+	 * 
+	 * @return TRUE if it was removed
+	 */
+	public boolean removeFromCache(String uniqueID) {
+		return cache.remove(uniqueID);
+	}
+
+	/**
 	 * Clean the cache (delete the cached items).
 	 * 
 	 * @param onlyOld

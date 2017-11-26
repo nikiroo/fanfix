@@ -331,14 +331,14 @@ public class LocalLibrary extends BasicLibrary {
 	 * The directory (full path) where the new {@link Story} related to this
 	 * {@link MetaData} should be located on disk.
 	 * 
-	 * @param type
+	 * @param source
 	 *            the type (source)
 	 * 
 	 * @return the target directory
 	 */
-	private File getExpectedDir(String type) {
-		String source = type.replaceAll("[^a-zA-Z0-9._+-]", "_");
-		return new File(baseDir, source);
+	private File getExpectedDir(String source) {
+		String sanitizedSource = source.replaceAll("[^a-zA-Z0-9._+-]", "_");
+		return new File(baseDir, sanitizedSource);
 	}
 
 	/**
@@ -500,5 +500,24 @@ public class LocalLibrary extends BasicLibrary {
 		}
 
 		return stories;
+	}
+
+	/**
+	 * Fix the source cover to the given story cover.
+	 * 
+	 * @param source
+	 *            the source to change
+	 * @param coverImage
+	 *            the cover image
+	 */
+	void setSourceCover(String source, BufferedImage coverImage) {
+		sourceCovers.put(source, coverImage);
+		File cover = new File(getExpectedDir(source), ".cover.png");
+		try {
+			ImageIO.write(sourceCovers.get(source), "png", cover);
+		} catch (IOException e) {
+			Instance.syserr(e);
+			sourceCovers.remove(source);
+		}
 	}
 }
