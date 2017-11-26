@@ -82,12 +82,6 @@ public class Instance {
 
 		uiconfig = new UiConfigBundle();
 		trans = new StringIdBundle(getLang());
-		try {
-			lib = new LocalLibrary(getFile(Config.LIBRARY_DIR));
-		} catch (Exception e) {
-			syserr(new IOException("Cannot create library for directory: "
-					+ getFile(Config.LIBRARY_DIR), e));
-		}
 
 		boolean debug = Instance.getConfig()
 				.getBoolean(Config.DEBUG_ERR, false);
@@ -109,6 +103,13 @@ public class Instance {
 		tracer = new TraceHandler();
 		tracer.setShowErrorDetails(debug);
 		tracer.setShowTraces(trace);
+
+		try {
+			lib = new LocalLibrary(getFile(Config.LIBRARY_DIR));
+		} catch (Exception e) {
+			syserr(new IOException("Cannot create library for directory: "
+					+ getFile(Config.LIBRARY_DIR), e));
+		}
 
 		// Could have used: System.getProperty("java.io.tmpdir")
 		if (tmp == null) {
@@ -200,6 +201,10 @@ public class Instance {
 	 * @return the {@link LocalLibrary}
 	 */
 	public static BasicLibrary getLibrary() {
+		if (lib == null) {
+			throw new NullPointerException("We don't have a library to return");
+		}
+
 		return lib;
 	}
 

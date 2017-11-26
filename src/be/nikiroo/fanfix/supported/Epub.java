@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -180,6 +181,14 @@ class Epub extends InfoText {
 			}
 			tmpInfo.delete();
 		} else {
+			if (title == null || title.isEmpty()) {
+				title = new File(source.getPath()).getName();
+				if (title.toLowerCase().endsWith(".cbz")) {
+					title = title.substring(0, title.length() - 4);
+				}
+				title = URLDecoder.decode(title, "UTF-8").trim();
+			}
+
 			meta = new MetaData();
 			meta.setLang("EN");
 			meta.setTags(new ArrayList<String>());

@@ -18,7 +18,6 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.library.CacheLibrary;
-import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.ui.UIUtils;

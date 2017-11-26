@@ -4,6 +4,7 @@
 
 - Bug fixes
 - Remote server/client improvements
+- Better support for some CBZ files (if SUMMARY or URL files are present in it)
 
 ## Version 1.6.2
 
