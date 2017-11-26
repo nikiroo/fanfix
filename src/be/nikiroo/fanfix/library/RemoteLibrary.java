@@ -92,7 +92,7 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public synchronized File getFile(final String luid) {
+	public synchronized File getFile(final String luid, Progress pg) {
 		throw new java.lang.InternalError(
 				"Operation not supportorted on remote Libraries");
 	}
