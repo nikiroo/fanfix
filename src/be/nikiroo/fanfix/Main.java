@@ -62,9 +62,10 @@ public class Main {
 	 * <li>--set-reader [reader type]: set the reader type to CLI, TUI or LOCAL
 	 * for this command</li>
 	 * <li>--version: get the version of the program</li>
-	 * <li>--server [port]: start a server on this port</li>
-	 * <li>--stop-server [port]: stop the running server on this port if any</li>
-	 * <li>--remote [host] [port]: use a the given remote library</li>
+	 * <li>--server [key] [port]: start a server on this port</li>
+	 * <li>--stop-server [key] [port]: stop the running server on this port if
+	 * any</li>
+	 * <li>--remote [key] [host] [port]: use a the given remote library</li>
 	 * </ul>
 	 * 
 	 * @param args
@@ -76,6 +77,7 @@ public class Main {
 		String sourceString = null;
 		String chapString = null;
 		String target = null;
+		String key = null;
 		MainAction action = MainAction.START;
 		Boolean plusInfo = null;
 		String host = null;
@@ -179,20 +181,24 @@ public class Main {
 				break;
 			case SERVER:
 			case STOP_SERVER:
-				if (port == null) {
+				if (key == null) {
+					key = args[i];
+				} else if (port == null) {
 					port = Integer.parseInt(args[i]);
 				} else {
 					exitCode = 255;
 				}
 				break;
 			case REMOTE:
-				if (host == null) {
+				if (key == null) {
+					key = args[i];
+				} else if (host == null) {
 					host = args[i];
 				} else if (port == null) {
 					port = Integer.parseInt(args[i]);
 
 					File remoteCacheDir = Instance.getRemoteDir(host);
-					BasicLibrary lib = new RemoteLibrary(host, port);
+					BasicLibrary lib = new RemoteLibrary(key, host, port);
 					lib = new CacheLibrary(remoteCacheDir, lib);
 
 					BasicReader.setDefaultLibrary(lib);
@@ -319,7 +325,7 @@ public class Main {
 					break;
 				}
 				try {
-					Server server = new RemoteLibraryServer(port);
+					Server server = new RemoteLibraryServer(key, port);
 					server.start();
 					System.out.println("Remote server started on: " + port);
 				} catch (IOException e) {
@@ -333,12 +339,13 @@ public class Main {
 				}
 
 				try {
+					final String fkey = key;
 					new ConnectActionClient(host, port, true) {
 						@Override
 						public void action(Version serverVersion)
 								throws Exception {
 							try {
-								send(new Object[] { "EXIT" });
+								send(new Object[] { fkey, "EXIT" });
 							} catch (Exception e) {
 								Instance.syserr(e);
 							}

@@ -23,16 +23,21 @@ import be.nikiroo.utils.serial.ConnectActionClient;
 public class RemoteLibrary extends BasicLibrary {
 	private String host;
 	private int port;
+	private final String key;
 
 	/**
 	 * Create a {@link RemoteLibrary} linked to the given server.
 	 * 
+	 * @param key
+	 *            the key that will allow us to exchange information with the
+	 *            server
 	 * @param host
 	 *            the host to contact or NULL for localhost
 	 * @param port
 	 *            the port to contact it on
 	 */
-	public RemoteLibrary(String host, int port) {
+	public RemoteLibrary(String key, String host, int port) {
+		this.key = key;
 		this.host = host;
 		this.port = port;
 	}
@@ -47,7 +52,7 @@ public class RemoteLibrary extends BasicLibrary {
 		// TODO: progress
 		final List<MetaData> metas = new ArrayList<MetaData>();
 		MetaData[] fromNetwork = this.<MetaData[]> getRemoteObject( //
-				new Object[] { "GET_METADATA", "*" });
+				new Object[] { key, "GET_METADATA", "*" });
 
 		if (fromNetwork != null) {
 			for (MetaData meta : fromNetwork) {
@@ -61,18 +66,19 @@ public class RemoteLibrary extends BasicLibrary {
 	@Override
 	public BufferedImage getCover(final String luid) {
 		return this.<BufferedImage> getRemoteObject( //
-				new Object[] { "GET_COVER", luid });
+				new Object[] { key, "GET_COVER", luid });
 	}
 
 	@Override
 	public BufferedImage getSourceCover(final String source) {
 		return this.<BufferedImage> getRemoteObject( //
-				new Object[] { "GET_SOURCE_COVER", source });
+				new Object[] { key, "GET_SOURCE_COVER", source });
 	}
 
 	@Override
 	public synchronized Story getStory(final String luid, Progress pg) {
-		return this.<Story> getRemoteObject(new Object[] { "GET_STORY", luid });
+		return this.<Story> getRemoteObject( //
+				new Object[] { key, "GET_STORY", luid });
 	}
 
 	@Override
@@ -82,7 +88,7 @@ public class RemoteLibrary extends BasicLibrary {
 	@Override
 	public synchronized Story save(Story story, String luid, Progress pg)
 			throws IOException {
-		getRemoteObject(new Object[] { "SAVE_STORY", story, luid });
+		getRemoteObject(new Object[] { key, "SAVE_STORY", story, luid });
 
 		// because the meta changed:
 		clearCache();
@@ -93,13 +99,13 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public synchronized void delete(String luid) throws IOException {
-		getRemoteObject(new Object[] { "DELETE_STORY", luid });
+		getRemoteObject(new Object[] { key, "DELETE_STORY", luid });
 	}
 
 	@Override
 	public void setSourceCover(String source, String luid) {
 		this.<BufferedImage> getRemoteObject( //
-		new Object[] { "SET_SOURCE_COVER", source, luid });
+		new Object[] { key, "SET_SOURCE_COVER", source, luid });
 	}
 
 	@Override
