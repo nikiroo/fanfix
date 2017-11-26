@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version 2.2.2
+
+- New method in Cache: manually delete items
+
 ## Version 2.2.1
 
 - Small fixes, especially in Progress

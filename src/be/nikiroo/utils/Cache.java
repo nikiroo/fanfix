@@ -152,9 +152,6 @@ public class Cache {
 	 *            used to check if the file is too old to keep or not
 	 * 
 	 * @return the opened resource if found, NULL if not
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
 	 */
 	public InputStream load(String uniqueID, boolean allowTooOld, boolean stable) {
 		return load(getCached(uniqueID), allowTooOld, stable);
@@ -172,19 +169,15 @@ public class Cache {
 	 *            used to check if the file is too old to keep or not
 	 * 
 	 * @return the opened resource if found, NULL if not
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
 	 */
-	public InputStream load(URL url, boolean allowTooOld, boolean stable)
-			throws IOException {
+	public InputStream load(URL url, boolean allowTooOld, boolean stable) {
 		return load(getCached(url), allowTooOld, stable);
 	}
 
 	/**
 	 * Open a resource from the cache if it exists.
 	 * 
-	 * @param url
+	 * @param cached
 	 *            the resource to open
 	 * @param allowTooOld
 	 *            allow files even if they are considered too old
@@ -193,9 +186,6 @@ public class Cache {
 	 *            used to check if the file is too old to keep or not
 	 * 
 	 * @return the opened resource if found, NULL if not
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
 	 */
 	private InputStream load(File cached, boolean allowTooOld, boolean stable) {
 		if (cached.exists() && (allowTooOld || !isOld(cached, stable))) {
@@ -236,6 +226,8 @@ public class Cache {
 	 * @param url
 	 *            the {@link URL} used to locate the cached resource
 	 * 
+	 * @return the actual cache file
+	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
@@ -252,12 +244,40 @@ public class Cache {
 	 * @param cached
 	 *            the cached {@link File} to save to
 	 * 
+	 * @return the actual cache file
+	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
 	private File save(InputStream in, File cached) throws IOException {
 		IOUtils.write(in, cached);
 		return cached;
+	}
+
+	/**
+	 * Remove the given resource from the cache.
+	 * 
+	 * @param uniqueID
+	 *            a unique ID used to locate the cached resource
+	 * 
+	 * @return TRUE if it was removed
+	 */
+	public boolean remove(String uniqueID) {
+		File cached = getCached(uniqueID);
+		return cached.delete();
+	}
+
+	/**
+	 * Remove the given resource from the cache.
+	 * 
+	 * @param url
+	 *            the {@link URL} used to locate the cached resource
+	 * 
+	 * @return TRUE if it was removed
+	 */
+	public boolean remove(URL url) {
+		File cached = getCached(url);
+		return cached.delete();
 	}
 
 	/**
