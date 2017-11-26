@@ -1,5 +1,10 @@
 # nikiroo-utils
 
+## Version 2.2.3
+
+- Fix in readSmallStream
+- Change traces handling
+
 ## Version 2.2.2
 
 - New method in Cache: manually delete items

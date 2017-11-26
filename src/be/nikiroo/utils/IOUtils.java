@@ -193,19 +193,19 @@ public class IOUtils {
 	 *             in case of I/O error
 	 */
 	public static String readSmallStream(InputStream stream) throws IOException {
+		// do NOT close the reader, or the related stream will be closed, too
+		// reader.close();
 		BufferedReader reader = new BufferedReader(
 				new InputStreamReader(stream));
-		try {
-			StringBuilder builder = new StringBuilder();
-			for (String line = reader.readLine(); line != null; line = reader
-					.readLine()) {
-				builder.append(line);
-				builder.append("\n");
-			}
-			return builder.toString();
-		} finally {
-			reader.close();
+
+		StringBuilder builder = new StringBuilder();
+		for (String line = reader.readLine(); line != null; line = reader
+				.readLine()) {
+			builder.append(line);
+			builder.append("\n");
 		}
+
+		return builder.toString();
 	}
 
 	/**
