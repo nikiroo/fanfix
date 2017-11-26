@@ -153,7 +153,9 @@ public class CacheLibrary extends BasicLibrary {
 		pg.addProgress(pgCache, 1);
 		pg.addProgress(pgOrig, 1);
 
-		cacheLib.changeSource(luid, newSource, pgCache);
+		if (isCached(luid)) {
+			cacheLib.changeSource(luid, newSource, pgCache);
+		}
 		pgCache.done();
 		lib.changeSource(luid, newSource, pgOrig);
 		pgOrig.done();
@@ -184,8 +186,10 @@ public class CacheLibrary extends BasicLibrary {
 	 *             in case of I/O error
 	 */
 	public void clearFromCache(String luid) throws IOException {
-		cacheLib.delete(luid);
-		clearCache();
+		if (isCached(luid)) {
+			cacheLib.delete(luid);
+			clearCache();
+		}
 	}
 
 	// All the following methods are only used by Save and Delete in
