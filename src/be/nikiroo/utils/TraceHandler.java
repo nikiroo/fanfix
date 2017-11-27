@@ -7,44 +7,32 @@ package be.nikiroo.utils;
  * @author niki
  */
 public class TraceHandler {
-	private boolean showErrorDetails;
+	private boolean showErrors;
 	private boolean showTraces;
+	private boolean showErrorDetails;
 
 	/**
-	 * Show more details (usually equivalent to the value of DEBUG).
-	 * 
-	 * @return TRUE or FALSE
+	 * Create a default {@link TraceHandler} that will print errors on stderr
+	 * (without details) and no traces.
 	 */
-	public boolean isShowErrorDetails() {
-		return showErrorDetails;
+	public TraceHandler() {
+		this(true, false, false);
 	}
 
 	/**
-	 * Show more details (usually equivalent to the value of DEBUG).
+	 * Create a default {@link TraceHandler}.
 	 * 
+	 * @param showErrors
+	 *            show errors on stderr
 	 * @param showErrorDetails
-	 *            TRUE or FALSE
-	 */
-	public void setShowErrorDetails(boolean showErrorDetails) {
-		this.showErrorDetails = showErrorDetails;
-	}
-
-	/**
-	 * Show DEBUG traces.
-	 * 
-	 * @return TRUE or FALSE
-	 */
-	public boolean isShowTraces() {
-		return showTraces;
-	}
-
-	/**
-	 * Show DEBUG traces.
-	 * 
+	 *            show more details when printing errors
 	 * @param showTraces
-	 *            TRUE or FALSE
+	 *            show traces on stdout
 	 */
-	public void setShowTraces(boolean showTraces) {
+	public TraceHandler(boolean showErrors, boolean showErrorDetails,
+			boolean showTraces) {
+		this.showErrors = showErrors;
+		this.showErrorDetails = showErrorDetails;
 		this.showTraces = showTraces;
 	}
 
@@ -55,10 +43,12 @@ public class TraceHandler {
 	 *            the exception
 	 */
 	public void error(Exception e) {
-		if (isShowErrorDetails()) {
-			e.printStackTrace();
-		} else {
-			error(e.getMessage());
+		if (showErrors) {
+			if (showErrorDetails) {
+				e.printStackTrace();
+			} else {
+				error(e.getMessage());
+			}
 		}
 	}
 
@@ -69,7 +59,9 @@ public class TraceHandler {
 	 *            the error message
 	 */
 	public void error(String message) {
-		System.err.println(message);
+		if (showErrors) {
+			System.err.println(message);
+		}
 	}
 
 	/**
@@ -81,7 +73,7 @@ public class TraceHandler {
 	 *            the trace message
 	 */
 	public void trace(String message) {
-		if (isShowTraces()) {
+		if (showTraces) {
 			System.out.println(message);
 		}
 	}

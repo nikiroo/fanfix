@@ -42,6 +42,7 @@ abstract class ConnectAction {
 		}).start();
 	}
 
+	// connect, do the action (sync)
 	public void connect() {
 		try {
 			in = new BufferedReader(new InputStreamReader(s.getInputStream(),
@@ -81,7 +82,11 @@ abstract class ConnectAction {
 			NoSuchMethodException, ClassNotFoundException {
 		synchronized (lock) {
 			String rep = sendString(new Exporter().append(data).toString(true));
-			return new Importer().read(rep).getValue();
+			if (rep != null) {
+				return new Importer().read(rep).getValue();
+			}
+
+			return null;
 		}
 	}
 
