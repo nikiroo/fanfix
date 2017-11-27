@@ -114,6 +114,8 @@ abstract public class Server implements Runnable {
 
 	/**
 	 * Return the assigned port.
+	 * 
+	 * @return the assigned port
 	 */
 	public int getPort() {
 		return port;
@@ -189,13 +191,8 @@ abstract public class Server implements Runnable {
 				exiting = true;
 
 				try {
-					new ConnectActionClient(createSocket(null, port, ssl)) {
-						@Override
-						public void action(Version serverVersion)
-								throws Exception {
-						}
-					}.connect();
-
+					new ConnectActionClient(createSocket(null, port, ssl))
+							.connect();
 					long time = 0;
 					while (ss != null && timeout > 0 && timeout > time) {
 						Thread.sleep(10);
@@ -222,17 +219,14 @@ abstract public class Server implements Runnable {
 	@Override
 	public void run() {
 		try {
-			tracer.trace(name + ": server starting on port " + port);
 			while (started && !exiting) {
 				count(1);
 				Socket s = ss.accept();
 				new ConnectActionServer(s) {
-					private Version clientVersion = new Version();
-
 					@Override
-					public void action(Version dummy) throws Exception {
+					public void action(Version clientVersion) throws Exception {
 						try {
-							for (Object data = flush(); true; data = flush()) {
+							for (Object data = rec(); true; data = rec()) {
 								Object rep = null;
 								try {
 									rep = onRequest(this, clientVersion, data);
@@ -243,6 +237,7 @@ abstract public class Server implements Runnable {
 							}
 						} catch (NullPointerException e) {
 							// Client has no data any more, we quit
+							tracer.trace("Client has data no more, stopping connection");
 						}
 					}
 
@@ -253,11 +248,6 @@ abstract public class Server implements Runnable {
 						} finally {
 							count(-1);
 						}
-					}
-
-					@Override
-					protected void onClientVersionReceived(Version clientVersion) {
-						this.clientVersion = clientVersion;
 					}
 				}.connectAsync();
 			}

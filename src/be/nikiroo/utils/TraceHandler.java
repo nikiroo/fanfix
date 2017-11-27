@@ -67,7 +67,7 @@ public class TraceHandler {
 	/**
 	 * A trace happened, show it.
 	 * <p>
-	 * Will only be effective if {@link TraceHandler#isShowTraces()} is true.
+	 * Will only be effective if {@link TraceHandler#showTraces} is true.
 	 * 
 	 * @param message
 	 *            the trace message
@@ -76,5 +76,29 @@ public class TraceHandler {
 		if (showTraces) {
 			System.out.println(message);
 		}
+	}
+
+	// old stuff:
+
+	/**
+	 * Use the parameters in the constructor instead.
+	 * 
+	 * @param showTraces
+	 *            show the traces
+	 */
+	@Deprecated
+	public void setShowTraces(boolean showTraces) {
+		this.showTraces = showTraces;
+	}
+
+	/**
+	 * Use the parameters in the constructor instead.
+	 * 
+	 * @param showErrorDetails
+	 *            show the details on errors
+	 */
+	@Deprecated
+	public void setShowErrorDetails(boolean showErrorDetails) {
+		this.showErrorDetails = showErrorDetails;
 	}
 }

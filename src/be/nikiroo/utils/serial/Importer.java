@@ -26,6 +26,9 @@ public class Importer {
 
 	private String currentFieldName;
 
+	/**
+	 * Create a new {@link Importer}.
+	 */
 	public Importer() {
 		map = new HashMap<String, Object>();
 		map.put("NULL", null);
