@@ -38,7 +38,7 @@ class SerialTest extends TestLauncher {
 				// TODO: remove
 				server.setTraceHandler(new TraceHandler(true, true, true));
 
-				server.start();
+				server.start(false);
 
 				try {
 					new ConnectActionClient(null, server.getPort(), ssl) {
@@ -80,7 +80,7 @@ class SerialTest extends TestLauncher {
 					}
 				};
 
-				server.start();
+				server.start(false);
 
 				try {
 					new ConnectActionClient(null, server.getPort(), ssl) {
@@ -128,7 +128,7 @@ class SerialTest extends TestLauncher {
 					}
 				};
 
-				server.start();
+				server.start(false);
 
 				try {
 					new ConnectActionClient(null, server.getPort(), ssl) {
@@ -177,7 +177,7 @@ class SerialTest extends TestLauncher {
 					}
 				};
 
-				server.start();
+				server.start(false);
 
 				try {
 					new ConnectActionClient(null, server.getPort(), ssl) {

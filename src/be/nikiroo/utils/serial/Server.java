@@ -125,19 +125,38 @@ abstract public class Server implements Runnable {
 	 * Start the server (listen on the network for new connections).
 	 * <p>
 	 * Can only be called once.
+	 * <p>
+	 * This call is synchronous.
 	 */
 	public void start() {
+		start(true);
+	}
+
+	/**
+	 * Start the server (listen on the network for new connections).
+	 * <p>
+	 * Can only be called once.
+	 * 
+	 * @param wait
+	 *            TRUE for synchronous, FALSE for asynchronous
+	 */
+	public void start(boolean wait) {
 		boolean ok = false;
 		synchronized (lock) {
 			if (!started && ss != null) {
-				started = true;
-				new Thread(this).start();
 				ok = true;
+				started = true;
+				if (!wait) {
+					new Thread(this).start();
+				}
 			}
 		}
 
 		if (ok) {
 			tracer.trace(name + ": server started on port " + port);
+			if (wait) {
+				run();
+			}
 		} else if (ss == null) {
 			tracer.error(name + ": cannot start server on port " + port
 					+ ", it has already been used");
