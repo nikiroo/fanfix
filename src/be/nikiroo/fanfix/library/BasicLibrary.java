@@ -326,7 +326,7 @@ abstract public class BasicLibrary {
 				} catch (IOException e) {
 					// We should not have not-supported files in the
 					// library
-					Instance.syserr(new IOException(
+					Instance.getTraceHandler().error(new IOException(
 							"Cannot load file from library: " + file, e));
 				} finally {
 					pgProcess.done();

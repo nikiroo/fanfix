@@ -80,7 +80,7 @@ public class CacheLibrary extends BasicLibrary {
 				pgImport.done();
 				clearCache();
 			} catch (IOException e) {
-				Instance.syserr(e);
+				Instance.getTraceHandler().error(e);
 			}
 
 			pgImport.done();

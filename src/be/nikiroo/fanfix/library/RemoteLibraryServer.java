@@ -8,8 +8,8 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.Version;
-import be.nikiroo.utils.serial.ConnectActionServer;
-import be.nikiroo.utils.serial.Server;
+import be.nikiroo.utils.serial.server.ConnectActionServerObject;
+import be.nikiroo.utils.serial.server.ServerObject;
 
 /**
  * Create a new remote server that will listen for order on the given port.
@@ -32,7 +32,7 @@ import be.nikiroo.utils.serial.Server;
  * 
  * @author niki
  */
-public class RemoteLibraryServer extends Server {
+public class RemoteLibraryServer extends ServerObject {
 	private final String key;
 
 	/**
@@ -53,7 +53,7 @@ public class RemoteLibraryServer extends Server {
 	}
 
 	@Override
-	protected Object onRequest(ConnectActionServer action,
+	protected Object onRequest(ConnectActionServerObject action,
 			Version clientVersion, Object data) throws Exception {
 		String key = "";
 		String command = "";

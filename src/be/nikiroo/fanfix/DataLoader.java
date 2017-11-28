@@ -99,8 +99,8 @@ public class DataLoader {
 		// MUST NOT return null
 		try {
 			InputStream in = cache.load(originalUrl, false, stable);
-			Instance.trace("Cache " + (in != null ? "hit" : "miss") + ": "
-					+ url);
+			Instance.getTraceHandler().trace(
+					"Cache " + (in != null ? "hit" : "miss") + ": " + url);
 
 			if (in == null) {
 				try {

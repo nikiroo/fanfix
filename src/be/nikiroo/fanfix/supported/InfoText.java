@@ -67,7 +67,7 @@ class InfoText extends Text {
 				file = new File(url.toURI());
 				file = new File(file.getPath() + ".info");
 			} catch (URISyntaxException e) {
-				Instance.syserr(e);
+				Instance.getTraceHandler().error(e);
 				file = null;
 			}
 

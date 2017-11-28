@@ -117,9 +117,9 @@ class GuiReader extends BasicReader {
 						try {
 							Desktop.getDesktop().browse(e.getURL().toURI());
 						} catch (IOException ee) {
-							Instance.syserr(ee);
+							Instance.getTraceHandler().error(ee);
 						} catch (URISyntaxException ee) {
-							Instance.syserr(ee);
+							Instance.getTraceHandler().error(ee);
 						}
 				}
 			});
@@ -152,7 +152,7 @@ class GuiReader extends BasicReader {
 		try {
 			cacheLib.clearFromCache(luid);
 		} catch (IOException e) {
-			Instance.syserr(e);
+			Instance.getTraceHandler().error(e);
 		}
 	}
 
@@ -161,7 +161,7 @@ class GuiReader extends BasicReader {
 		try {
 			cacheLib.delete(luid);
 		} catch (IOException e) {
-			Instance.syserr(e);
+			Instance.getTraceHandler().error(e);
 		}
 	}
 
@@ -177,7 +177,7 @@ class GuiReader extends BasicReader {
 		try {
 			cacheLib.changeSource(luid, newSource, null);
 		} catch (IOException e) {
-			Instance.syserr(e);
+			Instance.getTraceHandler().error(e);
 		}
 	}
 }

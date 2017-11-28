@@ -251,7 +251,7 @@ class Fimfiction extends BasicSupport {
 							}
 						});
 					} catch (MalformedURLException e) {
-						Instance.syserr(e);
+						Instance.getTraceHandler().error(e);
 					}
 				}
 			}

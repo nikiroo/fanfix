@@ -161,7 +161,7 @@ class Fanfiction extends BasicSupport {
 						return sdf
 								.format(new Date(1000 * Long.parseLong(line)));
 					} catch (NumberFormatException e) {
-						Instance.syserr(new IOException(
+						Instance.getTraceHandler().error(new IOException(
 								"Cannot convert publication date: " + line, e));
 					}
 				}
@@ -261,7 +261,7 @@ class Fanfiction extends BasicSupport {
 								}
 							});
 						} catch (MalformedURLException e) {
-							Instance.syserr(new IOException(
+							Instance.getTraceHandler().error(new IOException(
 									"Cannot parse chapter " + i + " url: "
 											+ (base + i + suffix), e));
 						}

@@ -156,7 +156,7 @@ class Text extends BasicSupport {
 		try {
 			path = new File(source.toURI()).getPath();
 		} catch (URISyntaxException e) {
-			Instance.syserr(e);
+			Instance.getTraceHandler().error(e);
 			path = null;
 		}
 
@@ -242,7 +242,7 @@ class Text extends BasicSupport {
 				file = new File(url.toURI());
 				file = new File(file.getPath() + ".info");
 			} catch (URISyntaxException e) {
-				Instance.syserr(e);
+				Instance.getTraceHandler().error(e);
 				file = null;
 			}
 

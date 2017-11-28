@@ -103,7 +103,7 @@ class MangaFox extends BasicSupport {
 		try {
 			in.reset();
 		} catch (IOException e) {
-			Instance.syserr(e);
+			Instance.getTraceHandler().error(e);
 		}
 
 		line = getLine(in, "/artist/", 0, false);
@@ -262,7 +262,7 @@ class MangaFox extends BasicSupport {
 						}
 					});
 				} catch (MalformedURLException e) {
-					Instance.syserr(e);
+					Instance.getTraceHandler().error(e);
 				}
 			}
 		}
@@ -309,7 +309,7 @@ class MangaFox extends BasicSupport {
 			try {
 				in.reset();
 			} catch (IOException e) {
-				Instance.syserr(e);
+				Instance.getTraceHandler().error(e);
 			}
 
 			String linkImageLine = getLine(in, "return enlarge()", 1);
@@ -348,7 +348,7 @@ class MangaFox extends BasicSupport {
 				try {
 					in.close();
 				} catch (IOException e) {
-					Instance.syserr(e);
+					Instance.getTraceHandler().error(e);
 				}
 			}
 
@@ -361,7 +361,7 @@ class MangaFox extends BasicSupport {
 					setCurrentReferer(url);
 					pg.setProgress((i++) % pg.getMax());
 				} catch (IOException e) {
-					Instance.syserr(new IOException(
+					Instance.getTraceHandler().error(new IOException(
 							"Cannot get the next manga page which is: "
 									+ linkNext, e));
 				}

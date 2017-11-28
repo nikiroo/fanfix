@@ -384,7 +384,7 @@ class GuiReaderBook extends JPanel {
 				in.close();
 				in = null;
 			} catch (IOException e) {
-				Instance.syserr(e);
+				Instance.getTraceHandler().error(e);
 			}
 		}
 
@@ -424,9 +424,9 @@ class GuiReaderBook extends JPanel {
 					in = null;
 				}
 			} catch (MalformedURLException e) {
-				Instance.syserr(e);
+				Instance.getTraceHandler().error(e);
 			} catch (IOException e) {
-				Instance.syserr(e);
+				Instance.getTraceHandler().error(e);
 			}
 		}
 

@@ -133,7 +133,7 @@ public abstract class BasicReader implements Reader {
 						.getTypeName());
 			}
 		} catch (Exception e) {
-			Instance.syserr(new Exception("Cannot create a reader of type: "
+			Instance.getTraceHandler().error(new Exception("Cannot create a reader of type: "
 					+ defaultType + " (Not compiled in?)", e));
 		}
 

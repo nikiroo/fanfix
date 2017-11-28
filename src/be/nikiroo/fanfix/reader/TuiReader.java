@@ -54,7 +54,7 @@ class TuiReader extends BasicReader {
 					guessBackendType());
 			new Thread(app).start();
 		} catch (Exception e) {
-			Instance.syserr(e);
+			Instance.getTraceHandler().error(e);
 		}
 	}
 
@@ -65,7 +65,7 @@ class TuiReader extends BasicReader {
 					guessBackendType());
 			new Thread(app).start();
 		} catch (Exception e) {
-			Instance.syserr(e);
+			Instance.getTraceHandler().error(e);
 		}
 	}
 }

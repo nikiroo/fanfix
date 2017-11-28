@@ -11,7 +11,7 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
-import be.nikiroo.utils.serial.ConnectActionClient;
+import be.nikiroo.utils.serial.server.ConnectActionClientObject;
 
 /**
  * This {@link BasicLibrary} will access a remote server to list the available
@@ -145,25 +145,25 @@ public class RemoteLibrary extends BasicLibrary {
 	private <T> T getRemoteObject(final Object[] command) {
 		final Object[] result = new Object[1];
 		try {
-			new ConnectActionClient(host, port, true) {
+			new ConnectActionClientObject(host, port, true) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					try {
 						Object rep = send(command);
 						result[0] = rep;
 					} catch (Exception e) {
-						Instance.syserr(e);
+						Instance.getTraceHandler().error(e);
 					}
 				}
 			}.connect();
 		} catch (IOException e) {
-			Instance.syserr(e);
+			Instance.getTraceHandler().error(e);
 		}
 
 		try {
 			return (T) result[0];
 		} catch (Exception e) {
-			Instance.syserr(e);
+			Instance.getTraceHandler().error(e);
 			return null;
 		}
 	}

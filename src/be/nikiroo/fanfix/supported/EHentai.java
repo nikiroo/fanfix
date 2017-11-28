@@ -267,7 +267,7 @@ class EHentai extends BasicSupport {
 				try {
 					pages.add(new URL(line));
 				} catch (MalformedURLException e) {
-					Instance.syserr(new IOException(
+					Instance.getTraceHandler().error(new IOException(
 							"Parsing error, a link is not correctly parsed: "
 									+ line, e));
 				}

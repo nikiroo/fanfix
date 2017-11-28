@@ -151,7 +151,7 @@ class TuiReaderMainWindow extends TWindow {
 			reader.setMeta(meta);
 			reader.read();
 		} catch (IOException e) {
-			Instance.syserr(e);
+			Instance.getTraceHandler().error(e);
 		}
 	}
 

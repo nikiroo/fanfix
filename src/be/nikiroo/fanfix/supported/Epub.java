@@ -128,7 +128,7 @@ class Epub extends InfoText {
 						try {
 							cover = ImageUtils.fromStream(zipIn);
 						} catch (Exception e) {
-							Instance.syserr(e);
+							Instance.getTraceHandler().error(e);
 						}
 					}
 				} else if (entry.getName().equals(getDataPrefix() + "URL")) {

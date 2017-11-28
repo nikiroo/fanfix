@@ -556,7 +556,7 @@ class GuiReaderFrame extends JFrame {
 											selectedBook.getMeta().getLuid(),
 											type, path, pg);
 								} catch (IOException e) {
-									Instance.syserr(e);
+									Instance.getTraceHandler().error(e);
 								}
 							}
 						});
@@ -817,7 +817,7 @@ class GuiReaderFrame extends JFrame {
 					});
 				} catch (IOException e) {
 					// TODO: error message?
-					Instance.syserr(e);
+					Instance.getTraceHandler().error(e);
 				}
 			}
 		});
@@ -940,7 +940,7 @@ class GuiReaderFrame extends JFrame {
 
 				pgOnSuccess.setProgress(0);
 				if (!ok) {
-					Instance.syserr(e);
+					Instance.getTraceHandler().error(e);
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {

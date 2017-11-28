@@ -35,6 +35,9 @@ public class Instance {
 	private static TraceHandler tracer;
 
 	static {
+		// Before we can configure it:
+		tracer = new TraceHandler(true, checkEnv("DEBUG"), false);
+
 		// Most of the rest is dependent upon this:
 		config = new ConfigBundle();
 
@@ -58,13 +61,13 @@ public class Instance {
 			config = new ConfigBundle();
 			config.updateFile(configDir);
 		} catch (IOException e) {
-			syserr(e);
+			tracer.error(e);
 		}
 		try {
 			uiconfig = new UiConfigBundle();
 			uiconfig.updateFile(configDir);
 		} catch (IOException e) {
-			syserr(e);
+			tracer.error(e);
 		}
 
 		// No updateFile for this one! (we do not want the user to have custom
@@ -100,15 +103,14 @@ public class Instance {
 			debug = true;
 		}
 
-		tracer = new TraceHandler();
-		tracer.setShowErrorDetails(debug);
-		tracer.setShowTraces(trace);
+		tracer = new TraceHandler(true, debug, trace);
 
 		try {
 			lib = new LocalLibrary(getFile(Config.LIBRARY_DIR));
 		} catch (Exception e) {
-			syserr(new IOException("Cannot create library for directory: "
-					+ getFile(Config.LIBRARY_DIR), e));
+			tracer.error(new IOException(
+					"Cannot create library for directory: "
+							+ getFile(Config.LIBRARY_DIR), e));
 		}
 
 		// Could have used: System.getProperty("java.io.tmpdir")
@@ -121,7 +123,7 @@ public class Instance {
 		//
 
 		if (coverDir != null && !coverDir.exists()) {
-			syserr(new IOException(
+			tracer.error(new IOException(
 					"The 'default covers' directory does not exists: "
 							+ coverDir));
 			coverDir = null;
@@ -135,15 +137,17 @@ public class Instance {
 
 			cache = new DataLoader(tmp, ua, hours, hoursLarge);
 		} catch (IOException e) {
-			syserr(new IOException(
+			tracer.error(new IOException(
 					"Cannot create cache (will continue without cache)", e));
 		}
 	}
 
 	/**
 	 * The traces handler for this {@link Cache}.
+	 * <p>
+	 * It is never NULL.
 	 * 
-	 * @return the traces handler or NULL
+	 * @return the traces handler (never NULL)
 	 */
 	public static TraceHandler getTraceHandler() {
 		return tracer;
@@ -156,6 +160,10 @@ public class Instance {
 	 *            the new traces handler or NULL
 	 */
 	public static void setTraceHandler(TraceHandler tracer) {
+		if (tracer == null) {
+			tracer = new TraceHandler(false, false, false);
+		}
+
 		Instance.tracer = tracer;
 	}
 
@@ -281,31 +289,7 @@ public class Instance {
 			IOUtils.writeSmallFile(new File(configDir), "LAST_UPDATE",
 					Long.toString(new Date().getTime()));
 		} catch (IOException e) {
-			syserr(e);
-		}
-	}
-
-	/**
-	 * Report an error to the user
-	 * 
-	 * @param e
-	 *            the {@link Exception} to report
-	 */
-	public static void syserr(Exception e) {
-		if (tracer != null) {
 			tracer.error(e);
-		}
-	}
-
-	/**
-	 * Notify of a debug message.
-	 * 
-	 * @param message
-	 *            the message
-	 */
-	public static void trace(String message) {
-		if (tracer != null) {
-			tracer.trace(message);
 		}
 	}
 

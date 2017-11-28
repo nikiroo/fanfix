@@ -398,7 +398,7 @@ public abstract class BasicSupport {
 				try {
 					close();
 				} catch (IOException e) {
-					Instance.syserr(e);
+					Instance.getTraceHandler().error(e);
 				}
 
 				if (in != null) {
@@ -519,7 +519,7 @@ public abstract class BasicSupport {
 			try {
 				close();
 			} catch (IOException e) {
-				Instance.syserr(e);
+				Instance.getTraceHandler().error(e);
 			}
 
 			if (in != null) {

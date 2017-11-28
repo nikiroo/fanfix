@@ -97,7 +97,7 @@ class Cbz extends Epub {
 						File tmp = Instance.getCache().addToCache(zipIn, uuid);
 						images.add(tmp.toURI().toURL().toString());
 					} catch (Exception e) {
-						Instance.syserr(e);
+						Instance.getTraceHandler().error(e);
 					}
 				}
 			}
@@ -113,7 +113,7 @@ class Cbz extends Epub {
 			try {
 				chap.getParagraphs().add(new Paragraph(new URL(uuid)));
 			} catch (Exception e) {
-				Instance.syserr(e);
+				Instance.getTraceHandler().error(e);
 			}
 		}
 

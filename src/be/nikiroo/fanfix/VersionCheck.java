@@ -140,7 +140,7 @@ public class VersionCheck {
 					reader.close();
 				}
 			} catch (IOException e) {
-				Instance.syserr(new IOException(
+				Instance.getTraceHandler().error(new IOException(
 						"Cannot download latest changelist on github.com", e));
 			}
 		}

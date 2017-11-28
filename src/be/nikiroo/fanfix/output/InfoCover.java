@@ -75,8 +75,8 @@ public class InfoCover {
 						targetName + "." + format));
 			} catch (IOException e) {
 				// Allow to continue without cover
-				Instance.syserr(new IOException(
-						"Failed to save the cover image", e));
+				Instance.getTraceHandler().error(
+						new IOException("Failed to save the cover image", e));
 			}
 		}
 	}

@@ -122,7 +122,7 @@ public class LocalLibrary extends BasicLibrary {
 					meta = InfoReader.readMeta(infoFile, true);
 					return meta.getCover();
 				} catch (IOException e) {
-					Instance.syserr(e);
+					Instance.getTraceHandler().error(e);
 				}
 			}
 		}
@@ -183,7 +183,7 @@ public class LocalLibrary extends BasicLibrary {
 					InfoCover.writeInfo(newDir, name, meta);
 					relatedFile.delete();
 				} catch (IOException e) {
-					Instance.syserr(e);
+					Instance.getTraceHandler().error(e);
 				}
 			} else {
 				relatedFile.renameTo(new File(newDir, relatedFile.getName()));
@@ -209,7 +209,7 @@ public class LocalLibrary extends BasicLibrary {
 		try {
 			ImageIO.write(sourceCovers.get(source), "png", cover);
 		} catch (IOException e) {
-			Instance.syserr(e);
+			Instance.getTraceHandler().error(e);
 			sourceCovers.remove(source);
 		}
 	}
@@ -472,7 +472,7 @@ public class LocalLibrary extends BasicLibrary {
 					} catch (IOException e) {
 						// We should not have not-supported files in the
 						// library
-						Instance.syserr(new IOException(
+						Instance.getTraceHandler().error(new IOException(
 								"Cannot load file from library: " + infoFile, e));
 					}
 					pgFiles.add(1);
@@ -489,7 +489,7 @@ public class LocalLibrary extends BasicLibrary {
 							in.close();
 						}
 					} catch (IOException e) {
-						Instance.syserr(e);
+						Instance.getTraceHandler().error(e);
 					}
 				}
 
@@ -516,7 +516,7 @@ public class LocalLibrary extends BasicLibrary {
 		try {
 			ImageIO.write(sourceCovers.get(source), "png", cover);
 		} catch (IOException e) {
-			Instance.syserr(e);
+			Instance.getTraceHandler().error(e);
 			sourceCovers.remove(source);
 		}
 	}
