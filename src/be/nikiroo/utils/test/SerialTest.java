@@ -38,7 +38,7 @@ class SerialTest extends TestLauncher {
 				// TODO: remove
 				server.setTraceHandler(new TraceHandler(true, true, true));
 
-				server.start(false);
+				server.start();
 
 				try {
 					new ConnectActionClient(null, server.getPort(), ssl) {
@@ -80,7 +80,7 @@ class SerialTest extends TestLauncher {
 					}
 				};
 
-				server.start(false);
+				server.start();
 
 				try {
 					new ConnectActionClient(null, server.getPort(), ssl) {
@@ -117,7 +117,7 @@ class SerialTest extends TestLauncher {
 							throws Exception {
 						sent[0] = data;
 						action.send("pong");
-						sent[1] = action.flush();
+						sent[1] = action.rec();
 						return "pong2";
 					}
 
@@ -128,7 +128,7 @@ class SerialTest extends TestLauncher {
 					}
 				};
 
-				server.start(false);
+				server.start();
 
 				try {
 					new ConnectActionClient(null, server.getPort(), ssl) {
@@ -177,7 +177,7 @@ class SerialTest extends TestLauncher {
 					}
 				};
 
-				server.start(false);
+				server.start();
 
 				try {
 					new ConnectActionClient(null, server.getPort(), ssl) {

@@ -126,43 +126,104 @@ abstract public class Server implements Runnable {
 	 * <p>
 	 * Can only be called once.
 	 * <p>
-	 * This call is synchronous.
+	 * This call is asynchronous, and will just start a new {@link Thread} on
+	 * itself (see {@link Server#run()}).
 	 */
 	public void start() {
-		start(true);
+		new Thread(this).start();
 	}
 
 	/**
 	 * Start the server (listen on the network for new connections).
 	 * <p>
 	 * Can only be called once.
-	 * 
-	 * @param wait
-	 *            TRUE for synchronous, FALSE for asynchronous
+	 * <p>
+	 * You may call it via {@link Server#start()} for an asynchronous call, too.
 	 */
-	public void start(boolean wait) {
-		boolean ok = false;
+	@Override
+	public void run() {
+		ServerSocket ss = null;
+		boolean alreadyStarted = false;
 		synchronized (lock) {
+			ss = this.ss;
 			if (!started && ss != null) {
-				ok = true;
 				started = true;
-				if (!wait) {
-					new Thread(this).start();
-				}
+			} else {
+				alreadyStarted = started;
 			}
 		}
 
-		if (ok) {
-			tracer.trace(name + ": server started on port " + port);
-			if (wait) {
-				run();
-			}
-		} else if (ss == null) {
-			tracer.error(name + ": cannot start server on port " + port
-					+ ", it has already been used");
-		} else {
+		if (alreadyStarted) {
 			tracer.error(name + ": cannot start server on port " + port
 					+ ", it is already started");
+			return;
+		}
+
+		if (ss == null) {
+			tracer.error(name + ": cannot start server on port " + port
+					+ ", it has already been used");
+			return;
+		}
+
+		try {
+			tracer.trace(name + ": server starting on port " + port);
+
+			while (started && !exiting) {
+				count(1);
+				Socket s = ss.accept();
+				new ConnectActionServer(s) {
+					@Override
+					public void action(Version clientVersion) throws Exception {
+						try {
+							for (Object data = rec(); true; data = rec()) {
+								Object rep = null;
+								try {
+									rep = onRequest(this, clientVersion, data);
+								} catch (Exception e) {
+									onError(e);
+								}
+								send(rep);
+							}
+						} catch (NullPointerException e) {
+							// Client has no data any more, we quit
+							tracer.trace(name
+									+ ": client has data no more, stopping connection");
+						}
+					}
+
+					@Override
+					public void connect() {
+						try {
+							super.connect();
+						} finally {
+							count(-1);
+						}
+					}
+				}.connectAsync();
+			}
+
+			// Will be covered by @link{Server#stop(long)} for timeouts
+			while (counter > 0) {
+				Thread.sleep(10);
+			}
+		} catch (Exception e) {
+			if (counter > 0) {
+				onError(e);
+			}
+		} finally {
+			try {
+				ss.close();
+			} catch (Exception e) {
+				onError(e);
+			}
+
+			this.ss = null;
+
+			started = false;
+			exiting = false;
+			counter = 0;
+
+			tracer.trace(name + ": client terminated on port " + port);
 		}
 	}
 
@@ -205,6 +266,7 @@ abstract public class Server implements Runnable {
 	 *            or 0 for "no timeout"
 	 */
 	private void stop(long timeout) {
+		tracer.trace(name + ": server stopping on port " + port);
 		synchronized (lock) {
 			if (started && !exiting) {
 				exiting = true;
@@ -232,65 +294,6 @@ abstract public class Server implements Runnable {
 				} catch (InterruptedException e) {
 				}
 			}
-		}
-	}
-
-	@Override
-	public void run() {
-		try {
-			while (started && !exiting) {
-				count(1);
-				Socket s = ss.accept();
-				new ConnectActionServer(s) {
-					@Override
-					public void action(Version clientVersion) throws Exception {
-						try {
-							for (Object data = rec(); true; data = rec()) {
-								Object rep = null;
-								try {
-									rep = onRequest(this, clientVersion, data);
-								} catch (Exception e) {
-									onError(e);
-								}
-								send(rep);
-							}
-						} catch (NullPointerException e) {
-							// Client has no data any more, we quit
-							tracer.trace("Client has data no more, stopping connection");
-						}
-					}
-
-					@Override
-					public void connect() {
-						try {
-							super.connect();
-						} finally {
-							count(-1);
-						}
-					}
-				}.connectAsync();
-			}
-
-			// Will be covered by @link{Server#stop(long)} for timeouts
-			while (counter > 0) {
-				Thread.sleep(10);
-			}
-		} catch (Exception e) {
-			if (counter > 0) {
-				onError(e);
-			}
-		} finally {
-			try {
-				ss.close();
-			} catch (Exception e) {
-				onError(e);
-			}
-
-			ss = null;
-
-			started = false;
-			exiting = false;
-			counter = 0;
 		}
 	}
 
