@@ -77,28 +77,4 @@ public class TraceHandler {
 			System.out.println(message);
 		}
 	}
-
-	// old stuff:
-
-	/**
-	 * Use the parameters in the constructor instead.
-	 * 
-	 * @param showTraces
-	 *            show the traces
-	 */
-	@Deprecated
-	public void setShowTraces(boolean showTraces) {
-		this.showTraces = showTraces;
-	}
-
-	/**
-	 * Use the parameters in the constructor instead.
-	 * 
-	 * @param showErrorDetails
-	 *            show the details on errors
-	 */
-	@Deprecated
-	public void setShowErrorDetails(boolean showErrorDetails) {
-		this.showErrorDetails = showErrorDetails;
-	}
 }

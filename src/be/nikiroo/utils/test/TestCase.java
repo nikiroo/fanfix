@@ -42,6 +42,7 @@ abstract public class TestCase {
 	 * @throws Exception
 	 *             in case of error
 	 */
+	@SuppressWarnings("unused")
 	public void setUp() throws Exception {
 	}
 
@@ -51,6 +52,7 @@ abstract public class TestCase {
 	 * @throws Exception
 	 *             in case of error
 	 */
+	@SuppressWarnings("unused")
 	public void tearDown() throws Exception {
 	}
 

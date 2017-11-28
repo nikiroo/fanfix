@@ -1,4 +1,4 @@
-package be.nikiroo.utils.serial;
+package be.nikiroo.utils.serial.server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -12,7 +12,6 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import be.nikiroo.utils.TraceHandler;
-import be.nikiroo.utils.Version;
 
 /**
  * This class implements a simple server that can listen for connections and
@@ -23,7 +22,7 @@ import be.nikiroo.utils.Version;
  * 
  * @author niki
  */
-abstract public class Server implements Runnable {
+abstract class Server implements Runnable {
 	static private final String[] ANON_CIPHERS = getAnonCiphers();
 
 	private final String name;
@@ -40,11 +39,15 @@ abstract public class Server implements Runnable {
 
 	private TraceHandler tracer = new TraceHandler();
 
-	@Deprecated
-	public Server(@SuppressWarnings("unused") Version notUsed, int port,
-			boolean ssl) throws IOException {
-		this(port, ssl);
-	}
+	/**
+	 * Create a new {@link ConnectActionServer} to handle a request.
+	 * 
+	 * @param s
+	 *            the socket to service
+	 * 
+	 * @return the action
+	 */
+	abstract ConnectActionServer createConnectActionServer(Socket s);
 
 	/**
 	 * Create a new server that will start listening on the network when
@@ -113,6 +116,17 @@ abstract public class Server implements Runnable {
 	}
 
 	/**
+	 * The name of this {@link Server} if any.
+	 * <p>
+	 * Used for traces and debug purposes only.
+	 * 
+	 * @return the name or NULL
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
 	 * Return the assigned port.
 	 * 
 	 * @return the assigned port
@@ -171,35 +185,7 @@ abstract public class Server implements Runnable {
 			while (started && !exiting) {
 				count(1);
 				Socket s = ss.accept();
-				new ConnectActionServer(s) {
-					@Override
-					public void action(Version clientVersion) throws Exception {
-						try {
-							for (Object data = rec(); true; data = rec()) {
-								Object rep = null;
-								try {
-									rep = onRequest(this, clientVersion, data);
-								} catch (Exception e) {
-									onError(e);
-								}
-								send(rep);
-							}
-						} catch (NullPointerException e) {
-							// Client has no data any more, we quit
-							tracer.trace(name
-									+ ": client has data no more, stopping connection");
-						}
-					}
-
-					@Override
-					public void connect() {
-						try {
-							super.connect();
-						} finally {
-							count(-1);
-						}
-					}
-				}.connectAsync();
+				createConnectActionServer(s).connectAsync();
 			}
 
 			// Will be covered by @link{Server#stop(long)} for timeouts
@@ -272,7 +258,7 @@ abstract public class Server implements Runnable {
 				exiting = true;
 
 				try {
-					new ConnectActionClient(createSocket(null, port, ssl))
+					new ConnectActionClientObject(createSocket(null, port, ssl))
 							.connect();
 					long time = 0;
 					while (ss != null && timeout > 0 && timeout > time) {
@@ -298,26 +284,6 @@ abstract public class Server implements Runnable {
 	}
 
 	/**
-	 * This is the method that is called on each client request.
-	 * <p>
-	 * You are expected to react to it and return an answer (which can be NULL).
-	 * 
-	 * @param action
-	 *            the client action
-	 * @param clientVersion
-	 *            the client version
-	 * @param data
-	 *            the data sent by the client (which can be NULL)
-	 * 
-	 * @return the answer to return to the client (which can be NULL)
-	 * 
-	 * @throws Exception
-	 *             in case of an exception, the error will only be logged
-	 */
-	abstract protected Object onRequest(ConnectActionServer action,
-			Version clientVersion, Object data) throws Exception;
-
-	/**
 	 * This method will be called on errors.
 	 * <p>
 	 * By default, it will only call the trace handler (so you may want to call
@@ -338,7 +304,7 @@ abstract public class Server implements Runnable {
 	 * 
 	 * @return the current number after this operation
 	 */
-	private int count(int change) {
+	int count(int change) {
 		synchronized (counterLock) {
 			counter += change;
 			return counter;

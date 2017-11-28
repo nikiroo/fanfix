@@ -1,4 +1,4 @@
-package be.nikiroo.utils.serial;
+package be.nikiroo.utils.serial.server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,6 +7,8 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 
 import be.nikiroo.utils.Version;
+import be.nikiroo.utils.serial.Exporter;
+import be.nikiroo.utils.serial.Importer;
 
 /**
  * Base class used for the client/server basic handling.
@@ -154,7 +156,7 @@ abstract class ConnectAction {
 	 * @throws ClassNotFoundException
 	 *             if a class described in the serialised data cannot be found
 	 */
-	protected Object send(Object data) throws IOException,
+	protected Object sendObject(Object data) throws IOException,
 			NoSuchFieldException, NoSuchMethodException, ClassNotFoundException {
 		synchronized (lock) {
 			String rep = sendString(new Exporter().append(data).toString(true));
@@ -190,10 +192,10 @@ abstract class ConnectAction {
 	 * @throws java.lang.NullPointerException
 	 *             if the counter part has no data to send
 	 */
-	protected Object rec() throws IOException, NoSuchFieldException,
+	protected Object recObject() throws IOException, NoSuchFieldException,
 			NoSuchMethodException, ClassNotFoundException,
 			java.lang.NullPointerException {
-		String str = flushString();
+		String str = recString();
 		if (str == null) {
 			throw new NullPointerException("No more data available");
 		}
@@ -225,7 +227,7 @@ abstract class ConnectAction {
 			}
 
 			contentToSend = true;
-			return flushString();
+			return recString();
 		}
 	}
 
@@ -243,7 +245,7 @@ abstract class ConnectAction {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	protected String flushString() throws IOException {
+	protected String recString() throws IOException {
 		synchronized (lock) {
 			if (server || contentToSend) {
 				if (contentToSend) {

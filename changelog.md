@@ -1,10 +1,11 @@
 # nikiroo-utils
 
-## Version WIP
+## Version 3.0.0
 
 - jDoc
 - Fix bugs in Server (it was not possible to send objects back to client)
-- Improve code in Server (including tests)
+- Improve code in Server (including tests), breaks API
+- Remove some deprecated things
 
 ## Version 2.2.3
 

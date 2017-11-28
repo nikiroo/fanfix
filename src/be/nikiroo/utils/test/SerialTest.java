@@ -1,19 +1,218 @@
 package be.nikiroo.utils.test;
 
-import be.nikiroo.utils.TraceHandler;
 import be.nikiroo.utils.Version;
-import be.nikiroo.utils.serial.ConnectActionClient;
-import be.nikiroo.utils.serial.ConnectActionServer;
 import be.nikiroo.utils.serial.Exporter;
 import be.nikiroo.utils.serial.Importer;
-import be.nikiroo.utils.serial.Server;
+import be.nikiroo.utils.serial.server.ConnectActionClientObject;
+import be.nikiroo.utils.serial.server.ConnectActionClientString;
+import be.nikiroo.utils.serial.server.ConnectActionServerObject;
+import be.nikiroo.utils.serial.server.ConnectActionServerString;
+import be.nikiroo.utils.serial.server.ServerObject;
+import be.nikiroo.utils.serial.server.ServerString;
 
 class SerialTest extends TestLauncher {
 	private SerialTest() {
 		super("Serial test", null);
 	}
 
-	private TestLauncher createServerTestCases(final String[] args,
+	private TestLauncher createServerStringTestCases(final String[] args,
+			final boolean ssl) {
+		final String ssls = (ssl ? "(ssl)" : "(plain text)");
+		TestLauncher series = new TestLauncher("Client/Server " + ssls, args);
+
+		series.addTest(new TestCase("Simple connection " + ssls) {
+			@Override
+			public void test() throws Exception {
+				final String[] rec = new String[1];
+
+				ServerString server = new ServerString(this.getName(), 0, ssl) {
+					@Override
+					protected String onRequest(
+							ConnectActionServerString action,
+							Version clientVersion, String data)
+							throws Exception {
+						return null;
+					}
+				};
+
+				assertEquals("A port should have been assigned", true,
+						server.getPort() > 0);
+
+				server.start();
+
+				try {
+					new ConnectActionClientObject(null, server.getPort(), ssl) {
+						@Override
+						public void action(Version serverVersion)
+								throws Exception {
+							rec[0] = "ok";
+						}
+					}.connect();
+				} finally {
+					server.stop();
+				}
+
+				assertNotNull("The client action was not run", rec[0]);
+				assertEquals("ok", rec[0]);
+			}
+		});
+
+		series.addTest(new TestCase("Simple exchange " + ssls) {
+			final String[] sent = new String[1];
+			final String[] recd = new String[1];
+			final Exception[] err = new Exception[1];
+
+			@Override
+			public void test() throws Exception {
+				ServerString server = new ServerString(this.getName(), 0, ssl) {
+					@Override
+					protected String onRequest(
+							ConnectActionServerString action,
+							Version clientVersion, String data)
+							throws Exception {
+						sent[0] = data;
+						return "pong";
+					}
+
+					@Override
+					protected void onError(Exception e) {
+						super.onError(e);
+						err[0] = e;
+					}
+				};
+
+				server.start();
+
+				try {
+					new ConnectActionClientString(null, server.getPort(), ssl) {
+						@Override
+						public void action(Version serverVersion)
+								throws Exception {
+							recd[0] = send("ping");
+						}
+					}.connect();
+				} finally {
+					server.stop();
+				}
+
+				if (err[0] != null) {
+					fail("An exception was thrown: " + err[0].getMessage());
+				}
+
+				assertEquals("ping", sent[0]);
+				assertEquals("pong", recd[0]);
+			}
+		});
+
+		series.addTest(new TestCase("Multiple exchanges " + ssls) {
+			final String[] sent = new String[3];
+			final String[] recd = new String[3];
+			final Exception[] err = new Exception[1];
+
+			@Override
+			public void test() throws Exception {
+				ServerString server = new ServerString(this.getName(), 0, ssl) {
+					@Override
+					protected String onRequest(
+							ConnectActionServerString action,
+							Version clientVersion, String data)
+							throws Exception {
+						sent[0] = data;
+						action.send("pong");
+						sent[1] = action.rec();
+						return "pong2";
+					}
+
+					@Override
+					protected void onError(Exception e) {
+						super.onError(e);
+						err[0] = e;
+					}
+				};
+
+				server.start();
+
+				try {
+					new ConnectActionClientString(null, server.getPort(), ssl) {
+						@Override
+						public void action(Version serverVersion)
+								throws Exception {
+							recd[0] = send("ping");
+							recd[1] = send("ping2");
+						}
+					}.connect();
+				} finally {
+					server.stop();
+				}
+
+				if (err[0] != null) {
+					fail("An exception was thrown: " + err[0].getMessage());
+				}
+
+				assertEquals("ping", sent[0]);
+				assertEquals("pong", recd[0]);
+				assertEquals("ping2", sent[1]);
+				assertEquals("pong2", recd[1]);
+			}
+		});
+
+		series.addTest(new TestCase("Multiple call from client " + ssls) {
+			final String[] sent = new String[3];
+			final String[] recd = new String[3];
+			final Exception[] err = new Exception[1];
+
+			@Override
+			public void test() throws Exception {
+				ServerString server = new ServerString(this.getName(), 0, ssl) {
+					@Override
+					protected String onRequest(
+							ConnectActionServerString action,
+							Version clientVersion, String data)
+							throws Exception {
+						sent[Integer.parseInt(data)] = data;
+						return "" + (Integer.parseInt(data) * 2);
+					}
+
+					@Override
+					protected void onError(Exception e) {
+						super.onError(e);
+						err[0] = e;
+					}
+				};
+
+				server.start();
+
+				try {
+					new ConnectActionClientString(null, server.getPort(), ssl) {
+						@Override
+						public void action(Version serverVersion)
+								throws Exception {
+							for (int i = 0; i < 3; i++) {
+								recd[i] = send("" + i);
+							}
+						}
+					}.connect();
+				} finally {
+					server.stop();
+				}
+
+				if (err[0] != null) {
+					fail("An exception was thrown: " + err[0].getMessage());
+				}
+
+				assertEquals("0", sent[0]);
+				assertEquals("0", recd[0]);
+				assertEquals("1", sent[1]);
+				assertEquals("2", recd[1]);
+				assertEquals("2", sent[2]);
+				assertEquals("4", recd[2]);
+			}
+		});
+
+		return series;
+	}
+
+	private TestLauncher createServerObjectTestCases(final String[] args,
 			final boolean ssl) {
 		final String ssls = (ssl ? "(ssl)" : "(plain text)");
 		TestLauncher series = new TestLauncher("Client/Server " + ssls, args);
@@ -23,9 +222,10 @@ class SerialTest extends TestLauncher {
 			public void test() throws Exception {
 				final Object[] rec = new Object[1];
 
-				Server server = new Server(this.getName(), 0, ssl) {
+				ServerObject server = new ServerObject(this.getName(), 0, ssl) {
 					@Override
-					protected Object onRequest(ConnectActionServer action,
+					protected Object onRequest(
+							ConnectActionServerObject action,
 							Version clientVersion, Object data)
 							throws Exception {
 						return null;
@@ -35,13 +235,10 @@ class SerialTest extends TestLauncher {
 				assertEquals("A port should have been assigned", true,
 						server.getPort() > 0);
 
-				// TODO: remove
-				server.setTraceHandler(new TraceHandler(true, true, true));
-
 				server.start();
 
 				try {
-					new ConnectActionClient(null, server.getPort(), ssl) {
+					new ConnectActionClientObject(null, server.getPort(), ssl) {
 						@Override
 						public void action(Version serverVersion)
 								throws Exception {
@@ -64,9 +261,10 @@ class SerialTest extends TestLauncher {
 
 			@Override
 			public void test() throws Exception {
-				Server server = new Server(this.getName(), 0, ssl) {
+				ServerObject server = new ServerObject(this.getName(), 0, ssl) {
 					@Override
-					protected Object onRequest(ConnectActionServer action,
+					protected Object onRequest(
+							ConnectActionServerObject action,
 							Version clientVersion, Object data)
 							throws Exception {
 						sent[0] = data;
@@ -83,7 +281,7 @@ class SerialTest extends TestLauncher {
 				server.start();
 
 				try {
-					new ConnectActionClient(null, server.getPort(), ssl) {
+					new ConnectActionClientObject(null, server.getPort(), ssl) {
 						@Override
 						public void action(Version serverVersion)
 								throws Exception {
@@ -110,9 +308,10 @@ class SerialTest extends TestLauncher {
 
 			@Override
 			public void test() throws Exception {
-				Server server = new Server(this.getName(), 0, ssl) {
+				ServerObject server = new ServerObject(this.getName(), 0, ssl) {
 					@Override
-					protected Object onRequest(ConnectActionServer action,
+					protected Object onRequest(
+							ConnectActionServerObject action,
 							Version clientVersion, Object data)
 							throws Exception {
 						sent[0] = data;
@@ -131,7 +330,7 @@ class SerialTest extends TestLauncher {
 				server.start();
 
 				try {
-					new ConnectActionClient(null, server.getPort(), ssl) {
+					new ConnectActionClientObject(null, server.getPort(), ssl) {
 						@Override
 						public void action(Version serverVersion)
 								throws Exception {
@@ -161,9 +360,10 @@ class SerialTest extends TestLauncher {
 
 			@Override
 			public void test() throws Exception {
-				Server server = new Server(this.getName(), 0, ssl) {
+				ServerObject server = new ServerObject(this.getName(), 0, ssl) {
 					@Override
-					protected Object onRequest(ConnectActionServer action,
+					protected Object onRequest(
+							ConnectActionServerObject action,
 							Version clientVersion, Object data)
 							throws Exception {
 						sent[(Integer) data] = data;
@@ -180,7 +380,7 @@ class SerialTest extends TestLauncher {
 				server.start();
 
 				try {
-					new ConnectActionClient(null, server.getPort(), ssl) {
+					new ConnectActionClientObject(null, server.getPort(), ssl) {
 						@Override
 						public void action(Version serverVersion)
 								throws Exception {
@@ -212,9 +412,13 @@ class SerialTest extends TestLauncher {
 	public SerialTest(String[] args) {
 		super("Serial test", args);
 
-		addSeries(createServerTestCases(args, false));
+		addSeries(createServerObjectTestCases(args, false));
 
-		addSeries(createServerTestCases(args, true));
+		addSeries(createServerObjectTestCases(args, true));
+
+		addSeries(createServerStringTestCases(args, false));
+
+		addSeries(createServerStringTestCases(args, true));
 
 		addTest(new TestCase("Simple class Import/Export") {
 			@Override

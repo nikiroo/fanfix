@@ -1,6 +1,5 @@
-package be.nikiroo.utils.serial;
+package be.nikiroo.utils.serial.server;
 
-import java.io.IOException;
 import java.net.Socket;
 
 import be.nikiroo.utils.Version;
@@ -13,8 +12,13 @@ import be.nikiroo.utils.Version;
  * 
  * @author niki
  */
-public class ConnectActionServer {
-	private ConnectAction action;
+abstract class ConnectActionServer {
+	/**
+	 * The underlying {@link ConnectAction}.
+	 * <p>
+	 * Cannot be NULL.
+	 */
+	protected ConnectAction action;
 
 	/**
 	 * Create a new {@link ConnectActionServer} with the current application
@@ -87,51 +91,6 @@ public class ConnectActionServer {
 	}
 
 	/**
-	 * Serialise and send the given object to the client.
-	 * 
-	 * @param data
-	 *            the data to send
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 * @throws NoSuchFieldException
-	 *             if the serialised data contains information about a field
-	 *             which does actually not exist in the class we know of
-	 * @throws NoSuchMethodException
-	 *             if a class described in the serialised data cannot be created
-	 *             because it is not compatible with this code
-	 * @throws ClassNotFoundException
-	 *             if a class described in the serialised data cannot be found
-	 */
-	public void send(Object data) throws IOException, NoSuchFieldException,
-			NoSuchMethodException, ClassNotFoundException {
-		action.send(data);
-	}
-
-	/**
-	 * (Flush the data to the client if needed and) retrieve its answer.
-	 * 
-	 * @return the deserialised answer (which can actually be NULL)
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 * @throws NoSuchFieldException
-	 *             if the serialised data contains information about a field
-	 *             which does actually not exist in the class we know of
-	 * @throws NoSuchMethodException
-	 *             if a class described in the serialised data cannot be created
-	 *             because it is not compatible with this code
-	 * @throws ClassNotFoundException
-	 *             if a class described in the serialised data cannot be found
-	 * @throws java.lang.NullPointerException
-	 *             if the counter part has no data to send
-	 */
-	public Object rec() throws NoSuchFieldException, NoSuchMethodException,
-			ClassNotFoundException, IOException, java.lang.NullPointerException {
-		return action.rec();
-	}
-
-	/**
 	 * Handler called when an unexpected error occurs in the code.
 	 * <p>
 	 * Will just ignore the error by default.
@@ -155,26 +114,5 @@ public class ConnectActionServer {
 	protected Version negotiateVersion(
 			@SuppressWarnings("unused") Version clientVersion) {
 		return action.getVersion();
-	}
-
-	// old stuff:
-
-	/**
-	 * Not used anymore. See {@link ConnectActionServer#rec()}.
-	 */
-	@SuppressWarnings("javadoc")
-	@Deprecated
-	public Object flush() throws NoSuchFieldException, NoSuchMethodException,
-			ClassNotFoundException, IOException, java.lang.NullPointerException {
-		return rec();
-	}
-
-	/**
-	 * Not used anymore. See
-	 * {@link ConnectActionServer#negotiateVersion(Version)}.
-	 */
-	@SuppressWarnings({ "unused", "javadoc" })
-	@Deprecated
-	protected void onClientVersionReceived(Version clientVersion) {
 	}
 }

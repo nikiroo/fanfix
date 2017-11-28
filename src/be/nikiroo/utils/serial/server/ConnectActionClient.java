@@ -1,4 +1,4 @@
-package be.nikiroo.utils.serial;
+package be.nikiroo.utils.serial.server;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -13,8 +13,13 @@ import be.nikiroo.utils.Version;
  * 
  * @author niki
  */
-public class ConnectActionClient {
-	private ConnectAction action;
+abstract class ConnectActionClient {
+	/**
+	 * The underlying {@link ConnectAction}.
+	 * <p>
+	 * Cannot be NULL.
+	 */
+	protected ConnectAction action;
 
 	/**
 	 * Create a new {@link ConnectActionClient} with the current application
@@ -128,31 +133,6 @@ public class ConnectActionClient {
 	}
 
 	/**
-	 * Serialise and send the given object to the server (and return the
-	 * deserialised answer).
-	 * 
-	 * @param data
-	 *            the data to send
-	 * 
-	 * @return the answer, which can be NULL
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 * @throws NoSuchFieldException
-	 *             if the serialised data contains information about a field
-	 *             which does actually not exist in the class we know of
-	 * @throws NoSuchMethodException
-	 *             if a class described in the serialised data cannot be created
-	 *             because it is not compatible with this code
-	 * @throws ClassNotFoundException
-	 *             if a class described in the serialised data cannot be found
-	 */
-	public Object send(Object data) throws IOException, NoSuchFieldException,
-			NoSuchMethodException, ClassNotFoundException {
-		return action.send(data);
-	}
-
-	/**
 	 * Handler called when an unexpected error occurs in the code.
 	 * <p>
 	 * Will just ignore the error by default.
@@ -161,25 +141,5 @@ public class ConnectActionClient {
 	 *            the exception that occurred
 	 */
 	protected void onError(@SuppressWarnings("unused") Exception e) {
-	}
-
-	// old stuff:
-
-	/**
-	 * Do not use. Will never be called.
-	 */
-	@SuppressWarnings({ "unused", "javadoc" })
-	@Deprecated
-	protected void onClientVersionReceived(Version clientVersion) {
-	}
-
-	/**
-	 * Do not use, it is not supposed to be called from the outside.
-	 */
-	@SuppressWarnings({ "unused", "javadoc" })
-	@Deprecated
-	public Object flush() throws NoSuchFieldException, NoSuchMethodException,
-			ClassNotFoundException, IOException, java.lang.NullPointerException {
-		return null;
 	}
 }
