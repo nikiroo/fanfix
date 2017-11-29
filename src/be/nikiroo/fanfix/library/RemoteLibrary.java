@@ -175,29 +175,30 @@ public class RemoteLibrary extends BasicLibrary {
 			new ConnectActionClientObject(host, port, true) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					try {
-						Story story = null;
-						for (int i = 0; i < command.length; i++) {
-							if (command[i] instanceof Story) {
-								story = (Story) command[i];
-								command[i] = null;
-							}
+					Story story = null;
+					for (int i = 0; i < command.length; i++) {
+						if (command[i] instanceof Story) {
+							story = (Story) command[i];
+							command[i] = null;
 						}
-
-						Object rep = send(command);
-
-						if (story != null) {
-							RemoteLibraryServer.sendStory(story, this);
-						}
-
-						if (getStory) {
-							rep = RemoteLibraryServer.recStory(this);
-						}
-
-						result[0] = rep;
-					} catch (Exception e) {
-						Instance.getTraceHandler().error(e);
 					}
+
+					Object rep = send(command);
+
+					if (story != null) {
+						RemoteLibraryServer.sendStory(story, this);
+					}
+
+					if (getStory) {
+						rep = RemoteLibraryServer.recStory(this);
+					}
+
+					result[0] = rep;
+				}
+
+				@Override
+				protected void onError(Exception e) {
+					Instance.getTraceHandler().error(e);
 				}
 			}.connect();
 		} catch (IOException e) {
