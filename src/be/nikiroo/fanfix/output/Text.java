@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.net.URL;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.StringId;
@@ -105,7 +104,7 @@ class Text extends BasicOutput {
 	protected void writeParagraphHeader(Paragraph para) throws IOException {
 		if (para.getType() == ParagraphType.IMAGE) {
 			File file = new File(targetDir, getCurrentImageBestName(true));
-			Instance.getCache().saveAsImage(new URL(para.getContent()), file);
+			Instance.getCache().saveAsImage(para.getContentImage(), file);
 		}
 	}
 

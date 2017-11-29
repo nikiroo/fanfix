@@ -15,7 +15,7 @@ import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.test.TestCase;
 import be.nikiroo.utils.test.TestLauncher;
 
-public class LibraryTest extends TestLauncher {
+class LibraryTest extends TestLauncher {
 	private BasicLibrary lib;
 	private File tmp;
 

@@ -383,7 +383,8 @@ public class LocalLibrary extends BasicLibrary {
 		}
 
 		String coverExt = "."
-				+ Instance.getConfig().getString(Config.IMAGE_FORMAT_COVER);
+				+ Instance.getConfig().getString(Config.IMAGE_FORMAT_COVER)
+						.toLowerCase();
 		File coverFile = new File(path + coverExt);
 		if (!coverFile.exists()) {
 			coverFile = new File(path.substring(0,
@@ -472,8 +473,10 @@ public class LocalLibrary extends BasicLibrary {
 					} catch (IOException e) {
 						// We should not have not-supported files in the
 						// library
-						Instance.getTraceHandler().error(new IOException(
-								"Cannot load file from library: " + infoFile, e));
+						Instance.getTraceHandler().error(
+								new IOException(
+										"Cannot load file from library: "
+												+ infoFile, e));
 					}
 					pgFiles.add(1);
 				}

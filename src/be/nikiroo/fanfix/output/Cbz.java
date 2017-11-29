@@ -25,24 +25,26 @@ class Cbz extends BasicOutput {
 		dir = File.createTempFile("fanfic-reader-cbz-dir", ".wip");
 		dir.delete();
 		dir.mkdir();
-
-		// will also save the images!
-		new InfoText().process(story, dir, targetNameOrig);
-
-		InfoCover.writeInfo(dir, targetNameOrig, story.getMeta());
-		if (story.getMeta() != null && !story.getMeta().isFakeCover()) {
-			InfoCover.writeCover(dir, targetNameOrig, story.getMeta());
-		}
-
-		IOUtils.writeSmallFile(dir, "version", "3.0");
-
 		try {
-			super.process(story, targetDir, targetNameOrig);
-		} finally {
-		}
+			// will also save the images!
+			new InfoText().process(story, dir, targetNameOrig);
 
-		IOUtils.zip(dir, target, true);
-		IOUtils.deltree(dir);
+			InfoCover.writeInfo(dir, targetNameOrig, story.getMeta());
+			if (story.getMeta() != null && !story.getMeta().isFakeCover()) {
+				InfoCover.writeCover(dir, targetNameOrig, story.getMeta());
+			}
+
+			IOUtils.writeSmallFile(dir, "version", "3.0");
+
+			try {
+				super.process(story, targetDir, targetNameOrig);
+			} finally {
+			}
+
+			IOUtils.zip(dir, target, true);
+		} finally {
+			IOUtils.deltree(dir);
+		}
 
 		return target;
 	}

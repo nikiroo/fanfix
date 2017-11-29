@@ -757,10 +757,10 @@ public abstract class BasicSupport {
 	 * @return the {@link Paragraph}
 	 */
 	private Paragraph makeParagraph(URL source, String line) {
-		URL image = null;
+		BufferedImage image = null;
 		if (line.startsWith("[") && line.endsWith("]")) {
-			image = getImageUrl(this, source,
-					line.substring(1, line.length() - 1).trim());
+			image = getImage(this, source, line.substring(1, line.length() - 1)
+					.trim());
 		}
 
 		if (image != null) {

@@ -1,5 +1,6 @@
 package be.nikiroo.fanfix;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -228,13 +229,45 @@ public class DataLoader {
 	public void saveAsImage(URL url, File target) throws IOException {
 		InputStream in = open(url, null, true);
 		try {
-			ImageIO.write(ImageUtils.fromStream(in), Instance.getConfig()
-					.getString(Config.IMAGE_FORMAT_CONTENT).toLowerCase(),
-					target);
-		} catch (IOException e) {
-			throw new IOException("Cannot write image " + url, e);
+			saveAsImage(ImageUtils.fromStream(in), target);
 		} finally {
 			in.close();
+		}
+	}
+
+	/**
+	 * Save the given resource as an image on disk using the default image
+	 * format for content.
+	 * 
+	 * @param image
+	 *            the resource
+	 * @param target
+	 *            the target file
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public void saveAsImage(BufferedImage image, File target)
+			throws IOException {
+		try {
+			String format = Instance.getConfig()
+					.getString(Config.IMAGE_FORMAT_CONTENT).toLowerCase();
+			boolean ok = ImageIO.write(image, format, target);
+			if (!ok) {
+				// Some formats are not reliable
+				// Second change: PNG
+				if (!format.equals("png")) {
+					ok = ImageIO.write(image, "png", target);
+				}
+
+				if (!ok) {
+					throw new IOException(
+							"Cannot find a writer for this image and format: "
+									+ format);
+				}
+			}
+		} catch (IOException e) {
+			throw new IOException("Cannot write image to " + target, e);
 		}
 	}
 

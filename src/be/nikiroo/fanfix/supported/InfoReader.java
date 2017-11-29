@@ -64,8 +64,9 @@ public class InfoReader {
 				if (info.endsWith(".info")) {
 					info = info.substring(0, info.length() - ".info".length());
 					String ext = "."
-							+ Instance.getConfig().getString(
-									Config.IMAGE_FORMAT_COVER);
+							+ Instance.getConfig()
+									.getString(Config.IMAGE_FORMAT_COVER)
+									.toLowerCase();
 					meta.setCover(BasicSupport.getImage(null, sourceInfoFile,
 							info + ext));
 				}

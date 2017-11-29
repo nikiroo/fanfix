@@ -14,20 +14,23 @@ import be.nikiroo.utils.serial.server.ServerObject;
 /**
  * Create a new remote server that will listen for order on the given port.
  * <p>
- * The available commands are given as String arrays (first item is the key,
- * second is the command, the rest are the arguments):
+ * The available commands are given as arrays of objects (first item is the key,
+ * second is the command, the rest are the arguments).
+ * <p>
+ * The key is always a String, the commands are also Strings; the parameters
+ * vary depending upon the command.
  * <ul>
- * <li>KEY GET_METADATA *: will return the metadata of all the stories in the
+ * <li>[key] GET_METADATA *: will return the metadata of all the stories in the
  * library</li>
- * <li>KEY GET_STORY [luid]: will return the given story if it exists (or NULL
+ * <li>[key] GET_STORY [luid]: will return the given story if it exists (or NULL
  * if not)</li>
- * <li>KEY SAVE_STORY [story] [luid]: save the story with the given LUID</li>
- * <li>KEY DELETE_STORY [luid]: delete the story of LUID luid</li>
- * <li>KEY GET_COVER [luid]: return the cover of the story</li>
- * <li>KEY GET_SOURCE_COVER [source]: return the cover for this source</li>
- * <li>KEY SET_SOURCE_COVER [source], [luid]: set the default cover for the
+ * <li>[key] SAVE_STORY [story] [luid]: save the story with the given LUID</li>
+ * <li>[key] DELETE_STORY [luid]: delete the story of LUID luid</li>
+ * <li>[key] GET_COVER [luid]: return the cover of the story</li>
+ * <li>[key] GET_SOURCE_COVER [source]: return the cover for this source</li>
+ * <li>[key] SET_SOURCE_COVER [source], [luid]: set the default cover for the
  * given source to the cover of the story denoted by luid</li>
- * <li>KEY EXIT: stop the server</li>
+ * <li>[key] EXIT: stop the server</li>
  * </ul>
  * 
  * @author niki

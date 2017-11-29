@@ -1,6 +1,6 @@
 package be.nikiroo.fanfix.data;
 
-import java.net.URL;
+import java.awt.image.BufferedImage;
 
 /**
  * A paragraph in a chapter of the story.
@@ -28,6 +28,7 @@ public class Paragraph {
 
 	private ParagraphType type;
 	private String content;
+	private BufferedImage contentImage;
 	private long words;
 
 	/**
@@ -41,11 +42,12 @@ public class Paragraph {
 	/**
 	 * Create a new {@link Paragraph} with the given image.
 	 * 
-	 * @param imageUrl
-	 *            the image as an URL
+	 * @param contentImage
+	 *            the image
 	 */
-	public Paragraph(URL imageUrl) {
-		this(ParagraphType.IMAGE, imageUrl.toString(), 1);
+	public Paragraph(BufferedImage contentImage) {
+		this(ParagraphType.IMAGE, null, 1);
+		this.contentImage = contentImage;
 	}
 
 	/**
@@ -84,7 +86,7 @@ public class Paragraph {
 	}
 
 	/**
-	 * The content of this {@link Paragraph}.
+	 * The content of this {@link Paragraph} if it is not an image.
 	 * 
 	 * @return the content
 	 */
@@ -100,6 +102,15 @@ public class Paragraph {
 	 */
 	public void setContent(String content) {
 		this.content = content;
+	}
+
+	/**
+	 * The content of this {@link Paragraph} if it is an image.
+	 * 
+	 * @return the content
+	 */
+	public BufferedImage getContentImage() {
+		return contentImage;
 	}
 
 	/**

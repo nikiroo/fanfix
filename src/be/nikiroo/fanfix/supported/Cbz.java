@@ -1,22 +1,22 @@
 package be.nikiroo.fanfix.supported;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import javax.imageio.ImageIO;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.utils.ImageUtils;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -68,9 +68,7 @@ class Cbz extends Epub {
 		Progress pgMeta = new Progress();
 		pg.addProgress(pgMeta, 10);
 		Story story = processMeta(url, false, true, pgMeta);
-		if (!pgMeta.isDone()) {
-			pgMeta.setProgress(pgMeta.getMax()); // 10%
-		}
+		pgMeta.done(); // 10%
 
 		story.setChapters(new ArrayList<Chapter>());
 		Chapter chap = new Chapter(1, null);
@@ -78,7 +76,7 @@ class Cbz extends Epub {
 
 		ZipInputStream zipIn = new ZipInputStream(getInput());
 
-		List<String> images = new ArrayList<String>();
+		Map<String, BufferedImage> images = new HashMap<String, BufferedImage>();
 		for (ZipEntry entry = zipIn.getNextEntry(); entry != null; entry = zipIn
 				.getNextEntry()) {
 			if (!entry.isDirectory()
@@ -94,39 +92,36 @@ class Cbz extends Epub {
 				if (imageEntry) {
 					String uuid = meta.getUuid() + "_" + entry.getName();
 					try {
-						File tmp = Instance.getCache().addToCache(zipIn, uuid);
-						images.add(tmp.toURI().toURL().toString());
+						images.put(uuid, ImageUtils.fromStream(zipIn));
 					} catch (Exception e) {
 						Instance.getTraceHandler().error(e);
+					}
+
+					if (pg.getProgress() < 85) {
+						pg.add(1);
 					}
 				}
 			}
 		}
 
-		pg.setProgress(80);
+		pg.setProgress(85);
 
 		// ZIP order is not correct for us
-		Collections.sort(images);
+		List<String> imagesList = new ArrayList<String>(images.keySet());
+		Collections.sort(imagesList);
+
 		pg.setProgress(90);
 
-		for (String uuid : images) {
+		for (String uuid : imagesList) {
 			try {
-				chap.getParagraphs().add(new Paragraph(new URL(uuid)));
+				chap.getParagraphs().add(new Paragraph(images.get(uuid)));
 			} catch (Exception e) {
 				Instance.getTraceHandler().error(e);
 			}
 		}
 
 		if (meta.getCover() == null && !images.isEmpty()) {
-			InputStream in = Instance.getCache().open(new URL(images.get(0)),
-					this, true);
-			try {
-				BufferedImage fcover = ImageIO.read(in);
-				meta.setCover(fcover);
-				meta.setFakeCover(true);
-			} finally {
-				in.close();
-			}
+			meta.setCover(images.get(imagesList.get(0)));
 		}
 
 		pg.setProgress(100);

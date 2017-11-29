@@ -17,6 +17,13 @@ import be.nikiroo.utils.test.TestLauncher;
  * @author niki
  */
 public class Test extends TestLauncher {
+	/**
+	 * Create the Fanfix {@link TestLauncher}.
+	 * 
+	 * @param args
+	 *            the arguments to configure the number of columns and the ok/ko
+	 *            {@link String}s
+	 */
 	public Test(String[] args) {
 		super("Fanfix", args);
 		Instance.setTraceHandler(null);
@@ -30,6 +37,7 @@ public class Test extends TestLauncher {
 	 * @param args
 	 *            the arguments passed to the {@link TestLauncher}s.
 	 * @throws IOException
+	 *             in case of I/O error
 	 */
 	static public void main(String[] args) throws IOException {
 		File tmpConfig = File.createTempFile("fanfix-config_", ".test");

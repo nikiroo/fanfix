@@ -21,7 +21,7 @@ import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.test.TestCase;
 import be.nikiroo.utils.test.TestLauncher;
 
-public class BasicSupportTest extends TestLauncher {
+class BasicSupportTest extends TestLauncher {
 	// quote chars
 	private char openQuote = Instance.getTrans().getCharacter(
 			StringId.OPEN_SINGLE_QUOTE);

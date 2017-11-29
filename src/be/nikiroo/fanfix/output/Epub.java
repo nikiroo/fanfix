@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
-import java.net.URL;
 
 import javax.imageio.ImageIO;
 
@@ -209,7 +208,7 @@ class Epub extends BasicOutput {
 			break;
 		case IMAGE:
 			File file = new File(images, getCurrentImageBestName(false));
-			Instance.getCache().saveAsImage(new URL(para.getContent()), file);
+			Instance.getCache().saveAsImage(para.getContentImage(), file);
 			writer.write("			<img class='page-image' src='images/"
 					+ getCurrentImageBestName(false) + "'/>");
 			break;
