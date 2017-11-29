@@ -9,7 +9,7 @@ import java.util.List;
  * 
  * @author niki
  */
-public class Chapter implements Iterable<Paragraph> {
+public class Chapter implements Iterable<Paragraph>, Cloneable {
 	private String name;
 	private int number;
 	private List<Paragraph> paragraphs = new ArrayList<Paragraph>();
@@ -127,5 +127,25 @@ public class Chapter implements Iterable<Paragraph> {
 	@Override
 	public String toString() {
 		return "Chapter " + number + ": " + name;
+	}
+
+	@Override
+	public Chapter clone() {
+		Chapter chap = null;
+		try {
+			chap = (Chapter) super.clone();
+		} catch (CloneNotSupportedException e) {
+			// Did the clones rebel?
+			System.err.println(e);
+		}
+
+		if (paragraphs != null) {
+			chap.paragraphs = new ArrayList<Paragraph>();
+			for (Paragraph para : paragraphs) {
+				chap.paragraphs.add(para.clone());
+			}
+		}
+
+		return chap;
 	}
 }

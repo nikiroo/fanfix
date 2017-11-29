@@ -394,14 +394,11 @@ public class MetaData implements Cloneable, Comparable<MetaData> {
 		}
 
 		if (tags != null) {
-			meta.tags = new ArrayList<String>();
-			meta.tags.addAll(tags);
+			meta.tags = new ArrayList<String>(tags);
 		}
+
 		if (resume != null) {
-			meta.resume = new Chapter(resume.getNumber(), resume.getName());
-			for (Paragraph para : resume) {
-				meta.resume.getParagraphs().add(para);
-			}
+			meta.resume = resume.clone();
 		}
 
 		return meta;

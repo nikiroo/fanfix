@@ -7,7 +7,7 @@ import java.awt.image.BufferedImage;
  * 
  * @author niki
  */
-public class Paragraph {
+public class Paragraph implements Cloneable {
 	/**
 	 * A paragraph type, that will dictate how the paragraph will be handled.
 	 * 
@@ -138,5 +138,18 @@ public class Paragraph {
 	@Override
 	public String toString() {
 		return String.format("%s: [%s]", "" + type, "" + content);
+	}
+
+	@Override
+	public Paragraph clone() {
+		Paragraph para = null;
+		try {
+			para = (Paragraph) super.clone();
+		} catch (CloneNotSupportedException e) {
+			// Did the clones rebel?
+			System.err.println(e);
+		}
+
+		return para;
 	}
 }

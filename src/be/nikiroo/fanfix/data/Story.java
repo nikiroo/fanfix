@@ -9,7 +9,7 @@ import java.util.List;
  * 
  * @author niki
  */
-public class Story implements Iterable<Chapter> {
+public class Story implements Iterable<Chapter>, Cloneable {
 	private MetaData meta;
 	private List<Chapter> chapters = new ArrayList<Chapter>();
 	private List<Chapter> empty = new ArrayList<Chapter>();
@@ -100,5 +100,29 @@ public class Story implements Iterable<Chapter> {
 						+ "Resume: [%s]\nCover: [%s]", title, meta == null ? ""
 						: meta.getAuthor(), meta == null ? "" : meta.getDate(),
 				tags, resume, cover);
+	}
+
+	@Override
+	public Story clone() {
+		Story story = null;
+		try {
+			story = (Story) super.clone();
+		} catch (CloneNotSupportedException e) {
+			// Did the clones rebel?
+			System.err.println(e);
+		}
+
+		if (meta != null) {
+			story.meta = meta.clone();
+		}
+
+		if (chapters != null) {
+			story.chapters = new ArrayList<Chapter>();
+			for (Chapter chap : chapters) {
+				story.chapters.add(chap.clone());
+			}
+		}
+
+		return story;
 	}
 }
