@@ -1,5 +1,10 @@
 # nikiroo-utils
 
+## Version 3.1.1
+
+- Some fixes and trace handling changes in ServerBridge
+- Some fixes in Import/Export (objects serialisation)
+
 ## Version 3.1.0
 
 - New ServerBridge (including tests)

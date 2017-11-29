@@ -56,27 +56,33 @@ public class Importer {
 	 *             because it is not compatible with this code
 	 * @throws ClassNotFoundException
 	 *             if a class described in the serialised data cannot be found
+	 * @throws IOException
+	 *             if the content cannot be read (for instance, corrupt data)
 	 */
 	public Importer read(String data) throws NoSuchFieldException,
-			NoSuchMethodException, ClassNotFoundException {
+			NoSuchMethodException, ClassNotFoundException, IOException {
 
+		Scanner scan = new Scanner(data);
 		try {
-			Scanner scan = new Scanner(data);
 			scan.useDelimiter("\n");
 			while (scan.hasNext()) {
 				String line = scan.next();
 
 				if (line.startsWith("ZIP:")) {
-					line = StringUtils.unzip64(line.substring("ZIP:".length()));
+					try {
+						line = StringUtils.unzip64(line.substring("ZIP:"
+								.length()));
+					} catch (IOException e) {
+						throw new IOException(
+								"Internal error when decoding ZIP content: input may be corrupt");
+					}
 					read(line);
 				} else {
 					processLine(line);
 				}
 			}
+		} finally {
 			scan.close();
-		} catch (IOException e) {
-			throw new NoSuchMethodException(
-					"Internal error when decoding ZIP content: input may be corrupt");
 		}
 
 		return this;
@@ -99,9 +105,11 @@ public class Importer {
 	 *             because it is not compatible with this code
 	 * @throws ClassNotFoundException
 	 *             if a class described in the serialised data cannot be found
+	 * @throws IOException
+	 *             if the content cannot be read (for instance, corrupt data)
 	 */
 	private boolean processLine(String line) throws NoSuchFieldException,
-			NoSuchMethodException, ClassNotFoundException {
+			NoSuchMethodException, ClassNotFoundException, IOException {
 		// Defer to latest child if any
 		if (child != null) {
 			if (child.processLine(line)) {

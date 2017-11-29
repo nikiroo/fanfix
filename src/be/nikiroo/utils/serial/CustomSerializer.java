@@ -1,10 +1,12 @@
 package be.nikiroo.utils.serial;
 
+import java.io.IOException;
+
 public abstract class CustomSerializer {
 
 	protected abstract String toString(Object value);
 
-	protected abstract Object fromString(String content);
+	protected abstract Object fromString(String content) throws IOException;
 
 	protected abstract String getType();
 
@@ -30,7 +32,7 @@ public abstract class CustomSerializer {
 		return true;
 	}
 
-	public Object decode(String encodedValue) {
+	public Object decode(String encodedValue) throws IOException {
 		return fromString((String) SerialUtils.decode(contentOf(encodedValue)));
 	}
 

@@ -85,7 +85,7 @@ public class SerialUtils {
 			}
 
 			@Override
-			protected Object fromString(String content) {
+			protected Object fromString(String content) throws IOException {
 				String[] tab = content.split("\n");
 
 				try {
@@ -98,7 +98,10 @@ public class SerialUtils {
 
 					return array;
 				} catch (Exception e) {
-					throw new UnknownFormatConversionException(e.getMessage());
+					if (e instanceof IOException) {
+						throw (IOException) e;
+					}
+					throw new IOException(e.getMessage());
 				}
 			}
 		});
@@ -326,24 +329,23 @@ public class SerialUtils {
 	 * 
 	 * @return the object (can be NULL for NULL encoded values)
 	 * 
-	 * @throws UnknownFormatConversionException
+	 * @throws IOException
 	 *             if the content cannot be converted
 	 */
-	static Object decode(String encodedValue) {
-		String cut = "";
-		if (encodedValue.length() > 1) {
-			cut = encodedValue.substring(0, encodedValue.length() - 1);
-		}
-
+	static Object decode(String encodedValue) throws IOException {
 		try {
+			String cut = "";
+			if (encodedValue.length() > 1) {
+				cut = encodedValue.substring(0, encodedValue.length() - 1);
+			}
+
 			if (CustomSerializer.isCustom(encodedValue)) {
 				// custom:TYPE_NAME:"content is String-encoded"
 				String type = CustomSerializer.typeOf(encodedValue);
 				if (customTypes.containsKey(type)) {
 					return customTypes.get(type).decode(encodedValue);
 				}
-				throw new UnknownFormatConversionException(
-						"Unknown custom type: " + type);
+				throw new IOException("Unknown custom type: " + type);
 			} else if (encodedValue.equals("NULL")
 					|| encodedValue.equals("null")) {
 				return null;
@@ -371,10 +373,10 @@ public class SerialUtils {
 				return Integer.parseInt(encodedValue);
 			}
 		} catch (Exception e) {
-			if (e instanceof UnknownFormatConversionException) {
-				throw (UnknownFormatConversionException) e;
+			if (e instanceof IOException) {
+				throw (IOException) e;
 			}
-			throw new UnknownFormatConversionException(e.getMessage());
+			throw new IOException(e.getMessage());
 		}
 	}
 

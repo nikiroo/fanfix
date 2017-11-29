@@ -1,8 +1,10 @@
 package be.nikiroo.utils.serial.server;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.Socket;
 
+import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.TraceHandler;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.Importer;
@@ -33,7 +35,13 @@ public class ServerBridge extends Server {
 	 *            found (which can later on be queried via
 	 *            {@link ServerBridge#getPort()}
 	 * @param ssl
-	 *            use a SSL connection (or not)
+	 *            use an SSL connection (or not)
+	 * @param forwardToHost
+	 *            the host server to forward the calls to
+	 * @param forwardToPort
+	 *            the host port to forward the calls to
+	 * @param forwardToSsl
+	 *            use an SSL connection for the forward server or not
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -55,7 +63,13 @@ public class ServerBridge extends Server {
 	 * @param port
 	 *            the port to listen on
 	 * @param ssl
-	 *            use a SSL connection (or not)
+	 *            use an SSL connection (or not)
+	 * @param forwardToHost
+	 *            the host server to forward the calls to
+	 * @param forwardToPort
+	 *            the host port to forward the calls to
+	 * @param forwardToSsl
+	 *            use an SSL connection for the forward server or not
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -72,13 +86,15 @@ public class ServerBridge extends Server {
 	/**
 	 * The traces handler for this {@link Server}.
 	 * <p>
+	 * The trace levels are handled as follow:
 	 * <ul>
-	 * <li>At level 1, it will only print basic IN/OUT messages with length.</li>
-	 * <li>At level 2, it will also print the data as a String.</li>
-	 * <li>At level 3, it will try to interpret it (SLOW) and print the object
-	 * type if possible.</li>
-	 * <li>At level 4, it will try to print the {@link Object#toString()} value.
-	 * </li>
+	 * <li>1: it will only print basic IN/OUT messages with length</li>
+	 * <li>2: it will try to interpret it as an object (SLOW) and print the
+	 * object class if possible</li>
+	 * <li>3: it will try to print the {@link Object#toString()} value, or the
+	 * data if it is not an object</li>
+	 * <li>4: it will also print the unzipped serialised value if it is an
+	 * object</li>
 	 * </ul>
 	 * 
 	 * @param tracer
@@ -122,11 +138,9 @@ public class ServerBridge extends Server {
 	 * 
 	 * @param clientVersion
 	 *            the client version
-	 * @param data
-	 *            the data sent by the client
 	 */
 	protected void onClientContact(Version clientVersion) {
-		getTraceHandler().trace("CLIENT " + clientVersion);
+		getTraceHandler().trace("<<< CLIENT " + clientVersion);
 	}
 
 	/**
@@ -134,11 +148,9 @@ public class ServerBridge extends Server {
 	 * 
 	 * @param serverVersion
 	 *            the server version
-	 * @param data
-	 *            the data sent by the client
 	 */
 	protected void onServerContact(Version serverVersion) {
-		getTraceHandler().trace("SERVER " + serverVersion);
+		getTraceHandler().trace(">>> SERVER " + serverVersion);
 	}
 
 	/**
@@ -175,25 +187,69 @@ public class ServerBridge extends Server {
 	 *            the data to trace
 	 */
 	private void trace(String prefix, String data) {
-		getTraceHandler().trace(prefix + ": " + data.length() + " characters",
-				1);
+		int size = data.length();
+		String ssize = size + " byte";
+		if (size > 1) {
+			ssize = size + " bytes";
+			if (size >= 1000) {
+				size = size / 1000;
+				ssize = size + " kb";
+				if (size > 1000) {
+					size = size / 1000;
+					ssize = size + " MB";
+				}
+			}
+		}
+
+		getTraceHandler().trace(prefix + ": " + ssize, 1);
 
 		if (getTraceHandler().getTraceLevel() >= 2) {
 			try {
+				if (data.startsWith("ZIP:")) {
+					data = StringUtils.unzip64(data.substring(4));
+				}
+
 				Object obj = new Importer().read(data).getValue();
 				if (obj == null) {
+					getTraceHandler().trace("NULL", 2);
 					getTraceHandler().trace("NULL", 3);
 					getTraceHandler().trace("NULL", 4);
 				} else {
-					getTraceHandler().trace("(" + obj.getClass() + ")", 3);
-					getTraceHandler().trace("" + obj.toString(), 4);
+					if (obj.getClass().isArray()) {
+						getTraceHandler().trace(
+								"(" + obj.getClass() + ") with "
+										+ Array.getLength(obj) + "element(s)",
+								3);
+					} else {
+						getTraceHandler().trace("(" + obj.getClass() + ")", 2);
+					}
+					getTraceHandler().trace("" + obj.toString(), 3);
+					getTraceHandler().trace(data, 4);
 				}
+			} catch (NoSuchMethodException e) {
+				getTraceHandler().trace("(not an object)", 2);
+				getTraceHandler().trace(data, 3);
+				getTraceHandler().trace("", 4);
+			} catch (NoSuchFieldException e) {
+				getTraceHandler().trace(
+						"(object known but incompatible: " + e.getMessage()
+								+ ")", 2);
+				getTraceHandler().trace(data, 3);
+				getTraceHandler().trace("", 4);
+			} catch (ClassNotFoundException e) {
+				getTraceHandler().trace(
+						"(unknown object: " + e.getMessage() + ")", 2);
+				getTraceHandler().trace(data, 3);
+				getTraceHandler().trace("", 4);
 			} catch (Exception e) {
-				getTraceHandler().trace("(not an object)", 3);
-				getTraceHandler().trace(data, 4);
+				getTraceHandler()
+						.trace("(error when trying to decode: "
+								+ e.getMessage() + ")", 2);
+				getTraceHandler().trace(data, 3);
+				getTraceHandler().trace("", 4);
 			}
 
-			getTraceHandler().trace("", 4);
+			getTraceHandler().trace("", 2);
 		}
 	}
 
@@ -205,10 +261,10 @@ public class ServerBridge extends Server {
 	 *            <ul>
 	 *            <li>The bridge name</li>
 	 *            <li>The bridge port</li>
-	 *            <li>TRUE for a ssl bridge, FALSE for plain text</li>
+	 *            <li>TRUE for an SSL bridge, FALSE for plain text</li>
 	 *            <li>The forward server host</li>
 	 *            <li>The forward server port</li>
-	 *            <li>TRUE for a ssl forward server, FALSE for plain text</li>
+	 *            <li>TRUE for an SSL forward server, FALSE for plain text</li>
 	 *            <li>(optional) a trace level</li>
 	 *            </ul>
 	 */

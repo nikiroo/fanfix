@@ -4,6 +4,13 @@ import be.nikiroo.utils.serial.Exporter;
 import be.nikiroo.utils.serial.Importer;
 
 class SerialTest extends TestLauncher {
+	/**
+	 * Required for Import/Export of objects.
+	 */
+	public SerialTest() {
+		this(null);
+	}
+
 	public SerialTest(String[] args) {
 		super("Serial test", args);
 
