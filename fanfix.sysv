@@ -66,7 +66,7 @@ stop)
 		kill -9 "`cat "$FPID"`" 2>/dev/null
 	fi
 	
-	rm "$FPID"
+	rm -f "$FPID"
 ;;
 restart)
 	sh "$0" stop
