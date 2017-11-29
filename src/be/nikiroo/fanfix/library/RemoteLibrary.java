@@ -51,7 +51,7 @@ public class RemoteLibrary extends BasicLibrary {
 	protected List<MetaData> getMetas(Progress pg) {
 		// TODO: progress
 		final List<MetaData> metas = new ArrayList<MetaData>();
-		MetaData[] fromNetwork = this.<MetaData[]> getRemoteObject( //
+		MetaData[] fromNetwork = this.getRemoteObject( //
 				new Object[] { key, "GET_METADATA", "*" });
 
 		if (fromNetwork != null) {
@@ -65,19 +65,19 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public BufferedImage getCover(final String luid) {
-		return this.<BufferedImage> getRemoteObject( //
+		return this.getRemoteObject( //
 				new Object[] { key, "GET_COVER", luid });
 	}
 
 	@Override
 	public BufferedImage getSourceCover(final String source) {
-		return this.<BufferedImage> getRemoteObject( //
+		return this.getRemoteObject( //
 				new Object[] { key, "GET_SOURCE_COVER", source });
 	}
 
 	@Override
 	public synchronized Story getStory(final String luid, Progress pg) {
-		return this.<Story> getRemoteObject( //
+		return this.getRemoteStory( //
 				new Object[] { key, "GET_STORY", luid });
 	}
 
@@ -137,19 +137,63 @@ public class RemoteLibrary extends BasicLibrary {
 	 * @param <T>
 	 *            the expected type of object
 	 * @param command
-	 *            the command to send
+	 *            the command to send (can contain at most ONE {@link Story})
+	 * 
+	 * @return the object or NULL
+	 */
+	private <T> T getRemoteObject(final Object[] command) {
+		return getRemoteObjectOrStory(command, false);
+	}
+
+	/**
+	 * Return an object from the server.
+	 * 
+	 * @param command
+	 *            the command to send (can contain at most ONE {@link Story})
+	 * 
+	 * @return the object or NULL
+	 */
+	private Story getRemoteStory(final Object[] command) {
+		return getRemoteObjectOrStory(command, true);
+	}
+
+	/**
+	 * Return an object from the server.
+	 * 
+	 * @param <T>
+	 *            the expected type of object
+	 * @param command
+	 *            the command to send (can contain at most ONE {@link Story})
 	 * 
 	 * @return the object or NULL
 	 */
 	@SuppressWarnings("unchecked")
-	private <T> T getRemoteObject(final Object[] command) {
+	private <T> T getRemoteObjectOrStory(final Object[] command,
+			final boolean getStory) {
 		final Object[] result = new Object[1];
 		try {
 			new ConnectActionClientObject(host, port, true) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					try {
+						Story story = null;
+						for (int i = 0; i < command.length; i++) {
+							if (command[i] instanceof Story) {
+								story = (Story) command[i];
+								command[i] = null;
+							}
+						}
+
 						Object rep = send(command);
+
+						if (story != null) {
+							RemoteLibraryServer.sendStory(story, this);
+						}
+
+						if (getStory) {
+							rep = RemoteLibraryServer.recStory(this);
+						}
+
 						result[0] = rep;
 					} catch (Exception e) {
 						Instance.getTraceHandler().error(e);
