@@ -51,7 +51,7 @@ public class RemoteLibraryServer extends ServerObject {
 	 *             in case of I/O error
 	 */
 	public RemoteLibraryServer(String key, int port) throws IOException {
-		super(port, true);
+		super("Fanfix remote library", port, true);
 		this.key = key;
 	}
 

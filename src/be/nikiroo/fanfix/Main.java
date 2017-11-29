@@ -23,7 +23,6 @@ import be.nikiroo.fanfix.reader.Reader.ReaderType;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 import be.nikiroo.utils.Progress;
-import be.nikiroo.utils.TraceHandler;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.server.ConnectActionClientObject;
 import be.nikiroo.utils.serial.server.ServerObject;
@@ -334,7 +333,7 @@ public class Main {
 				}
 				try {
 					ServerObject server = new RemoteLibraryServer(key, port);
-					server.setTraceHandler(new TraceHandler(true, true, true));
+					server.setTraceHandler(Instance.getTraceHandler());
 					server.start();
 				} catch (IOException e) {
 					Instance.getTraceHandler().error(e);
