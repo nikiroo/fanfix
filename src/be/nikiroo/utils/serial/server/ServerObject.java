@@ -68,9 +68,6 @@ abstract public class ServerObject extends Server {
 					}
 				} catch (NullPointerException e) {
 					// Client has no data any more, we quit
-					getTraceHandler()
-							.trace(getName()
-									+ ": client has data no more, stopping connection");
 				}
 			}
 		};

@@ -121,12 +121,31 @@ public class ImageUtils {
 	}
 
 	/**
+	 * A shorthand method to create an {@link ImageText} and return its output.
+	 * 
+	 * @param image
+	 *            the source {@link Image}
+	 * @param size
+	 *            the final text size to target
+	 * @param mode
+	 *            the mode of conversion
+	 * @param invert
+	 *            TRUE to invert colours rendering
+	 * 
+	 * @return the text image
+	 */
+	static public String toAscii(Image image, Dimension size, Mode mode,
+			boolean invert) {
+		return new ImageText(image, size, mode, invert).toString();
+	}
+
+	/**
 	 * Convert the given {@link InputStream} (which should allow calls to
 	 * {@link InputStream#reset()} for better perfs) into an {@link Image}
 	 * object, respecting the EXIF transformations if any.
 	 * 
 	 * @param in
-	 *            the 'resetable' {@link InputStream}
+	 *            the {@link InputStream}
 	 * 
 	 * @return the {@link Image} object
 	 * 
@@ -137,21 +156,49 @@ public class ImageUtils {
 		MarkableFileInputStream tmpIn = null;
 		File tmp = null;
 
-		boolean repack = !in.markSupported();
-		if (!repack) {
+		boolean resetable = in.markSupported();
+		if (resetable) {
 			try {
 				in.reset();
 			} catch (IOException e) {
-				repack = true;
+				resetable = false;
 			}
 		}
 
-		if (repack) {
-			tmp = File.createTempFile(".tmp-image", ".tmp");
-			tmp.deleteOnExit();
+		if (resetable) {
+			return fromResetableStream(in);
+		}
+
+		tmp = File.createTempFile(".tmp-image", ".tmp");
+		try {
 			IOUtils.write(in, tmp);
 			tmpIn = new MarkableFileInputStream(new FileInputStream(tmp));
+			return fromResetableStream(tmpIn);
+		} finally {
+			try {
+				if (tmpIn != null) {
+					tmpIn.close();
+				}
+			} finally {
+				tmp.delete();
+			}
 		}
+	}
+
+	/**
+	 * Convert the given resetable {@link InputStream} into an {@link Image}
+	 * object, respecting the EXIF transformations if any.
+	 * 
+	 * @param in
+	 *            the 'resetable' (this is mandatory) {@link InputStream}
+	 * 
+	 * @return the {@link Image} object
+	 * 
+	 * @throws IOException
+	 *             in case of IO error
+	 */
+	static private BufferedImage fromResetableStream(InputStream in)
+			throws IOException {
 
 		int orientation;
 		try {
@@ -165,10 +212,6 @@ public class ImageUtils {
 		BufferedImage image = ImageIO.read(in);
 
 		if (image == null) {
-			if (tmp != null) {
-				tmp.delete();
-				tmpIn.close();
-			}
 			throw new IOException("Failed to convert input to image");
 		}
 
@@ -230,31 +273,7 @@ public class ImageUtils {
 		}
 		//
 
-		if (tmp != null) {
-			tmp.delete();
-			tmpIn.close();
-		}
-
 		return image;
-	}
-
-	/**
-	 * A shorthand method to create an {@link ImageText} and return its output.
-	 * 
-	 * @param image
-	 *            the source {@link Image}
-	 * @param size
-	 *            the final text size to target
-	 * @param mode
-	 *            the mode of conversion
-	 * @param invert
-	 *            TRUE to invert colours rendering
-	 * 
-	 * @return the text image
-	 */
-	static public String toAscii(Image image, Dimension size, Mode mode,
-			boolean invert) {
-		return new ImageText(image, size, mode, invert).toString();
 	}
 
 	/**

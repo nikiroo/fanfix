@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version 3.1.3
+
+- Fix ImageUtils.fromStream with non-resetable streams
+
 ## Version 3.1.2
 
 - Fix Server regarding the client version passed to the handler
