@@ -1,5 +1,10 @@
 # nikiroo-utils
 
+## Version 3.1.2
+
+- Fix Server regarding the client version passed to the handler
+- Improve ServerBridge options
+
 ## Version 3.1.1
 
 - Some fixes and trace handling changes in ServerBridge

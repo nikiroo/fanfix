@@ -108,6 +108,20 @@ abstract class ConnectAction {
 				out = new OutputStreamWriter(s.getOutputStream(), "UTF-8");
 				try {
 					if (server) {
+						String line = in.readLine();
+						if (line != null && line.startsWith("VERSION ")) {
+							// "VERSION client-version" (VERSION 1.0.0)
+							Version clientVersion = new Version(
+									line.substring("VERSION ".length()));
+							this.clientVersion = clientVersion;
+							Version v = negotiateVersion(clientVersion);
+							if (v == null) {
+								v = new Version();
+							}
+
+							sendString("VERSION " + v.toString());
+						}
+
 						action(clientVersion);
 					} else {
 						String v = sendString("VERSION " + version.toString());
@@ -253,22 +267,7 @@ abstract class ConnectAction {
 					contentToSend = false;
 				}
 
-				String line = in.readLine();
-				if (server && line != null && line.startsWith("VERSION ")) {
-					// "VERSION client-version" (VERSION 1.0.0)
-					Version clientVersion = new Version(
-							line.substring("VERSION ".length()));
-					this.clientVersion = clientVersion;
-					Version v = negotiateVersion(clientVersion);
-					if (v == null) {
-						v = new Version();
-					}
-					sendString("VERSION " + v.toString());
-
-					line = in.readLine();
-				}
-
-				return line;
+				return in.readLine();
 			}
 
 			return null;

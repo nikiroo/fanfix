@@ -10,6 +10,7 @@ public class TraceHandler {
 	private final boolean showErrors;
 	private final boolean showErrorDetails;
 	private final int traceLevel;
+	private final int maxPrintSize;
 
 	/**
 	 * Create a default {@link TraceHandler} that will print errors on stderr
@@ -47,9 +48,29 @@ public class TraceHandler {
 	 */
 	public TraceHandler(boolean showErrors, boolean showErrorDetails,
 			int traceLevel) {
+		this(showErrors, showErrorDetails, traceLevel, -1);
+	}
+
+	/**
+	 * Create a default {@link TraceHandler}.
+	 * 
+	 * @param showErrors
+	 *            show errors on stderr
+	 * @param showErrorDetails
+	 *            show more details when printing errors
+	 * @param traceLevel
+	 *            show traces of this level or lower (0 means "no traces",
+	 *            higher means more traces)
+	 * @param maxPrintSize
+	 *            the maximum size at which to truncate traces data (or -1 for
+	 *            "no limit")
+	 */
+	public TraceHandler(boolean showErrors, boolean showErrorDetails,
+			int traceLevel, int maxPrintSize) {
 		this.showErrors = showErrors;
 		this.showErrorDetails = showErrorDetails;
 		this.traceLevel = Math.max(traceLevel, 0);
+		this.maxPrintSize = maxPrintSize;
 	}
 
 	/**
@@ -92,8 +113,8 @@ public class TraceHandler {
 	/**
 	 * A trace happened, show it.
 	 * <p>
-	 * By default, will only be effective if {@link TraceHandler#showTraces} is
-	 * true
+	 * By default, will only be effective if {@link TraceHandler#traceLevel} is
+	 * not 0.
 	 * <p>
 	 * A call to this method is equivalent to a call to
 	 * {@link TraceHandler#trace(String, int)} with a level of 1.
@@ -108,8 +129,8 @@ public class TraceHandler {
 	/**
 	 * A trace happened, show it.
 	 * <p>
-	 * By default, will only be effective if {@link TraceHandler#showTraces} is
-	 * true and the level is lower or equal to {@link TraceHandler#traceLevel}.
+	 * By default, will only be effective if {@link TraceHandler#traceLevel} is
+	 * not 0 and the level is lower or equal to it.
 	 * 
 	 * @param message
 	 *            the trace message
@@ -118,7 +139,12 @@ public class TraceHandler {
 	 */
 	public void trace(String message, int level) {
 		if (traceLevel > 0 && level <= traceLevel) {
-			System.out.println(message);
+			if (maxPrintSize > 0 && message.length() > maxPrintSize) {
+				System.out
+						.println(message.substring(0, maxPrintSize) + "[...]");
+			} else {
+				System.out.println(message);
+			}
 		}
 	}
 }

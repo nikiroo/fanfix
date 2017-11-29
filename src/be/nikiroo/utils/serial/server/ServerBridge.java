@@ -151,6 +151,7 @@ public class ServerBridge extends Server {
 	 */
 	protected void onServerContact(Version serverVersion) {
 		getTraceHandler().trace(">>> SERVER " + serverVersion);
+		getTraceHandler().trace("");
 	}
 
 	/**
@@ -232,8 +233,7 @@ public class ServerBridge extends Server {
 				getTraceHandler().trace("", 4);
 			} catch (NoSuchFieldException e) {
 				getTraceHandler().trace(
-						"(object known but incompatible: " + e.getMessage()
-								+ ")", 2);
+						"(incompatible: " + e.getMessage() + ")", 2);
 				getTraceHandler().trace(data, 3);
 				getTraceHandler().trace("", 4);
 			} catch (ClassNotFoundException e) {
@@ -242,9 +242,8 @@ public class ServerBridge extends Server {
 				getTraceHandler().trace(data, 3);
 				getTraceHandler().trace("", 4);
 			} catch (Exception e) {
-				getTraceHandler()
-						.trace("(error when trying to decode: "
-								+ e.getMessage() + ")", 2);
+				getTraceHandler().trace(
+						"(decode error: " + e.getMessage() + ")", 2);
 				getTraceHandler().trace(data, 3);
 				getTraceHandler().trace("", 4);
 			}
@@ -266,6 +265,7 @@ public class ServerBridge extends Server {
 	 *            <li>The forward server port</li>
 	 *            <li>TRUE for an SSL forward server, FALSE for plain text</li>
 	 *            <li>(optional) a trace level</li>
+	 *            <li>(optional) a truncate size for data</li>
 	 *            </ul>
 	 */
 	public static void main(String[] args) {
@@ -273,14 +273,15 @@ public class ServerBridge extends Server {
 		try {
 			if (args.length < 6) {
 				tracer.error("Invalid syntax.\n"
-						+ "Syntax: [name] [port] [ssl] [fhost] [fport] [fssl] ([trace level])\n"
+						+ "Syntax: [name] [port] [ssl] [fhost] [fport] [fssl] ([trace level]) ([max])\n"
 						+ "\tname: the bridge name\n"
 						+ "\tport: the bridge port\n"
 						+ "\tssl: TRUE for an SSL bridge, FALSE for plain text\n"
 						+ "\tfhost: the forward server host\n"
 						+ "\tfport: the forward server port\n"
 						+ "\tfssl: TRUE for an SSL forward server, FALSE for plain text\n"
-						+ "\ttrace level: the optional trace level (default is 1)\n");
+						+ "\ttrace level: the optional trace level (default is 1)\n"
+						+ "\tmax: the maximum size after which to truncate data\n");
 				return;
 			}
 
@@ -296,10 +297,15 @@ public class ServerBridge extends Server {
 			if (args.length > 6) {
 				traceLevel = Integer.parseInt(args[i++]);
 			}
+			int maxPrintSize = 1;
+			if (args.length > 7) {
+				maxPrintSize = Integer.parseInt(args[i++]);
+			}
 
 			ServerBridge bridge = new ServerBridge(name, port, ssl, fhost,
 					fport, fssl);
-			bridge.setTraceHandler(new TraceHandler(true, true, traceLevel));
+			bridge.setTraceHandler(new TraceHandler(true, true, traceLevel,
+					maxPrintSize));
 			bridge.run();
 		} catch (Exception e) {
 			tracer.error(e);
