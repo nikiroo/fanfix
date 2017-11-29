@@ -73,15 +73,6 @@ abstract public class ServerObject extends Server {
 									+ ": client has data no more, stopping connection");
 				}
 			}
-
-			@Override
-			public void connect() {
-				try {
-					super.connect();
-				} finally {
-					count(-1);
-				}
-			}
 		};
 	}
 

@@ -56,35 +56,19 @@ abstract public class ServerString extends Server {
 		return new ConnectActionServerString(s) {
 			@Override
 			public void action(Version clientVersion) throws Exception {
-				try {
-					for (String data = rec(); data != null; data = rec()) {
-						String rep = null;
-						try {
-							rep = onRequest(this, clientVersion, data);
-						} catch (Exception e) {
-							onError(e);
-						}
-
-						if (rep == null) {
-							rep = "";
-						}
-
-						send(rep);
+				for (String data = rec(); data != null; data = rec()) {
+					String rep = null;
+					try {
+						rep = onRequest(this, clientVersion, data);
+					} catch (Exception e) {
+						onError(e);
 					}
-				} catch (NullPointerException e) {
-					// Client has no data any more, we quit
-					getTraceHandler()
-							.trace(getName()
-									+ ": client has data no more, stopping connection");
-				}
-			}
 
-			@Override
-			public void connect() {
-				try {
-					super.connect();
-				} finally {
-					count(-1);
+					if (rep == null) {
+						rep = "";
+					}
+
+					send(rep);
 				}
 			}
 		};

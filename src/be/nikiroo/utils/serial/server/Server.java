@@ -184,8 +184,17 @@ abstract class Server implements Runnable {
 
 			while (started && !exiting) {
 				count(1);
-				Socket s = ss.accept();
-				createConnectActionServer(s).connectAsync();
+				final Socket s = ss.accept();
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							createConnectActionServer(s).connect();
+						} finally {
+							count(-1);
+						}
+					}
+				}).start();
 			}
 
 			// Will be covered by @link{Server#stop(long)} for timeouts
@@ -284,6 +293,21 @@ abstract class Server implements Runnable {
 	}
 
 	/**
+	 * Change the number of currently serviced actions.
+	 * 
+	 * @param change
+	 *            the number to increase or decrease
+	 * 
+	 * @return the current number after this operation
+	 */
+	private int count(int change) {
+		synchronized (counterLock) {
+			counter += change;
+			return counter;
+		}
+	}
+
+	/**
 	 * This method will be called on errors.
 	 * <p>
 	 * By default, it will only call the trace handler (so you may want to call
@@ -294,21 +318,6 @@ abstract class Server implements Runnable {
 	 */
 	protected void onError(Exception e) {
 		tracer.error(e);
-	}
-
-	/**
-	 * Change the number of currently serviced actions.
-	 * 
-	 * @param change
-	 *            the number to increase or decrease
-	 * 
-	 * @return the current number after this operation
-	 */
-	int count(int change) {
-		synchronized (counterLock) {
-			counter += change;
-			return counter;
-		}
 	}
 
 	/**

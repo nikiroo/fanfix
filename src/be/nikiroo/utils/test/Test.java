@@ -21,6 +21,7 @@ public class Test extends TestLauncher {
 		addSeries(new IOUtilsTest(args));
 		addSeries(new VersionTest(args));
 		addSeries(new SerialTest(args));
+		addSeries(new SerialServerTest(args));
 		addSeries(new StringUtilsTest(args));
 	}
 
