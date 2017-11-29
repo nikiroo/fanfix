@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version 3.1.4
+
+- Fix error handling for tracers in Server
+
 ## Version 3.1.3
 
 - Fix ImageUtils.fromStream with non-resetable streams

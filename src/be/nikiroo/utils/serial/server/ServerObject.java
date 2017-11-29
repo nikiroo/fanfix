@@ -70,6 +70,11 @@ abstract public class ServerObject extends Server {
 					// Client has no data any more, we quit
 				}
 			}
+
+			@Override
+			protected void onError(Exception e) {
+				getTraceHandler().error(e);
+			}
 		};
 	}
 

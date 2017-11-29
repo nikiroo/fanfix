@@ -71,6 +71,11 @@ abstract public class ServerString extends Server {
 					send(rep);
 				}
 			}
+
+			@Override
+			protected void onError(Exception e) {
+				getTraceHandler().error(e);
+			}
 		};
 	}
 

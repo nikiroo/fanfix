@@ -128,6 +128,11 @@ public class ServerBridge extends Server {
 							bridge.send(fromServer);
 						}
 					}
+
+					@Override
+					protected void onError(Exception e) {
+						getTraceHandler().error(e);
+					}
 				}.connect();
 			}
 		};
