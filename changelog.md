@@ -3,11 +3,11 @@
 # Version WIP
 
 - Bug fixes
-- Remote server/client improvements
+- Remote server/client improvements (progress report, can send large files)
 - Better support for some CBZ files (if SUMMARY or URL files are present in it)
 - Fix cover images not deleted on story delete
 - Fix some images not supported because not jpeg-able (now try again in png)
-- Fix some covers not found (normal and remote hopefully)
+- Fix some covers not found over the wire (nikiroo-utils)
 
 ## Version 1.6.2
 

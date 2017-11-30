@@ -48,47 +48,134 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected List<MetaData> getMetas(Progress pg) {
-		// TODO: progress
-		final List<MetaData> metas = new ArrayList<MetaData>();
-		MetaData[] fromNetwork = this.getRemoteObject( //
-				new Object[] { key, "GET_METADATA", "*" });
+	public BufferedImage getCover(final String luid) {
+		final BufferedImage[] result = new BufferedImage[1];
 
-		if (fromNetwork != null) {
-			for (MetaData meta : fromNetwork) {
-				metas.add(meta);
-			}
+		try {
+			new ConnectActionClientObject(host, port, true) {
+				@Override
+				public void action(Version serverVersion) throws Exception {
+					Object rep = send(new Object[] { key, "GET_COVER", luid });
+					result[0] = (BufferedImage) rep;
+				}
+
+				@Override
+				protected void onError(Exception e) {
+					Instance.getTraceHandler().error(e);
+				}
+			}.connect();
+		} catch (Exception e) {
+			Instance.getTraceHandler().error(e);
 		}
 
-		return metas;
-	}
-
-	@Override
-	public BufferedImage getCover(final String luid) {
-		return this.getRemoteObject( //
-				new Object[] { key, "GET_COVER", luid });
+		return result[0];
 	}
 
 	@Override
 	public BufferedImage getSourceCover(final String source) {
-		return this.getRemoteObject( //
-				new Object[] { key, "GET_SOURCE_COVER", source });
+		final BufferedImage[] result = new BufferedImage[1];
+
+		try {
+			new ConnectActionClientObject(host, port, true) {
+				@Override
+				public void action(Version serverVersion) throws Exception {
+					Object rep = send(new Object[] { key, "GET_SOURCE_COVER",
+							source });
+					result[0] = (BufferedImage) rep;
+				}
+
+				@Override
+				protected void onError(Exception e) {
+					Instance.getTraceHandler().error(e);
+				}
+			}.connect();
+		} catch (Exception e) {
+			Instance.getTraceHandler().error(e);
+		}
+
+		return result[0];
 	}
 
 	@Override
 	public synchronized Story getStory(final String luid, Progress pg) {
-		return this.getRemoteStory( //
-				new Object[] { key, "GET_STORY", luid });
+		final Progress pgF = pg;
+		final Story[] result = new Story[1];
+
+		try {
+			new ConnectActionClientObject(host, port, true) {
+				@Override
+				public void action(Version serverVersion) throws Exception {
+					Progress pg = pgF;
+					if (pg == null) {
+						pg = new Progress();
+					}
+
+					Object rep = send(new Object[] { key, "GET_STORY", luid });
+
+					MetaData meta = null;
+					if (rep instanceof MetaData) {
+						meta = (MetaData) rep;
+						if (meta.getWords() <= Integer.MAX_VALUE) {
+							pg.setMinMax(0, (int) meta.getWords());
+						}
+					}
+
+					List<Object> list = new ArrayList<Object>();
+					for (Object obj = send(null); obj != null; obj = send(null)) {
+						list.add(obj);
+						pg.add(1);
+					}
+
+					result[0] = RemoteLibraryServer.rebuildStory(list);
+					pg.done();
+				}
+
+				@Override
+				protected void onError(Exception e) {
+					Instance.getTraceHandler().error(e);
+				}
+			}.connect();
+		} catch (Exception e) {
+			Instance.getTraceHandler().error(e);
+		}
+
+		return result[0];
 	}
 
 	@Override
-	protected void clearCache() {
-	}
+	public synchronized Story save(final Story story, final String luid,
+			Progress pg) throws IOException {
+		final Progress pgF = pg;
 
-	@Override
-	public synchronized Story save(Story story, String luid, Progress pg)
-			throws IOException {
-		getRemoteObject(new Object[] { key, "SAVE_STORY", story, luid });
+		new ConnectActionClientObject(host, port, true) {
+			@Override
+			public void action(Version serverVersion) throws Exception {
+				Progress pg = pgF;
+				if (pg == null) {
+					pg = new Progress();
+				}
+
+				if (story.getMeta().getWords() <= Integer.MAX_VALUE) {
+					pg.setMinMax(0, (int) story.getMeta().getWords());
+				}
+
+				send(new Object[] { key, "SAVE_STORY", luid });
+
+				List<Object> list = RemoteLibraryServer.breakStory(story);
+				for (Object obj : list) {
+					send(obj);
+					pg.add(1);
+				}
+
+				send(null);
+				pg.done();
+			}
+
+			@Override
+			protected void onError(Exception e) {
+				Instance.getTraceHandler().error(e);
+			}
+		}.connect();
 
 		// because the meta changed:
 		clearCache();
@@ -98,20 +185,88 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public synchronized void delete(String luid) throws IOException {
-		getRemoteObject(new Object[] { key, "DELETE_STORY", luid });
+	public synchronized void delete(final String luid) throws IOException {
+		new ConnectActionClientObject(host, port, true) {
+			@Override
+			public void action(Version serverVersion) throws Exception {
+				send(new Object[] { key, "DELETE_STORY", luid });
+			}
+
+			@Override
+			protected void onError(Exception e) {
+				Instance.getTraceHandler().error(e);
+			}
+		}.connect();
 	}
 
 	@Override
-	public void setSourceCover(String source, String luid) {
-		this.<BufferedImage> getRemoteObject( //
-		new Object[] { key, "SET_SOURCE_COVER", source, luid });
+	public void setSourceCover(final String source, final String luid) {
+		try {
+			new ConnectActionClientObject(host, port, true) {
+				@Override
+				public void action(Version serverVersion) throws Exception {
+					send(new Object[] { key, "SET_SOURCE_COVER", source, luid });
+				}
+
+				@Override
+				protected void onError(Exception e) {
+					Instance.getTraceHandler().error(e);
+				}
+			}.connect();
+		} catch (IOException e) {
+			Instance.getTraceHandler().error(e);
+		}
 	}
 
 	@Override
 	public synchronized File getFile(final String luid, Progress pg) {
 		throw new java.lang.InternalError(
 				"Operation not supportorted on remote Libraries");
+	}
+
+	@Override
+	protected List<MetaData> getMetas(Progress pg) {
+		final Progress pgF = pg;
+		final List<MetaData> metas = new ArrayList<MetaData>();
+
+		try {
+			new ConnectActionClientObject(host, port, true) {
+				@Override
+				public void action(Version serverVersion) throws Exception {
+					Progress pg = pgF;
+					if (pg == null) {
+						pg = new Progress();
+					}
+
+					Object rep = send(new Object[] { key, "GET_METADATA", "*" });
+
+					while (true) {
+						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
+							break;
+						}
+
+						rep = send(null);
+					}
+
+					for (MetaData meta : (MetaData[]) rep) {
+						metas.add(meta);
+					}
+				}
+
+				@Override
+				protected void onError(Exception e) {
+					Instance.getTraceHandler().error(e);
+				}
+			}.connect();
+		} catch (Exception e) {
+			Instance.getTraceHandler().error(e);
+		}
+
+		return metas;
+	}
+
+	@Override
+	protected void clearCache() {
 	}
 
 	// The following methods are only used by Save and Delete in BasicLibrary:
@@ -129,87 +284,5 @@ public class RemoteLibrary extends BasicLibrary {
 	@Override
 	protected Story doSave(Story story, Progress pg) throws IOException {
 		throw new java.lang.InternalError("Should not have been called");
-	}
-
-	/**
-	 * Return an object from the server.
-	 * 
-	 * @param <T>
-	 *            the expected type of object
-	 * @param command
-	 *            the command to send (can contain at most ONE {@link Story})
-	 * 
-	 * @return the object or NULL
-	 */
-	private <T> T getRemoteObject(final Object[] command) {
-		return getRemoteObjectOrStory(command, false);
-	}
-
-	/**
-	 * Return an object from the server.
-	 * 
-	 * @param command
-	 *            the command to send (can contain at most ONE {@link Story})
-	 * 
-	 * @return the object or NULL
-	 */
-	private Story getRemoteStory(final Object[] command) {
-		return getRemoteObjectOrStory(command, true);
-	}
-
-	/**
-	 * Return an object from the server.
-	 * 
-	 * @param <T>
-	 *            the expected type of object
-	 * @param command
-	 *            the command to send (can contain at most ONE {@link Story})
-	 * 
-	 * @return the object or NULL
-	 */
-	@SuppressWarnings("unchecked")
-	private <T> T getRemoteObjectOrStory(final Object[] command,
-			final boolean getStory) {
-		final Object[] result = new Object[1];
-		try {
-			new ConnectActionClientObject(host, port, true) {
-				@Override
-				public void action(Version serverVersion) throws Exception {
-					Story story = null;
-					for (int i = 0; i < command.length; i++) {
-						if (command[i] instanceof Story) {
-							story = (Story) command[i];
-							command[i] = null;
-						}
-					}
-
-					Object rep = send(command);
-
-					if (story != null) {
-						RemoteLibraryServer.sendStory(story, this);
-					}
-
-					if (getStory) {
-						rep = RemoteLibraryServer.recStory(this);
-					}
-
-					result[0] = rep;
-				}
-
-				@Override
-				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
-				}
-			}.connect();
-		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
-		}
-
-		try {
-			return (T) result[0];
-		} catch (Exception e) {
-			Instance.getTraceHandler().error(e);
-			return null;
-		}
 	}
 }

@@ -10,8 +10,9 @@ import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.utils.Progress;
+import be.nikiroo.utils.Progress.ProgressListener;
 import be.nikiroo.utils.Version;
-import be.nikiroo.utils.serial.server.ConnectActionClientObject;
 import be.nikiroo.utils.serial.server.ConnectActionServerObject;
 import be.nikiroo.utils.serial.server.ServerObject;
 
@@ -58,6 +59,8 @@ public class RemoteLibraryServer extends ServerObject {
 	public RemoteLibraryServer(String key, int port) throws IOException {
 		super("Fanfix remote library", port, true);
 		this.key = key;
+
+		setTraceHandler(Instance.getTraceHandler());
 	}
 
 	@Override
@@ -79,31 +82,50 @@ public class RemoteLibraryServer extends ServerObject {
 			}
 		}
 
-		System.out.print("[" + command + "] ");
+		String trace = "[" + command + "] ";
 		for (Object arg : args) {
-			System.out.print(arg + " ");
+			trace += arg + " ";
 		}
-		System.out.println("");
+		getTraceHandler().trace(trace);
 
 		if (!key.equals(this.key)) {
-			System.out.println("Key rejected.");
-			throw new SecurityException("Invalid key");
+			getTraceHandler().trace("Key rejected.");
+			return null;
 		}
-
-		// TODO: progress (+send name + %age info back to client)
 
 		if ("GET_METADATA".equals(command)) {
 			if (args[0].equals("*")) {
-				List<MetaData> metas = Instance.getLibrary().getMetas(null);
+				List<MetaData> metas = Instance.getLibrary().getMetas(
+						createPgForwarder(action));
 				return metas.toArray(new MetaData[] {});
 			}
 			throw new InvalidParameterException(
 					"only * is valid here, but you passed: " + args[0]);
 		} else if ("GET_STORY".equals(command)) {
+			MetaData meta = Instance.getLibrary().getInfo("" + args[0]);
+			meta = meta.clone();
+			meta.setCover(null);
+
+			action.send(meta);
+			action.rec();
+
 			Story story = Instance.getLibrary().getStory("" + args[0], null);
-			sendStory(story, action);
+			for (Object obj : breakStory(story)) {
+				action.send(obj);
+				action.rec();
+			}
 		} else if ("SAVE_STORY".equals(command)) {
-			Story story = recStory(action);
+			List<Object> list = new ArrayList<Object>();
+
+			action.send(null);
+			Object obj = action.rec();
+			while (obj != null) {
+				list.add(obj);
+				action.send(null);
+				obj = action.rec();
+			}
+
+			Story story = rebuildStory(list);
 			Instance.getLibrary().save(story, "" + args[1], null);
 		} else if ("DELETE_STORY".equals(command)) {
 			Instance.getLibrary().delete("" + args[0]);
@@ -120,83 +142,132 @@ public class RemoteLibraryServer extends ServerObject {
 		return null;
 	}
 
-	public static void sendStory(Story story, Object sender)
-			throws NoSuchFieldException, NoSuchMethodException,
-			ClassNotFoundException, IOException {
-
-		if (!story.getMeta().isImageDocument()) {
-			sendNextObject(sender, story);
-			return;
-		}
-
-		story = story.clone();
-
-		List<Chapter> chaps = story.getChapters();
-		story.setChapters(new ArrayList<Chapter>());
-		sendNextObject(sender, story);
-
-		for (Chapter chap : chaps) {
-			List<Paragraph> paras = chap.getParagraphs();
-			chap.setParagraphs(new ArrayList<Paragraph>());
-			sendNextObject(sender, chap);
-
-			for (Paragraph para : paras) {
-				sendNextObject(sender, para);
-			}
-		}
+	@Override
+	protected void onError(Exception e) {
+		getTraceHandler().error(e);
 	}
 
-	public static Story recStory(Object source) throws NoSuchFieldException,
-			NoSuchMethodException, ClassNotFoundException, IOException {
+	/**
+	 * Break a story in multiple {@link Object}s for easier serialisation.
+	 * 
+	 * @param story
+	 *            the {@link Story} to break
+	 * 
+	 * @return the list of {@link Object}s
+	 */
+	static List<Object> breakStory(Story story) {
+		List<Object> list = new ArrayList<Object>();
 
+		story = story.clone();
+		list.add(story);
+
+		if (story.getMeta().isImageDocument()) {
+			for (Chapter chap : story) {
+				list.add(chap);
+				list.addAll(chap.getParagraphs());
+				chap.setParagraphs(new ArrayList<Paragraph>());
+			}
+			story.setChapters(new ArrayList<Chapter>());
+		}
+
+		return list;
+	}
+
+	/**
+	 * Rebuild a story from a list of broke up {@link Story} parts.
+	 * 
+	 * @param list
+	 *            the list of {@link Story} parts
+	 * 
+	 * @return the reconstructed {@link Story}
+	 */
+	static Story rebuildStory(List<Object> list) {
 		Story story = null;
+		Chapter chap = null;
 
-		Object obj = getNextObject(source);
-		if (obj instanceof Story) {
-			story = (Story) obj;
-
-			Chapter current = null;
-			for (obj = getNextObject(source); obj != null; obj = getNextObject(source)) {
-				if (obj instanceof Chapter) {
-					current = (Chapter) obj;
-					story.getChapters().add(current);
-				} else if (obj instanceof Paragraph) {
-					current.getParagraphs().add((Paragraph) obj);
-				}
+		for (Object obj : list) {
+			if (obj instanceof Story) {
+				story = (Story) obj;
+			} else if (obj instanceof Chapter) {
+				chap = (Chapter) obj;
+				story.getChapters().add(chap);
+			} else if (obj instanceof Paragraph) {
+				chap.getParagraphs().add((Paragraph) obj);
 			}
 		}
 
 		return story;
 	}
 
-	private static Object getNextObject(Object clientOrServer)
-			throws NoSuchFieldException, NoSuchMethodException,
-			ClassNotFoundException, IOException {
-		if (clientOrServer instanceof ConnectActionClientObject) {
-			ConnectActionClientObject client = (ConnectActionClientObject) clientOrServer;
-			return client.send(null);
-		} else if (clientOrServer instanceof ConnectActionServerObject) {
-			ConnectActionServerObject server = (ConnectActionServerObject) clientOrServer;
-			Object obj = server.rec();
-			server.send(null);
-			return obj;
-		} else {
-			throw new ClassNotFoundException();
+	/**
+	 * Update the {@link Progress} with the adequate {@link Object} received
+	 * from the network via {@link RemoteLibraryServer}.
+	 * 
+	 * @param pg
+	 *            the {@link Progress} to update
+	 * @param rep
+	 *            the object received from the network
+	 * 
+	 * @return TRUE if it was a progress event, FALSE if not
+	 */
+	static boolean updateProgress(Progress pg, Object rep) {
+		if (rep instanceof Integer[]) {
+			Integer[] a = (Integer[]) rep;
+			if (a.length == 3) {
+				int min = a[0];
+				int max = a[1];
+				int progress = a[2];
+
+				if (min >= 0 && min <= max) {
+					pg.setMinMax(min, max);
+					pg.setProgress(progress);
+
+					return true;
+				}
+			}
 		}
+
+		return false;
 	}
 
-	private static void sendNextObject(Object clientOrServer, Object obj)
-			throws NoSuchFieldException, NoSuchMethodException,
-			ClassNotFoundException, IOException {
-		if (clientOrServer instanceof ConnectActionClientObject) {
-			ConnectActionClientObject client = (ConnectActionClientObject) clientOrServer;
-			client.send(obj);
-		} else if (clientOrServer instanceof ConnectActionServerObject) {
-			ConnectActionServerObject server = (ConnectActionServerObject) clientOrServer;
-			server.send(obj);
-			server.rec();
-		} else {
-			throw new ClassNotFoundException();
-		}
+	/**
+	 * Create a {@link Progress} that will forward its progress over the
+	 * network.
+	 * 
+	 * @param action
+	 *            the {@link ConnectActionServerObject} to use to forward it
+	 * 
+	 * @return the {@link Progress}
+	 */
+	private static Progress createPgForwarder(
+			final ConnectActionServerObject action) {
+		final Progress pg = new Progress();
+		final Integer[] p = new Integer[] { -1, -1, -1 };
+		pg.addProgressListener(new ProgressListener() {
+			@Override
+			public void progress(Progress progress, String name) {
+				int min = pg.getMin();
+				int max = pg.getMax();
+				int relativeProgress = min
+						+ (int) Math.round(pg.getRelativeProgress()
+								* (max - min));
+
+				// Do not re-send the same value twice over the wire
+				if (p[0] != min || p[1] != max || p[2] != relativeProgress) {
+					p[0] = min;
+					p[1] = max;
+					p[2] = relativeProgress;
+
+					try {
+						action.send(new Integer[] { min, max, relativeProgress });
+						action.rec();
+					} catch (Exception e) {
+						Instance.getTraceHandler().error(e);
+					}
+				}
+			}
+		});
+
+		return pg;
 	}
 }

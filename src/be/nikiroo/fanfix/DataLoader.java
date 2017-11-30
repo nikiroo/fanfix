@@ -252,19 +252,24 @@ public class DataLoader {
 		try {
 			String format = Instance.getConfig()
 					.getString(Config.IMAGE_FORMAT_CONTENT).toLowerCase();
-			boolean ok = ImageIO.write(image, format, target);
-			if (!ok) {
-				// Some formats are not reliable
-				// Second change: PNG
-				if (!format.equals("png")) {
-					ok = ImageIO.write(image, "png", target);
-				}
 
-				if (!ok) {
-					throw new IOException(
-							"Cannot find a writer for this image and format: "
-									+ format);
-				}
+			boolean ok = false;
+			try {
+				ok = ImageIO.write(image, format, target);
+			} catch (IOException e) {
+				ok = false;
+			}
+
+			// Some formats are not reliable
+			// Second change: PNG
+			if (!ok && !format.equals("png")) {
+				ok = ImageIO.write(image, "png", target);
+			}
+
+			if (!ok) {
+				throw new IOException(
+						"Cannot find a writer for this image and format: "
+								+ format);
 			}
 		} catch (IOException e) {
 			throw new IOException("Cannot write image to " + target, e);
