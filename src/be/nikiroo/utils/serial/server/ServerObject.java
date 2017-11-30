@@ -73,7 +73,7 @@ abstract public class ServerObject extends Server {
 
 			@Override
 			protected void onError(Exception e) {
-				getTraceHandler().error(e);
+				ServerObject.this.onError(e);
 			}
 		};
 	}

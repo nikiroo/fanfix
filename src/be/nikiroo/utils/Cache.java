@@ -328,7 +328,11 @@ public class Cache {
 		if (name == null || name.isEmpty()) {
 			// File
 			File file = new File(url.getFile());
-			subdir = new File(file.getParent().replace("..", "__"));
+			if (file.getParent() == null) {
+				subdir = new File("+");
+			} else {
+				subdir = new File(file.getParent().replace("..", "__"));
+			}
 			subdir = new File(dir, allowedChars(subdir.getPath()));
 			name = allowedChars(url.getFile());
 		} else {

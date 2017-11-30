@@ -127,11 +127,14 @@ public class ServerBridge extends Server {
 							onSend(serverVersion, fromServer);
 							bridge.send(fromServer);
 						}
+
+						getTraceHandler().trace("=== DONE", 1);
+						getTraceHandler().trace("", 1);
 					}
 
 					@Override
 					protected void onError(Exception e) {
-						getTraceHandler().error(e);
+						ServerBridge.this.onError(e);
 					}
 				}.connect();
 			}
@@ -145,7 +148,7 @@ public class ServerBridge extends Server {
 	 *            the client version
 	 */
 	protected void onClientContact(Version clientVersion) {
-		getTraceHandler().trace("<<< CLIENT " + clientVersion);
+		getTraceHandler().trace(">>> CLIENT " + clientVersion);
 	}
 
 	/**
@@ -155,7 +158,7 @@ public class ServerBridge extends Server {
 	 *            the server version
 	 */
 	protected void onServerContact(Version serverVersion) {
-		getTraceHandler().trace(">>> SERVER " + serverVersion);
+		getTraceHandler().trace("<<< SERVER " + serverVersion);
 		getTraceHandler().trace("");
 	}
 
@@ -168,7 +171,7 @@ public class ServerBridge extends Server {
 	 *            the data sent by the client
 	 */
 	protected void onRec(Version clientVersion, String data) {
-		trace("<<< CLIENT (" + clientVersion + ")", data);
+		trace(">>> CLIENT (" + clientVersion + ")", data);
 	}
 
 	/**
@@ -181,7 +184,7 @@ public class ServerBridge extends Server {
 	 *            the data sent by the client
 	 */
 	protected void onSend(Version serverVersion, String data) {
-		trace(">>> SERVER (" + serverVersion + ")", data);
+		trace("<<< SERVER (" + serverVersion + ")", data);
 	}
 
 	/**

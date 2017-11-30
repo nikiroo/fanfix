@@ -698,7 +698,7 @@ public class Bundle<E extends Enum<E>> {
 			if (snap instanceof Map) {
 				changeMap = (Map<String, String>) snap;
 			} else {
-				throw new Error(
+				throw new RuntimeException(
 						"Restoring changes in a Bundle must be done on a changes snapshot, "
 								+ "or NULL to discard current changes");
 			}
@@ -740,7 +740,7 @@ public class Bundle<E extends Enum<E>> {
 			if (file.exists()) {
 				break;
 			}
-			
+
 			file = null;
 		}
 

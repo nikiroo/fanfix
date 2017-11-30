@@ -74,7 +74,7 @@ abstract public class ServerString extends Server {
 
 			@Override
 			protected void onError(Exception e) {
-				getTraceHandler().error(e);
+				ServerString.this.onError(e);
 			}
 		};
 	}

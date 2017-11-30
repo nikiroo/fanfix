@@ -1,5 +1,10 @@
 # nikiroo-utils
 
+## Version 3.1.5
+
+- Fix Cache with no-parent file
+- Fix Progress (Error <> RuntimeException)
+
 ## Version 3.1.4
 
 - Fix error handling for tracers in Server

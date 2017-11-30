@@ -30,6 +30,10 @@ class SerialServerTest extends TestLauncher {
 							throws Exception {
 						return null;
 					}
+
+					@Override
+					protected void onError(Exception e) {
+					}
 				};
 
 				int port = server.getPort();
@@ -292,6 +296,10 @@ class SerialServerTest extends TestLauncher {
 							throws Exception {
 						return null;
 					}
+
+					@Override
+					protected void onError(Exception e) {
+					}
 				};
 
 				int port = server.getPort();
@@ -301,7 +309,11 @@ class SerialServerTest extends TestLauncher {
 
 				ServerBridge br = null;
 				if (bridge) {
-					br = new ServerBridge(0, ssl, "", port, ssl);
+					br = new ServerBridge(0, ssl, "", port, ssl) {
+						@Override
+						protected void onError(Exception e) {
+						}
+					};
 					port = br.getPort();
 					br.start();
 				}
@@ -313,6 +325,10 @@ class SerialServerTest extends TestLauncher {
 							public void action(Version serverVersion)
 									throws Exception {
 								rec[0] = true;
+							}
+
+							@Override
+							protected void onError(Exception e) {
 							}
 						}.connect();
 					} finally {

@@ -14,6 +14,12 @@ import java.util.Set;
  * @author niki
  */
 public class Progress {
+	/**
+	 * This event listener is designed to report progress events from
+	 * {@link Progress}.
+	 * 
+	 * @author niki
+	 */
 	public interface ProgressListener extends EventListener {
 		/**
 		 * A progression event.
@@ -125,17 +131,17 @@ public class Progress {
 	 *            the min to set
 	 * 
 	 * 
-	 * @throws Error
+	 * @throws RuntimeException
 	 *             if min &lt; 0 or if min &gt; max
 	 */
 	public void setMin(int min) {
 		if (min < 0) {
-			throw new Error("negative values not supported");
+			throw new RuntimeException("negative values not supported");
 		}
 
 		synchronized (getLock()) {
 			if (min > max) {
-				throw new Error(
+				throw new RuntimeException(
 						"The minimum progress value must be <= the maximum progress value");
 			}
 
@@ -159,7 +165,7 @@ public class Progress {
 	 *            the max to set
 	 * 
 	 * 
-	 * @throws Error
+	 * @throws RuntimeException
 	 *             if max &lt; min
 	 */
 	public void setMax(int max) {
@@ -181,16 +187,16 @@ public class Progress {
 	 * @param max
 	 *            the max
 	 * 
-	 * @throws Error
+	 * @throws RuntimeException
 	 *             if min &lt; 0 or if min &gt; max
 	 */
 	public void setMinMax(int min, int max) {
 		if (min < 0) {
-			throw new Error("negative values not supported");
+			throw new RuntimeException("negative values not supported");
 		}
 
 		if (min > max) {
-			throw new Error(
+			throw new RuntimeException(
 					"The minimum progress value must be <= the maximum progress value");
 		}
 
@@ -378,20 +384,20 @@ public class Progress {
 	 *            {@link Progress#getMax()} scale) of this child
 	 *            {@link Progress} in relation to its parent
 	 * 
-	 * @throws Error
+	 * @throws RuntimeException
 	 *             if weight exceed {@link Progress#getMax()} or if progress
 	 *             already has a parent
 	 */
 	public void addProgress(Progress progress, double weight) {
 		if (weight < min || weight > max) {
-			throw new Error(String.format(
+			throw new RuntimeException(String.format(
 					"Progress object %s cannot have a weight of %f, "
 							+ "it is outside of its parent (%s) range (%f)",
 					progress.name, weight, name, max));
 		}
 
 		if (progress.parent != null) {
-			throw new Error(String.format(
+			throw new RuntimeException(String.format(
 					"Progress object %s cannot be added to %s, "
 							+ "as it already has a parent (%s)", progress.name,
 					name, progress.parent.name));
