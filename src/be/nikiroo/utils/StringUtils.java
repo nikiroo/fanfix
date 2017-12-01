@@ -51,7 +51,7 @@ public class StringUtils {
 	 * @return the resulting {@link String} of size <i>size</i>
 	 */
 	static public String padString(String text, int width) {
-		return padString(text, width, true, Alignment.Beginning);
+		return padString(text, width, true, null);
 	}
 
 	/**
@@ -67,12 +67,16 @@ public class StringUtils {
 	 *            cut the {@link String} shorter if needed
 	 * @param align
 	 *            align the {@link String} in this position if we have enough
-	 *            space
+	 *            space (default is Alignment.Beginning)
 	 * 
 	 * @return the resulting {@link String} of size <i>size</i> minimum
 	 */
 	static public String padString(String text, int width, boolean cut,
 			Alignment align) {
+
+		if (align == null) {
+			align = Alignment.Beginning;
+		}
 
 		if (width >= 0) {
 			if (text == null)
@@ -164,11 +168,15 @@ public class StringUtils {
 	}
 
 	/**
-	 * Convert between time in milliseconds to {@link String} in a "static" way
-	 * (to exchange data over the wire, for instance).
+	 * Convert between the time in milliseconds to a {@link String} in a "fixed"
+	 * way (to exchange data over the wire, for instance).
+	 * <p>
+	 * Precise to the second.
 	 * 
 	 * @param time
-	 *            the time in milliseconds
+	 *            the specified number of milliseconds since the standard base
+	 *            time known as "the epoch", namely January 1, 1970, 00:00:00
+	 *            GMT
 	 * 
 	 * @return the time as a {@link String}
 	 */
@@ -178,13 +186,16 @@ public class StringUtils {
 	}
 
 	/**
-	 * Convert between time as a {@link String} to milliseconds in a "static"
+	 * Convert between the time as a {@link String} to milliseconds in a "fixed"
 	 * way (to exchange data over the wire, for instance).
+	 * <p>
+	 * Precise to the second.
 	 * 
 	 * @param displayTime
 	 *            the time as a {@link String}
 	 * 
-	 * @return the time in milliseconds
+	 * @return the number of milliseconds since the standard base time known as
+	 *         "the epoch", namely January 1, 1970, 00:00:00 GMT
 	 */
 	static public long toTime(String displayTime) {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
