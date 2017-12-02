@@ -126,8 +126,22 @@ public class CacheLibrary extends BasicLibrary {
 	@Override
 	public synchronized Story save(Story story, String luid, Progress pg)
 			throws IOException {
-		story = lib.save(story, luid, pg);
+		Progress pgLib = new Progress();
+		Progress pgCacheLib = new Progress();
+
+		if (pg == null) {
+			pg = new Progress();
+		}
+
+		pg.setMinMax(0, 2);
+		pg.addProgress(pgLib, 1);
+		pg.addProgress(pgCacheLib, 1);
+
+		story = lib.save(story, luid, pgLib);
+		story = cacheLib.save(story, luid, pgCacheLib);
+
 		clearCache();
+
 		return story;
 	}
 
