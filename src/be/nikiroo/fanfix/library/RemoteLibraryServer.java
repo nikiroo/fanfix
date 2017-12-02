@@ -25,6 +25,7 @@ import be.nikiroo.utils.serial.server.ServerObject;
  * The key is always a String, the commands are also Strings; the parameters
  * vary depending upon the command.
  * <ul>
+ * <li>[key] PING: will return PONG if the key is accepted</li>
  * <li>[key] GET_METADATA *: will return the metadata of all the stories in the
  * library</li>
  * <li>[key] GET_STORY [luid]: will return the given story if it exists (or NULL
@@ -93,7 +94,9 @@ public class RemoteLibraryServer extends ServerObject {
 			return null;
 		}
 
-		if ("GET_METADATA".equals(command)) {
+		if ("PING".equals(command)) {
+			return "PONG";
+		} else if ("GET_METADATA".equals(command)) {
 			if (args[0].equals("*")) {
 				List<MetaData> metas = Instance.getLibrary().getMetas(
 						createPgForwarder(action));

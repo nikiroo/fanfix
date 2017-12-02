@@ -224,6 +224,36 @@ public class RemoteLibrary extends BasicLibrary {
 				"Operation not supportorted on remote Libraries");
 	}
 
+	/**
+	 * Check if this {@link RemoteLibraryServer} is able to connect and identify
+	 * to the remote server.
+	 * 
+	 * @return TRUE if it is online
+	 */
+	public boolean isOnline() {
+		final Boolean[] result = new Boolean[1];
+
+		result[0] = false;
+		try {
+			new ConnectActionClientObject(host, port, true) {
+				@Override
+				public void action(Version serverVersion) throws Exception {
+					Object rep = send(new Object[] { key, "PING" });
+					result[0] = "PONG".equals(rep);
+				}
+
+				@Override
+				protected void onError(Exception e) {
+					Instance.getTraceHandler().error(e);
+				}
+			}.connect();
+		} catch (Exception e) {
+			Instance.getTraceHandler().error(e);
+		}
+
+		return result[0];
+	}
+
 	@Override
 	protected List<MetaData> getMetas(Progress pg) {
 		final Progress pgF = pg;
