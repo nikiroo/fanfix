@@ -102,7 +102,6 @@ public class CacheLibrary extends BasicLibrary {
 
 	@Override
 	public BufferedImage getCover(final String luid) {
-		// TODO: cache doesn't seem to work
 		if (isCached(luid)) {
 			return cacheLib.getCover(luid);
 		}
