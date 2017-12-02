@@ -30,6 +30,22 @@ import be.nikiroo.utils.Progress;
  */
 abstract public class BasicLibrary {
 	/**
+	 * A {@link BasicLibrary} status.
+	 * 
+	 * @author niki
+	 */
+	public enum Status {
+		/** The library is ready. */
+		READY,
+		/** The library is invalid (not correctly set up). */
+		INVALID,
+		/** You are not allowed to access this library. */
+		UNAUTORIZED,
+		/** The library is currently out of commission. */
+		UNAVAILABLE,
+	}
+
+	/**
 	 * Return a name for this library (the UI may display this).
 	 * <p>
 	 * Must not be NULL.
@@ -38,6 +54,15 @@ abstract public class BasicLibrary {
 	 */
 	public String getLibraryName() {
 		return "";
+	}
+
+	/**
+	 * The library status.
+	 * 
+	 * @return the current status
+	 */
+	public Status getStatus() {
+		return Status.READY;
 	}
 
 	/**
@@ -147,26 +172,14 @@ abstract public class BasicLibrary {
 			throws IOException;
 
 	/**
-	 * Refresh the {@link BasicLibrary}, that is, make sure all stories are
+	 * Refresh the {@link BasicLibrary}, that is, make sure all metas are
 	 * loaded.
-	 * 
-	 * @param full
-	 *            force the full content of the stories to be loaded, not just
-	 *            the {@link MetaData}
 	 * 
 	 * @param pg
 	 *            the optional progress reporter
 	 */
-	public void refresh(boolean full, Progress pg) {
-		if (full) {
-			// TODO: progress
-			List<MetaData> metas = getMetas(pg);
-			for (MetaData meta : metas) {
-				getStory(meta.getLuid(), null);
-			}
-		} else {
-			getMetas(pg);
-		}
+	public void refresh(Progress pg) {
+		getMetas(pg);
 	}
 
 	/**

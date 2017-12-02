@@ -3,6 +3,7 @@ package be.nikiroo.fanfix.library;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,6 +46,50 @@ public class RemoteLibrary extends BasicLibrary {
 	@Override
 	public String getLibraryName() {
 		return host + ":" + port;
+	}
+
+	@Override
+	public Status getStatus() {
+		final Status[] result = new Status[1];
+
+		result[0] = Status.INVALID;
+
+		ConnectActionClientObject action = null;
+		try {
+			action = new ConnectActionClientObject(host, port, true) {
+				@Override
+				public void action(Version serverVersion) throws Exception {
+					Object rep = send(new Object[] { key, "PING" });
+					if ("PONG".equals(rep)) {
+						result[0] = Status.READY;
+					} else {
+						result[0] = Status.UNAUTORIZED;
+					}
+				}
+
+				@Override
+				protected void onError(Exception e) {
+					result[0] = Status.UNAVAILABLE;
+				}
+			};
+
+		} catch (UnknownHostException e) {
+			result[0] = Status.INVALID;
+		} catch (IllegalArgumentException e) {
+			result[0] = Status.INVALID;
+		} catch (Exception e) {
+			result[0] = Status.UNAVAILABLE;
+		}
+
+		if (action != null) {
+			try {
+				action.connect();
+			} catch (Exception e) {
+				result[0] = Status.UNAVAILABLE;
+			}
+		}
+
+		return result[0];
 	}
 
 	@Override
@@ -222,36 +267,6 @@ public class RemoteLibrary extends BasicLibrary {
 	public synchronized File getFile(final String luid, Progress pg) {
 		throw new java.lang.InternalError(
 				"Operation not supportorted on remote Libraries");
-	}
-
-	/**
-	 * Check if this {@link RemoteLibraryServer} is able to connect and identify
-	 * to the remote server.
-	 * 
-	 * @return TRUE if it is online
-	 */
-	public boolean isOnline() {
-		final Boolean[] result = new Boolean[1];
-
-		result[0] = false;
-		try {
-			new ConnectActionClientObject(host, port, true) {
-				@Override
-				public void action(Version serverVersion) throws Exception {
-					Object rep = send(new Object[] { key, "PING" });
-					result[0] = "PONG".equals(rep);
-				}
-
-				@Override
-				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
-				}
-			}.connect();
-		} catch (Exception e) {
-			Instance.getTraceHandler().error(e);
-		}
-
-		return result[0];
 	}
 
 	@Override

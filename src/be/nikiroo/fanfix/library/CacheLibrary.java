@@ -46,6 +46,11 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
+	public Status getStatus() {
+		return lib.getStatus();
+	}
+
+	@Override
 	protected List<MetaData> getMetas(Progress pg) {
 		if (pg == null) {
 			pg = new Progress();

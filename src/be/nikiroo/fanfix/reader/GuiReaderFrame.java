@@ -40,6 +40,8 @@ import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.fanfix.library.BasicLibrary;
+import be.nikiroo.fanfix.library.BasicLibrary.Status;
 import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.GuiReaderBook.BookActionListener;
@@ -151,13 +153,43 @@ class GuiReaderFrame extends JFrame {
 		outOfUi(pg, new Runnable() {
 			@Override
 			public void run() {
-				GuiReaderFrame.this.reader.getLibrary().refresh(false, pg);
-				invalidate();
-				setJMenuBar(createMenu());
-				addBookPane(typeF, true);
-				refreshBooks();
-				validate();
-				pane.setVisible(true);
+				BasicLibrary lib = GuiReaderFrame.this.reader.getLibrary();
+				Status status = lib.getStatus();
+
+				if (status == Status.READY) {
+					lib.refresh(pg);
+					invalidate();
+					setJMenuBar(createMenu(true));
+					addBookPane(typeF, true);
+					refreshBooks();
+					validate();
+					pane.setVisible(true);
+				} else {
+					invalidate();
+					setJMenuBar(createMenu(false));
+					validate();
+
+					String err = lib.getLibraryName() + "\n";
+					switch (status) {
+					case INVALID:
+						err += "Library not valid";
+						break;
+
+					case UNAUTORIZED:
+						err += "You are not allowed to access this library";
+						break;
+
+					case UNAVAILABLE:
+						err += "Library currently unavilable";
+						break;
+
+					default:
+						err += "An error occured when contacting the library";
+						break;
+					}
+
+					error(err, "Library error", null);
+				}
 			}
 		});
 
@@ -266,7 +298,7 @@ class GuiReaderFrame extends JFrame {
 				popup.add(createMenuItemOpenBook());
 				popup.addSeparator();
 				popup.add(createMenuItemExport());
-				popup.add(createMenuItemMove());
+				popup.add(createMenuItemMove(true));
 				popup.add(createMenuItemSetCover());
 				popup.add(createMenuItemClearCache());
 				popup.add(createMenuItemRedownload());
@@ -316,9 +348,12 @@ class GuiReaderFrame extends JFrame {
 	/**
 	 * Create the main menu bar.
 	 * 
+	 * @param libOk
+	 *            the library can be queried
+	 * 
 	 * @return the bar
 	 */
-	private JMenuBar createMenu() {
+	private JMenuBar createMenu(boolean libOk) {
 		bar = new JMenuBar();
 
 		JMenu file = new JMenu("File");
@@ -349,7 +384,7 @@ class GuiReaderFrame extends JFrame {
 
 		file.add(createMenuItemOpenBook());
 		file.add(createMenuItemExport());
-		file.add(createMenuItemMove());
+		file.add(createMenuItemMove(libOk));
 		file.addSeparator();
 		file.add(imprt);
 		file.add(imprtF);
@@ -395,8 +430,12 @@ class GuiReaderFrame extends JFrame {
 		JMenu sources = new JMenu("Sources");
 		sources.setMnemonic(KeyEvent.VK_S);
 
-		List<String> tt = reader.getLibrary().getSources();
+		List<String> tt = new ArrayList<String>();
+		if (libOk) {
+			tt.addAll(reader.getLibrary().getSources());
+		}
 		tt.add(0, null);
+
 		for (final String type : tt) {
 			JMenuItem item = new JMenuItem(type == null ? "All" : type);
 			item.addActionListener(new ActionListener() {
@@ -419,7 +458,10 @@ class GuiReaderFrame extends JFrame {
 		JMenu authors = new JMenu("Authors");
 		authors.setMnemonic(KeyEvent.VK_A);
 
-		List<String> aa = reader.getLibrary().getAuthors();
+		List<String> aa = new ArrayList<String>();
+		if (libOk) {
+			aa.addAll(reader.getLibrary().getAuthors());
+		}
 		aa.add(0, null);
 		for (final String author : aa) {
 			JMenuItem item = new JMenuItem(author == null ? "All"
@@ -627,15 +669,20 @@ class GuiReaderFrame extends JFrame {
 	/**
 	 * Create the delete menu item.
 	 * 
+	 * @param libOk
+	 *            the library can be queried
+	 * 
 	 * @return the item
 	 */
-	private JMenuItem createMenuItemMove() {
+	private JMenuItem createMenuItemMove(boolean libOk) {
 		JMenu moveTo = new JMenu("Move to...");
 		moveTo.setMnemonic(KeyEvent.VK_M);
 
 		List<String> types = new ArrayList<String>();
 		types.add(null);
-		types.addAll(reader.getLibrary().getSources());
+		if (libOk) {
+			types.addAll(reader.getLibrary().getSources());
+		}
 
 		for (String type : types) {
 			JMenuItem item = new JMenuItem(type == null ? "New type..." : type);
@@ -677,7 +724,7 @@ class GuiReaderFrame extends JFrame {
 								SwingUtilities.invokeLater(new Runnable() {
 									@Override
 									public void run() {
-										setJMenuBar(createMenu());
+										setJMenuBar(createMenu(true));
 									}
 								});
 							}
@@ -940,15 +987,8 @@ class GuiReaderFrame extends JFrame {
 
 				pgOnSuccess.setProgress(0);
 				if (!ok) {
-					Instance.getTraceHandler().error(e);
-					SwingUtilities.invokeLater(new Runnable() {
-						@Override
-						public void run() {
-							JOptionPane.showMessageDialog(GuiReaderFrame.this,
-									"Cannot import: " + url, e.getMessage(),
-									JOptionPane.ERROR_MESSAGE);
-						}
-					});
+					error("Cannot import URL", "Failed to import " + url
+							+ ": \n" + e.getMessage(), e);
 				} else {
 					if (onSuccess != null) {
 						onSuccess.run(story);
@@ -984,5 +1024,30 @@ class GuiReaderFrame extends JFrame {
 		}
 		super.setEnabled(b);
 		repaint();
+	}
+
+	/**
+	 * Display an error message and log the linked {@link Exception}.
+	 * 
+	 * @param message
+	 *            the message
+	 * @param title
+	 *            the title of the error message
+	 * @param e
+	 *            the exception to log if any
+	 */
+	private void error(final String message, final String title, Exception e) {
+		Instance.getTraceHandler().error(title + ": " + message);
+		if (e != null) {
+			Instance.getTraceHandler().error(e);
+		}
+
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				JOptionPane.showMessageDialog(GuiReaderFrame.this, message,
+						title, JOptionPane.ERROR_MESSAGE);
+			}
+		});
 	}
 }
