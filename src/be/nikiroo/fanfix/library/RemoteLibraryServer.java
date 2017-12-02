@@ -12,6 +12,7 @@ import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Progress.ProgressListener;
+import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.server.ConnectActionServerObject;
 import be.nikiroo.utils.serial.server.ServerObject;
@@ -22,28 +23,28 @@ import be.nikiroo.utils.serial.server.ServerObject;
  * The available commands are given as arrays of objects (first item is the key,
  * second is the command, the rest are the arguments).
  * <p>
- * The key is always a String, the commands are also Strings; the parameters
- * vary depending upon the command.
+ * The md5 is always a String (the MD5 hash of the access key), the commands are
+ * also Strings; the parameters vary depending upon the command.
  * <ul>
- * <li>[key] PING: will return PONG if the key is accepted</li>
- * <li>[key] GET_METADATA *: will return the metadata of all the stories in the
+ * <li>[md5] PING: will return PONG if the key is accepted</li>
+ * <li>[md5] GET_METADATA *: will return the metadata of all the stories in the
  * library</li>
- * <li>[key] GET_STORY [luid]: will return the given story if it exists (or NULL
+ * <li>[md5] GET_STORY [luid]: will return the given story if it exists (or NULL
  * if not)</li>
- * <li>[key] SAVE_STORY [luid]: save the story (that must be sent just after the
+ * <li>[md5] SAVE_STORY [luid]: save the story (that must be sent just after the
  * command) with the given LUID</li>
- * <li>[key] DELETE_STORY [luid]: delete the story of LUID luid</li>
- * <li>[key] GET_COVER [luid]: return the cover of the story</li>
- * <li>[key] GET_SOURCE_COVER [source]: return the cover for this source</li>
- * <li>[key] SET_SOURCE_COVER [source], [luid]: set the default cover for the
+ * <li>[md5] DELETE_STORY [luid]: delete the story of LUID luid</li>
+ * <li>[md5] GET_COVER [luid]: return the cover of the story</li>
+ * <li>[md5] GET_SOURCE_COVER [source]: return the cover for this source</li>
+ * <li>[md5] SET_SOURCE_COVER [source], [luid]: set the default cover for the
  * given source to the cover of the story denoted by luid</li>
- * <li>[key] EXIT: stop the server</li>
+ * <li>[md5] EXIT: stop the server</li>
  * </ul>
  * 
  * @author niki
  */
 public class RemoteLibraryServer extends ServerObject {
-	private final String key;
+	private final String md5;
 
 	/**
 	 * Create a new remote server (will not be active until
@@ -59,7 +60,7 @@ public class RemoteLibraryServer extends ServerObject {
 	 */
 	public RemoteLibraryServer(String key, int port) throws IOException {
 		super("Fanfix remote library", port, true);
-		this.key = key;
+		this.md5 = StringUtils.getMd5Hash(key);
 
 		setTraceHandler(Instance.getTraceHandler());
 	}
@@ -67,7 +68,7 @@ public class RemoteLibraryServer extends ServerObject {
 	@Override
 	protected Object onRequest(ConnectActionServerObject action,
 			Version clientVersion, Object data) throws Exception {
-		String key = "";
+		String md5 = "";
 		String command = "";
 		Object[] args = new Object[0];
 		if (data instanceof Object[]) {
@@ -78,7 +79,7 @@ public class RemoteLibraryServer extends ServerObject {
 					args[i - 2] = dataArray[i];
 				}
 
-				key = "" + dataArray[0];
+				md5 = "" + dataArray[0];
 				command = "" + dataArray[1];
 			}
 		}
@@ -89,7 +90,7 @@ public class RemoteLibraryServer extends ServerObject {
 		}
 		getTraceHandler().trace(trace);
 
-		if (!key.equals(this.key)) {
+		if (!md5.equals(this.md5)) {
 			getTraceHandler().trace("Key rejected.");
 			return null;
 		}
