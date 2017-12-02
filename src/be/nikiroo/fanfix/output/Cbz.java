@@ -26,9 +26,12 @@ class Cbz extends BasicOutput {
 		dir.delete();
 		dir.mkdir();
 		try {
-			// will also save the images!
-			BasicOutput.getOutput(OutputType.TEXT, isWriteInfo()).process(
-					story, dir, targetNameOrig);
+			// will also save the images! (except the cover -> false)
+			BasicOutput
+					.getOutput(OutputType.TEXT, isWriteInfo(), isWriteCover())
+					// Force cover to FALSE:
+					.setType(OutputType.TEXT, isWriteInfo(), false)
+					.process(story, dir, targetNameOrig);
 
 			InfoCover.writeInfo(dir, targetNameOrig, story.getMeta());
 			if (story.getMeta() != null && !story.getMeta().isFakeCover()) {

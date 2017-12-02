@@ -122,6 +122,7 @@ class Cbz extends Epub {
 
 		if (meta.getCover() == null && !images.isEmpty()) {
 			meta.setCover(images.get(imagesList.get(0)));
+			meta.setFakeCover(true);
 		}
 
 		pg.setProgress(100);

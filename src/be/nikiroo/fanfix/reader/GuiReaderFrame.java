@@ -901,12 +901,15 @@ class GuiReaderFrame extends JFrame {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				run.run();
-				refreshBooks();
-				reload.done();
-				if (!pg.isDone()) {
-					// will trigger pgBar ActionListener:
-					pg.done();
+				try {
+					run.run();
+					refreshBooks();
+				} finally {
+					reload.done();
+					if (!pg.isDone()) {
+						// will trigger pgBar ActionListener:
+						pg.done();
+					}
 				}
 			}
 		}, "outOfUi thread").start();
@@ -989,7 +992,7 @@ class GuiReaderFrame extends JFrame {
 				pgOnSuccess.setProgress(0);
 				if (!ok) {
 					if (e instanceof UnknownHostException) {
-						error("Failed to import " + url, "Cannot import URL",
+						error("URL not supported: " + url, "Cannot import URL",
 								null);
 					} else {
 						error("Failed to import " + url + ": \n"

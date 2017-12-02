@@ -3,7 +3,7 @@
  * <p>
  * Of those, only {@link be.nikiroo.fanfix.output.BasicOutput} is public,
  * but it contains a method 
- * ({@link be.nikiroo.fanfix.output.BasicOutput#getOutput(be.nikiroo.fanfix.output.BasicOutput.OutputType, boolean)})
+ * ({@link be.nikiroo.fanfix.output.BasicOutput#getOutput(be.nikiroo.fanfix.output.BasicOutput.OutputType, boolean,boolean)})
  * to get all the other 
  * {@link be.nikiroo.fanfix.output.BasicOutput.OutputType}s.
  * 

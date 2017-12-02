@@ -542,8 +542,8 @@ public class Main {
 						Story story = support.process(source, pgIn);
 						try {
 							target = new File(target).getAbsolutePath();
-							BasicOutput.getOutput(type, infoCover).process(
-									story, target, pgOut);
+							BasicOutput.getOutput(type, infoCover, infoCover)
+									.process(story, target, pgOut);
 						} catch (IOException e) {
 							Instance.getTraceHandler().error(
 									new IOException(trans(StringId.ERR_SAVING,

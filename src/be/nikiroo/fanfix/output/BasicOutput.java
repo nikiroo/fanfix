@@ -86,7 +86,7 @@ public abstract class BasicOutput {
 		 * @return the extension
 		 */
 		public String getDefaultExtension(boolean readerTarget) {
-			BasicOutput output = BasicOutput.getOutput(this, false);
+			BasicOutput output = BasicOutput.getOutput(this, false, false);
 			if (output != null) {
 				return output.getDefaultExtension(readerTarget);
 			}
@@ -264,18 +264,18 @@ public abstract class BasicOutput {
 	 * 
 	 * @param type
 	 *            the new type
-	 * @param writeInfo
-	 *            TRUE to enable the creation of a .info file
 	 * @param writeCover
 	 *            TRUE to enable the creation of a cover if possible
+	 * @param writeInfo
+	 *            TRUE to enable the creation of a .info file
 	 * 
 	 * @return this
 	 */
-	protected BasicOutput setType(OutputType type, boolean writeCover,
-			boolean writeInfo) {
+	protected BasicOutput setType(OutputType type, boolean writeInfo,
+			boolean writeCover) {
 		this.type = type;
-		this.writeCover = writeCover;
 		this.writeInfo = writeInfo;
+		this.writeCover = writeCover;
 
 		return this;
 	}
@@ -333,6 +333,10 @@ public abstract class BasicOutput {
 		if (story.getMeta() != null) {
 			story.getMeta().setType("" + getType());
 		}
+
+		System.out.println(story.getMeta().getTitle() + " -> write cover: "
+				+ writeCover);
+		new Exception().printStackTrace();
 
 		if (writeCover) {
 			InfoCover.writeCover(targetDir, targetName, story.getMeta());
@@ -514,29 +518,33 @@ public abstract class BasicOutput {
 	 * 
 	 * @param type
 	 *            the type
-	 * @param infoCover
-	 *            force the <tt>.info</tt> file and the cover to be saved next
+	 * @param writeCover
+	 *            TRUE to enable the creation of a cover if possible to be saved
+	 *            next to the main target file
+	 * @param writeInfo
+	 *            TRUE to enable the creation of a .info file to be saved next
 	 *            to the main target file
 	 * 
 	 * @return the {@link BasicOutput}
 	 */
-	public static BasicOutput getOutput(OutputType type, boolean infoCover) {
+	public static BasicOutput getOutput(OutputType type, boolean writeInfo,
+			boolean writeCover) {
 		if (type != null) {
 			switch (type) {
 			case EPUB:
-				return new Epub().setType(type, infoCover, infoCover);
+				return new Epub().setType(type, writeInfo, writeCover);
 			case TEXT:
-				return new Text().setType(type, true, infoCover);
+				return new Text().setType(type, writeInfo, true);
 			case INFO_TEXT:
 				return new InfoText().setType(type, true, true);
 			case SYSOUT:
 				return new Sysout().setType(type, false, false);
 			case CBZ:
-				return new Cbz().setType(type, infoCover, infoCover);
+				return new Cbz().setType(type, writeInfo, writeCover);
 			case LATEX:
-				return new LaTeX().setType(type, infoCover, infoCover);
+				return new LaTeX().setType(type, writeInfo, writeCover);
 			case HTML:
-				return new Html().setType(type, infoCover, infoCover);
+				return new Html().setType(type, writeInfo, writeCover);
 			}
 		}
 

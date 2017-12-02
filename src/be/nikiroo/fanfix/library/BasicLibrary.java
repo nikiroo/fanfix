@@ -445,7 +445,7 @@ abstract public class BasicLibrary {
 			pg.addProgress(pgOut, 1);
 		}
 
-		BasicOutput out = BasicOutput.getOutput(type, false);
+		BasicOutput out = BasicOutput.getOutput(type, false, false);
 		if (out == null) {
 			throw new IOException("Output type not supported: " + type);
 		}

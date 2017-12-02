@@ -157,7 +157,7 @@ public class LocalLibrary extends BasicLibrary {
 		File expectedTarget = getExpectedFile(meta);
 		expectedTarget.getParentFile().mkdirs();
 
-		BasicOutput it = BasicOutput.getOutput(getOutputType(meta), true);
+		BasicOutput it = BasicOutput.getOutput(getOutputType(meta), true, true);
 		it.process(story, expectedTarget.getPath(), pg);
 
 		return story;
