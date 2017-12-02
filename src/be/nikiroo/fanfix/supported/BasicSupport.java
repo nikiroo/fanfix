@@ -202,7 +202,7 @@ public abstract class BasicSupport {
 	 * @param in
 	 *            the input (the main resource)
 	 * 
-	 * @return the associated {@link MetaData}
+	 * @return the associated {@link MetaData}, never NULL
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -342,7 +342,7 @@ public abstract class BasicSupport {
 	 * @param pg
 	 *            the optional progress reporter
 	 * 
-	 * @return the {@link Story}
+	 * @return the {@link Story}, never NULL
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -419,7 +419,7 @@ public abstract class BasicSupport {
 	 * @param pg
 	 *            the optional progress reporter
 	 * 
-	 * @return the {@link Story}
+	 * @return the {@link Story}, never NULL
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -439,11 +439,6 @@ public abstract class BasicSupport {
 			Story story = processMeta(url, false, true, pgMeta);
 			if (!pgMeta.isDone()) {
 				pgMeta.setProgress(pgMeta.getMax()); // 10%
-			}
-
-			if (story == null) {
-				pg.setProgress(90);
-				return null;
 			}
 
 			pg.setName("Retrieving " + story.getMeta().getTitle());
@@ -496,9 +491,7 @@ public abstract class BasicSupport {
 
 						words += cc.getWords();
 						story.getChapters().add(cc);
-						if (story.getMeta() != null) {
-							story.getMeta().setWords(words);
-						}
+						story.getMeta().setWords(words);
 					} finally {
 						if (chapIn != null) {
 							chapIn.close();
