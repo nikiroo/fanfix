@@ -131,7 +131,7 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected void clearCache() {
+	protected void invalidateInfo(String luid) {
 		stories = null;
 		sourceCovers = new HashMap<String, BufferedImage>();
 	}
@@ -147,6 +147,7 @@ public class LocalLibrary extends BasicLibrary {
 		for (File file : getRelatedFiles(luid)) {
 			// TODO: throw an IOException if we cannot delete the files?
 			IOUtils.deltree(file);
+			file.getParentFile().delete();
 		}
 	}
 
@@ -182,15 +183,17 @@ public class LocalLibrary extends BasicLibrary {
 							"\\.info$", "");
 					InfoCover.writeInfo(newDir, name, meta);
 					relatedFile.delete();
+					relatedFile.getParentFile().delete();
 				} catch (IOException e) {
 					Instance.getTraceHandler().error(e);
 				}
 			} else {
 				relatedFile.renameTo(new File(newDir, relatedFile.getName()));
+				relatedFile.getParentFile().delete();
 			}
 		}
 
-		clearCache();
+		invalidateInfo();
 	}
 
 	@Override
@@ -261,7 +264,7 @@ public class LocalLibrary extends BasicLibrary {
 					pg.add(1);
 				}
 
-				clearCache();
+				invalidateInfo();
 				pg.done();
 				return;
 			}
@@ -269,7 +272,7 @@ public class LocalLibrary extends BasicLibrary {
 
 		super.imprt(other, luid, pg);
 
-		clearCache();
+		invalidateInfo();
 	}
 
 	/**
@@ -404,7 +407,7 @@ public class LocalLibrary extends BasicLibrary {
 	 * {@link LocalLibrary#baseDir}.
 	 * <p>
 	 * Will use a cached list when possible (see
-	 * {@link BasicLibrary#clearCache()}).
+	 * {@link BasicLibrary#invalidateInfo()}).
 	 * 
 	 * @param pg
 	 *            the optional {@link Progress}

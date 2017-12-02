@@ -2,7 +2,6 @@ package be.nikiroo.fanfix.library;
 
 import java.io.IOException;
 import java.net.URL;
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +28,10 @@ import be.nikiroo.utils.serial.server.ServerObject;
  * <ul>
  * <li>[md5] PING: will return PONG if the key is accepted</li>
  * <li>[md5] GET_METADATA *: will return the metadata of all the stories in the
- * library</li>
+ * library (array)</li>
+ * *
+ * <li>[md5] GET_METADATA [luid]: will return the metadata of the story of LUID
+ * luid</li>
  * <li>[md5] GET_STORY [luid]: will return the given story if it exists (or NULL
  * if not)</li>
  * <li>[md5] SAVE_STORY [luid]: save the story (that must be sent just after the
@@ -108,8 +110,9 @@ public class RemoteLibraryServer extends ServerObject {
 						createPgForwarder(action));
 				return metas.toArray(new MetaData[] {});
 			}
-			throw new InvalidParameterException(
-					"only * is valid here, but you passed: " + args[0]);
+
+			return new MetaData[] { Instance.getLibrary().getInfo(
+					(String) args[0]) };
 		} else if ("GET_STORY".equals(command)) {
 			MetaData meta = Instance.getLibrary().getInfo((String) args[0]);
 			meta = meta.clone();

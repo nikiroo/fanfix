@@ -84,7 +84,7 @@ public class CacheLibrary extends BasicLibrary {
 			try {
 				cacheLib.imprt(lib, luid, pgImport);
 				pgImport.done();
-				clearCache();
+				invalidateInfo(luid);
 			} catch (IOException e) {
 				Instance.getTraceHandler().error(e);
 			}
@@ -123,10 +123,31 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected void clearCache() {
-		metas = null;
-		cacheLib.clearCache();
-		lib.clearCache();
+	protected void invalidateInfo(String luid) {
+		List<MetaData> metas = this.metas;
+
+		if (luid == null) {
+			this.metas = null;
+		} else if (metas != null) {
+			MetaData meta = lib.getInfo(luid);
+			for (int i = 0; i < metas.size(); i++) {
+				if (metas.get(i).getLuid().equals(luid)) {
+					if (meta != null) {
+						metas.set(i, meta);
+						meta = null;
+					} else {
+						metas.remove(i--);
+					}
+				}
+			}
+
+			if (meta != null) {
+				metas.add(meta);
+			}
+		}
+
+		cacheLib.invalidateInfo(luid);
+		lib.invalidateInfo(luid);
 	}
 
 	@Override
@@ -146,7 +167,7 @@ public class CacheLibrary extends BasicLibrary {
 		story = lib.save(story, luid, pgLib);
 		story = cacheLib.save(story, story.getMeta().getLuid(), pgCacheLib);
 
-		clearCache();
+		invalidateInfo(story.getMeta().getLuid());
 
 		return story;
 	}
@@ -157,7 +178,15 @@ public class CacheLibrary extends BasicLibrary {
 			cacheLib.delete(luid);
 		}
 		lib.delete(luid);
-		clearCache();
+
+		List<MetaData> metas = this.metas;
+		if (metas != null) {
+			for (int i = 0; i < metas.size(); i++) {
+				if (metas.get(i).getLuid().equals(luid)) {
+					metas.set(i, lib.getInfo(luid));
+				}
+			}
+		}
 	}
 
 	@Override
@@ -173,15 +202,20 @@ public class CacheLibrary extends BasicLibrary {
 		pg.addProgress(pgCache, 1);
 		pg.addProgress(pgOrig, 1);
 
+		MetaData meta = getInfo(luid);
+		if (meta == null) {
+			throw new IOException("Story not found: " + luid);
+		}
+
 		if (isCached(luid)) {
 			cacheLib.changeSource(luid, newSource, pgCache);
 		}
 		pgCache.done();
+
 		lib.changeSource(luid, newSource, pgOrig);
 		pgOrig.done();
 
-		getInfo(luid).setSource(newSource);
-
+		meta.setSource(newSource);
 		pg.done();
 	}
 
@@ -210,7 +244,7 @@ public class CacheLibrary extends BasicLibrary {
 	public void clearFromCache(String luid) throws IOException {
 		if (isCached(luid)) {
 			cacheLib.delete(luid);
-			clearCache();
+			invalidateInfo(luid);
 		}
 	}
 

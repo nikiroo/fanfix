@@ -135,7 +135,19 @@ abstract public class BasicLibrary {
 	 * Invalidate the {@link Story} cache (when the content should be re-read
 	 * because it was changed).
 	 */
-	protected abstract void clearCache();
+	protected void invalidateInfo() {
+		invalidateInfo(null);
+	}
+
+	/**
+	 * Invalidate the {@link Story} cache (when the content should be re-read
+	 * because it was changed).
+	 * 
+	 * @param luid
+	 *            the luid of the {@link Story} to clear from the cache, or NULL
+	 *            for all stories
+	 */
+	protected abstract void invalidateInfo(String luid);
 
 	/**
 	 * Return the next LUID that can be used.
@@ -505,13 +517,13 @@ abstract public class BasicLibrary {
 			meta.setLuid(luid);
 		}
 
-		if (getInfo(luid) != null) {
+		if (luid != null && getInfo(luid) != null) {
 			delete(luid);
 		}
 
 		doSave(story, pg);
 
-		clearCache();
+		invalidateInfo(luid);
 
 		return story;
 	}
@@ -527,7 +539,7 @@ abstract public class BasicLibrary {
 	 */
 	public synchronized void delete(String luid) throws IOException {
 		doDelete(luid);
-		clearCache();
+		invalidateInfo(luid);
 	}
 
 	/**

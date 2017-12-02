@@ -233,8 +233,7 @@ public class RemoteLibrary extends BasicLibrary {
 		}.connect();
 
 		// because the meta changed:
-		clearCache();
-		refresh(pgRefresh);
+		invalidateInfo(luidSaved[0]);
 
 		MetaData meta = getInfo(luidSaved[0]);
 		meta.setCover(story.getMeta().getCover());
@@ -357,8 +356,6 @@ public class RemoteLibrary extends BasicLibrary {
 
 						rep = send(null);
 					}
-
-					getInfo(luid).setSource(newSource);
 				}
 
 				@Override
@@ -399,48 +396,22 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected List<MetaData> getMetas(Progress pg) {
-		final Progress pgF = pg;
-		final List<MetaData> metas = new ArrayList<MetaData>();
-
-		try {
-			new ConnectActionClientObject(host, port, true) {
-				@Override
-				public void action(Version serverVersion) throws Exception {
-					Progress pg = pgF;
-					if (pg == null) {
-						pg = new Progress();
-					}
-
-					Object rep = send(new Object[] { md5, "GET_METADATA", "*" });
-
-					while (true) {
-						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
-							break;
-						}
-
-						rep = send(null);
-					}
-
-					for (MetaData meta : (MetaData[]) rep) {
-						metas.add(meta);
-					}
-				}
-
-				@Override
-				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
-				}
-			}.connect();
-		} catch (Exception e) {
-			Instance.getTraceHandler().error(e);
+	public synchronized MetaData getInfo(String luid) {
+		List<MetaData> metas = getMetasList(luid, null);
+		if (!metas.isEmpty()) {
+			return metas.get(0);
 		}
 
-		return metas;
+		return null;
 	}
 
 	@Override
-	protected void clearCache() {
+	protected List<MetaData> getMetas(Progress pg) {
+		return getMetasList("*", pg);
+	}
+
+	@Override
+	protected void invalidateInfo(String luid) {
 	}
 
 	// The following methods are only used by Save and Delete in BasicLibrary:
@@ -458,5 +429,63 @@ public class RemoteLibrary extends BasicLibrary {
 	@Override
 	protected Story doSave(Story story, Progress pg) throws IOException {
 		throw new java.lang.InternalError("Should not have been called");
+	}
+
+	//
+
+	/**
+	 * Return the meta of the given story or a list of all known metas if the
+	 * luid is "*".
+	 * 
+	 * @param luid
+	 *            the luid of the story or *
+	 * @param pg
+	 *            the optional progress
+	 * 
+	 * 
+	 * @return the metas
+	 */
+	private List<MetaData> getMetasList(final String luid, Progress pg) {
+		final Progress pgF = pg;
+		final List<MetaData> metas = new ArrayList<MetaData>();
+
+		try {
+			new ConnectActionClientObject(host, port, true) {
+				@Override
+				public void action(Version serverVersion) throws Exception {
+					Progress pg = pgF;
+					if (pg == null) {
+						pg = new Progress();
+					}
+
+					Object rep = send(new Object[] { md5, "GET_METADATA", luid });
+
+					while (true) {
+						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
+							break;
+						}
+
+						rep = send(null);
+					}
+
+					if (rep instanceof MetaData[]) {
+						for (MetaData meta : (MetaData[]) rep) {
+							metas.add(meta);
+						}
+					} else if (rep != null) {
+						metas.add((MetaData) rep);
+					}
+				}
+
+				@Override
+				protected void onError(Exception e) {
+					Instance.getTraceHandler().error(e);
+				}
+			}.connect();
+		} catch (Exception e) {
+			Instance.getTraceHandler().error(e);
+		}
+
+		return metas;
 	}
 }
