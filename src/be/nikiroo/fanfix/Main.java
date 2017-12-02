@@ -24,7 +24,6 @@ import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
-import be.nikiroo.utils.serial.server.ConnectActionClientObject;
 import be.nikiroo.utils.serial.server.ServerObject;
 
 /**
@@ -345,22 +344,7 @@ public class Main {
 					break;
 				}
 
-				try {
-					final String fkey = key;
-					new ConnectActionClientObject(host, port, true) {
-						@Override
-						public void action(Version serverVersion)
-								throws Exception {
-							try {
-								send(new Object[] { fkey, "EXIT" });
-							} catch (Exception e) {
-								Instance.getTraceHandler().error(e);
-							}
-						}
-					}.connect();
-				} catch (IOException e) {
-					Instance.getTraceHandler().error(e);
-				}
+				new RemoteLibrary(key, host, port).exit();
 				break;
 			case REMOTE:
 				exitCode = 255; // should not be reachable (REMOTE -> START)

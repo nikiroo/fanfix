@@ -270,6 +270,27 @@ public class RemoteLibrary extends BasicLibrary {
 				"Operation not supportorted on remote Libraries");
 	}
 
+	/**
+	 * Stop the server.
+	 */
+	public void exit() {
+		try {
+			new ConnectActionClientObject(host, port, true) {
+				@Override
+				public void action(Version serverVersion) throws Exception {
+					send(new Object[] { md5, "EXIT" });
+				}
+
+				@Override
+				protected void onError(Exception e) {
+					Instance.getTraceHandler().error(e);
+				}
+			}.connect();
+		} catch (IOException e) {
+			Instance.getTraceHandler().error(e);
+		}
+	}
+
 	@Override
 	protected List<MetaData> getMetas(Progress pg) {
 		final Progress pgF = pg;
