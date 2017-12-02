@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -368,13 +369,15 @@ abstract public class BasicLibrary {
 	 * 
 	 * @return the imported {@link Story}
 	 * 
+	 * @throws UnknownHostException
+	 *             if the host is not supported
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
 	public Story imprt(URL url, Progress pg) throws IOException {
 		BasicSupport support = BasicSupport.getSupport(url);
 		if (support == null) {
-			throw new IOException("URL not supported: " + url.toString());
+			throw new UnknownHostException("" + url);
 		}
 
 		return save(support.process(url, pg), null);

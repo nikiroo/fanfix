@@ -13,6 +13,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -987,8 +988,13 @@ class GuiReaderFrame extends JFrame {
 
 				pgOnSuccess.setProgress(0);
 				if (!ok) {
-					error("Cannot import URL", "Failed to import " + url
-							+ ": \n" + e.getMessage(), e);
+					if (e instanceof UnknownHostException) {
+						error("Failed to import " + url, "Cannot import URL",
+								null);
+					} else {
+						error("Failed to import " + url + ": \n"
+								+ e.getMessage(), "Cannot import URL", e);
+					}
 				} else {
 					if (onSuccess != null) {
 						onSuccess.run(story);

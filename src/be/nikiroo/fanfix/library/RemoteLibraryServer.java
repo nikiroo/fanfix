@@ -130,7 +130,7 @@ public class RemoteLibraryServer extends ServerObject {
 			}
 
 			Story story = rebuildStory(list);
-			Instance.getLibrary().save(story, "" + args[1], null);
+			Instance.getLibrary().save(story, "" + args[0], null);
 		} else if ("DELETE_STORY".equals(command)) {
 			Instance.getLibrary().delete("" + args[0]);
 		} else if ("GET_COVER".equals(command)) {
