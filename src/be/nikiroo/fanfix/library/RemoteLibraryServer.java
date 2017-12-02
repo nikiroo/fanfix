@@ -32,7 +32,7 @@ import be.nikiroo.utils.serial.server.ServerObject;
  * <li>[md5] GET_STORY [luid]: will return the given story if it exists (or NULL
  * if not)</li>
  * <li>[md5] SAVE_STORY [luid]: save the story (that must be sent just after the
- * command) with the given LUID</li>
+ * command) with the given LUID, then return the LUID</li>
  * <li>[md5] DELETE_STORY [luid]: delete the story of LUID luid</li>
  * <li>[md5] GET_COVER [luid]: return the cover of the story</li>
  * <li>[md5] GET_SOURCE_COVER [source]: return the cover for this source</li>
@@ -132,6 +132,7 @@ public class RemoteLibraryServer extends ServerObject {
 
 			Story story = rebuildStory(list);
 			Instance.getLibrary().save(story, (String) args[0], null);
+			return story.getMeta().getLuid();
 		} else if ("DELETE_STORY".equals(command)) {
 			Instance.getLibrary().delete((String) args[0]);
 		} else if ("GET_COVER".equals(command)) {

@@ -143,7 +143,7 @@ public class CacheLibrary extends BasicLibrary {
 		pg.addProgress(pgCacheLib, 1);
 
 		story = lib.save(story, luid, pgLib);
-		story = cacheLib.save(story, luid, pgCacheLib);
+		story = cacheLib.save(story, story.getMeta().getLuid(), pgCacheLib);
 
 		clearCache();
 

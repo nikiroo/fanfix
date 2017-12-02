@@ -191,16 +191,23 @@ public class RemoteLibrary extends BasicLibrary {
 	@Override
 	public synchronized Story save(final Story story, final String luid,
 			Progress pg) throws IOException {
-		final Progress pgF = pg;
+		final String[] luidSaved = new String[1];
+		Progress pgSave = new Progress();
+		Progress pgRefresh = new Progress();
+		if (pg == null) {
+			pg = new Progress();
+		}
+
+		pg.setMinMax(0, 10);
+		pg.addProgress(pgSave, 9);
+		pg.addProgress(pgRefresh, 1);
+
+		final Progress pgF = pgSave;
 
 		new ConnectActionClientObject(host, port, true) {
 			@Override
 			public void action(Version serverVersion) throws Exception {
 				Progress pg = pgF;
-				if (pg == null) {
-					pg = new Progress();
-				}
-
 				if (story.getMeta().getWords() <= Integer.MAX_VALUE) {
 					pg.setMinMax(0, (int) story.getMeta().getWords());
 				}
@@ -213,7 +220,9 @@ public class RemoteLibrary extends BasicLibrary {
 					pg.add(1);
 				}
 
-				send(null);
+				send(null); // done sending the story
+				luidSaved[0] = (String) send(null); // get LUID
+
 				pg.done();
 			}
 
@@ -225,7 +234,10 @@ public class RemoteLibrary extends BasicLibrary {
 
 		// because the meta changed:
 		clearCache();
-		story.setMeta(getInfo(luid));
+		refresh(pgRefresh);
+		story.setMeta(getInfo(luidSaved[0]));
+
+		pg.done();
 
 		return story;
 	}
