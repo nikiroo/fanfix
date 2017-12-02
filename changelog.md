@@ -1,6 +1,6 @@
 # Fanfix
 
-# Version WIP
+# Version 1.6.3
 
 - Bug fixes
 - Remote server/client improvement: progress report
