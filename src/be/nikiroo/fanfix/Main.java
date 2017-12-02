@@ -333,7 +333,7 @@ public class Main {
 				try {
 					ServerObject server = new RemoteLibraryServer(key, port);
 					server.setTraceHandler(Instance.getTraceHandler());
-					server.start();
+					server.run();
 				} catch (IOException e) {
 					Instance.getTraceHandler().error(e);
 				}

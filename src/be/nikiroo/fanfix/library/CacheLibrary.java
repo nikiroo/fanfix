@@ -3,6 +3,7 @@ package be.nikiroo.fanfix.library;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 
 import be.nikiroo.fanfix.Instance;
@@ -101,6 +102,7 @@ public class CacheLibrary extends BasicLibrary {
 
 	@Override
 	public BufferedImage getCover(final String luid) {
+		// TODO: cache doesn't seem to work
 		if (isCached(luid)) {
 			return cacheLib.getCover(luid);
 		}
@@ -209,6 +211,25 @@ public class CacheLibrary extends BasicLibrary {
 			cacheLib.delete(luid);
 			clearCache();
 		}
+	}
+
+	@Override
+	public Story imprt(URL url, Progress pg) throws IOException {
+		if (pg == null) {
+			pg = new Progress();
+		}
+
+		Progress pgImprt = new Progress();
+		Progress pgCache = new Progress();
+		pg.setMinMax(0, 10);
+		pg.addProgress(pgImprt, 7);
+		pg.addProgress(pgCache, 3);
+
+		Story story = lib.imprt(url, pgImprt);
+		cacheLib.save(story, story.getMeta().getLuid(), pgCache);
+
+		pg.done();
+		return story;
 	}
 
 	// All the following methods are only used by Save and Delete in

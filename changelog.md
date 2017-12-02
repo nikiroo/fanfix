@@ -3,7 +3,10 @@
 # Version WIP
 
 - Bug fixes
-- Remote server/client improvements (progress report, can send large files, detect server state)
+- Remote server/client improvement: progress report
+- Remote server/client improvement: can send large files
+- Remote server/client improvement: detect server state
+- Remote server/client improvement: import and change source on server
 - Better support for some CBZ files (if SUMMARY or URL files are present in it)
 - Fix cover images not deleted on story delete
 - Fix some images not supported because not jpeg-able (now try again in png)

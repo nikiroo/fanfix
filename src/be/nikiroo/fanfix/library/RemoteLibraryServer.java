@@ -1,6 +1,7 @@
 package be.nikiroo.fanfix.library;
 
 import java.io.IOException;
+import java.net.URL;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,11 +34,15 @@ import be.nikiroo.utils.serial.server.ServerObject;
  * if not)</li>
  * <li>[md5] SAVE_STORY [luid]: save the story (that must be sent just after the
  * command) with the given LUID, then return the LUID</li>
+ * <li>[md5] IMPORT [url]: save the story found at the given URL, then return
+ * the LUID</li>
  * <li>[md5] DELETE_STORY [luid]: delete the story of LUID luid</li>
  * <li>[md5] GET_COVER [luid]: return the cover of the story</li>
  * <li>[md5] GET_SOURCE_COVER [source]: return the cover for this source</li>
  * <li>[md5] SET_SOURCE_COVER [source], [luid]: set the default cover for the
  * given source to the cover of the story denoted by luid</li>
+ * <li>[md5] CHANGE_SOURCE [luid] [new source]: change the source of the story
+ * of LUID luid</li>
  * <li>[md5] EXIT: stop the server</li>
  * </ul>
  * 
@@ -74,13 +79,13 @@ public class RemoteLibraryServer extends ServerObject {
 		if (data instanceof Object[]) {
 			Object[] dataArray = (Object[]) data;
 			if (dataArray.length >= 2) {
+				md5 = "" + dataArray[0];
+				command = "" + dataArray[1];
+
 				args = new Object[dataArray.length - 2];
 				for (int i = 2; i < dataArray.length; i++) {
 					args[i - 2] = dataArray[i];
 				}
-
-				md5 = "" + dataArray[0];
-				command = "" + dataArray[1];
 			}
 		}
 
@@ -133,6 +138,10 @@ public class RemoteLibraryServer extends ServerObject {
 			Story story = rebuildStory(list);
 			Instance.getLibrary().save(story, (String) args[0], null);
 			return story.getMeta().getLuid();
+		} else if ("IMPORT".equals(command)) {
+			Story story = Instance.getLibrary().imprt(
+					new URL((String) args[0]), createPgForwarder(action));
+			return story.getMeta().getLuid();
 		} else if ("DELETE_STORY".equals(command)) {
 			Instance.getLibrary().delete((String) args[0]);
 		} else if ("GET_COVER".equals(command)) {
@@ -142,6 +151,9 @@ public class RemoteLibraryServer extends ServerObject {
 		} else if ("SET_SOURCE_COVER".equals(command)) {
 			Instance.getLibrary().setSourceCover((String) args[0],
 					(String) args[1]);
+		} else if ("CHANGE_SOURCE".equals(command)) {
+			Instance.getLibrary().changeSource((String) args[0],
+					(String) args[1], createPgForwarder(action));
 		} else if ("EXIT".equals(command)) {
 			stop(0, false);
 		}

@@ -3,6 +3,7 @@ package be.nikiroo.fanfix.library;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -220,8 +221,7 @@ public class RemoteLibrary extends BasicLibrary {
 					pg.add(1);
 				}
 
-				send(null); // done sending the story
-				luidSaved[0] = (String) send(null); // get LUID
+				luidSaved[0] = (String) send(null);
 
 				pg.done();
 			}
@@ -235,7 +235,10 @@ public class RemoteLibrary extends BasicLibrary {
 		// because the meta changed:
 		clearCache();
 		refresh(pgRefresh);
-		story.setMeta(getInfo(luidSaved[0]));
+
+		MetaData meta = getInfo(luidSaved[0]);
+		meta.setCover(story.getMeta().getCover());
+		story.setMeta(meta);
 
 		pg.done();
 
@@ -264,6 +267,96 @@ public class RemoteLibrary extends BasicLibrary {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					send(new Object[] { md5, "SET_SOURCE_COVER", source, luid });
+				}
+
+				@Override
+				protected void onError(Exception e) {
+					Instance.getTraceHandler().error(e);
+				}
+			}.connect();
+		} catch (IOException e) {
+			Instance.getTraceHandler().error(e);
+		}
+	}
+
+	@Override
+	// Could work (more slowly) without it
+	public Story imprt(final URL url, Progress pg) throws IOException {
+		if (pg == null) {
+			pg = new Progress();
+		}
+
+		pg.setMinMax(0, 2);
+		Progress pgImprt = new Progress();
+		Progress pgGet = new Progress();
+		pg.addProgress(pgImprt, 1);
+		pg.addProgress(pgGet, 1);
+
+		final Progress pgF = pgImprt;
+		final String[] luid = new String[1];
+
+		try {
+			new ConnectActionClientObject(host, port, true) {
+				@Override
+				public void action(Version serverVersion) throws Exception {
+					Progress pg = pgF;
+
+					Object rep = send(new Object[] { md5, "IMPORT",
+							url.toString() });
+
+					while (true) {
+						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
+							break;
+						}
+
+						rep = send(null);
+					}
+
+					pg.done();
+					luid[0] = (String) rep;
+				}
+
+				@Override
+				protected void onError(Exception e) {
+					Instance.getTraceHandler().error(e);
+				}
+			}.connect();
+		} catch (IOException e) {
+			Instance.getTraceHandler().error(e);
+		}
+
+		if (luid[0] == null) {
+			throw new IOException("Remote failure");
+		}
+
+		Story story = getStory(luid[0], pgGet);
+		pgGet.done();
+
+		pg.done();
+		return story;
+	}
+
+	@Override
+	// Could work (more slowly) without it
+	public synchronized void changeSource(final String luid,
+			final String newSource, Progress pg) throws IOException {
+		final Progress pgF = pg == null ? new Progress() : pg;
+
+		try {
+			new ConnectActionClientObject(host, port, true) {
+				@Override
+				public void action(Version serverVersion) throws Exception {
+					Progress pg = pgF;
+
+					Object rep = send(new Object[] { md5, "CHANGE_SOURCE",
+							luid, newSource });
+					while (true) {
+						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
+							break;
+						}
+
+						rep = send(null);
+					}
 				}
 
 				@Override
