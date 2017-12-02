@@ -241,6 +241,25 @@ public abstract class BasicOutput {
 	}
 
 	/**
+	 * Enable the creation of a .info file next to the resulting processed file.
+	 * 
+	 * @return TRUE to enable it
+	 */
+	protected boolean isWriteInfo() {
+		return writeInfo;
+	}
+
+	/**
+	 * Enable the creation of a cover file next to the resulting processed file
+	 * if possible.
+	 * 
+	 * @return TRUE to enable it
+	 */
+	protected boolean isWriteCover() {
+		return writeCover;
+	}
+
+	/**
 	 * The output type.
 	 * 
 	 * @param type

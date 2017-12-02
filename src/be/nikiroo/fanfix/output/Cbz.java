@@ -27,7 +27,8 @@ class Cbz extends BasicOutput {
 		dir.mkdir();
 		try {
 			// will also save the images!
-			new InfoText().process(story, dir, targetNameOrig);
+			BasicOutput.getOutput(OutputType.TEXT, isWriteInfo()).process(
+					story, dir, targetNameOrig);
 
 			InfoCover.writeInfo(dir, targetNameOrig, story.getMeta());
 			if (story.getMeta() != null && !story.getMeta().isFakeCover()) {

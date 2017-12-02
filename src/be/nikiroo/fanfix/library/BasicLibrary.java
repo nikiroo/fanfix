@@ -319,15 +319,19 @@ abstract public class BasicLibrary {
 					if (type != null) {
 						story = BasicSupport.getSupport(type).process(url,
 								pgProcess);
+						// Because we do not want to clear the meta cache:
+						meta.setCover(story.getMeta().getCover());
 						story.setMeta(meta);
+						//
 					} else {
 						throw new IOException("Unknown type: " + meta.getType());
 					}
 				} catch (IOException e) {
 					// We should not have not-supported files in the
 					// library
-					Instance.getTraceHandler().error(new IOException(
-							"Cannot load file from library: " + file, e));
+					Instance.getTraceHandler().error(
+							new IOException("Cannot load file from library: "
+									+ file, e));
 				} finally {
 					pgProcess.done();
 					pg.done();

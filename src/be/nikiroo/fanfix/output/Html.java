@@ -37,7 +37,8 @@ class Html extends BasicOutput {
 		// write a copy of the originals inside
 		InfoCover.writeInfo(dir, targetName, story.getMeta());
 		InfoCover.writeCover(dir, targetName, story.getMeta());
-		new InfoText().process(story, dir, targetNameOrig);
+		BasicOutput.getOutput(OutputType.TEXT, isWriteInfo()).process(story,
+				dir, targetNameOrig);
 
 		target = new File(targetDir, targetName + getDefaultExtension(true));
 
