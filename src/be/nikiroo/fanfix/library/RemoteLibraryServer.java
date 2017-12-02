@@ -98,7 +98,7 @@ public class RemoteLibraryServer extends ServerObject {
 		if ("PING".equals(command)) {
 			return "PONG";
 		} else if ("GET_METADATA".equals(command)) {
-			if (args[0].equals("*")) {
+			if ("*".equals(args[0])) {
 				List<MetaData> metas = Instance.getLibrary().getMetas(
 						createPgForwarder(action));
 				return metas.toArray(new MetaData[] {});
@@ -106,14 +106,15 @@ public class RemoteLibraryServer extends ServerObject {
 			throw new InvalidParameterException(
 					"only * is valid here, but you passed: " + args[0]);
 		} else if ("GET_STORY".equals(command)) {
-			MetaData meta = Instance.getLibrary().getInfo("" + args[0]);
+			MetaData meta = Instance.getLibrary().getInfo((String) args[0]);
 			meta = meta.clone();
 			meta.setCover(null);
 
 			action.send(meta);
 			action.rec();
 
-			Story story = Instance.getLibrary().getStory("" + args[0], null);
+			Story story = Instance.getLibrary()
+					.getStory((String) args[0], null);
 			for (Object obj : breakStory(story)) {
 				action.send(obj);
 				action.rec();
@@ -130,15 +131,16 @@ public class RemoteLibraryServer extends ServerObject {
 			}
 
 			Story story = rebuildStory(list);
-			Instance.getLibrary().save(story, "" + args[0], null);
+			Instance.getLibrary().save(story, (String) args[0], null);
 		} else if ("DELETE_STORY".equals(command)) {
-			Instance.getLibrary().delete("" + args[0]);
+			Instance.getLibrary().delete((String) args[0]);
 		} else if ("GET_COVER".equals(command)) {
-			return Instance.getLibrary().getCover("" + args[0]);
+			return Instance.getLibrary().getCover((String) args[0]);
 		} else if ("GET_SOURCE_COVER".equals(command)) {
-			return Instance.getLibrary().getSourceCover("" + args[0]);
+			return Instance.getLibrary().getSourceCover((String) args[0]);
 		} else if ("SET_SOURCE_COVER".equals(command)) {
-			Instance.getLibrary().setSourceCover("" + args[0], "" + args[1]);
+			Instance.getLibrary().setSourceCover((String) args[0],
+					(String) args[1]);
 		} else if ("EXIT".equals(command)) {
 			stop(0, false);
 		}
