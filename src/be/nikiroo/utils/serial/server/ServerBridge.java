@@ -3,6 +3,7 @@ package be.nikiroo.utils.serial.server;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.TraceHandler;
@@ -45,6 +46,11 @@ public class ServerBridge extends Server {
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
+	 * @throws UnknownHostException
+	 *             if the IP address of the host could not be determined
+	 * @throws IllegalArgumentException
+	 *             if the port parameter is outside the specified range of valid
+	 *             port values, which is between 0 and 65535, inclusive
 	 */
 	public ServerBridge(int port, boolean ssl, String forwardToHost,
 			int forwardToPort, boolean forwardToSsl) throws IOException {
@@ -73,6 +79,11 @@ public class ServerBridge extends Server {
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
+	 * @throws UnknownHostException
+	 *             if the IP address of the host could not be determined
+	 * @throws IllegalArgumentException
+	 *             if the port parameter is outside the specified range of valid
+	 *             port values, which is between 0 and 65535, inclusive
 	 */
 	public ServerBridge(String name, int port, boolean ssl,
 			String forwardToHost, int forwardToPort, boolean forwardToSsl)
@@ -113,30 +124,34 @@ public class ServerBridge extends Server {
 				onClientContact(clientVersion);
 				final ConnectActionServerString bridge = this;
 
-				new ConnectActionClientString(forwardToHost, forwardToPort,
-						forwardToSsl, clientVersion) {
-					@Override
-					public void action(final Version serverVersion)
-							throws Exception {
-						onServerContact(serverVersion);
+				try {
+					new ConnectActionClientString(forwardToHost, forwardToPort,
+							forwardToSsl, clientVersion) {
+						@Override
+						public void action(final Version serverVersion)
+								throws Exception {
+							onServerContact(serverVersion);
 
-						for (String fromClient = bridge.rec(); fromClient != null; fromClient = bridge
-								.rec()) {
-							onRec(clientVersion, fromClient);
-							String fromServer = send(fromClient);
-							onSend(serverVersion, fromServer);
-							bridge.send(fromServer);
+							for (String fromClient = bridge.rec(); fromClient != null; fromClient = bridge
+									.rec()) {
+								onRec(clientVersion, fromClient);
+								String fromServer = send(fromClient);
+								onSend(serverVersion, fromServer);
+								bridge.send(fromServer);
+							}
+
+							getTraceHandler().trace("=== DONE", 1);
+							getTraceHandler().trace("", 1);
 						}
 
-						getTraceHandler().trace("=== DONE", 1);
-						getTraceHandler().trace("", 1);
-					}
-
-					@Override
-					protected void onError(Exception e) {
-						ServerBridge.this.onError(e);
-					}
-				}.connect();
+						@Override
+						protected void onError(Exception e) {
+							ServerBridge.this.onError(e);
+						}
+					}.connect();
+				} catch (Exception e) {
+					ServerBridge.this.onError(e);
+				}
 			}
 		};
 	}
@@ -185,6 +200,15 @@ public class ServerBridge extends Server {
 	 */
 	protected void onSend(Version serverVersion, String data) {
 		trace("<<< SERVER (" + serverVersion + ")", data);
+	}
+
+	@Override
+	public void run() {
+		getTraceHandler().trace(
+				getName() + ": will forward to " + forwardToHost + ":"
+						+ forwardToPort + " ("
+						+ (forwardToSsl ? "SSL" : "plain text") + ")");
+		super.run();
 	}
 
 	/**
@@ -305,7 +329,7 @@ public class ServerBridge extends Server {
 			if (args.length > 6) {
 				traceLevel = Integer.parseInt(args[i++]);
 			}
-			int maxPrintSize = 1;
+			int maxPrintSize = 0;
 			if (args.length > 7) {
 				maxPrintSize = Integer.parseInt(args[i++]);
 			}

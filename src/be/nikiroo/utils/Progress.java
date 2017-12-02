@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * Progress reporting system, possibly nested.
@@ -318,8 +317,10 @@ public class Progress {
 	 * 
 	 * @return the children (Who will think of the children??)
 	 */
-	public Set<Progress> getChildren() {
-		return children.keySet();
+	public List<Progress> getChildren() {
+		synchronized (getLock()) {
+			return new ArrayList<Progress>(children.keySet());
+		}
 	}
 
 	/**
@@ -359,7 +360,9 @@ public class Progress {
 	 *            the listener
 	 */
 	public void addProgressListener(ProgressListener l) {
-		this.listeners.add(l);
+		synchronized (getLock()) {
+			this.listeners.add(l);
+		}
 	}
 
 	/**
@@ -371,7 +374,9 @@ public class Progress {
 	 * @return TRUE if it was found (and removed)
 	 */
 	public boolean removeProgressListener(ProgressListener l) {
-		return this.listeners.remove(l);
+		synchronized (getLock()) {
+			return this.listeners.remove(l);
+		}
 	}
 
 	/**
@@ -408,9 +413,12 @@ public class Progress {
 			public void progress(Progress pg, String name) {
 				synchronized (getLock()) {
 					double total = relativeLocalProgress;
-					for (Entry<Progress, Double> entry : children.entrySet()) {
-						total += (entry.getValue() / (max - min))
-								* entry.getKey().getRelativeProgress();
+					synchronized (getLock()) {
+						for (Entry<Progress, Double> entry : children
+								.entrySet()) {
+							total += (entry.getValue() / (max - min))
+									* entry.getKey().getRelativeProgress();
+						}
 					}
 
 					setRelativeProgress(pg, name, total);
@@ -418,7 +426,9 @@ public class Progress {
 			}
 		});
 
-		this.children.put(progress, weight);
+		synchronized (getLock()) {
+			this.children.put(progress, weight);
+		}
 	}
 
 	/**

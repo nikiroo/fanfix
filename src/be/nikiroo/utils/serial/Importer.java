@@ -154,7 +154,8 @@ public class Importer {
 			if (line.endsWith(":")) {
 				// field value is compound
 				currentFieldName = line.substring(0, line.length() - 1);
-			} else if (line.startsWith(":") || !line.contains(":")) {
+			} else if (line.startsWith(":") || !line.contains(":")
+					|| line.startsWith("\"") || CustomSerializer.isCustom(line)) {
 				// not a field value but a direct value
 				me = SerialUtils.decode(line);
 			} else {

@@ -1,5 +1,7 @@
 package be.nikiroo.utils.test;
 
+import java.net.URL;
+
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.server.ConnectActionClientObject;
 import be.nikiroo.utils.serial.server.ConnectActionClientString;
@@ -44,6 +46,7 @@ class SerialServerTest extends TestLauncher {
 				ServerBridge br = null;
 				if (bridge) {
 					br = new ServerBridge(0, ssl, "", port, ssl);
+					br.setTraceHandler(null);
 
 					port = br.getPort();
 					assertEquals(
@@ -95,7 +98,6 @@ class SerialServerTest extends TestLauncher {
 
 					@Override
 					protected void onError(Exception e) {
-						super.onError(e);
 						err[0] = e;
 					}
 				};
@@ -107,6 +109,7 @@ class SerialServerTest extends TestLauncher {
 				ServerBridge br = null;
 				if (bridge) {
 					br = new ServerBridge(0, ssl, "", port, ssl);
+					br.setTraceHandler(null);
 					port = br.getPort();
 					br.start();
 				}
@@ -159,7 +162,6 @@ class SerialServerTest extends TestLauncher {
 
 					@Override
 					protected void onError(Exception e) {
-						super.onError(e);
 						err[0] = e;
 					}
 				};
@@ -171,6 +173,7 @@ class SerialServerTest extends TestLauncher {
 				ServerBridge br = null;
 				if (bridge) {
 					br = new ServerBridge(0, ssl, "", port, ssl);
+					br.setTraceHandler(null);
 					port = br.getPort();
 					br.start();
 				}
@@ -224,7 +227,6 @@ class SerialServerTest extends TestLauncher {
 
 					@Override
 					protected void onError(Exception e) {
-						super.onError(e);
 						err[0] = e;
 					}
 				};
@@ -236,6 +238,7 @@ class SerialServerTest extends TestLauncher {
 				ServerBridge br = null;
 				if (bridge) {
 					br = new ServerBridge(0, ssl, "", port, ssl);
+					br.setTraceHandler(null);
 					port = br.getPort();
 					br.start();
 				}
@@ -309,11 +312,8 @@ class SerialServerTest extends TestLauncher {
 
 				ServerBridge br = null;
 				if (bridge) {
-					br = new ServerBridge(0, ssl, "", port, ssl) {
-						@Override
-						protected void onError(Exception e) {
-						}
-					};
+					br = new ServerBridge(0, ssl, "", port, ssl);
+					br.setTraceHandler(null);
 					port = br.getPort();
 					br.start();
 				}
@@ -364,7 +364,6 @@ class SerialServerTest extends TestLauncher {
 
 					@Override
 					protected void onError(Exception e) {
-						super.onError(e);
 						err[0] = e;
 					}
 				};
@@ -376,6 +375,7 @@ class SerialServerTest extends TestLauncher {
 				ServerBridge br = null;
 				if (bridge) {
 					br = new ServerBridge(0, ssl, "", port, ssl);
+					br.setTraceHandler(null);
 					port = br.getPort();
 					br.start();
 				}
@@ -428,7 +428,6 @@ class SerialServerTest extends TestLauncher {
 
 					@Override
 					protected void onError(Exception e) {
-						super.onError(e);
 						err[0] = e;
 					}
 				};
@@ -440,6 +439,7 @@ class SerialServerTest extends TestLauncher {
 				ServerBridge br = null;
 				if (bridge) {
 					br = new ServerBridge(0, ssl, "", port, ssl);
+					br.setTraceHandler(null);
 					port = br.getPort();
 					br.start();
 				}
@@ -474,6 +474,78 @@ class SerialServerTest extends TestLauncher {
 			}
 		});
 
+		series.addTest(new TestCase("Object array of URLs " + ssls) {
+			final Object[] sent = new Object[1];
+			final Object[] recd = new Object[1];
+			final Exception[] err = new Exception[1];
+
+			@Override
+			public void test() throws Exception {
+				ServerObject server = new ServerObject(this.getName(), 0, ssl) {
+					@Override
+					protected Object onRequest(
+							ConnectActionServerObject action,
+							Version clientVersion, Object data)
+							throws Exception {
+						sent[0] = data;
+						return new Object[] { "ACK" };
+					}
+
+					@Override
+					protected void onError(Exception e) {
+						err[0] = e;
+					}
+				};
+
+				int port = server.getPort();
+
+				server.start();
+
+				ServerBridge br = null;
+				if (bridge) {
+					br = new ServerBridge(0, ssl, "", port, ssl);
+					br.setTraceHandler(null);
+					port = br.getPort();
+					br.start();
+				}
+
+				try {
+					try {
+						new ConnectActionClientObject(null, port, ssl) {
+							@Override
+							public void action(Version serverVersion)
+									throws Exception {
+								recd[0] = send(new Object[] {
+										"key",
+										new URL(
+												"https://example.com/from_client"),
+										"https://example.com/from_client" });
+							}
+						}.connect();
+					} finally {
+						server.stop();
+					}
+				} finally {
+					if (br != null) {
+						br.stop();
+					}
+				}
+
+				if (err[0] != null) {
+					fail("An exception was thrown: " + err[0].getMessage());
+				}
+
+				Object[] sento = (Object[]) (sent[0]);
+				Object[] recdo = (Object[]) (recd[0]);
+
+				assertEquals("key", sento[0]);
+				assertEquals("https://example.com/from_client",
+						((URL) sento[1]).toString());
+				assertEquals("https://example.com/from_client", sento[2]);
+				assertEquals("ACK", recdo[0]);
+			}
+		});
+
 		series.addTest(new TestCase("Multiple call from client " + ssls) {
 			final Object[] sent = new Object[3];
 			final Object[] recd = new Object[3];
@@ -493,7 +565,6 @@ class SerialServerTest extends TestLauncher {
 
 					@Override
 					protected void onError(Exception e) {
-						super.onError(e);
 						err[0] = e;
 					}
 				};
@@ -505,6 +576,7 @@ class SerialServerTest extends TestLauncher {
 				ServerBridge br = null;
 				if (bridge) {
 					br = new ServerBridge(0, ssl, "", port, ssl);
+					br.setTraceHandler(null);
 					port = br.getPort();
 					br.start();
 				}

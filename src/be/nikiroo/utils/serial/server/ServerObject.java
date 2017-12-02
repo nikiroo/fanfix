@@ -2,6 +2,7 @@ package be.nikiroo.utils.serial.server;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 import be.nikiroo.utils.Version;
 
@@ -28,6 +29,11 @@ abstract public class ServerObject extends Server {
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
+	 * @throws UnknownHostException
+	 *             if the IP address of the host could not be determined
+	 * @throws IllegalArgumentException
+	 *             if the port parameter is outside the specified range of valid
+	 *             port values, which is between 0 and 65535, inclusive
 	 */
 	public ServerObject(int port, boolean ssl) throws IOException {
 		super(port, ssl);
@@ -46,6 +52,11 @@ abstract public class ServerObject extends Server {
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
+	 * @throws UnknownHostException
+	 *             if the IP address of the host could not be determined
+	 * @throws IllegalArgumentException
+	 *             if the port parameter is outside the specified range of valid
+	 *             port values, which is between 0 and 65535, inclusive
 	 */
 	public ServerObject(String name, int port, boolean ssl) throws IOException {
 		super(name, port, ssl);

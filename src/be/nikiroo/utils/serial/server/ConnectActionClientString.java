@@ -2,6 +2,7 @@ package be.nikiroo.utils.serial.server;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 import be.nikiroo.utils.Version;
 
@@ -39,7 +40,12 @@ public class ConnectActionClientString extends ConnectActionClient {
 	 *            TRUE for an SSL connection, FALSE for plain text
 	 * 
 	 * @throws IOException
-	 *             in case of I/O error when creating the socket
+	 *             in case of I/O error
+	 * @throws UnknownHostException
+	 *             if the IP address of the host could not be determined
+	 * @throws IllegalArgumentException
+	 *             if the port parameter is outside the specified range of valid
+	 *             port values, which is between 0 and 65535, inclusive
 	 */
 	public ConnectActionClientString(String host, int port, boolean ssl)
 			throws IOException {
@@ -59,7 +65,12 @@ public class ConnectActionClientString extends ConnectActionClient {
 	 *            the client version
 	 * 
 	 * @throws IOException
-	 *             in case of I/O error when creating the socket
+	 *             in case of I/O error
+	 * @throws UnknownHostException
+	 *             if the IP address of the host could not be determined
+	 * @throws IllegalArgumentException
+	 *             if the port parameter is outside the specified range of valid
+	 *             port values, which is between 0 and 65535, inclusive
 	 */
 	public ConnectActionClientString(String host, int port, boolean ssl,
 			Version version) throws IOException {

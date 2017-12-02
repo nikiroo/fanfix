@@ -7,6 +7,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UnknownFormatConversionException;
@@ -37,6 +38,7 @@ import be.nikiroo.utils.ImageUtils;
  * <li>Enum (any enum whose name and value is known by the caller)</li>
  * <li>java.awt.image.BufferedImage (as a {@link CustomSerializer})</li>
  * <li>An array of the above (as a {@link CustomSerializer})</li>
+ * <li>URL</li>
  * </ul>
  * 
  * @author niki
@@ -103,6 +105,30 @@ public class SerialUtils {
 					}
 					throw new IOException(e.getMessage());
 				}
+			}
+		});
+
+		// URL:
+		customTypes.put("java.net.URL", new CustomSerializer() {
+			@Override
+			protected String toString(Object value) {
+				if (value != null) {
+					return ((URL) value).toString();
+				}
+				return null;
+			}
+
+			@Override
+			protected Object fromString(String content) throws IOException {
+				if (content != null) {
+					return new URL(content);
+				}
+				return null;
+			}
+
+			@Override
+			protected String getType() {
+				return "java.net.URL";
 			}
 		});
 

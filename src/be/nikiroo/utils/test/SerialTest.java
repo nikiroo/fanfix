@@ -1,5 +1,7 @@
 package be.nikiroo.utils.test;
 
+import java.net.URL;
+
 import be.nikiroo.utils.serial.Exporter;
 import be.nikiroo.utils.serial.Importer;
 
@@ -25,6 +27,53 @@ class SerialTest extends TestLauncher {
 
 				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
 						reencoded.replaceAll("@[0-9]*", "@REF"));
+			}
+		});
+
+		addTest(new TestCase("URL Import/Export") {
+			@Override
+			public void test() throws Exception {
+				URL data = new URL("https://fanfan.be/");
+				String encoded = new Exporter().append(data).toString(false);
+				Object redata = new Importer().read(encoded).getValue();
+				String reencoded = new Exporter().append(redata)
+						.toString(false);
+
+				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
+						reencoded.replaceAll("@[0-9]*", "@REF"));
+			}
+		});
+
+		addTest(new TestCase("URL-String Import/Export") {
+			@Override
+			public void test() throws Exception {
+				String data = new URL("https://fanfan.be/").toString();
+				String encoded = new Exporter().append(data).toString(false);
+				Object redata = new Importer().read(encoded).getValue();
+				String reencoded = new Exporter().append(redata)
+						.toString(false);
+
+				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
+						reencoded.replaceAll("@[0-9]*", "@REF"));
+				assertEquals(data, redata);
+			}
+		});
+
+		addTest(new TestCase("URL/URL-String arrays Import/Export") {
+			@Override
+			public void test() throws Exception {
+				final String url = "https://fanfan.be/";
+
+				Object[] data = new Object[] { new URL(url), url };
+				String encoded = new Exporter().append(data).toString(false);
+				Object redata = new Importer().read(encoded).getValue();
+				String reencoded = new Exporter().append(redata)
+						.toString(false);
+
+				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
+						reencoded.replaceAll("@[0-9]*", "@REF"));
+				assertEquals(data[0], ((Object[]) redata)[0]);
+				assertEquals(data[1], ((Object[]) redata)[1]);
 			}
 		});
 

@@ -28,6 +28,7 @@ public class ProgressBar extends JPanel {
 	private List<ActionListener> actionListeners;
 	private List<ActionListener> updateListeners;
 	private Progress pg;
+	private Object lock = new Object();
 
 	public ProgressBar() {
 		bars = new HashMap<Progress, JProgressBar>();
@@ -68,6 +69,7 @@ public class ProgressBar extends JPanel {
 									bar.setValue(pg.getProgress());
 									bar.setString(pg.getName());
 
+									synchronized (lock) {
 									for (Progress pgChild : getChildrenAsOrderedList(pg)) {
 										JProgressBar barChild = bars
 												.get(pgChild);
@@ -83,12 +85,15 @@ public class ProgressBar extends JPanel {
 										barChild.setValue(pgChild.getProgress());
 										barChild.setString(pgChild.getName());
 									}
-
+									
 									if (ProgressBar.this.pg == null) {
 										bars.clear();
 									} else {
 										bars = newBars;
-
+									}
+									}
+									
+									if (ProgressBar.this.pg != null) {
 										if (pg.isDone()) {
 											pg.removeProgressListener(l);
 											for (ActionListener listener : actionListeners) {
@@ -138,33 +143,38 @@ public class ProgressBar extends JPanel {
 	// only named ones
 	private List<Progress> getChildrenAsOrderedList(Progress pg) {
 		List<Progress> children = new ArrayList<Progress>();
-		for (Progress child : pg.getChildren()) {
+		
+		synchronized (lock) {
+			for (Progress child : pg.getChildren()) {
 			if (child.getName() != null && !child.getName().isEmpty()) {
 				children.add(child);
 			}
 			children.addAll(getChildrenAsOrderedList(child));
 		}
-
+		}
+		
 		return children;
 	}
 
 	private void update() {
-		invalidate();
-		removeAll();
+		synchronized (lock) {
+			invalidate();
+			removeAll();
 
-		if (pg != null) {
-			setLayout(new GridLayout(bars.size(), 1));
-			add(bars.get(pg), 0);
-			for (Progress child : getChildrenAsOrderedList(pg)) {
-				JProgressBar jbar = bars.get(child);
-				if (jbar != null) {
-					add(jbar);
+			if (pg != null) {
+				setLayout(new GridLayout(bars.size(), 1));
+				add(bars.get(pg), 0);
+				for (Progress child : getChildrenAsOrderedList(pg)) {
+					JProgressBar jbar = bars.get(child);
+					if (jbar != null) {
+						add(jbar);
+					}
 				}
 			}
-		}
 
-		validate();
-		repaint();
+			validate();
+			repaint();
+		}
 
 		for (ActionListener listener : updateListeners) {
 			listener.actionPerformed(new ActionEvent(this, 0, "update"));

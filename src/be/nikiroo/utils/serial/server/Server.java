@@ -3,6 +3,7 @@ package be.nikiroo.utils.serial.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,6 +63,11 @@ abstract class Server implements Runnable {
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
+	 * @throws UnknownHostException
+	 *             if the IP address of the host could not be determined
+	 * @throws IllegalArgumentException
+	 *             if the port parameter is outside the specified range of valid
+	 *             port values, which is between 0 and 65535, inclusive
 	 */
 	public Server(int port, boolean ssl) throws IOException {
 		this((String) null, port, ssl);
@@ -80,6 +86,11 @@ abstract class Server implements Runnable {
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
+	 * @throws UnknownHostException
+	 *             if the IP address of the host could not be determined
+	 * @throws IllegalArgumentException
+	 *             if the port parameter is outside the specified range of valid
+	 *             port values, which is between 0 and 65535, inclusive
 	 */
 	public Server(String name, int port, boolean ssl) throws IOException {
 		this.name = name;
@@ -180,7 +191,8 @@ abstract class Server implements Runnable {
 		}
 
 		try {
-			tracer.trace(name + ": server starting on port " + port);
+			tracer.trace(name + ": server starting on port " + port + " ("
+					+ (ssl ? "SSL" : "plain text") + ")");
 
 			while (started && !exiting) {
 				count(1);
@@ -334,6 +346,11 @@ abstract class Server implements Runnable {
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
+	 * @throws UnknownHostException
+	 *             if the host is not known
+	 * @throws IllegalArgumentException
+	 *             if the port parameter is outside the specified range of valid
+	 *             port values, which is between 0 and 65535, inclusive
 	 */
 	static Socket createSocket(String host, int port, boolean ssl)
 			throws IOException {
@@ -360,6 +377,11 @@ abstract class Server implements Runnable {
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
+	 * @throws UnknownHostException
+	 *             if the IP address of the host could not be determined
+	 * @throws IllegalArgumentException
+	 *             if the port parameter is outside the specified range of valid
+	 *             port values, which is between 0 and 65535, inclusive
 	 */
 	static ServerSocket createSocketServer(int port, boolean ssl)
 			throws IOException {

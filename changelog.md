@@ -1,5 +1,11 @@
 # nikiroo-utils
 
+## Version 3.1.6
+
+- Fix Serialiser issue with custom objects and String in a custom object
+- Fix Progress/ProgressBar synchronisation issues
+- Fix Bridge default maxPrintSize parameter
+
 ## Version 3.1.5
 
 - Fix Cache with no-parent file
