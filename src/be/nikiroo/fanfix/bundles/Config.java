@@ -30,6 +30,8 @@ public enum Config {
 	USER_AGENT, //
 	@Meta(description = "absolute path, $HOME variable supported, / is always accepted as dir separator", format = Format.DIRECTORY, info = "The directory where to get the default story covers")
 	DEFAULT_COVERS_DIR, //
+	@Meta(description = "string", info = "The default library to use (KEY:SERVER:PORT), or empty for the local library")
+	DEFAULT_LIBRARY, //
 	@Meta(description = "absolute path, $HOME variable supported, / is always accepted as dir separator", format = Format.DIRECTORY, info = "The directory where to store the library")
 	LIBRARY_DIR, //
 	@Meta(description = "boolean", format = Format.BOOLEAN, info = "Show debug information on errors")

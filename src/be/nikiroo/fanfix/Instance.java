@@ -12,6 +12,7 @@ import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.bundles.UiConfigBundle;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.library.LocalLibrary;
+import be.nikiroo.fanfix.library.RemoteLibrary;
 import be.nikiroo.utils.Cache;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.TraceHandler;
@@ -27,7 +28,7 @@ public class Instance {
 	private static UiConfigBundle uiconfig;
 	private static StringIdBundle trans;
 	private static DataLoader cache;
-	private static LocalLibrary lib;
+	private static BasicLibrary lib;
 	private static File coverDir;
 	private static File readerTmp;
 	private static File remoteDir;
@@ -105,12 +106,40 @@ public class Instance {
 
 		tracer = new TraceHandler(true, debug, trace);
 
-		try {
-			lib = new LocalLibrary(getFile(Config.LIBRARY_DIR));
-		} catch (Exception e) {
-			tracer.error(new IOException(
-					"Cannot create library for directory: "
-							+ getFile(Config.LIBRARY_DIR), e));
+		String remoteLib = config.getString(Config.DEFAULT_LIBRARY);
+		if (remoteLib == null || remoteLib.trim().isEmpty()) {
+			try {
+				lib = new LocalLibrary(getFile(Config.LIBRARY_DIR));
+			} catch (Exception e) {
+				tracer.error(new IOException(
+						"Cannot create library for directory: "
+								+ getFile(Config.LIBRARY_DIR), e));
+			}
+		} else {
+			int pos = remoteLib.lastIndexOf(":");
+			if (pos >= 0) {
+				String port = remoteLib.substring(pos + 1).trim();
+				remoteLib = remoteLib.substring(0, pos);
+				pos = remoteLib.lastIndexOf(":");
+				if (pos >= 0) {
+					String host = remoteLib.substring(pos + 1).trim();
+					String key = remoteLib.substring(0, pos).trim();
+
+					try {
+						tracer.trace("Contacting remote library " + host + ":"
+								+ port);
+						lib = new RemoteLibrary(key, host,
+								Integer.parseInt(port));
+					} catch (Exception e) {
+					}
+				}
+			}
+
+			if (lib == null) {
+				tracer.error(new IOException(
+						"Cannot create remote library for: "
+								+ getFile(Config.DEFAULT_LIBRARY)));
+			}
 		}
 
 		// Could have used: System.getProperty("java.io.tmpdir")
