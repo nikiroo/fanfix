@@ -334,10 +334,6 @@ public abstract class BasicOutput {
 			story.getMeta().setType("" + getType());
 		}
 
-		System.out.println(story.getMeta().getTitle() + " -> write cover: "
-				+ writeCover);
-		new Exception().printStackTrace();
-
 		if (writeCover) {
 			InfoCover.writeCover(targetDir, targetName, story.getMeta());
 		}
