@@ -199,9 +199,8 @@ public class Main {
 				} else if (port == null) {
 					port = Integer.parseInt(args[i]);
 
-					File remoteCacheDir = Instance.getRemoteDir(host);
 					BasicLibrary lib = new RemoteLibrary(key, host, port);
-					lib = new CacheLibrary(remoteCacheDir, lib);
+					lib = new CacheLibrary(Instance.getRemoteDir(host), lib);
 
 					BasicReader.setDefaultLibrary(lib);
 

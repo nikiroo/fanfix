@@ -11,6 +11,7 @@ import be.nikiroo.fanfix.bundles.StringIdBundle;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.bundles.UiConfigBundle;
 import be.nikiroo.fanfix.library.BasicLibrary;
+import be.nikiroo.fanfix.library.CacheLibrary;
 import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.library.RemoteLibrary;
 import be.nikiroo.utils.Cache;
@@ -126,10 +127,12 @@ public class Instance {
 					String key = remoteLib.substring(0, pos).trim();
 
 					try {
-						tracer.trace("Contacting remote library " + host + ":"
+						tracer.trace("Selecting remote library " + host + ":"
 								+ port);
 						lib = new RemoteLibrary(key, host,
 								Integer.parseInt(port));
+						lib = new CacheLibrary(getRemoteDir(host), lib);
+
 					} catch (Exception e) {
 					}
 				}
