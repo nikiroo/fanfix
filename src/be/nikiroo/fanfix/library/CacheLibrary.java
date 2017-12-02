@@ -180,6 +180,8 @@ public class CacheLibrary extends BasicLibrary {
 		lib.changeSource(luid, newSource, pgOrig);
 		pgOrig.done();
 
+		getInfo(luid).setSource(newSource);
+
 		pg.done();
 	}
 

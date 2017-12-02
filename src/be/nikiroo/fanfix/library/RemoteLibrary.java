@@ -357,6 +357,8 @@ public class RemoteLibrary extends BasicLibrary {
 
 						rep = send(null);
 					}
+
+					getInfo(luid).setSource(newSource);
 				}
 
 				@Override
