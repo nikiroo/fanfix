@@ -9,9 +9,12 @@ import java.util.Map;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.utils.Cache;
+import be.nikiroo.utils.CacheMemory;
 import be.nikiroo.utils.Downloader;
+import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.ImageUtils;
+import be.nikiroo.utils.TraceHandler;
 
 /**
  * This cache will manage Internet (and local) downloads, as well as put the
@@ -23,8 +26,9 @@ import be.nikiroo.utils.ImageUtils;
  * @author niki
  */
 public class DataLoader {
-	private Cache cache;
 	private Downloader downloader;
+	private Cache downloadCache;
+	private Cache cache;
 
 	/**
 	 * Create a new {@link DataLoader} object.
@@ -47,10 +51,37 @@ public class DataLoader {
 	 */
 	public DataLoader(File dir, String UA, int hoursChanging, int hoursStable)
 			throws IOException {
-		cache = new Cache(dir, hoursChanging, hoursStable);
-		cache.setTraceHandler(Instance.getTraceHandler());
 		downloader = new Downloader(UA);
-		downloader.setTraceHandler(Instance.getTraceHandler());
+		downloadCache = new Cache(dir, hoursChanging, hoursStable);
+		cache = downloadCache;
+	}
+
+	/**
+	 * Create a new {@link DataLoader} object without disk cache (will keep a
+	 * memory cache for manual cache operations).
+	 * 
+	 * @param UA
+	 *            the User-Agent to use to download the resources
+	 */
+	public DataLoader(String UA) {
+		downloader = new Downloader(UA);
+		downloadCache = null;
+		cache = new CacheMemory();
+	}
+
+	/**
+	 * The traces handler for this {@link Cache}.
+	 * 
+	 * @param tracer
+	 *            the new traces handler
+	 */
+	public void setTraceHandler(TraceHandler tracer) {
+		downloader.setTraceHandler(tracer);
+		cache.setTraceHandler(tracer);
+		if (downloadCache != null) {
+			downloadCache.setTraceHandler(tracer);
+		}
+
 	}
 
 	/**
@@ -99,17 +130,29 @@ public class DataLoader {
 			URL originalUrl) throws IOException {
 		// MUST NOT return null
 		try {
-			InputStream in = cache.load(originalUrl, false, stable);
-			Instance.getTraceHandler().trace(
-					"Cache " + (in != null ? "hit" : "miss") + ": " + url);
+			InputStream in = null;
+
+			if (downloadCache != null) {
+				in = downloadCache.load(originalUrl, false, stable);
+				Instance.getTraceHandler().trace(
+						"Cache " + (in != null ? "hit" : "miss") + ": " + url);
+			}
 
 			if (in == null) {
 				try {
 					in = openNoCache(url, support, null, null, null);
-					cache.save(in, originalUrl);
-					// ..But we want a resetable stream
-					in.close();
-					in = cache.load(originalUrl, false, stable);
+					if (downloadCache != null) {
+						downloadCache.save(in, originalUrl);
+						// ..But we want a resetable stream
+						in.close();
+						in = downloadCache.load(originalUrl, false, stable);
+					} else {
+						InputStream resetIn = IOUtils.forceResetableStream(in);
+						if (resetIn != in) {
+							in.close();
+							in = resetIn;
+						}
+					}
 				} catch (IOException e) {
 					throw new IOException("Cannot save the url: "
 							+ (url == null ? "null" : url.toString()), e);
@@ -193,7 +236,7 @@ public class DataLoader {
 	 */
 	public void refresh(URL url, BasicSupport support, boolean stable)
 			throws IOException {
-		if (!cache.check(url, false, stable)) {
+		if (downloadCache != null && !downloadCache.check(url, false, stable)) {
 			open(url, support, stable).close();
 		}
 	}
@@ -211,7 +254,7 @@ public class DataLoader {
 	 * 
 	 */
 	public boolean check(URL url, boolean stable) {
-		return cache.check(url, false, stable);
+		return downloadCache != null && downloadCache.check(url, false, stable);
 	}
 
 	/**
@@ -258,7 +301,6 @@ public class DataLoader {
 	public void saveAsImage(Image img, File target, String format)
 			throws IOException {
 		ImageUtils.getInstance().saveAsImage(img, target, format);
-
 	}
 
 	/**
@@ -269,13 +311,12 @@ public class DataLoader {
 	 * @param uniqueID
 	 *            a unique ID for this resource
 	 * 
-	 * @return the resulting {@link File}
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public File addToCache(InputStream in, String uniqueID) throws IOException {
-		return cache.save(in, uniqueID);
+	public void addToCache(InputStream in, String uniqueID) throws IOException {
+		cache.save(in, uniqueID);
 	}
 
 	/**

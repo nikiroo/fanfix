@@ -49,19 +49,19 @@ public enum StringId {
 	ERR_NOT_SUPPORTED, //
 	@Meta(info = "%s = cover URL", description = "Failed to download cover : %s")
 	ERR_BS_NO_COVER, //
-	@Meta(info = "single char", description = "Canonical OPEN SINGLE QUOTE char (for instance: `)")
+	@Meta(def = "`", info = "single char", description = "Canonical OPEN SINGLE QUOTE char (for instance: `)")
 	OPEN_SINGLE_QUOTE, //
-	@Meta(info = "single char", description = "Canonical CLOSE SINGLE QUOTE char (for instance: ‘)")
+	@Meta(def = "‘", info = "single char", description = "Canonical CLOSE SINGLE QUOTE char (for instance: ‘)")
 	CLOSE_SINGLE_QUOTE, //
-	@Meta(info = "single char", description = "Canonical OPEN DOUBLE QUOTE char (for instance: “)")
+	@Meta(def = "“", info = "single char", description = "Canonical OPEN DOUBLE QUOTE char (for instance: “)")
 	OPEN_DOUBLE_QUOTE, //
-	@Meta(info = "single char", description = "Canonical CLOSE DOUBLE QUOTE char (for instance: ”)")
+	@Meta(def = "”", info = "single char", description = "Canonical CLOSE DOUBLE QUOTE char (for instance: ”)")
 	CLOSE_DOUBLE_QUOTE, //
-	@Meta(description = "Name of the description fake chapter")
+	@Meta(def = "Description", description = "Name of the description fake chapter")
 	DESCRIPTION, //
-	@Meta(info = "%d = number, %s = name", description = "Name of a chapter with a name")
+	@Meta(def = "Chapter %d: %s", info = "%d = number, %s = name", description = "Name of a chapter with a name")
 	CHAPTER_NAMED, //
-	@Meta(info = "%d = number, %s = name", description = "Name of a chapter without name")
+	@Meta(def = "Chapter %d", info = "%d = number, %s = name", description = "Name of a chapter without name")
 	CHAPTER_UNNAMED, //
 	@Meta(info = "%s = type", description = "Default description when the type is not known by i18n")
 	INPUT_DESC, //
@@ -121,7 +121,7 @@ public enum StringId {
 	OUTPUT_DESC_SHORT_HTML, //
 	@Meta(info = "%s = the unknown 2-code language", description = "Error message for unknown 2-letter LaTeX language code")
 	LATEX_LANG_UNKNOWN, //
-	@Meta(description = "'by' prefix before author name used to output the author, make sure it is covered by Config.BYS for input detection")
+	@Meta(def = "by", description = "'by' prefix before author name used to output the author, make sure it is covered by Config.BYS for input detection")
 	BY, //
 
 	;

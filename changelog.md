@@ -1,5 +1,10 @@
 # Fanfix
 
+# Version WIP
+
+- Update nikiroo-utils
+- Android compatibility
+
 # Version 1.6.3
 
 - Bug fixes

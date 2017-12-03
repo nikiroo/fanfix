@@ -10,7 +10,7 @@ import be.nikiroo.utils.resources.Meta.Format;
  */
 @SuppressWarnings("javadoc")
 public enum UiConfig {
-	@Meta(format = Format.DIRECTORY, info = "absolute path, $HOME variable supported, / is always accepted as dir separator", description = "The directory where to store temporary files, defaults to directory 'tmp.reader' in the conig directory (usually $HOME/.fanfix)")
+	@Meta(format = Format.DIRECTORY, info = "absolute path, $HOME variable supported, / is always accepted as dir separator", description = "The directory where to store temporary files, defaults to directory 'tmp.reader' in the config directory (usually $HOME/.fanfix)")
 	CACHE_DIR_LOCAL_READER, //
 	@Meta(format = Format.COMBO_LIST, list = { "INFO_TEXT", "EPUB", "HTML",
 			"TEXT" }, info = "One of the known output type", description = "The type of output for the GUI Reader for non-images documents")

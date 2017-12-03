@@ -38,7 +38,7 @@ public class Instance {
 
 	static {
 		// Before we can configure it:
-		tracer = new TraceHandler(true, checkEnv("DEBUG"), false);
+		tracer = new TraceHandler(true, checkEnv("DEBUG"), checkEnv("DEBUG"));
 
 		// Most of the rest is dependent upon this:
 		config = new ConfigBundle();
@@ -49,8 +49,7 @@ public class Instance {
 		}
 
 		if (configDir == null) {
-			configDir = new File(System.getProperty("user.home"), ".fanfix")
-					.getPath();
+			configDir = new File(getHome(), ".fanfix").getPath();
 		}
 
 		if (!new File(configDir).exists()) {
@@ -79,8 +78,7 @@ public class Instance {
 		// Fix an old bug (we used to store custom translation files by
 		// default):
 		if (trans.getString(StringId.INPUT_DESC_CBZ) == null) {
-			// TODO: create the deleteFile method
-			// trans.deleteFile(configDir);
+			trans.deleteFile(configDir);
 		}
 
 		Bundles.setDirectory(configDir);
@@ -103,6 +101,7 @@ public class Instance {
 
 		if (checkEnv("DEBUG")) {
 			debug = true;
+			trace = true;
 		}
 
 		tracer = new TraceHandler(true, debug, trace);
@@ -140,8 +139,7 @@ public class Instance {
 
 			if (lib == null) {
 				tracer.error(new IOException(
-						"Cannot create remote library for: "
-								+ getFile(Config.DEFAULT_LIBRARY)));
+						"Cannot create remote library for: " + remoteLib));
 			}
 		}
 
@@ -161,17 +159,19 @@ public class Instance {
 			coverDir = null;
 		}
 
+		String ua = config.getString(Config.USER_AGENT);
 		try {
-			String ua = config.getString(Config.USER_AGENT);
 			int hours = config.getInteger(Config.CACHE_MAX_TIME_CHANGING, -1);
 			int hoursLarge = config
 					.getInteger(Config.CACHE_MAX_TIME_STABLE, -1);
-
 			cache = new DataLoader(tmp, ua, hours, hoursLarge);
 		} catch (IOException e) {
 			tracer.error(new IOException(
 					"Cannot create cache (will continue without cache)", e));
+			cache = new DataLoader(ua);
 		}
+
+		cache.setTraceHandler(tracer);
 	}
 
 	/**
@@ -197,6 +197,7 @@ public class Instance {
 		}
 
 		Instance.tracer = tracer;
+		cache.setTraceHandler(tracer);
 	}
 
 	/**
@@ -215,6 +216,42 @@ public class Instance {
 	 */
 	public static UiConfigBundle getUiConfig() {
 		return uiconfig;
+	}
+
+	/**
+	 * Reset the configuration.
+	 * 
+	 * @param resetTrans
+	 *            also reset the translation files
+	 */
+	public static void resetConfig(boolean resetTrans) {
+		String dir = Bundles.getDirectory();
+		Bundles.setDirectory(null);
+		try {
+			try {
+				ConfigBundle config = new ConfigBundle();
+				config.updateFile(configDir);
+			} catch (IOException e) {
+				tracer.error(e);
+			}
+			try {
+				UiConfigBundle uiconfig = new UiConfigBundle();
+				uiconfig.updateFile(configDir);
+			} catch (IOException e) {
+				tracer.error(e);
+			}
+
+			if (resetTrans) {
+				try {
+					StringIdBundle trans = new StringIdBundle(null);
+					trans.updateFile(configDir);
+				} catch (IOException e) {
+					tracer.error(e);
+				}
+			}
+		} finally {
+			Bundles.setDirectory(dir);
+		}
 	}
 
 	/**
@@ -353,14 +390,31 @@ public class Instance {
 		if (path != null && !path.isEmpty()) {
 			path = path.replace('/', File.separatorChar);
 			if (path.contains("$HOME")) {
-				path = path.replace("$HOME",
-						"" + System.getProperty("user.home"));
+				path = path.replace("$HOME", getHome());
 			}
 
 			file = new File(path);
 		}
 
 		return file;
+	}
+
+	/**
+	 * Return the home directory from the system properties.
+	 * 
+	 * @return the home
+	 */
+	private static String getHome() {
+		String home = System.getProperty("user.home");
+		if (home == null || home.trim().isEmpty()) {
+			home = System.getProperty("java.io.tmpdir");
+		}
+
+		if (home == null) {
+			home = "";
+		}
+
+		return home;
 	}
 
 	/**
