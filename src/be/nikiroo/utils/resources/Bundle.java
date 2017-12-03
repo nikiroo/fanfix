@@ -258,9 +258,9 @@ public class Bundle<E extends Enum<E>> {
 	 * @return the associated value
 	 */
 	public char getCharacter(E id, char def) {
-		String s = getString(id).trim();
-		if (s.length() > 0) {
-			return s.charAt(0);
+		String s = getString(id);
+		if (s != null && s.length() > 0) {
+			return s.trim().charAt(0);
 		}
 
 		return def;
@@ -447,6 +447,40 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
+	 * Delete the .properties file.
+	 * <p>
+	 * Will use the most likely candidate as base if the file does not already
+	 * exists and this resource is translatable (for instance, "en_US" will use
+	 * "en" as a base if the resource is a translation file).
+	 * <p>
+	 * Will delete the files in {@link Bundles#getDirectory()}; it <b>MUST</b>
+	 * be set.
+	 * 
+	 * @return TRUE if the file was deleted
+	 */
+	public boolean deleteFile() {
+		return deleteFile(Bundles.getDirectory());
+	}
+
+	/**
+	 * Delete the .properties file.
+	 * <p>
+	 * Will use the most likely candidate as base if the file does not already
+	 * exists and this resource is translatable (for instance, "en_US" will use
+	 * "en" as a base if the resource is a translation file).
+	 * 
+	 * @param path
+	 *            the path where the .properties files are, <b>MUST NOT</b> be
+	 *            NULL
+	 * 
+	 * @return TRUE if the file was deleted
+	 */
+	public boolean deleteFile(String path) {
+		File file = getUpdateFile(path);
+		return file.delete();
+	}
+
+	/**
 	 * The description {@link TransBundle}, that is, a {@link TransBundle}
 	 * dedicated to the description of the values of the given {@link Bundle}
 	 * (can be NULL).
@@ -530,12 +564,13 @@ public class Bundle<E extends Enum<E>> {
 		Meta.Format format = meta.format();
 		String[] list = meta.list();
 		boolean nullable = meta.nullable();
+		String def = meta.def();
 		String info = meta.info();
 		boolean array = meta.array();
 
 		// Default, empty values -> NULL
-		if (desc.length() + list.length + info.length() == 0 && !group
-				&& nullable && format == Meta.Format.STRING) {
+		if (desc.length() + list.length + info.length() + def.length() == 0
+				&& !group && nullable && format == Meta.Format.STRING) {
 			return null;
 		}
 
@@ -667,9 +702,11 @@ public class Bundle<E extends Enum<E>> {
 	protected void setBundle(Enum<?> name, Locale locale, boolean resetToDefault) {
 		changeMap.clear();
 		String dir = Bundles.getDirectory();
+		String bname = type.getPackage().getName() + "." + name.name();
 
 		boolean found = false;
 		if (!resetToDefault && dir != null) {
+			// Look into Bundles.getDirectory() for .properties files
 			try {
 				File file = getPropertyFile(dir, name.name(), locale);
 				if (file != null) {
@@ -684,37 +721,50 @@ public class Bundle<E extends Enum<E>> {
 		}
 
 		if (!found) {
-			String bname = type.getPackage().getName() + "." + name.name();
+			// Look into the package itself for resources
 			try {
 				resetMap(ResourceBundle
 						.getBundle(bname, locale, type.getClassLoader(),
 								new FixedResourceBundleControl()));
+				found = true;
+			} catch (MissingResourceException e) {
 			} catch (Exception e) {
-				// We have no bundle for this Bundle
-				System.err.println("No bundle found for: " + bname);
-				resetMap(null);
+				e.printStackTrace();
 			}
+		}
+
+		if (!found) {
+			// We have no bundle for this Bundle
+			System.err.println("No bundle found for: " + bname);
+			resetMap(null);
 		}
 	}
 
 	/**
-	 * Reset the backing map to the content of the given bundle, or empty if
-	 * bundle is NULL.
+	 * Reset the backing map to the content of the given bundle, or with default
+	 * valiues if bundle is NULL.
 	 * 
 	 * @param bundle
 	 *            the bundle to copy
 	 */
 	protected void resetMap(ResourceBundle bundle) {
 		this.map.clear();
+		for (Field field : type.getDeclaredFields()) {
+			try {
+				Meta meta = field.getAnnotation(Meta.class);
+				if (meta != null) {
+					E id = Enum.valueOf(type, field.getName());
 
-		if (bundle != null) {
-			for (E field : type.getEnumConstants()) {
-				try {
-					String value = bundle.getString(field.name());
-					this.map.put(field.name(),
-							value == null ? null : value.trim());
-				} catch (MissingResourceException e) {
+					String value;
+					if (bundle != null) {
+						value = bundle.getString(id.name());
+					} else {
+						value = meta.def();
+					}
+
+					this.map.put(id.name(), value == null ? null : value.trim());
 				}
+			} catch (MissingResourceException e) {
 			}
 		}
 	}

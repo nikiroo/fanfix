@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -84,24 +85,41 @@ class TransBundle_ResourceList {
 
 	private static Collection<String> getResourcesFromDirectory(
 			final File directory, final Pattern pattern) {
-		final ArrayList<String> retval = new ArrayList<String>();
-		final File[] fileList = directory.listFiles();
-		for (final File file : fileList) {
-			if (file.isDirectory()) {
-				retval.addAll(getResourcesFromDirectory(file, pattern));
-			} else {
-				try {
-					final String fileName = file.getCanonicalPath();
-					final boolean accept = pattern.matcher(fileName).matches();
-					if (accept) {
-						retval.add(fileName);
-					}
-				} catch (final IOException e) {
-					throw new Error(e);
-				}
+		List<String> acc = new ArrayList<String>();
+		List<File> dirs = new ArrayList<File>();
+		getResourcesFromDirectory(acc, dirs, directory, pattern);
+
+		List<String> rep = new ArrayList<String>();
+		for (String value : acc) {
+			if (pattern.matcher(value).matches()) {
+				rep.add(value);
 			}
 		}
 
-		return retval;
+		return rep;
+	}
+
+	private static void getResourcesFromDirectory(List<String> acc,
+			List<File> dirs, final File directory, final Pattern pattern) {
+		final File[] fileList = directory.listFiles();
+		if (fileList != null) {
+			for (final File file : fileList) {
+				if (!dirs.contains(file)) {
+					try {
+						String key = file.getCanonicalPath();
+						if (!acc.contains(key)) {
+							if (file.isDirectory()) {
+								dirs.add(file);
+								getResourcesFromDirectory(acc, dirs, file,
+										pattern);
+							} else {
+								acc.add(key);
+							}
+						}
+					} catch (IOException e) {
+					}
+				}
+			}
+		}
 	}
 }

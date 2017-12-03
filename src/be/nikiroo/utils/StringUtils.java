@@ -36,8 +36,7 @@ public class StringUtils {
 		End
 	}
 
-	static private Pattern marks = Pattern
-			.compile("[\\p{InCombiningDiacriticalMarks}\\p{IsLm}\\p{IsSk}]+");
+	static private Pattern marks = getMarks();
 
 	/**
 	 * Fix the size of the given {@link String} either with space-padding or by
@@ -146,7 +145,9 @@ public class StringUtils {
 
 		if (removeAllAccents) {
 			input = Normalizer.normalize(input, Form.NFKD);
-			input = marks.matcher(input).replaceAll("");
+			if (marks != null) {
+				input = marks.matcher(input).replaceAll("");
+			}
 		}
 
 		input = Normalizer.normalize(input, Form.NFKC);
@@ -195,15 +196,15 @@ public class StringUtils {
 	 *            the time as a {@link String}
 	 * 
 	 * @return the number of milliseconds since the standard base time known as
-	 *         "the epoch", namely January 1, 1970, 00:00:00 GMT
+	 *         "the epoch", namely January 1, 1970, 00:00:00 GMT, or -1 in case
+	 *         of error
+	 * 
+	 * @throws ParseException
+	 *             in case of parse error
 	 */
-	static public long toTime(String displayTime) {
+	static public long toTime(String displayTime) throws ParseException {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		try {
-			return sdf.parse(displayTime).getTime();
-		} catch (ParseException e) {
-			return -1;
-		}
+		return sdf.parse(displayTime).getTime();
 	}
 
 	/**
@@ -338,6 +339,21 @@ public class StringUtils {
 			return scan.next();
 		} finally {
 			scan.close();
+		}
+	}
+
+	/**
+	 * The "remove accents" pattern.
+	 * 
+	 * @return the pattern, or NULL if a problem happens
+	 */
+	private static Pattern getMarks() {
+		try {
+			return Pattern
+					.compile("[\\p{InCombiningDiacriticalMarks}\\p{IsLm}\\p{IsSk}]+");
+		} catch (Exception e) {
+			// Can fail on Android...
+			return null;
 		}
 	}
 }

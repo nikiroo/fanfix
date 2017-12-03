@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version 4.0.1
+
+- Android compatibility (see configure.sh --android=yes)
+
 ## Version 4.0.0
 
 - Deplace all dependencies on java.awt into its own package (ui)

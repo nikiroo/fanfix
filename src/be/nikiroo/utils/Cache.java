@@ -22,6 +22,12 @@ public class Cache {
 	private TraceHandler tracer = new TraceHandler();
 
 	/**
+	 * Only for inheritance.
+	 */
+	protected Cache() {
+	}
+
+	/**
 	 * Create a new {@link Cache} object.
 	 * 
 	 * @param dir
@@ -80,6 +86,24 @@ public class Cache {
 	/**
 	 * Check the resource to see if it is in the cache.
 	 * 
+	 * @param uniqueID
+	 *            the resource to check
+	 * @param allowTooOld
+	 *            allow files even if they are considered too old
+	 * @param stable
+	 *            a stable file (that dones't change too often) -- parameter
+	 *            used to check if the file is too old to keep or not
+	 * 
+	 * @return TRUE if it is
+	 * 
+	 */
+	public boolean check(String uniqueID, boolean allowTooOld, boolean stable) {
+		return check(getCached(uniqueID), allowTooOld, stable);
+	}
+
+	/**
+	 * Check the resource to see if it is in the cache.
+	 * 
 	 * @param url
 	 *            the resource to check
 	 * @param allowTooOld
@@ -92,9 +116,26 @@ public class Cache {
 	 * 
 	 */
 	public boolean check(URL url, boolean allowTooOld, boolean stable) {
-		File file = getCached(url);
-		if (file.exists() && file.isFile()) {
-			if (allowTooOld || !isOld(file, stable)) {
+		return check(getCached(url), allowTooOld, stable);
+	}
+
+	/**
+	 * Check the resource to see if it is in the cache.
+	 * 
+	 * @param cached
+	 *            the resource to check
+	 * @param allowTooOld
+	 *            allow files even if they are considered too old
+	 * @param stable
+	 *            a stable file (that dones't change too often) -- parameter
+	 *            used to check if the file is too old to keep or not
+	 * 
+	 * @return TRUE if it is
+	 * 
+	 */
+	private boolean check(File cached, boolean allowTooOld, boolean stable) {
+		if (cached.exists() && cached.isFile()) {
+			if (allowTooOld || !isOld(cached, stable)) {
 				return true;
 			}
 		}
@@ -214,15 +255,13 @@ public class Cache {
 	 * @param uniqueID
 	 *            a unique ID used to locate the cached resource
 	 * 
-	 * @return the resulting {@link File}
-	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public File save(InputStream in, String uniqueID) throws IOException {
+	public void save(InputStream in, String uniqueID) throws IOException {
 		File cached = getCached(uniqueID);
 		cached.getParentFile().mkdirs();
-		return save(in, cached);
+		save(in, cached);
 	}
 
 	/**
@@ -233,14 +272,12 @@ public class Cache {
 	 * @param url
 	 *            the {@link URL} used to locate the cached resource
 	 * 
-	 * @return the actual cache file
-	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public File save(InputStream in, URL url) throws IOException {
+	public void save(InputStream in, URL url) throws IOException {
 		File cached = getCached(url);
-		return save(in, cached);
+		save(in, cached);
 	}
 
 	/**
@@ -251,14 +288,11 @@ public class Cache {
 	 * @param cached
 	 *            the cached {@link File} to save to
 	 * 
-	 * @return the actual cache file
-	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	private File save(InputStream in, File cached) throws IOException {
+	private void save(InputStream in, File cached) throws IOException {
 		IOUtils.write(in, cached);
-		return cached;
 	}
 
 	/**

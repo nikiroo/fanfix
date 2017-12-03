@@ -2,6 +2,7 @@
 # 
 # Version:
 # - 1.0.0: add a version comment
+# - 1.1.0: add help, sjar
 
 # Required parameters (the commented out ones are supposed to change per project):
 
@@ -22,30 +23,33 @@ JAR = jar
 RJAR = java
 RJAR_FLAGS += -jar
 
-# Usual options:
-# 	make		: to build the jar file
-# 	make libs	: to update the libraries into src/
-# 	make build	: to update the binaries (not the jar)
-# 	make test	: to update the test binaries
-# 	make build jar	: to update the binaries and jar file
-# 	make clean	: to clean the directory of intermediate files
-# 	make mrpropre	: to clean the directory of all outputs
-# 	make run	: to run the program from the binaries
-# 	make run-test	: to run the test program from the binaries
-# 	make jrun	: to run the program from the jar file
-# 	make install	: to install the application into $PREFIX
-
-# Note: build is actually slower than rebuild in most cases except when
-# small changes only are detected ; so we use rebuild by default
-
 all: build jar
 
-.PHONY: all clean mrproper mrpropre build run jrun jar resources test-resources install libs love 
+help:
+	@echo "Usual options:"
+	@echo "=============="
+	@echo "	make		: to build the jar file"
+	@echo "	make help	: to get this help screen"
+	@echo "	make libs	: to update the libraries into src/"
+	@echo "	make build	: to update the binaries (not the jar)"
+	@echo "	make test	: to update the test binaries"
+	@echo "	make build jar	: to update the binaries and jar file"
+	@echo "	make sjar	: to create the sources jar file"
+	@echo "	make clean	: to clean the directory of intermediate files"
+	@echo "	make mrpropre	: to clean the directory of all outputs"
+	@echo "	make run	: to run the program from the binaries"
+	@echo "	make run-test	: to run the test program from the binaries"
+	@echo "	make jrun	: to run the program from the jar file"
+	@echo "	make install	: to install the application into $PREFIX"
+
+.PHONY: all clean mrproper mrpropre build run jrun jar sjar resources test-resources install libs love 
 
 bin:
 	@mkdir -p bin
 
 jar: $(NAME).jar
+
+sjar: $(NAME)-sources.jar
 
 build: resources
 	@echo Compiling program...
@@ -123,15 +127,17 @@ libs: bin
 	done )
 	@[ ! -d libs ] || touch bin/libs
 
-$(NAME).jar: resources
-	@[ -e bin/$(MAIN).class ] || echo You need to build the sources
-	@[ -e bin/$(MAIN).class ]
-	@echo Making JAR file...
+$(NAME)-sources.jar: libs
+	@echo Making sources JAR file...
 	@echo > bin/manifest
 	@[ "$(SJAR_FLAGS)" = "" ] || echo Creating $(NAME)-sources.jar...
 	@[ "$(SJAR_FLAGS)" = "" ] || $(JAR) cfm $(NAME)-sources.jar bin/manifest $(SJAR_FLAGS)
 	@[ "$(SJAR_FLAGS)" = "" ] || [ ! -e VERSION ] || echo Copying to "$(NAME)-`cat VERSION`-sources.jar"...
 	@[ "$(SJAR_FLAGS)" = "" ] || [ ! -e VERSION ] || cp $(NAME)-sources.jar "$(NAME)-`cat VERSION`-sources.jar"
+
+$(NAME).jar: resources
+	@[ -e bin/$(MAIN).class ] || echo You need to build the sources
+	@[ -e bin/$(MAIN).class ]
 	@echo "Main-Class: `echo "$(MAIN)" | sed 's:/:.:g'`" > bin/manifest
 	@echo >> bin/manifest
 	$(JAR) cfm $(NAME).jar bin/manifest $(JAR_FLAGS)

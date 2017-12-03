@@ -196,7 +196,8 @@ public abstract class ImageUtils {
 	 * @return the {@link ImageUtils}
 	 */
 	private static ImageUtils newObject() {
-		for (String clazz : new String[] { "be.nikiroo.utils.ui.ImageUtilsAwt" }) {
+		for (String clazz : new String[] { "be.nikiroo.utils.ui.ImageUtilsAwt",
+				"be.nikiroo.utils.android.ImageUtilsAndroid" }) {
 			try {
 				return (ImageUtils) SerialUtils.createObject(clazz);
 			} catch (Exception e) {

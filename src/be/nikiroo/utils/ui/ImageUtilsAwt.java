@@ -23,7 +23,7 @@ public class ImageUtilsAwt extends ImageUtils {
 	public void saveAsImage(Image img, File target, String format)
 			throws IOException {
 		try {
-			BufferedImage image = ImageUtilsAwt.fromImage(img);
+			BufferedImage image = fromImage(img);
 
 			boolean ok = false;
 			try {
@@ -34,7 +34,7 @@ public class ImageUtilsAwt extends ImageUtils {
 			}
 
 			// Some formats are not reliable
-			// Second change: PNG
+			// Second chance: PNG
 			if (!ok && !format.equals("png")) {
 				ok = ImageIO.write(image, "png", target);
 			}

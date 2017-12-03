@@ -63,7 +63,7 @@ public @interface Meta {
 	 * use the value in the program, and LANGUAGE_CODE_FR, LANGUAGE_CODE_EN
 	 * inside for which the value must be set.
 	 * 
-	 * @return the group
+	 * @return TRUE if it is a group
 	 */
 	boolean group() default false;
 
@@ -88,6 +88,13 @@ public @interface Meta {
 	 * @return TRUE if it can
 	 */
 	boolean nullable() default true;
+
+	/**
+	 * The default value of this item.
+	 * 
+	 * @return the value
+	 */
+	String def() default "";
 
 	/**
 	 * This item is a comma-separated list of values instead of a single value.
