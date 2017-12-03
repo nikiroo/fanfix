@@ -1,18 +1,16 @@
 package be.nikiroo.fanfix;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 
-import javax.imageio.ImageIO;
-
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.utils.Cache;
 import be.nikiroo.utils.Downloader;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.ImageUtils;
 
 /**
@@ -50,7 +48,9 @@ public class DataLoader {
 	public DataLoader(File dir, String UA, int hoursChanging, int hoursStable)
 			throws IOException {
 		cache = new Cache(dir, hoursChanging, hoursStable);
+		cache.setTraceHandler(Instance.getTraceHandler());
 		downloader = new Downloader(UA);
+		downloader.setTraceHandler(Instance.getTraceHandler());
 	}
 
 	/**
@@ -216,64 +216,49 @@ public class DataLoader {
 
 	/**
 	 * Save the given resource as an image on disk using the default image
-	 * format for content.
+	 * format for content or cover -- will automatically add the extension, too.
 	 * 
-	 * @param url
+	 * @param img
 	 *            the resource
 	 * @param target
-	 *            the target file
+	 *            the target file without extension
+	 * @param cover
+	 *            use the cover image format instead of the content image format
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public void saveAsImage(URL url, File target) throws IOException {
-		InputStream in = open(url, null, true);
-		try {
-			saveAsImage(ImageUtils.fromStream(in), target);
-		} finally {
-			in.close();
+	public void saveAsImage(Image img, File target, boolean cover)
+			throws IOException {
+		String format;
+		if (cover) {
+			format = Instance.getConfig().getString(Config.IMAGE_FORMAT_COVER)
+					.toLowerCase();
+		} else {
+			format = Instance.getConfig()
+					.getString(Config.IMAGE_FORMAT_CONTENT).toLowerCase();
 		}
+		saveAsImage(img, new File(target.toString() + "." + format), format);
 	}
 
 	/**
-	 * Save the given resource as an image on disk using the default image
-	 * format for content.
+	 * Save the given resource as an image on disk using the given image format
+	 * for content, or with "png" format if it fails.
 	 * 
-	 * @param image
+	 * @param img
 	 *            the resource
 	 * @param target
 	 *            the target file
+	 * @param format
+	 *            the file format ("png", "jpeg", "bmp"...)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public void saveAsImage(BufferedImage image, File target)
+	public void saveAsImage(Image img, File target, String format)
 			throws IOException {
-		try {
-			String format = Instance.getConfig()
-					.getString(Config.IMAGE_FORMAT_CONTENT).toLowerCase();
+		ImageUtils.getInstance().saveAsImage(img, target, format);
 
-			boolean ok = false;
-			try {
-				ok = ImageIO.write(image, format, target);
-			} catch (IOException e) {
-				ok = false;
-			}
-
-			// Some formats are not reliable
-			// Second change: PNG
-			if (!ok && !format.equals("png")) {
-				ok = ImageIO.write(image, "png", target);
-			}
-
-			if (!ok) {
-				throw new IOException(
-						"Cannot find a writer for this image and format: "
-								+ format);
-			}
-		} catch (IOException e) {
-			throw new IOException("Cannot write image to " + target, e);
-		}
 	}
 
 	/**

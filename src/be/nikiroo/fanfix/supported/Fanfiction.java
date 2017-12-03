@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.supported;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -15,6 +14,7 @@ import java.util.Scanner;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 
@@ -161,8 +161,10 @@ class Fanfiction extends BasicSupport {
 						return sdf
 								.format(new Date(1000 * Long.parseLong(line)));
 					} catch (NumberFormatException e) {
-						Instance.getTraceHandler().error(new IOException(
-								"Cannot convert publication date: " + line, e));
+						Instance.getTraceHandler().error(
+								new IOException(
+										"Cannot convert publication date: "
+												+ line, e));
 					}
 				}
 			}
@@ -176,7 +178,7 @@ class Fanfiction extends BasicSupport {
 		return getLine(in, "title=\"Send Private Message\"", 1);
 	}
 
-	private BufferedImage getCover(URL url, InputStream in) {
+	private Image getCover(URL url, InputStream in) {
 		String key = "class='cimage";
 		String line = getLine(in, key, 0);
 		if (line != null) {
@@ -261,9 +263,11 @@ class Fanfiction extends BasicSupport {
 								}
 							});
 						} catch (MalformedURLException e) {
-							Instance.getTraceHandler().error(new IOException(
-									"Cannot parse chapter " + i + " url: "
-											+ (base + i + suffix), e));
+							Instance.getTraceHandler()
+									.error(new IOException(
+											"Cannot parse chapter " + i
+													+ " url: "
+													+ (base + i + suffix), e));
 						}
 					}
 				}

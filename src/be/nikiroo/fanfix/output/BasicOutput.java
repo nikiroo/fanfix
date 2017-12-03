@@ -376,13 +376,13 @@ public abstract class BasicOutput {
 
 		int num = 0;
 		String paragraphNumber = String.format("%04d", num++);
-		imageName = chapterNameNum + "_" + paragraphNumber + ".png";
+		imageName = chapterNameNum + "_" + paragraphNumber;
 
 		writeChapterHeader(chap);
 		int i = 1;
 		for (Paragraph para : chap) {
 			paragraphNumber = String.format("%04d", num++);
-			imageName = chapterNameNum + "_" + paragraphNumber + ".png";
+			imageName = chapterNameNum + "_" + paragraphNumber;
 			writeParagraph(para);
 			if (chapPg != null) {
 				chapPg.setProgress(i++);

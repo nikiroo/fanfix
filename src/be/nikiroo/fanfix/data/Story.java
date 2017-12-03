@@ -92,9 +92,22 @@ public class Story implements Iterable<Chapter>, Cloneable {
 			resume += "\n";
 		}
 
-		String cover = (meta == null || meta.getCover() == null) ? "none"
-				: meta.getCover().getWidth() + "x"
-						+ meta.getCover().getHeight();
+		String cover = "none";
+		if (meta != null && meta.getCover() != null) {
+			cover = " bytes";
+
+			int size = meta.getCover().getData().length;
+			if (size > 1000) {
+				size /= 1000;
+				cover = " kb";
+				if (size > 1000) {
+					size /= 1000;
+					cover = " mb";
+				}
+			}
+
+			cover = size + cover;
+		}
 		return String.format(
 				"Title: [%s]\nAuthor: [%s]\nDate: [%s]\nTags: [%s]\n"
 						+ "Resume: [%s]\nCover: [%s]", title, meta == null ? ""

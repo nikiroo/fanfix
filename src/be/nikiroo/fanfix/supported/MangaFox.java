@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.supported;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -13,7 +12,7 @@ import java.util.Scanner;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
-import be.nikiroo.utils.ImageUtils;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 
@@ -163,7 +162,7 @@ class MangaFox extends BasicSupport {
 		return null;
 	}
 
-	private BufferedImage getCover(InputStream in) {
+	private Image getCover(InputStream in) {
 		String line = getLine(in, " property=\"og:image\"", 0);
 		String cover = null;
 		if (line != null) {
@@ -186,7 +185,7 @@ class MangaFox extends BasicSupport {
 			try {
 				coverIn = openEx(cover);
 				try {
-					return ImageUtils.fromStream(coverIn);
+					return new Image(coverIn);
 				} finally {
 					coverIn.close();
 				}
@@ -361,9 +360,10 @@ class MangaFox extends BasicSupport {
 					setCurrentReferer(url);
 					pg.setProgress((i++) % pg.getMax());
 				} catch (IOException e) {
-					Instance.getTraceHandler().error(new IOException(
-							"Cannot get the next manga page which is: "
-									+ linkNext, e));
+					Instance.getTraceHandler().error(
+							new IOException(
+									"Cannot get the next manga page which is: "
+											+ linkNext, e));
 				}
 			}
 

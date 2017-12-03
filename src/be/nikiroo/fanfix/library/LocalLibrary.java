@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.library;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -11,8 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.imageio.ImageIO;
-
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
@@ -22,7 +19,7 @@ import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.output.InfoCover;
 import be.nikiroo.fanfix.supported.InfoReader;
 import be.nikiroo.utils.IOUtils;
-import be.nikiroo.utils.ImageUtils;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.MarkableFileInputStream;
 import be.nikiroo.utils.Progress;
 
@@ -34,7 +31,7 @@ import be.nikiroo.utils.Progress;
 public class LocalLibrary extends BasicLibrary {
 	private int lastId;
 	private Map<MetaData, File[]> stories; // Files: [ infoFile, TargetFile ]
-	private Map<String, BufferedImage> sourceCovers;
+	private Map<String, Image> sourceCovers;
 
 	private File baseDir;
 	private OutputType text;
@@ -90,7 +87,7 @@ public class LocalLibrary extends BasicLibrary {
 
 		this.lastId = 0;
 		this.stories = null;
-		this.sourceCovers = new HashMap<String, BufferedImage>();
+		this.sourceCovers = new HashMap<String, Image>();
 
 		baseDir.mkdirs();
 	}
@@ -111,7 +108,7 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public BufferedImage getCover(String luid) {
+	public Image getCover(String luid) {
 		MetaData meta = getInfo(luid);
 		if (meta != null) {
 			File[] files = getStories(null).get(meta);
@@ -133,7 +130,7 @@ public class LocalLibrary extends BasicLibrary {
 	@Override
 	protected void invalidateInfo(String luid) {
 		stories = null;
-		sourceCovers = new HashMap<String, BufferedImage>();
+		sourceCovers = new HashMap<String, Image>();
 	}
 
 	@Override
@@ -197,7 +194,7 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public BufferedImage getSourceCover(String source) {
+	public Image getSourceCover(String source) {
 		if (!sourceCovers.containsKey(source)) {
 			sourceCovers.put(source, super.getSourceCover(source));
 		}
@@ -210,7 +207,8 @@ public class LocalLibrary extends BasicLibrary {
 		sourceCovers.put(source, getCover(luid));
 		File cover = new File(getExpectedDir(source), ".cover.png");
 		try {
-			ImageIO.write(sourceCovers.get(source), "png", cover);
+			Instance.getCache().saveAsImage(sourceCovers.get(source), cover,
+					true);
 		} catch (IOException e) {
 			Instance.getTraceHandler().error(e);
 			sourceCovers.remove(source);
@@ -487,10 +485,9 @@ public class LocalLibrary extends BasicLibrary {
 				File cover = new File(dir, ".cover.png");
 				if (cover.exists()) {
 					try {
-						InputStream in = new MarkableFileInputStream(
-								new FileInputStream(cover));
+						InputStream in = new FileInputStream(cover);
 						try {
-							sourceCovers.put(source, ImageUtils.fromStream(in));
+							sourceCovers.put(source, new Image(in));
 						} finally {
 							in.close();
 						}
@@ -516,11 +513,12 @@ public class LocalLibrary extends BasicLibrary {
 	 * @param coverImage
 	 *            the cover image
 	 */
-	void setSourceCover(String source, BufferedImage coverImage) {
+	void setSourceCover(String source, Image coverImage) {
 		sourceCovers.put(source, coverImage);
 		File cover = new File(getExpectedDir(source), ".cover.png");
 		try {
-			ImageIO.write(sourceCovers.get(source), "png", cover);
+			Instance.getCache().saveAsImage(sourceCovers.get(source), cover,
+					true);
 		} catch (IOException e) {
 			Instance.getTraceHandler().error(e);
 			sourceCovers.remove(source);

@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 
-import javax.imageio.ImageIO;
-
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.Chapter;
@@ -51,11 +49,9 @@ class Html extends BasicOutput {
 			writer = null;
 		}
 
-		String format = Instance.getConfig()
-				.getString(Config.IMAGE_FORMAT_COVER).toLowerCase();
 		if (story.getMeta().getCover() != null) {
-			ImageIO.write(story.getMeta().getCover(), format, new File(dir,
-					"cover." + format));
+			Instance.getCache().saveAsImage(story.getMeta().getCover(),
+					new File(dir, "cover"), true);
 		}
 
 		return target;

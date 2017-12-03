@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.library;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -10,6 +9,7 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -101,7 +101,7 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public BufferedImage getCover(final String luid) {
+	public Image getCover(final String luid) {
 		if (isCached(luid)) {
 			return cacheLib.getCover(luid);
 		}
@@ -111,7 +111,7 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public BufferedImage getSourceCover(String source) {
+	public Image getSourceCover(String source) {
 		// no cache for the source cover
 		return lib.getSourceCover(source);
 	}

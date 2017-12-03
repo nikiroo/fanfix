@@ -1,4 +1,4 @@
-package be.nikiroo.fanfix.reader;
+package be.nikiroo.fanfix.reader.tui;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
@@ -17,6 +17,8 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
+import be.nikiroo.fanfix.reader.BasicReader;
+import be.nikiroo.fanfix.reader.Reader;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -77,7 +79,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 					getChapter());
 		} else {
 			try {
-				BasicReader.openExternal(getLibrary(), meta.getLuid());
+				openExternal(getLibrary(), meta.getLuid());
 			} catch (IOException e) {
 				messageBox("Error when trying to open the story",
 						e.getMessage(), TMessageBox.Type.OK);
@@ -224,5 +226,10 @@ class TuiReaderApplication extends TApplication implements Reader {
 		} catch (IOException e) {
 			return false;
 		}
+	}
+
+	@Override
+	public void openExternal(BasicLibrary lib, String luid) throws IOException {
+		reader.openExternal(lib, luid);
 	}
 }

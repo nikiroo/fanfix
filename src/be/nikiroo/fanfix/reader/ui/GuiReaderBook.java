@@ -1,4 +1,4 @@
-package be.nikiroo.fanfix.reader;
+package be.nikiroo.fanfix.reader.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -27,7 +27,9 @@ import javax.swing.JPanel;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
-import be.nikiroo.utils.ImageUtils;
+import be.nikiroo.fanfix.reader.Reader;
+import be.nikiroo.utils.Image;
+import be.nikiroo.utils.ui.ImageUtilsAwt;
 import be.nikiroo.utils.ui.UIUtils;
 
 /**
@@ -380,7 +382,7 @@ class GuiReaderBook extends JPanel {
 		InputStream in = Instance.getCache().getFromCache(id);
 		if (in != null) {
 			try {
-				resizedImage = ImageUtils.fromStream(in);
+				resizedImage = ImageUtilsAwt.fromImage(new Image(in));
 				in.close();
 				in = null;
 			} catch (IOException e) {
@@ -390,13 +392,15 @@ class GuiReaderBook extends JPanel {
 
 		if (resizedImage == null) {
 			try {
-				BufferedImage cover = null;
+				Image cover = null;
 				if (meta.getLuid() == null) {
 					cover = reader.getLibrary()
 							.getSourceCover(meta.getSource());
 				} else {
 					cover = reader.getLibrary().getCover(meta.getLuid());
 				}
+
+				BufferedImage coverb = ImageUtilsAwt.fromImage(cover);
 
 				resizedImage = new BufferedImage(SPINE_WIDTH + COVER_WIDTH,
 						SPINE_HEIGHT + COVER_HEIGHT + HOFFSET,
@@ -405,7 +409,7 @@ class GuiReaderBook extends JPanel {
 				g.setColor(Color.white);
 				g.fillRect(0, HOFFSET, COVER_WIDTH, COVER_HEIGHT);
 				if (cover != null) {
-					g.drawImage(cover, 0, HOFFSET, COVER_WIDTH, COVER_HEIGHT,
+					g.drawImage(coverb, 0, HOFFSET, COVER_WIDTH, COVER_HEIGHT,
 							null);
 				} else {
 					g.setColor(Color.black);
@@ -430,7 +434,11 @@ class GuiReaderBook extends JPanel {
 			}
 		}
 
-		return new ImageIcon(resizedImage);
+		if (resizedImage != null) {
+			return new ImageIcon(resizedImage);
+		}
+
+		return null;
 	}
 
 	/**

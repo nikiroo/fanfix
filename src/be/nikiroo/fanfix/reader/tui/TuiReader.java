@@ -1,10 +1,12 @@
-package be.nikiroo.fanfix.reader;
+package be.nikiroo.fanfix.reader.tui;
 
 import java.io.IOException;
 
 import jexer.TApplication;
 import jexer.TApplication.BackendType;
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.reader.BasicReader;
+import be.nikiroo.fanfix.reader.Reader;
 
 /**
  * This {@link Reader}is based upon the TUI widget library 'jexer'

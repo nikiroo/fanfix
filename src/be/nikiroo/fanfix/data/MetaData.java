@@ -1,8 +1,9 @@
 package be.nikiroo.fanfix.data;
 
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+
+import be.nikiroo.utils.Image;
 
 /**
  * The meta data associated to a {@link Story} object.
@@ -15,7 +16,7 @@ public class MetaData implements Cloneable, Comparable<MetaData> {
 	private String date;
 	private Chapter resume;
 	private List<String> tags;
-	private BufferedImage cover;
+	private Image cover;
 	private String subject;
 	private String source;
 	private String url;
@@ -129,7 +130,7 @@ public class MetaData implements Cloneable, Comparable<MetaData> {
 	 * 
 	 * @return the cover
 	 */
-	public BufferedImage getCover() {
+	public Image getCover() {
 		return cover;
 	}
 
@@ -139,7 +140,7 @@ public class MetaData implements Cloneable, Comparable<MetaData> {
 	 * @param cover
 	 *            the cover to set
 	 */
-	public void setCover(BufferedImage cover) {
+	public void setCover(Image cover) {
 		this.cover = cover;
 	}
 

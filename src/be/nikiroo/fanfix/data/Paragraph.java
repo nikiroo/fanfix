@@ -1,6 +1,6 @@
 package be.nikiroo.fanfix.data;
 
-import java.awt.image.BufferedImage;
+import be.nikiroo.utils.Image;
 
 /**
  * A paragraph in a chapter of the story.
@@ -28,7 +28,7 @@ public class Paragraph implements Cloneable {
 
 	private ParagraphType type;
 	private String content;
-	private BufferedImage contentImage;
+	private Image contentImage;
 	private long words;
 
 	/**
@@ -45,7 +45,7 @@ public class Paragraph implements Cloneable {
 	 * @param contentImage
 	 *            the image
 	 */
-	public Paragraph(BufferedImage contentImage) {
+	public Paragraph(Image contentImage) {
 		this(ParagraphType.IMAGE, null, 1);
 		this.contentImage = contentImage;
 	}
@@ -109,7 +109,7 @@ public class Paragraph implements Cloneable {
 	 * 
 	 * @return the content
 	 */
-	public BufferedImage getContentImage() {
+	public Image getContentImage() {
 		return contentImage;
 	}
 

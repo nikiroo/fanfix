@@ -40,11 +40,11 @@ public interface Reader {
 			String pkg = "be.nikiroo.fanfix.reader.";
 			switch (this) {
 			case CLI:
-				return pkg + "CliReader";
+				return pkg + "cli.CliReader";
 			case TUI:
-				return pkg + "TuiReader";
+				return pkg + "tui.TuiReader";
 			case GUI:
-				return pkg + "GuiReader";
+				return pkg + "ui.GuiReader";
 			}
 
 			return null;
@@ -158,4 +158,18 @@ public interface Reader {
 	 *            all
 	 */
 	public void browse(String source);
+
+	/**
+	 * Open the {@link Story} with an external reader (the program will be
+	 * passed the main file associated with this {@link Story}).
+	 * 
+	 * @param lib
+	 *            the {@link BasicLibrary} to select the {@link Story} from
+	 * @param luid
+	 *            the {@link Story} LUID
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public void openExternal(BasicLibrary lib, String luid) throws IOException;
 }

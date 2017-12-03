@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.supported;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -13,6 +12,7 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 
@@ -87,7 +87,7 @@ class E621 extends BasicSupport {
 		return true;
 	}
 
-	private BufferedImage getCover(URL source) throws IOException {
+	private Image getCover(URL source) throws IOException {
 		InputStream in = Instance.getCache().open(source, this, true);
 		String images = getChapterContent(new URL(source.toString() + "?page="
 				+ 1), in, 1, null);

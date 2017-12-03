@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.supported;
 
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -25,7 +24,7 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
-import be.nikiroo.utils.ImageUtils;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 
@@ -750,7 +749,7 @@ public abstract class BasicSupport {
 	 * @return the {@link Paragraph}
 	 */
 	private Paragraph makeParagraph(URL source, String line) {
-		BufferedImage image = null;
+		Image image = null;
 		if (line.startsWith("[") && line.endsWith("]")) {
 			image = getImage(this, source, line.substring(1, line.length() - 1)
 					.trim());
@@ -817,7 +816,7 @@ public abstract class BasicSupport {
 	 * 
 	 * @return the cover if any, or NULL
 	 */
-	static BufferedImage getDefaultCover(String subject) {
+	static Image getDefaultCover(String subject) {
 		if (subject != null && !subject.isEmpty()
 				&& Instance.getCoverDir() != null) {
 			try {
@@ -860,13 +859,18 @@ public abstract class BasicSupport {
 	 * @return the image if found, or NULL
 	 * 
 	 */
-	static BufferedImage getImage(BasicSupport support, URL source, String line) {
+	static Image getImage(BasicSupport support, URL source, String line) {
 		URL url = getImageUrl(support, source, line);
 		if (url != null) {
+			if ("file".equals(url.getProtocol())) {
+				if (new File(url.getPath()).isDirectory()) {
+					return null;
+				}
+			}
 			InputStream in = null;
 			try {
 				in = Instance.getCache().open(url, getSupport(url), true);
-				return ImageUtils.fromStream(in);
+				return new Image(in);
 			} catch (IOException e) {
 			} finally {
 				if (in != null) {
@@ -918,11 +922,14 @@ public abstract class BasicSupport {
 					}
 
 					for (String ext : getImageExt(true)) {
-						if (absPath != null && new File(absPath + ext).exists()) {
-							url = new File(absPath + ext).toURI().toURL();
-						} else if (relPath != null
-								&& new File(relPath + ext).exists()) {
-							url = new File(relPath + ext).toURI().toURL();
+						File absFile = new File(absPath + ext);
+						File relFile = new File(relPath + ext);
+						if (absPath != null && absFile.exists()
+								&& absFile.isFile()) {
+							url = absFile.toURI().toURL();
+						} else if (relPath != null && relFile.exists()
+								&& relFile.isFile()) {
+							url = relFile.toURI().toURL();
 						}
 					}
 				} catch (Exception e) {

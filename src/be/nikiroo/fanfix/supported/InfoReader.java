@@ -56,8 +56,11 @@ public class InfoReader {
 		meta.setType(getInfoTag(in, "TYPE"));
 		meta.setImageDocument(getInfoTagBoolean(in, "IMAGES_DOCUMENT", false));
 		if (withCover) {
-			meta.setCover(BasicSupport.getImage(null, sourceInfoFile,
-					getInfoTag(in, "COVER")));
+			String infoTag = getInfoTag(in, "COVER");
+			if (infoTag != null && !infoTag.trim().isEmpty()) {
+				meta.setCover(BasicSupport.getImage(null, sourceInfoFile,
+						infoTag));
+			}
 			// Second chance: try to check for a cover next to the info file
 			if (meta.getCover() == null) {
 				String info = sourceInfoFile.getFile().toString();

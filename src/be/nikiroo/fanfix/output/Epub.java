@@ -7,8 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 
-import javax.imageio.ImageIO;
-
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.StringId;
@@ -26,6 +24,7 @@ class Epub extends BasicOutput {
 	private boolean inDialogue = false;
 	private boolean inNormal = false;
 	private File images;
+	private boolean nextParaIsCover = true;
 
 	@Override
 	public File process(Story story, File targetDir, String targetName)
@@ -104,7 +103,8 @@ class Epub extends BasicOutput {
 			String format = Instance.getConfig()
 					.getString(Config.IMAGE_FORMAT_COVER).toLowerCase();
 			File file = new File(images, "cover." + format);
-			ImageIO.write(story.getMeta().getCover(), format, file);
+			Instance.getCache().saveAsImage(story.getMeta().getCover(), file,
+					true);
 		}
 
 		// OPS/* except chapters
@@ -209,11 +209,14 @@ class Epub extends BasicOutput {
 			break;
 		case IMAGE:
 			File file = new File(images, getCurrentImageBestName(false));
-			Instance.getCache().saveAsImage(para.getContentImage(), file);
+			Instance.getCache().saveAsImage(para.getContentImage(), file,
+					nextParaIsCover);
 			writer.write("			<img class='page-image' src='images/"
 					+ getCurrentImageBestName(false) + "'/>");
 			break;
 		}
+
+		nextParaIsCover = false;
 	}
 
 	@Override

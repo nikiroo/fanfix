@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.supported;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -14,6 +13,7 @@ import java.util.Scanner;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 
@@ -173,7 +173,7 @@ class Fimfiction extends BasicSupport {
 		return getLine(in, "class=\"description-text bbcode\"", 1);
 	}
 
-	private BufferedImage getCover(InputStream in) {
+	private Image getCover(InputStream in) {
 		// Note: the 'og:image' is the SMALL cover, not the full version
 		String cover = getLine(in, "class=\"story_container__story_image\"", 1);
 		if (cover != null) {

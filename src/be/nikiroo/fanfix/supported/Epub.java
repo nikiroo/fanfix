@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.supported;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -16,7 +15,7 @@ import java.util.zip.ZipInputStream;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.IOUtils;
-import be.nikiroo.utils.ImageUtils;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.MarkableFileInputStream;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
@@ -97,7 +96,7 @@ class Epub extends InfoText {
 		tmp = File.createTempFile("fanfic-reader-parser_", ".tmp");
 		File tmpInfo = new File(tmp + ".info");
 		fakeSource = tmp.toURI().toURL();
-		BufferedImage cover = null;
+		Image cover = null;
 
 		String url = source.toString();
 		String title = null;
@@ -126,7 +125,7 @@ class Epub extends InfoText {
 					// Cover
 					if (getCover()) {
 						try {
-							cover = ImageUtils.fromStream(zipIn);
+							cover = new Image(zipIn);
 						} catch (Exception e) {
 							Instance.getTraceHandler().error(e);
 						}

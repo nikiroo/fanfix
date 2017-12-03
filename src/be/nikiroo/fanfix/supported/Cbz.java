@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.supported;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -16,7 +15,7 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
-import be.nikiroo.utils.ImageUtils;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -76,7 +75,7 @@ class Cbz extends Epub {
 
 		ZipInputStream zipIn = new ZipInputStream(getInput());
 
-		Map<String, BufferedImage> images = new HashMap<String, BufferedImage>();
+		Map<String, Image> images = new HashMap<String, Image>();
 		for (ZipEntry entry = zipIn.getNextEntry(); entry != null; entry = zipIn
 				.getNextEntry()) {
 			if (!entry.isDirectory()
@@ -92,7 +91,7 @@ class Cbz extends Epub {
 				if (imageEntry) {
 					String uuid = meta.getUuid() + "_" + entry.getName();
 					try {
-						images.put(uuid, ImageUtils.fromStream(zipIn));
+						images.put(uuid, new Image(zipIn));
 					} catch (Exception e) {
 						Instance.getTraceHandler().error(e);
 					}

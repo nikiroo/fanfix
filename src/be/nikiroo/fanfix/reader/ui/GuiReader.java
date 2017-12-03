@@ -1,4 +1,4 @@
-package be.nikiroo.fanfix.reader;
+package be.nikiroo.fanfix.reader.ui;
 
 import java.awt.Desktop;
 import java.awt.EventQueue;
@@ -18,6 +18,7 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.library.CacheLibrary;
+import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.ui.UIUtils;
@@ -145,6 +146,19 @@ class GuiReader extends BasicReader {
 				new GuiReaderFrame(GuiReader.this, typeFinal).setVisible(true);
 			}
 		});
+	}
+
+	@Override
+	public void start(File target, String program) throws IOException {
+		if (program == null) {
+			try {
+				Desktop.getDesktop().browse(target.toURI());
+			} catch (UnsupportedOperationException e) {
+				super.start(target, program);
+			}
+		} else {
+			super.start(target, program);
+		}
 	}
 
 	// delete from local reader library

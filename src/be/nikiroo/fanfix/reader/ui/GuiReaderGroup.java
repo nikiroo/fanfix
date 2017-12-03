@@ -1,4 +1,4 @@
-package be.nikiroo.fanfix.reader;
+package be.nikiroo.fanfix.reader.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -12,7 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import be.nikiroo.fanfix.data.MetaData;
-import be.nikiroo.fanfix.reader.GuiReaderBook.BookActionListener;
+import be.nikiroo.fanfix.reader.ui.GuiReaderBook.BookActionListener;
 import be.nikiroo.utils.ui.WrapLayout;
 
 /**

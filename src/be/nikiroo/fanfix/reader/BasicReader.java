@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.reader;
 
-import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -133,8 +132,9 @@ public abstract class BasicReader implements Reader {
 						.getTypeName());
 			}
 		} catch (Exception e) {
-			Instance.getTraceHandler().error(new Exception("Cannot create a reader of type: "
-					+ defaultType + " (Not compiled in?)", e));
+			Instance.getTraceHandler().error(
+					new Exception("Cannot create a reader of type: "
+							+ defaultType + " (Not compiled in?)", e));
 		}
 
 		return null;
@@ -212,8 +212,8 @@ public abstract class BasicReader implements Reader {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public static void openExternal(BasicLibrary lib, String luid)
-			throws IOException {
+	@Override
+	public void openExternal(BasicLibrary lib, String luid) throws IOException {
 		MetaData meta = lib.getInfo(luid);
 		File target = lib.getFile(luid, null);
 
@@ -232,8 +232,7 @@ public abstract class BasicReader implements Reader {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	protected static void openExternal(MetaData meta, File target)
-			throws IOException {
+	protected void openExternal(MetaData meta, File target) throws IOException {
 		String program = null;
 		if (meta.isImageDocument()) {
 			program = Instance.getUiConfig().getString(
@@ -247,13 +246,35 @@ public abstract class BasicReader implements Reader {
 			program = null;
 		}
 
-		if (program == null) {
-			try {
-				Desktop.getDesktop().browse(target.toURI());
-			} catch (UnsupportedOperationException e) {
-				Runtime.getRuntime().exec(
-						new String[] { "xdg-open", target.getAbsolutePath() });
+		start(target, program);
+	}
 
+	/**
+	 * Start a file and open it with the given program if given or the first
+	 * default system starter we can find.
+	 * 
+	 * @param target
+	 *            the target to open
+	 * @param program
+	 *            the program to use or NULL for the default system starter
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	protected void start(File target, String program) throws IOException {
+		if (program == null) {
+			boolean ok = false;
+			for (String starter : new String[] { "xdg-open", "start", "run" }) {
+				try {
+					Runtime.getRuntime().exec(
+							new String[] { starter, target.getAbsolutePath() });
+					ok = true;
+					break;
+				} catch (IOException e) {
+				}
+			}
+			if (!ok) {
+				throw new IOException("Cannot find a program to start the file");
 			}
 		} else {
 			Runtime.getRuntime().exec(

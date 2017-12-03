@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.supported;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +13,7 @@ import java.util.Scanner;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -151,7 +151,7 @@ class Text extends BasicSupport {
 		return getChapterContent(source, in, 0, null);
 	}
 
-	private BufferedImage getCover(URL source) {
+	private Image getCover(URL source) {
 		String path;
 		try {
 			path = new File(source.toURI()).getPath();

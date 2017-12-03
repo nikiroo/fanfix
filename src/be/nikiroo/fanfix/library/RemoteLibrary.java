@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.library;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -11,6 +10,7 @@ import java.util.List;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.Version;
@@ -95,15 +95,15 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public BufferedImage getCover(final String luid) {
-		final BufferedImage[] result = new BufferedImage[1];
+	public Image getCover(final String luid) {
+		final Image[] result = new Image[1];
 
 		try {
 			new ConnectActionClientObject(host, port, true) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					Object rep = send(new Object[] { md5, "GET_COVER", luid });
-					result[0] = (BufferedImage) rep;
+					result[0] = (Image) rep;
 				}
 
 				@Override
@@ -119,8 +119,8 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public BufferedImage getSourceCover(final String source) {
-		final BufferedImage[] result = new BufferedImage[1];
+	public Image getSourceCover(final String source) {
+		final Image[] result = new Image[1];
 
 		try {
 			new ConnectActionClientObject(host, port, true) {
@@ -128,7 +128,7 @@ public class RemoteLibrary extends BasicLibrary {
 				public void action(Version serverVersion) throws Exception {
 					Object rep = send(new Object[] { md5, "GET_SOURCE_COVER",
 							source });
-					result[0] = (BufferedImage) rep;
+					result[0] = (Image) rep;
 				}
 
 				@Override

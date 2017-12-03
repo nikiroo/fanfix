@@ -4,9 +4,9 @@
 PREFIX=/usr/local
 PROGS="java javac jar make sed"
 
-CLI=be/nikiroo/fanfix/reader/CliReader
+CLI=be/nikiroo/fanfix/reader/cli/CliReader
 TUI=
-GUI=be/nikiroo/fanfix/reader/GuiReader
+GUI=be/nikiroo/fanfix/reader/ui/GuiReader
 JCLI=
 JTUI=
 JGUI=
@@ -35,7 +35,7 @@ while [ "$*" != "" ]; do
 	--tui) #=yes	Enable TUI support (Jexer, experimental)
 		[ "$val" = no -o "$val" = false ] && TUI= && JTUI=
 		if [ "$val" = yes -o "$val" = true ]; then
-			TUI=be/nikiroo/fanfix/reader/TuiReader
+			TUI=be/nikiroo/fanfix/reader/tui/TuiReader
 			JTUI="-C bin/ jexer"
 		fi
 	;;

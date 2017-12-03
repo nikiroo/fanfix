@@ -1,4 +1,4 @@
-package be.nikiroo.fanfix.reader;
+package be.nikiroo.fanfix.reader.cli;
 
 import java.io.IOException;
 import java.util.List;
@@ -9,6 +9,7 @@ import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.fanfix.reader.BasicReader;
 
 /**
  * Command line {@link Story} reader.

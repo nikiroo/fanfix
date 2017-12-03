@@ -17,6 +17,7 @@ import be.nikiroo.fanfix.data.Story;
 class Text extends BasicOutput {
 	protected BufferedWriter writer;
 	protected File targetDir;
+	private boolean nextParaIsCover = true;
 
 	@Override
 	public File process(Story story, File targetDir, String targetName)
@@ -104,8 +105,11 @@ class Text extends BasicOutput {
 	protected void writeParagraphHeader(Paragraph para) throws IOException {
 		if (para.getType() == ParagraphType.IMAGE) {
 			File file = new File(targetDir, getCurrentImageBestName(true));
-			Instance.getCache().saveAsImage(para.getContentImage(), file);
+			Instance.getCache().saveAsImage(para.getContentImage(), file,
+					nextParaIsCover);
 		}
+
+		nextParaIsCover = false;
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-package be.nikiroo.fanfix.reader;
+package be.nikiroo.fanfix.reader.tui;
 
 import java.util.ArrayList;
 import java.util.List;

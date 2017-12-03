@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.supported;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -14,6 +13,7 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 
@@ -78,8 +78,8 @@ class EHentai extends BasicSupport {
 		return true;
 	}
 
-	private BufferedImage getCover(URL source, InputStream in) {
-		BufferedImage author = null;
+	private Image getCover(URL source, InputStream in) {
+		Image author = null;
 		String coverLine = getKeyLine(in, "<div id=\"gd1\"", " url(", ")");
 		if (coverLine != null) {
 			coverLine = StringUtils.unhtml(coverLine).trim();
@@ -267,9 +267,10 @@ class EHentai extends BasicSupport {
 				try {
 					pages.add(new URL(line));
 				} catch (MalformedURLException e) {
-					Instance.getTraceHandler().error(new IOException(
-							"Parsing error, a link is not correctly parsed: "
-									+ line, e));
+					Instance.getTraceHandler().error(
+							new IOException(
+									"Parsing error, a link is not correctly parsed: "
+											+ line, e));
 				}
 			}
 		}

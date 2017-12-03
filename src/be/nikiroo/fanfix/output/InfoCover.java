@@ -6,8 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-import javax.imageio.ImageIO;
-
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
@@ -69,10 +67,8 @@ public class InfoCover {
 			MetaData meta) {
 		if (meta != null && meta.getCover() != null) {
 			try {
-				String format = Instance.getConfig()
-						.getString(Config.IMAGE_FORMAT_COVER).toLowerCase();
-				ImageIO.write(meta.getCover(), format, new File(targetDir,
-						targetName + "." + format));
+				Instance.getCache().saveAsImage(meta.getCover(),
+						new File(targetDir, targetName), true);
 			} catch (IOException e) {
 				// Allow to continue without cover
 				Instance.getTraceHandler().error(

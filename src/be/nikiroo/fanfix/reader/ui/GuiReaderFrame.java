@@ -1,4 +1,4 @@
-package be.nikiroo.fanfix.reader;
+package be.nikiroo.fanfix.reader.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -45,7 +45,8 @@ import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.library.BasicLibrary.Status;
 import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
-import be.nikiroo.fanfix.reader.GuiReaderBook.BookActionListener;
+import be.nikiroo.fanfix.reader.BasicReader;
+import be.nikiroo.fanfix.reader.ui.GuiReaderBook.BookActionListener;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.ui.ConfigEditor;
@@ -107,8 +108,10 @@ class GuiReaderFrame extends JFrame {
 		pane = new JPanel();
 		pane.setLayout(new BoxLayout(pane, BoxLayout.PAGE_AXIS));
 
-		color = Instance.getUiConfig().getColor(UiConfig.BACKGROUND_COLOR);
-		if (color != null) {
+		Integer icolor = Instance.getUiConfig().getColor(
+				UiConfig.BACKGROUND_COLOR);
+		if (icolor != null) {
+			color = new Color(icolor);
 			setBackground(color);
 			pane.setBackground(color);
 		}

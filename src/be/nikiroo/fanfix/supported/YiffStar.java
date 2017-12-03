@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.supported;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -15,6 +14,7 @@ import java.util.Scanner;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 
@@ -128,8 +128,7 @@ class YiffStar extends BasicSupport {
 		return tags;
 	}
 
-	private BufferedImage getCover(URL source, InputStream in)
-			throws IOException {
+	private Image getCover(URL source, InputStream in) throws IOException {
 
 		List<Entry<String, URL>> chaps = getChapters(source, in, null);
 		if (!chaps.isEmpty()) {

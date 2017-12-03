@@ -1,4 +1,4 @@
-package be.nikiroo.fanfix.reader;
+package be.nikiroo.fanfix.reader.tui;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,6 +15,7 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
+import be.nikiroo.fanfix.reader.Reader;
 
 /**
  * The library window, that will list all the (filtered) stories available in

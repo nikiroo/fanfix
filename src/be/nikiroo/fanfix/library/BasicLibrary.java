@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.library;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -16,6 +15,7 @@ import be.nikiroo.fanfix.output.BasicOutput;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -89,7 +89,7 @@ abstract public class BasicLibrary {
 	 * 
 	 * @return the cover image
 	 */
-	public abstract BufferedImage getCover(String luid);
+	public abstract Image getCover(String luid);
 
 	/**
 	 * Return the cover image associated to this source.
@@ -101,7 +101,7 @@ abstract public class BasicLibrary {
 	 * 
 	 * @return the cover image or NULL
 	 */
-	public BufferedImage getSourceCover(String source) {
+	public Image getSourceCover(String source) {
 		List<MetaData> metas = getListBySource(source);
 		if (metas.size() > 0) {
 			return getCover(metas.get(0).getLuid());
