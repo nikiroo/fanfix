@@ -63,6 +63,10 @@ public class Downloader {
 	 *            the new traces handler
 	 */
 	public void setTraceHandler(TraceHandler tracer) {
+		if (tracer == null) {
+			tracer = new TraceHandler(false, false, false);
+		}
+
 		this.tracer = tracer;
 	}
 

@@ -1,4 +1,4 @@
-package be.nikiroo.utils;
+package be.nikiroo.utils.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -13,7 +13,7 @@ import java.awt.image.ImageObserver;
  * 
  * @author niki
  */
-public class ImageText {
+public class ImageTextAwt {
 	private Image image;
 	private Dimension size;
 	private String text;
@@ -22,7 +22,7 @@ public class ImageText {
 	private boolean invert;
 
 	/**
-	 * Th rendering modes supported by this {@link ImageText} to convert
+	 * The rendering modes supported by this {@link ImageTextAwt} to convert
 	 * {@link Image}s into text.
 	 * 
 	 * @author niki
@@ -60,7 +60,7 @@ public class ImageText {
 	}
 
 	/**
-	 * Create a new {@link ImageText} with the given parameters. Defaults to
+	 * Create a new {@link ImageTextAwt} with the given parameters. Defaults to
 	 * {@link Mode#DOUBLE_DITHERING} and no colour inversion.
 	 * 
 	 * @param image
@@ -68,12 +68,12 @@ public class ImageText {
 	 * @param size
 	 *            the final text size to target
 	 */
-	public ImageText(Image image, Dimension size) {
+	public ImageTextAwt(Image image, Dimension size) {
 		this(image, size, Mode.DOUBLE_DITHERING, false);
 	}
 
 	/**
-	 * Create a new {@link ImageText} with the given parameters.
+	 * Create a new {@link ImageTextAwt} with the given parameters.
 	 * 
 	 * @param image
 	 *            the source {@link Image}
@@ -84,7 +84,7 @@ public class ImageText {
 	 * @param invert
 	 *            TRUE to invert colours rendering
 	 */
-	public ImageText(Image image, Dimension size, Mode mode, boolean invert) {
+	public ImageTextAwt(Image image, Dimension size, Mode mode, boolean invert) {
 		setImage(image);
 		setSize(size);
 		setMode(mode);
@@ -104,7 +104,7 @@ public class ImageText {
 	}
 
 	/**
-	 * Change the target size of this {@link ImageText}.
+	 * Change the target size of this {@link ImageTextAwt}.
 	 * 
 	 * @param size
 	 *            the new size
@@ -196,7 +196,7 @@ public class ImageText {
 				@Override
 				public boolean imageUpdate(Image img, int infoflags, int x,
 						int y, int width, int height) {
-					ImageText.this.ready = true;
+					ImageTextAwt.this.ready = true;
 					return true;
 				}
 			})) {

@@ -1,5 +1,8 @@
 package be.nikiroo.utils.test;
 
+import be.nikiroo.utils.Cache;
+import be.nikiroo.utils.Downloader;
+
 /**
  * Tests for nikiroo-utils.
  * 
@@ -23,6 +26,10 @@ public class Test extends TestLauncher {
 		addSeries(new SerialTest(args));
 		addSeries(new SerialServerTest(args));
 		addSeries(new StringUtilsTest(args));
+
+		// TODO: test cache and downloader
+		Cache cache = null;
+		Downloader downloader = null;
 	}
 
 	/**

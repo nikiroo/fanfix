@@ -1,6 +1,5 @@
 package be.nikiroo.utils.resources;
 
-import java.awt.Color;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -268,76 +267,124 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
-	 * Return the value associated to the given id as a {@link Color}.
+	 * Return the value associated to the given id as a colour if it is found
+	 * and can be parsed.
+	 * <p>
+	 * The returned value is an ARGB value.
 	 * 
 	 * @param id
 	 *            the id of the value to get
 	 * 
 	 * @return the associated value
 	 */
-	public Color getColor(E id) {
-		Color color = null;
+	public Integer getColor(E id) {
+		Integer rep = null;
 
 		String bg = getString(id).trim();
+
+		int r = 0, g = 0, b = 0, a = -1;
 		if (bg.startsWith("#") && (bg.length() == 7 || bg.length() == 9)) {
 			try {
-				int r = Integer.parseInt(bg.substring(1, 3), 16);
-				int g = Integer.parseInt(bg.substring(3, 5), 16);
-				int b = Integer.parseInt(bg.substring(5, 7), 16);
-				int a = 255;
+				r = Integer.parseInt(bg.substring(1, 3), 16);
+				g = Integer.parseInt(bg.substring(3, 5), 16);
+				b = Integer.parseInt(bg.substring(5, 7), 16);
 				if (bg.length() == 9) {
 					a = Integer.parseInt(bg.substring(7, 9), 16);
+				} else {
+					a = 255;
 				}
-				color = new Color(r, g, b, a);
+
 			} catch (NumberFormatException e) {
-				color = null; // no changes
+				// no changes
 			}
 		}
 
 		// Try by name if still not found
-		if (color == null) {
-			try {
-				Field field = Color.class.getField(bg);
-				color = (Color) field.get(null);
-			} catch (Exception e) {
+		if (a == -1) {
+			if ("black".equalsIgnoreCase(bg)) {
+				a = 255;
+				r = 0;
+				g = 0;
+				b = 0;
+			} else if ("white".equalsIgnoreCase(bg)) {
+				a = 255;
+				r = 255;
+				g = 255;
+				b = 255;
+			} else if ("red".equalsIgnoreCase(bg)) {
+				a = 255;
+				r = 255;
+				g = 0;
+				b = 0;
+			} else if ("green".equalsIgnoreCase(bg)) {
+				a = 255;
+				r = 0;
+				g = 255;
+				b = 0;
+			} else if ("blue".equalsIgnoreCase(bg)) {
+				a = 255;
+				r = 0;
+				g = 0;
+				b = 255;
+			} else if ("grey".equalsIgnoreCase(bg)
+					|| "gray".equalsIgnoreCase(bg)) {
+				a = 255;
+				r = 128;
+				g = 128;
+				b = 128;
+			} else if ("cyan".equalsIgnoreCase(bg)) {
+				a = 255;
+				r = 0;
+				g = 255;
+				b = 255;
+			} else if ("magenta".equalsIgnoreCase(bg)) {
+				a = 255;
+				r = 255;
+				g = 0;
+				b = 255;
+			} else if ("yellow".equalsIgnoreCase(bg)) {
+				a = 255;
+				r = 255;
+				g = 255;
+				b = 0;
 			}
 		}
-		//
 
-		return color;
+		if (a != -1) {
+			rep = ((a & 0xFF) << 24) //
+					| ((r & 0xFF) << 16) //
+					| ((g & 0xFF) << 8) //
+					| ((b & 0xFF) << 0);
+		}
+
+		return rep;
 	}
 
 	/**
-	 * Set the value associated to the given id as a {@link Color}.
+	 * Set the value associated to the given id as a colour.
+	 * <p>
+	 * The value is an BGRA value.
 	 * 
 	 * @param id
 	 *            the id of the value to set
 	 * @param color
-	 *            the new color
+	 *            the new colour
 	 */
-	public void setColor(E id, Color color) {
-		// Check for named colours first
-		try {
-			Field[] fields = Color.class.getFields();
-			for (Field field : fields) {
-				if (field.equals(color)) {
-					setString(id, field.getName());
-					return;
-				}
-			}
-		} catch (Exception e) {
-		}
-		//
+	public void setColor(E id, Integer color) {
+		int a = (color >> 24) & 0xFF;
+		int r = (color >> 16) & 0xFF;
+		int g = (color >> 8) & 0xFF;
+		int b = (color >> 0) & 0xFF;
 
-		String r = Integer.toString(color.getRed(), 16);
-		String g = Integer.toString(color.getGreen(), 16);
-		String b = Integer.toString(color.getBlue(), 16);
-		String a = "";
-		if (color.getAlpha() < 255) {
-			a = Integer.toString(color.getAlpha(), 16);
+		String rs = Integer.toString(r, 16);
+		String gs = Integer.toString(g, 16);
+		String bs = Integer.toString(b, 16);
+		String as = "";
+		if (a < 255) {
+			as = Integer.toString(a, 16);
 		}
 
-		setString(id, "#" + r + g + b + a);
+		setString(id, "#" + rs + gs + bs + as);
 	}
 
 	/**

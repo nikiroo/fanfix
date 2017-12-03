@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version 4.0.0
+
+- Deplace all dependencies on java.awt into its own package (ui)
+
 ## Version 3.1.6
 
 - Fix Serialiser issue with custom objects and String in a custom object

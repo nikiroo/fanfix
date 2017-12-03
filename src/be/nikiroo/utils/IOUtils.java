@@ -1,6 +1,7 @@
 package be.nikiroo.utils;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -245,5 +246,70 @@ public class IOUtils {
 		}
 
 		return loader.getResourceAsStream(name);
+	}
+
+	/**
+	 * Return a resetable {@link InputStream} from this stream, and reset it.
+	 * 
+	 * @param in
+	 *            the input stream
+	 * @return the resetable stream, which <b>may</b> be the same
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public static InputStream forceResetableStream(InputStream in)
+			throws IOException {
+		MarkableFileInputStream tmpIn = null;
+		File tmp = null;
+
+		boolean resetable = in.markSupported();
+		if (resetable) {
+			try {
+				in.reset();
+			} catch (IOException e) {
+				resetable = false;
+			}
+		}
+
+		if (resetable) {
+			return in;
+		}
+
+		tmp = File.createTempFile(".tmp-stream", ".tmp");
+		try {
+			write(in, tmp);
+			tmpIn = new MarkableFileInputStream(new FileInputStream(tmp));
+			return tmpIn;
+		} finally {
+			try {
+				if (tmpIn != null) {
+					tmpIn.close();
+				}
+			} finally {
+				tmp.delete();
+			}
+		}
+	}
+
+	/**
+	 * Convert the {@link InputStream} into a byte array.
+	 * 
+	 * @param in
+	 *            the input stream
+	 * 
+	 * @return the array
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public static byte[] toByteArray(InputStream in) throws IOException {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		write(in, out);
+
+		byte[] array = out.toByteArray();
+		out.close();
+
+		return array;
 	}
 }

@@ -70,6 +70,10 @@ public class Cache {
 	 *            the new traces handler
 	 */
 	public void setTraceHandler(TraceHandler tracer) {
+		if (tracer == null) {
+			tracer = new TraceHandler(false, false, false);
+		}
+
 		this.tracer = tracer;
 	}
 
@@ -89,7 +93,7 @@ public class Cache {
 	 */
 	public boolean check(URL url, boolean allowTooOld, boolean stable) {
 		File file = getCached(url);
-		if (file.exists()) {
+		if (file.exists() && file.isFile()) {
 			if (allowTooOld || !isOld(file, stable)) {
 				return true;
 			}
@@ -190,7 +194,8 @@ public class Cache {
 	 * @return the opened resource if found, NULL if not
 	 */
 	private InputStream load(File cached, boolean allowTooOld, boolean stable) {
-		if (cached.exists() && (allowTooOld || !isOld(cached, stable))) {
+		if (cached.exists() && cached.isFile()
+				&& (allowTooOld || !isOld(cached, stable))) {
 			try {
 				return new MarkableFileInputStream(new FileInputStream(cached));
 			} catch (FileNotFoundException e) {

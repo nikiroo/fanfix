@@ -1,4 +1,4 @@
-package be.nikiroo.utils.test;
+package be.nikiroo.utils.ui.test;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;

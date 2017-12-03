@@ -4,13 +4,40 @@
 PREFIX=/usr/local
 PROGS="java javac jar"
 
+UI=be/nikiroo/utils/ui/test/TestUI
+JUI="-C bin/ be/nikiroo/utils/ui"
+ANDOIRD=
+JANDROID=
+
 valid=true
 while [ "$*" != "" ]; do
-	key=`echo "$1" | cut -c1-9`
-	val=`echo "$1" | cut -c10-`
+	key=`echo "$1" | cut -f1 -d=`
+	val=`echo "$1" | cut -f2 -d=`
 	case "$key" in
-	--prefix=)
+	--help) #		This help message
+		echo The following arguments can be used:
+		cat "$0" | grep '^\s*--' | grep '#' | while read ln; do
+			cmd=`echo "$ln" | cut -f1 -d')'`
+			msg=`echo "$ln" | cut -f2 -d'#'`
+			echo "	$cmd$msg"
+		done
+	;;
+	--prefix) #=PATH	Change the prefix to the given path
 		PREFIX="$val"
+	;;
+	--ui) #=no	Disable UI (Swing/AWT) support
+		[ "$val" = no -o "$val" = false ] && UI= && JUI=
+		if [ "$val" = yes -o "$val" = true ]; then
+			UI=be/nikiroo/utils/ui/test/TestUI
+			JUI="-C bin/ be/nikiroo/utils/ui"
+		fi
+	;;
+	--android) #=yes	Enable Android UI support
+		[ "$val" = no -o "$val" = false ] && ANDROID= && JANDROID=
+		if [ "$val" = yes -o "$val" = true ]; then
+			ANDROID=be/nikiroo/utils/android/test/TestAndroid
+			JANDROID="-C bin/ be/nikiroo/utils/android"
+		fi
 	;;
 	*)
 		echo "Unsupported parameter: '$1'" >&2
@@ -45,12 +72,12 @@ fi;
 
 
 echo "MAIN = be/nikiroo/utils/test/Test" > Makefile
-echo "MORE = be/nikiroo/utils/MarkableFileInputStream be/nikiroo/utils/ui/UIUtils be/nikiroo/utils/ui/WrapLayout be/nikiroo/utils/ui/ProgressBar be/nikiroo/utils/Downloader be/nikiroo/utils/Cache" >> Makefile
+echo "MORE = $UI $ANDROID" >> Makefile
 echo "TEST = be/nikiroo/utils/test/Test" >> Makefile
 echo "TEST_PARAMS = $cols $ok $ko" >> Makefile
 echo "NAME = nikiroo-utils" >> Makefile
 echo "PREFIX = $PREFIX" >> Makefile
-echo "JAR_FLAGS += -C bin/ be -C bin/ org -C bin/ VERSION" >> Makefile
+echo "JAR_FLAGS += -C bin/ be $JUI $JANDROID -C bin/ VERSION" >> Makefile
 echo "SJAR_FLAGS += -C src/ org -C src/ be" >> Makefile
 
 cat Makefile.base >> Makefile

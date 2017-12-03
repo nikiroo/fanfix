@@ -300,6 +300,14 @@ public class StringUtils {
 				HtmlEscapeLevel.LEVEL_1_ONLY_MARKUP_SIGNIFICANT);
 	}
 
+	/**
+	 * Zip the data and then encode it into Base64.
+	 * 
+	 * @param data
+	 *            the data
+	 * 
+	 * @return the Base64 zipped version
+	 */
 	public static String zip64(String data) {
 		try {
 			return Base64.encodeBytes(data.getBytes(), Base64.GZIP);
@@ -309,6 +317,17 @@ public class StringUtils {
 		}
 	}
 
+	/**
+	 * Unconvert from Base64 then unzip the content.
+	 * 
+	 * @param data
+	 *            the data in Base64 format
+	 * 
+	 * @return the raw data
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
 	public static String unzip64(String data) throws IOException {
 		ByteArrayInputStream in = new ByteArrayInputStream(Base64.decode(data,
 				Base64.GZIP));

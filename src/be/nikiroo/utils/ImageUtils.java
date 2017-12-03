@@ -1,280 +1,45 @@
 package be.nikiroo.utils;
 
-import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.imageio.ImageIO;
-
-import be.nikiroo.utils.ImageText.Mode;
+import be.nikiroo.utils.serial.SerialUtils;
 
 /**
  * This class offer some utilities based around images.
  * 
  * @author niki
  */
-public class ImageUtils {
+public abstract class ImageUtils {
+	private static ImageUtils instance = newObject();
+
 	/**
-	 * Convert the given {@link Image} object into a Base64 representation of
-	 * the same {@link Image} object.
+	 * Get a (unique) instance of an {@link ImageUtils} compatible with your
+	 * system.
 	 * 
-	 * @param image
-	 *            the {@link Image} object to convert
-	 * 
-	 * @return the Base64 representation
-	 * 
-	 * @throws IOException
-	 *             in case of IO error
+	 * @return an {@link ImageUtils}
 	 */
-	static public String toBase64(BufferedImage image) throws IOException {
-		return toBase64(image, null);
+	public static ImageUtils getInstance() {
+		return instance;
 	}
 
 	/**
-	 * Convert the given {@link Image} object into a Base64 representation of
-	 * the same {@link Image}. object.
+	 * Save the given resource as an image on disk using the given image format
+	 * for content, or with "png" format if it fails.
 	 * 
-	 * @param image
-	 *            the {@link Image} object to convert
+	 * @param img
+	 *            the resource
+	 * @param target
+	 *            the target file
 	 * @param format
-	 *            the image format to use to serialise it (default is PNG)
-	 * 
-	 * @return the Base64 representation
+	 *            the file format ("png", "jpeg", "bmp"...)
 	 * 
 	 * @throws IOException
-	 *             in case of IO error
+	 *             in case of I/O error
 	 */
-	static public String toBase64(BufferedImage image, String format)
-			throws IOException {
-		if (format == null) {
-			format = "png";
-		}
-
-		String imageString = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-		ImageIO.write(image, format, out);
-		byte[] imageBytes = out.toByteArray();
-
-		imageString = new String(Base64.encodeBytes(imageBytes));
-
-		out.close();
-
-		return imageString;
-	}
-
-	/**
-	 * Convert the given image into a Base64 representation of the same
-	 * {@link File}.
-	 * 
-	 * @param in
-	 *            the image to convert
-	 * 
-	 * @return the Base64 representation
-	 * 
-	 * @throws IOException
-	 *             in case of IO error
-	 */
-	static public String toBase64(InputStream in) throws IOException {
-		String fileString = null;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-		byte[] buf = new byte[8192];
-
-		int c = 0;
-		while ((c = in.read(buf, 0, buf.length)) > 0) {
-			out.write(buf, 0, c);
-		}
-		out.flush();
-		in.close();
-
-		fileString = new String(Base64.encodeBytes(out.toByteArray()));
-		out.close();
-
-		return fileString;
-	}
-
-	/**
-	 * Convert the given Base64 representation of an image into an {@link Image}
-	 * object.
-	 * 
-	 * @param b64data
-	 *            the {@link Image} in Base64 format
-	 * 
-	 * @return the {@link Image} object
-	 * 
-	 * @throws IOException
-	 *             in case of IO error
-	 */
-	static public BufferedImage fromBase64(String b64data) throws IOException {
-		ByteArrayInputStream in = new ByteArrayInputStream(
-				Base64.decode(b64data));
-		return fromStream(in);
-	}
-
-	/**
-	 * A shorthand method to create an {@link ImageText} and return its output.
-	 * 
-	 * @param image
-	 *            the source {@link Image}
-	 * @param size
-	 *            the final text size to target
-	 * @param mode
-	 *            the mode of conversion
-	 * @param invert
-	 *            TRUE to invert colours rendering
-	 * 
-	 * @return the text image
-	 */
-	static public String toAscii(Image image, Dimension size, Mode mode,
-			boolean invert) {
-		return new ImageText(image, size, mode, invert).toString();
-	}
-
-	/**
-	 * Convert the given {@link InputStream} (which should allow calls to
-	 * {@link InputStream#reset()} for better perfs) into an {@link Image}
-	 * object, respecting the EXIF transformations if any.
-	 * 
-	 * @param in
-	 *            the {@link InputStream}
-	 * 
-	 * @return the {@link Image} object
-	 * 
-	 * @throws IOException
-	 *             in case of IO error
-	 */
-	static public BufferedImage fromStream(InputStream in) throws IOException {
-		MarkableFileInputStream tmpIn = null;
-		File tmp = null;
-
-		boolean resetable = in.markSupported();
-		if (resetable) {
-			try {
-				in.reset();
-			} catch (IOException e) {
-				resetable = false;
-			}
-		}
-
-		if (resetable) {
-			return fromResetableStream(in);
-		}
-
-		tmp = File.createTempFile(".tmp-image", ".tmp");
-		try {
-			IOUtils.write(in, tmp);
-			tmpIn = new MarkableFileInputStream(new FileInputStream(tmp));
-			return fromResetableStream(tmpIn);
-		} finally {
-			try {
-				if (tmpIn != null) {
-					tmpIn.close();
-				}
-			} finally {
-				tmp.delete();
-			}
-		}
-	}
-
-	/**
-	 * Convert the given resetable {@link InputStream} into an {@link Image}
-	 * object, respecting the EXIF transformations if any.
-	 * 
-	 * @param in
-	 *            the 'resetable' (this is mandatory) {@link InputStream}
-	 * 
-	 * @return the {@link Image} object
-	 * 
-	 * @throws IOException
-	 *             in case of IO error
-	 */
-	static private BufferedImage fromResetableStream(InputStream in)
-			throws IOException {
-
-		int orientation;
-		try {
-			orientation = getExifTransorm(in);
-		} catch (Exception e) {
-			// no EXIF transform, ok
-			orientation = -1;
-		}
-
-		in.reset();
-		BufferedImage image = ImageIO.read(in);
-
-		if (image == null) {
-			throw new IOException("Failed to convert input to image");
-		}
-
-		// Note: this code has been found on Internet;
-		// thank you anonymous coder.
-		int width = image.getWidth();
-		int height = image.getHeight();
-		AffineTransform affineTransform = new AffineTransform();
-
-		switch (orientation) {
-		case 1:
-			affineTransform = null;
-			break;
-		case 2: // Flip X
-			affineTransform.scale(-1.0, 1.0);
-			affineTransform.translate(-width, 0);
-			break;
-		case 3: // PI rotation
-			affineTransform.translate(width, height);
-			affineTransform.rotate(Math.PI);
-			break;
-		case 4: // Flip Y
-			affineTransform.scale(1.0, -1.0);
-			affineTransform.translate(0, -height);
-			break;
-		case 5: // - PI/2 and Flip X
-			affineTransform.rotate(-Math.PI / 2);
-			affineTransform.scale(-1.0, 1.0);
-			break;
-		case 6: // -PI/2 and -width
-			affineTransform.translate(height, 0);
-			affineTransform.rotate(Math.PI / 2);
-			break;
-		case 7: // PI/2 and Flip
-			affineTransform.scale(-1.0, 1.0);
-			affineTransform.translate(-height, 0);
-			affineTransform.translate(0, width);
-			affineTransform.rotate(3 * Math.PI / 2);
-			break;
-		case 8: // PI / 2
-			affineTransform.translate(0, width);
-			affineTransform.rotate(3 * Math.PI / 2);
-			break;
-		default:
-			affineTransform = null;
-			break;
-		}
-
-		if (affineTransform != null) {
-			AffineTransformOp affineTransformOp = new AffineTransformOp(
-					affineTransform, AffineTransformOp.TYPE_BILINEAR);
-
-			BufferedImage transformedImage = new BufferedImage(width, height,
-					image.getType());
-			transformedImage = affineTransformOp
-					.filter(image, transformedImage);
-
-			image = transformedImage;
-		}
-		//
-
-		return image;
-	}
+	public abstract void saveAsImage(Image img, File target, String format)
+			throws IOException;
 
 	/**
 	 * Return the EXIF transformation flag of this image if any.
@@ -291,7 +56,7 @@ public class ImageUtils {
 	 * @throws IOException
 	 *             in case of IO error
 	 */
-	static private int getExifTransorm(InputStream in) throws IOException {
+	protected static int getExifTransorm(InputStream in) throws IOException {
 		int[] exif_data = new int[100];
 		int set_flag = 0;
 		int is_motorola = 0;
@@ -423,5 +188,21 @@ public class ImageUtils {
 			return -1;
 
 		return set_flag;
+	}
+
+	/**
+	 * Create a new {@link ImageUtils}.
+	 * 
+	 * @return the {@link ImageUtils}
+	 */
+	private static ImageUtils newObject() {
+		for (String clazz : new String[] { "be.nikiroo.utils.ui.ImageUtilsAwt" }) {
+			try {
+				return (ImageUtils) SerialUtils.createObject(clazz);
+			} catch (Exception e) {
+			}
+		}
+
+		return null;
 	}
 }

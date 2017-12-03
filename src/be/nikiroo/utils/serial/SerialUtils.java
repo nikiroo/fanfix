@@ -1,6 +1,5 @@
 package be.nikiroo.utils.serial;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.NotSerializableException;
 import java.lang.reflect.Array;
@@ -12,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UnknownFormatConversionException;
 
-import be.nikiroo.utils.ImageUtils;
+import be.nikiroo.utils.Image;
 
 /**
  * Small class to help with serialisation.
@@ -133,25 +132,21 @@ public class SerialUtils {
 		});
 
 		// Images (this is currently the only supported image type by default)
-		customTypes.put("java.awt.image.BufferedImage", new CustomSerializer() {
+		customTypes.put("be.nikiroo.utils.Image", new CustomSerializer() {
 			@Override
 			protected String toString(Object value) {
-				try {
-					return ImageUtils.toBase64((BufferedImage) value);
-				} catch (IOException e) {
-					throw new UnknownFormatConversionException(e.getMessage());
-				}
+				return ((Image) value).toBase64();
 			}
 
 			@Override
 			protected String getType() {
-				return "java.awt.image.BufferedImage";
+				return "be.nikiroo.utils.Image";
 			}
 
 			@Override
 			protected Object fromString(String content) {
 				try {
-					return ImageUtils.fromBase64(content);
+					return new Image(content);
 				} catch (IOException e) {
 					throw new UnknownFormatConversionException(e.getMessage());
 				}
