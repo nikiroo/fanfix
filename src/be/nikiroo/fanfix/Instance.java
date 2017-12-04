@@ -108,12 +108,16 @@ public class Instance {
 
 		String remoteLib = config.getString(Config.DEFAULT_LIBRARY);
 		if (remoteLib == null || remoteLib.trim().isEmpty()) {
+			String libDir = System.getProperty("fanfix.libdir");
+			if (libDir == null || libDir.isEmpty()) {
+				config.getString(Config.LIBRARY_DIR);
+			}
 			try {
-				lib = new LocalLibrary(getFile(Config.LIBRARY_DIR));
+				lib = new LocalLibrary(getFile(libDir));
 			} catch (Exception e) {
 				tracer.error(new IOException(
 						"Cannot create library for directory: "
-								+ getFile(Config.LIBRARY_DIR), e));
+								+ getFile(libDir), e));
 			}
 		} else {
 			int pos = remoteLib.lastIndexOf(":");
@@ -405,9 +409,23 @@ public class Instance {
 	 * @return the home
 	 */
 	private static String getHome() {
-		String home = System.getProperty("user.home");
+		String home = System.getProperty("fanfix.home");
+		if (home != null && new File(home).isFile()) {
+			home = null;
+		}
+
+		if (home == null || home.trim().isEmpty()) {
+			home = System.getProperty("user.home");
+			if (!new File(home).isDirectory()) {
+				home = null;
+			}
+		}
+
 		if (home == null || home.trim().isEmpty()) {
 			home = System.getProperty("java.io.tmpdir");
+			if (!new File(home).isDirectory()) {
+				home = null;
+			}
 		}
 
 		if (home == null) {

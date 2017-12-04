@@ -431,77 +431,81 @@ public class LocalLibrary extends BasicLibrary {
 				}
 			});
 
-			Progress pgDirs = new Progress(0, 100 * dirs.length);
-			pg.addProgress(pgDirs, 100);
+			if (dirs != null) {
+				Progress pgDirs = new Progress(0, 100 * dirs.length);
+				pg.addProgress(pgDirs, 100);
 
-			for (File dir : dirs) {
-				File[] infoFiles = dir.listFiles(new FileFilter() {
-					@Override
-					public boolean accept(File file) {
-						return file != null
-								&& file.getPath().toLowerCase()
-										.endsWith(".info");
-					}
-				});
+				for (File dir : dirs) {
+					File[] infoFiles = dir.listFiles(new FileFilter() {
+						@Override
+						public boolean accept(File file) {
+							return file != null
+									&& file.getPath().toLowerCase()
+											.endsWith(".info");
+						}
+					});
 
-				Progress pgFiles = new Progress(0, infoFiles.length);
-				pgDirs.addProgress(pgFiles, 100);
-				pgDirs.setName("Loading from: " + dir.getName());
+					Progress pgFiles = new Progress(0, infoFiles.length);
+					pgDirs.addProgress(pgFiles, 100);
+					pgDirs.setName("Loading from: " + dir.getName());
 
-				String source = null;
-				for (File infoFile : infoFiles) {
-					pgFiles.setName(infoFile.getName());
-					try {
-						MetaData meta = InfoReader.readMeta(infoFile, false);
-						source = meta.getSource();
+					String source = null;
+					for (File infoFile : infoFiles) {
+						pgFiles.setName(infoFile.getName());
 						try {
-							int id = Integer.parseInt(meta.getLuid());
-							if (id > lastId) {
-								lastId = id;
+							MetaData meta = InfoReader
+									.readMeta(infoFile, false);
+							source = meta.getSource();
+							try {
+								int id = Integer.parseInt(meta.getLuid());
+								if (id > lastId) {
+									lastId = id;
+								}
+
+								stories.put(meta, new File[] { infoFile,
+										getTargetFile(meta, infoFile) });
+							} catch (Exception e) {
+								// not normal!!
+								throw new IOException(
+										"Cannot understand the LUID of "
+												+ infoFile
+												+ ": "
+												+ (meta == null ? "[meta is NULL]"
+														: meta.getLuid()), e);
 							}
-
-							stories.put(meta, new File[] { infoFile,
-									getTargetFile(meta, infoFile) });
-						} catch (Exception e) {
-							// not normal!!
-							throw new IOException(
-									"Cannot understand the LUID of "
-											+ infoFile
-											+ ": "
-											+ (meta == null ? "[meta is NULL]"
-													: meta.getLuid()), e);
+						} catch (IOException e) {
+							// We should not have not-supported files in the
+							// library
+							Instance.getTraceHandler().error(
+									new IOException(
+											"Cannot load file from library: "
+													+ infoFile, e));
 						}
-					} catch (IOException e) {
-						// We should not have not-supported files in the
-						// library
-						Instance.getTraceHandler().error(
-								new IOException(
-										"Cannot load file from library: "
-												+ infoFile, e));
+						pgFiles.add(1);
 					}
-					pgFiles.add(1);
-				}
 
-				File cover = new File(dir, ".cover.png");
-				if (cover.exists()) {
-					try {
-						InputStream in = new FileInputStream(cover);
+					File cover = new File(dir, ".cover.png");
+					if (cover.exists()) {
 						try {
-							sourceCovers.put(source, new Image(in));
-						} finally {
-							in.close();
+							InputStream in = new FileInputStream(cover);
+							try {
+								sourceCovers.put(source, new Image(in));
+							} finally {
+								in.close();
+							}
+						} catch (IOException e) {
+							Instance.getTraceHandler().error(e);
 						}
-					} catch (IOException e) {
-						Instance.getTraceHandler().error(e);
 					}
+
+					pgFiles.setName(null);
 				}
 
-				pgFiles.setName(null);
+				pgDirs.setName("Loading directories");
 			}
-
-			pgDirs.setName("Loading directories");
 		}
 
+		pg.done();
 		return stories;
 	}
 

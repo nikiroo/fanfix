@@ -264,7 +264,8 @@ public abstract class BasicReader implements Reader {
 	protected void start(File target, String program) throws IOException {
 		if (program == null) {
 			boolean ok = false;
-			for (String starter : new String[] { "xdg-open", "start", "run" }) {
+			for (String starter : new String[] { "xdg-open", "open", "see",
+					"start", "run" }) {
 				try {
 					Runtime.getRuntime().exec(
 							new String[] { starter, target.getAbsolutePath() });

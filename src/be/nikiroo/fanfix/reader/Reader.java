@@ -27,6 +27,8 @@ public interface Reader {
 		GUI,
 		/** A text (UTF-8) reader with menu and text windows */
 		TUI,
+		/** A GUI reader implemented with the Android framework */
+		ANDROID,
 
 		;
 
@@ -45,6 +47,8 @@ public interface Reader {
 				return pkg + "tui.TuiReader";
 			case GUI:
 				return pkg + "ui.GuiReader";
+			case ANDROID:
+				return pkg + "android.AndroidReader";
 			}
 
 			return null;
