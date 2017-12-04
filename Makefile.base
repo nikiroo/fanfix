@@ -3,6 +3,7 @@
 # Version:
 # - 1.0.0: add a version comment
 # - 1.1.0: add help, sjar
+# - 1.2.0: add apk
 
 # Required parameters (the commented out ones are supposed to change per project):
 
@@ -14,6 +15,8 @@
 #JAR_FLAGS += a list of things to pack, each usually prefixed with "-C bin/"
 #SJAR_FLAGS += a list of things to pack, each usually prefixed with "-C src/", for *-sources.jar files
 #TEST_PARAMS = any parameter to pass to the test runnable when "test-run"
+#ID_FOR_ANDROID = id of activity to launch for Android
+#RM_FOR_ANDROID = paths to remove for APK generation
 
 JAVAC = javac
 JAVAC_FLAGS += -encoding UTF-8 -d ./bin/ -cp ./src/
@@ -40,7 +43,8 @@ help:
 	@echo "	make run	: to run the program from the binaries"
 	@echo "	make run-test	: to run the test program from the binaries"
 	@echo "	make jrun	: to run the program from the jar file"
-	@echo "	make install	: to install the application into $PREFIX"
+	@echo "	make install	: to install the application into $$PREFIX"
+	@echo "	make apk	: to compile the APK file"
 
 .PHONY: all clean mrproper mrpropre build run jrun jar sjar resources test-resources install libs love 
 
@@ -72,6 +76,7 @@ test: test-resources
 
 clean:
 	rm -rf bin/
+	rm -rf android/.gradle android/build android/app/build android/app/src android/app/build.gradle
 	@echo Removing sources taken from libs...
 	@for lib in libs/*-sources.jar libs/*-sources.patch.jar; do \
 		if [ "$$lib" != 'libs/*-sources.jar' -a "$$lib" != 'libs/*-sources.patch.jar' ]; then \
@@ -90,8 +95,12 @@ mrproper: mrpropre
 mrpropre: clean
 	rm -f $(NAME).jar
 	rm -f $(NAME)-sources.jar
+	rm -f $(NAME).apk
+	rm -f $(NAME)-debug.apk
 	[ ! -e VERSION ] || rm -f "$(NAME)-`cat VERSION`.jar"
 	[ ! -e VERSION ] || rm -f "$(NAME)-`cat VERSION`-sources.jar"
+	[ ! -e VERSION ] || rm -f "$(NAME)-`cat VERSION`.apk"
+	[ ! -e VERSION ] || rm -f "$(NAME)-`cat VERSION`-debug.apk"
 
 love:
 	@echo "	...not war."
@@ -171,4 +180,39 @@ install:
 	echo "#!/bin/sh" > "$(PREFIX)/bin/$(NAME)"
 	echo "$(RJAR) $(RJAR_FLAGS) \"$(PREFIX)/lib/$(NAME).jar\" \"\$$@\"" >> "$(PREFIX)/bin/$(NAME)"
 	chmod a+rx "$(PREFIX)/bin/$(NAME)"
+
+apk: libs ${NAME}.apk
+	@echo Building APK files...
+
+${NAME}.apk: ${NAME}-debug.apk
+
+${NAME}-debug.apk:
+	@[ -d android ] || echo No android/ directory found
+	@[ -d android ]
+	@[ -e android/local.properties ] || echo 'You need to create android/local.properties and add "sdk.dir=PATH_TO_SDK"'
+	@[ -e android/local.properties ]
+	@mkdir -p android/app/src/main/java
+	cp src/AndroidManifest.xml android/app/src/main
+	cp -r res android/app/src/main
+	cp -r src/* android/app/src/main/java/
+	@echo Starting gradlew assemble...
+	@( \
+		cd android/app; \
+		cat build.gradle.base | sed 's:applicationId "":applicationId "${ID_FOR_ANDROID}":' > build.gradle; \
+		cd src/main/java; \
+		if [ "${RM_FOR_ANDROID}" != "" ]; then \
+			echo Removing uneeded sources...; \
+			rm -rf ${RM_FOR_ANDROID}; \
+		fi; \
+		cd ../../../../; \
+		bash gradlew assemble && ( \
+			cd ..; \
+			cp android/app/build/outputs/apk/release/app-release-unsigned.apk ${NAME}.apk; \
+			cp android/app/build/outputs/apk/debug/app-debug.apk ${NAME}-debug.apk; \
+			[ ! -e VERSION ] || echo Copying to "$(NAME)-`cat VERSION`.apk"...; \
+			[ ! -e VERSION ] || cp $(NAME).apk "$(NAME)-`cat VERSION`.apk"; \
+			[ ! -e VERSION ] || echo Copying to "$(NAME)-`cat VERSION`-debug.apk"...; \
+			[ ! -e VERSION ] || cp $(NAME).apk "$(NAME)-`cat VERSION`-debug.apk"; \
+		); \
+	)
 
