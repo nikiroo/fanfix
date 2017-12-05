@@ -201,14 +201,7 @@ android/app/src:
 		ln -s ../../../../res .; \
 		ln -s ../../../../src ./java; \
 	)
-
-apk: libs ${NAME}.apk
-	@echo Building APK files...
-
-${NAME}.apk: ${NAME}-debug.apk
-
-${NAME}-debug.apk: android
-	@echo Starting gradlew assemble...
+	@echo Fixing configuration...
 	@( \
 		cd android/app/src/main/java; \
 		excl="\\n";\
@@ -223,7 +216,17 @@ ${NAME}-debug.apk: android
 			| sed 's:\(applicationId "\)":\1${ID_FOR_ANDROID}":' \
 			| sed "s:\s*exclude '':$$excl:g" \
 		> build.gradle; \
-		cd ../ ; \
+	)
+
+apk: libs ${NAME}.apk
+	@echo Building APK files...
+
+${NAME}.apk: ${NAME}-debug.apk
+
+${NAME}-debug.apk: android
+	@echo Starting gradlew assemble...
+	@( \
+		cd android/; \
 		bash gradlew assemble && ( \
 			cd ..; \
 			cp android/app/build/outputs/apk/release/app-release-unsigned.apk ${NAME}.apk; \
