@@ -2,10 +2,11 @@
 # 
 # Version:
 # - 1.0.0: add a version comment
-# - 1.1.0: add help, sjar
-# - 1.2.0: add apk
+# - 1.1.0: add 'help', 'sjar'
+# - 1.2.0: add 'apk'
+# - 1.2.1: improve 'apk' and add 'android'
 
-# Required parameters (the commented out ones are supposed to change per project):
+# Required parameters (the commented out ones are supposed to be per project):
 
 #MAIN = path to main java source to compile
 #MORE = path to supplementary needed resources not linked from MAIN
@@ -13,10 +14,12 @@
 #PREFIX = usually /usr/local (where to install the program)
 #TEST = path to main test source to compile
 #JAR_FLAGS += a list of things to pack, each usually prefixed with "-C bin/"
-#SJAR_FLAGS += a list of things to pack, each usually prefixed with "-C src/", for *-sources.jar files
+#SJAR_FLAGS += a list of things to pack, each usually prefixed with "-C src/",
+#		for *-sources.jar files
 #TEST_PARAMS = any parameter to pass to the test runnable when "test-run"
 #ID_FOR_ANDROID = id of activity to launch for Android
-#RM_FOR_ANDROID = paths to remove for APK generation
+#RM_FOR_ANDROID = packages (if it ends with /) or classes to ignore for APK 
+#		generation
 
 JAVAC = javac
 JAVAC_FLAGS += -encoding UTF-8 -d ./bin/ -cp ./src/
@@ -44,9 +47,10 @@ help:
 	@echo "	make run-test	: to run the test program from the binaries"
 	@echo "	make jrun	: to run the program from the jar file"
 	@echo "	make install	: to install the application into $$PREFIX"
+	@echo "	make android	: to prepare the sources in android/ for Studio"
 	@echo "	make apk	: to compile the APK file"
 
-.PHONY: all clean mrproper mrpropre build run jrun jar sjar resources test-resources install libs love 
+.PHONY: all clean mrproper mrpropre build run jrun jar sjar resources test-resources install libs love apk android
 
 bin:
 	@mkdir -p bin
@@ -76,7 +80,8 @@ test: test-resources
 
 clean:
 	rm -rf bin/
-	rm -rf android/.gradle android/build android/app/build android/app/src android/app/build.gradle
+	rm -rf android/.gradle android/build android/app/build android/app/build.gradle
+	[ ! -L android/app/src/main/java ] || rm -rf android/app/src
 	@echo Removing sources taken from libs...
 	@for lib in libs/*-sources.jar libs/*-sources.patch.jar; do \
 		if [ "$$lib" != 'libs/*-sources.jar' -a "$$lib" != 'libs/*-sources.patch.jar' ]; then \
@@ -181,30 +186,44 @@ install:
 	echo "$(RJAR) $(RJAR_FLAGS) \"$(PREFIX)/lib/$(NAME).jar\" \"\$$@\"" >> "$(PREFIX)/bin/$(NAME)"
 	chmod a+rx "$(PREFIX)/bin/$(NAME)"
 
+android: android/app/src
+
+android/app/src:
+	@[ -d android ] || echo No android/ directory found
+	@[ -d android ]
+	@[ -e android/local.properties ] || echo 'You need to create android/local.properties and add "sdk.dir=PATH_TO_SDK"'
+	@[ -e android/local.properties ]
+	@mkdir -p android/app/src/main
+	@echo Linking sources...
+	@( \
+		cd android/app/src/main; \
+		ln -s ../../../../src/AndroidManifest.xml .; \
+		ln -s ../../../../res .; \
+		ln -s ../../../../src ./java; \
+	)
+
 apk: libs ${NAME}.apk
 	@echo Building APK files...
 
 ${NAME}.apk: ${NAME}-debug.apk
 
-${NAME}-debug.apk:
-	@[ -d android ] || echo No android/ directory found
-	@[ -d android ]
-	@[ -e android/local.properties ] || echo 'You need to create android/local.properties and add "sdk.dir=PATH_TO_SDK"'
-	@[ -e android/local.properties ]
-	@mkdir -p android/app/src/main/java
-	cp src/AndroidManifest.xml android/app/src/main
-	cp -r res android/app/src/main
-	cp -r src/* android/app/src/main/java/
+${NAME}-debug.apk: android
 	@echo Starting gradlew assemble...
 	@( \
-		cd android/app; \
-		cat build.gradle.base | sed 's:applicationId "":applicationId "${ID_FOR_ANDROID}":' > build.gradle; \
-		cd src/main/java; \
+		cd android/app/src/main/java; \
+		excl="\\n";\
 		if [ "${RM_FOR_ANDROID}" != "" ]; then \
-			echo Removing uneeded sources...; \
-			rm -rf ${RM_FOR_ANDROID}; \
+			echo Ignoring uneeded sources...; \
+			for file in ${RM_FOR_ANDROID}; do \
+				excl="$${excl}exclude '**/$${file}'\\n";\
+			done; \
 		fi; \
-		cd ../../../../; \
+		cd ../../../ ; \
+		cat build.gradle.base \
+			| sed 's:\(applicationId "\)":\1${ID_FOR_ANDROID}":' \
+			| sed "s:\s*exclude '':$$excl:g" \
+		> build.gradle; \
+		cd ../ ; \
 		bash gradlew assemble && ( \
 			cd ..; \
 			cp android/app/build/outputs/apk/release/app-release-unsigned.apk ${NAME}.apk; \
