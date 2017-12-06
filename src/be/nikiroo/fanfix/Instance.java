@@ -40,64 +40,20 @@ public class Instance {
 		// Before we can configure it:
 		tracer = new TraceHandler(true, checkEnv("DEBUG"), checkEnv("DEBUG"));
 
-		// Most of the rest is dependent upon this:
-		config = new ConfigBundle();
-
-		configDir = System.getProperty("CONFIG_DIR");
-		if (configDir == null) {
-			configDir = System.getenv("CONFIG_DIR");
-		}
-
-		if (configDir == null) {
-			configDir = new File(getHome(), ".fanfix").getPath();
-		}
-
+		// config dir:
+		configDir = getConfigDir();
 		if (!new File(configDir).exists()) {
 			new File(configDir).mkdirs();
-		} else {
-			Bundles.setDirectory(configDir);
 		}
 
-		try {
-			config = new ConfigBundle();
-			config.updateFile(configDir);
-		} catch (IOException e) {
-			tracer.error(e);
-		}
-		try {
-			uiconfig = new UiConfigBundle();
-			uiconfig.updateFile(configDir);
-		} catch (IOException e) {
-			tracer.error(e);
-		}
+		// Most of the rest is dependent upon this:
+		createConfigs(configDir, true);
 
-		// No updateFile for this one! (we do not want the user to have custom
-		// translations that won't accept updates from newer versions)
-		trans = new StringIdBundle(getLang());
-
-		// Fix an old bug (we used to store custom translation files by
-		// default):
-		if (trans.getString(StringId.INPUT_DESC_CBZ) == null) {
-			trans.deleteFile(configDir);
-		}
-
-		Bundles.setDirectory(configDir);
-
-		uiconfig = new UiConfigBundle();
-		trans = new StringIdBundle(getLang());
-
+		// update tracer:
 		boolean debug = Instance.getConfig()
 				.getBoolean(Config.DEBUG_ERR, false);
 		boolean trace = Instance.getConfig().getBoolean(Config.DEBUG_TRACE,
 				false);
-		coverDir = getFile(Config.DEFAULT_COVERS_DIR);
-		File tmp = getFile(Config.CACHE_DIR);
-		readerTmp = getFile(UiConfig.CACHE_DIR_LOCAL_READER);
-		remoteDir = new File(configDir, "remote");
-
-		if (checkEnv("NOUTF")) {
-			trans.setUnicode(false);
-		}
 
 		if (checkEnv("DEBUG")) {
 			debug = true;
@@ -106,63 +62,16 @@ public class Instance {
 
 		tracer = new TraceHandler(true, debug, trace);
 
-		String remoteLib = config.getString(Config.DEFAULT_LIBRARY);
-		if (remoteLib == null || remoteLib.trim().isEmpty()) {
-			String libDir = System.getProperty("fanfix.libdir");
-			if (libDir == null || libDir.isEmpty()) {
-				config.getString(Config.LIBRARY_DIR);
-			}
-			try {
-				lib = new LocalLibrary(getFile(libDir));
-			} catch (Exception e) {
-				tracer.error(new IOException(
-						"Cannot create library for directory: "
-								+ getFile(libDir), e));
-			}
-		} else {
-			int pos = remoteLib.lastIndexOf(":");
-			if (pos >= 0) {
-				String port = remoteLib.substring(pos + 1).trim();
-				remoteLib = remoteLib.substring(0, pos);
-				pos = remoteLib.lastIndexOf(":");
-				if (pos >= 0) {
-					String host = remoteLib.substring(pos + 1).trim();
-					String key = remoteLib.substring(0, pos).trim();
+		// default Library
+		remoteDir = new File(configDir, "remote");
+		lib = createDefaultLibrary(remoteDir);
 
-					try {
-						tracer.trace("Selecting remote library " + host + ":"
-								+ port);
-						lib = new RemoteLibrary(key, host,
-								Integer.parseInt(port));
-						lib = new CacheLibrary(getRemoteDir(host), lib);
-
-					} catch (Exception e) {
-					}
-				}
-			}
-
-			if (lib == null) {
-				tracer.error(new IOException(
-						"Cannot create remote library for: " + remoteLib));
-			}
-		}
-
-		// Could have used: System.getProperty("java.io.tmpdir")
+		// create cache
+		File tmp = getFile(Config.CACHE_DIR);
 		if (tmp == null) {
+			// Could have used: System.getProperty("java.io.tmpdir")
 			tmp = new File(configDir, "tmp");
 		}
-		if (readerTmp == null) {
-			readerTmp = new File(configDir, "tmp-reader");
-		}
-		//
-
-		if (coverDir != null && !coverDir.exists()) {
-			tracer.error(new IOException(
-					"The 'default covers' directory does not exists: "
-							+ coverDir));
-			coverDir = null;
-		}
-
 		String ua = config.getString(Config.USER_AGENT);
 		try {
 			int hours = config.getInteger(Config.CACHE_MAX_TIME_CHANGING, -1);
@@ -176,6 +85,20 @@ public class Instance {
 		}
 
 		cache.setTraceHandler(tracer);
+
+		// readerTmp / coverDir
+		readerTmp = getFile(UiConfig.CACHE_DIR_LOCAL_READER);
+		if (readerTmp == null) {
+			readerTmp = new File(configDir, "tmp-reader");
+		}
+
+		coverDir = getFile(Config.DEFAULT_COVERS_DIR);
+		if (coverDir != null && !coverDir.exists()) {
+			tracer.error(new IOException(
+					"The 'default covers' directory does not exists: "
+							+ coverDir));
+			coverDir = null;
+		}
 	}
 
 	/**
@@ -317,6 +240,21 @@ public class Instance {
 	 * @return the directory
 	 */
 	public static File getRemoteDir(String host) {
+		return getRemoteDir(remoteDir, host);
+	}
+
+	/**
+	 * Return the directory where to store temporary files for the remote
+	 * {@link LocalLibrary}.
+	 * 
+	 * @param remoteDir
+	 *            the base remote directory
+	 * @param host
+	 *            the remote for this host
+	 * 
+	 * @return the directory
+	 */
+	private static File getRemoteDir(File remoteDir, String host) {
 		remoteDir.mkdirs();
 
 		if (host != null) {
@@ -364,6 +302,133 @@ public class Instance {
 		} catch (IOException e) {
 			tracer.error(e);
 		}
+	}
+
+	/**
+	 * The configuration directory (will check, in order of preference,
+	 * {@link Bundles#getDirectory()}, the system properties, the environment
+	 * and then defaults to $HOME/.fanfix).
+	 * 
+	 * @return the config directory
+	 */
+	private static String getConfigDir() {
+		String configDir = Bundles.getDirectory();
+
+		if (configDir == null) {
+			configDir = System.getProperty("CONFIG_DIR");
+		}
+
+		if (configDir == null) {
+			configDir = System.getenv("CONFIG_DIR");
+		}
+
+		if (configDir == null) {
+			configDir = new File(getHome(), ".fanfix").getPath();
+		}
+
+		return configDir;
+	}
+
+	/**
+	 * Create the config variables ({@link Instance#config},
+	 * {@link Instance#uiconfig} and {@link Instance#trans}).
+	 * 
+	 * @param configDir
+	 *            the directory where to find the configuration files
+	 * @param refresh
+	 *            TRUE to refresh the configuration files from the default
+	 *            included ones
+	 */
+	private static void createConfigs(String configDir, boolean refresh) {
+		if (!refresh) {
+			Bundles.setDirectory(configDir);
+		}
+
+		try {
+			config = new ConfigBundle();
+			config.updateFile(configDir);
+		} catch (IOException e) {
+			tracer.error(e);
+		}
+
+		try {
+			uiconfig = new UiConfigBundle();
+			uiconfig.updateFile(configDir);
+		} catch (IOException e) {
+			tracer.error(e);
+		}
+
+		// No updateFile for this one! (we do not want the user to have custom
+		// translations that won't accept updates from newer versions)
+		trans = new StringIdBundle(getLang());
+
+		// Fix an old bug (we used to store custom translation files by
+		// default):
+		if (trans.getString(StringId.INPUT_DESC_CBZ) == null) {
+			trans.deleteFile(configDir);
+		}
+
+		if (checkEnv("NOUTF")) {
+			trans.setUnicode(false);
+		}
+
+		Bundles.setDirectory(configDir);
+	}
+
+	/**
+	 * Create the default library as specified by the config.
+	 * 
+	 * @param remoteDir
+	 *            the base remote directory if needed
+	 * 
+	 * @return the default {@link BasicLibrary}
+	 */
+	private static BasicLibrary createDefaultLibrary(File remoteDir) {
+		BasicLibrary lib = null;
+
+		String remoteLib = config.getString(Config.DEFAULT_LIBRARY);
+		if (remoteLib == null || remoteLib.trim().isEmpty()) {
+			String libDir = System.getProperty("fanfix.libdir");
+			if (libDir == null || libDir.isEmpty()) {
+				config.getString(Config.LIBRARY_DIR);
+			}
+			try {
+				lib = new LocalLibrary(getFile(libDir));
+			} catch (Exception e) {
+				tracer.error(new IOException(
+						"Cannot create library for directory: "
+								+ getFile(libDir), e));
+			}
+		} else {
+			int pos = remoteLib.lastIndexOf(":");
+			if (pos >= 0) {
+				String port = remoteLib.substring(pos + 1).trim();
+				remoteLib = remoteLib.substring(0, pos);
+				pos = remoteLib.lastIndexOf(":");
+				if (pos >= 0) {
+					String host = remoteLib.substring(pos + 1).trim();
+					String key = remoteLib.substring(0, pos).trim();
+
+					try {
+						tracer.trace("Selecting remote library " + host + ":"
+								+ port);
+						lib = new RemoteLibrary(key, host,
+								Integer.parseInt(port));
+						lib = new CacheLibrary(getRemoteDir(remoteDir, host),
+								lib);
+
+					} catch (Exception e) {
+					}
+				}
+			}
+
+			if (lib == null) {
+				tracer.error(new IOException(
+						"Cannot create remote library for: " + remoteLib));
+			}
+		}
+
+		return lib;
 	}
 
 	/**
