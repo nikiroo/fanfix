@@ -4,9 +4,11 @@
 PREFIX=/usr/local
 PROGS="java javac jar make sed"
 
+IMG=be/nikiroo/utils/ui/ImageUtilsAwt
 CLI=be/nikiroo/fanfix/reader/cli/CliReader
 TUI=
 GUI=be/nikiroo/fanfix/reader/ui/GuiReader
+JIMG=
 JCLI=
 JTUI=
 JGUI=
@@ -76,7 +78,7 @@ else
 fi;
 
 echo "MAIN = be/nikiroo/fanfix/Main" > Makefile
-echo "MORE = $CLI $TUI $GUI" >> Makefile
+echo "MORE = $CLI $TUI $GUI $IMG" >> Makefile
 echo "TEST = be/nikiroo/fanfix/test/Test" >> Makefile
 echo "TEST_PARAMS = $cols $ok $ko" >> Makefile
 echo "NAME = fanfix" >> Makefile
