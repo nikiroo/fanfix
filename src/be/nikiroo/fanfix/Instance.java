@@ -47,7 +47,7 @@ public class Instance {
 		}
 
 		// Most of the rest is dependent upon this:
-		createConfigs(configDir, true);
+		createConfigs(configDir, false);
 
 		// update tracer:
 		boolean debug = Instance.getConfig()
@@ -336,7 +336,7 @@ public class Instance {
 	 * @param configDir
 	 *            the directory where to find the configuration files
 	 * @param refresh
-	 *            TRUE to refresh the configuration files from the default
+	 *            TRUE to reset the configuration files from the default
 	 *            included ones
 	 */
 	private static void createConfigs(String configDir, boolean refresh) {
@@ -390,7 +390,7 @@ public class Instance {
 		if (remoteLib == null || remoteLib.trim().isEmpty()) {
 			String libDir = System.getProperty("fanfix.libdir");
 			if (libDir == null || libDir.isEmpty()) {
-				config.getString(Config.LIBRARY_DIR);
+				libDir = config.getString(Config.LIBRARY_DIR);
 			}
 			try {
 				lib = new LocalLibrary(getFile(libDir));
