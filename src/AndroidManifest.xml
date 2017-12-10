@@ -19,6 +19,5 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="be.nikiroo.fanfix.reader.android.SayIt" />
     </application>
 </manifest>

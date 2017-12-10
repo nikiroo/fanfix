@@ -6,10 +6,9 @@
 
     <!-- TODO: Update blank fragment layout -->
 
-    <LinearLayout
-        android:id="@+id/AndroidReaderGroup_root"
+    <ListView
+        android:id="@+id/Group_root"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"></LinearLayout>
+        android:layout_height="match_parent" />
 
 </FrameLayout>
