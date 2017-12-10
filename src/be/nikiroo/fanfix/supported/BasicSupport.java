@@ -466,7 +466,7 @@ public abstract class BasicSupport {
 					if (chap.getValue() != null) {
 						setCurrentReferer(chap.getValue());
 						chapIn = Instance.getCache().open(chap.getValue(),
-								this, true);
+								this, false);
 					}
 					pgChaps.setProgress(i * 100);
 					try {

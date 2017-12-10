@@ -145,7 +145,7 @@ public class DataLoader {
 						downloadCache.save(in, originalUrl);
 						// ..But we want a resetable stream
 						in.close();
-						in = downloadCache.load(originalUrl, false, stable);
+						in = downloadCache.load(originalUrl, true, stable);
 					} else {
 						InputStream resetIn = IOUtils.forceResetableStream(in);
 						if (resetIn != in) {
