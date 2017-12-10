@@ -61,7 +61,7 @@ public class ImageUtilsAwt extends ImageUtils {
 	 * @throws IOException
 	 *             in case of IO error
 	 */
-	static public BufferedImage fromImage(Image img) throws IOException {
+	public static BufferedImage fromImage(Image img) throws IOException {
 		InputStream in = new ByteArrayInputStream(img.getData());
 
 		int orientation;

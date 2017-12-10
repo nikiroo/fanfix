@@ -2,15 +2,17 @@ package be.nikiroo.utils.android;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import be.nikiroo.utils.Image;
-import be.nikiroo.utils.ImageUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import be.nikiroo.utils.Image;
+import be.nikiroo.utils.ImageUtils;
+
 /**
- * This class offer some utilities based around images and uses the Android framework.
+ * This class offer some utilities based around images and uses the Android
+ * framework.
  * 
  * @author niki
  */
@@ -62,7 +64,22 @@ public class ImageUtilsAndroid extends ImageUtils {
 		Bitmap image = BitmapFactory.decodeByteArray(img.getData(), 0,
 				img.getData().length);
 		if (image == null) {
-			throw new IOException("Failed to convert input to image");
+			int size = img.getData().length;
+			String ssize = size + " byte";
+			if (size > 1) {
+				ssize = size + " bytes";
+				if (size >= 1000) {
+					size = size / 1000;
+					ssize = size + " kb";
+					if (size > 1000) {
+						size = size / 1000;
+						ssize = size + " MB";
+					}
+				}
+			}
+
+			throw new IOException(
+					"Failed to convert input to image, size was: " + ssize);
 		}
 
 		return image;

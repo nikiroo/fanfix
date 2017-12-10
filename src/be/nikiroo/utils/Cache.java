@@ -135,7 +135,12 @@ public class Cache {
 	 */
 	private boolean check(File cached, boolean allowTooOld, boolean stable) {
 		if (cached.exists() && cached.isFile()) {
-			if (allowTooOld || !isOld(cached, stable)) {
+			if (!allowTooOld && isOld(cached, stable)) {
+				if (!cached.delete()) {
+					tracer.error("Cannot delete temporary file: "
+							+ cached.getAbsolutePath());
+				}
+			} else {
 				return true;
 			}
 		}
