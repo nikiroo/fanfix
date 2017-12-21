@@ -14,16 +14,13 @@ import android.widget.TextView;
 
 import java.io.IOException;
 
-import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.reader.Reader;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.android.ImageUtilsAndroid;
 
 public class AndroidReaderBook extends Fragment {
-	private Reader reader;
 	private OnFragmentInteractionListener listener;
-	private MetaData meta;
 
 	/**
 	 * This interface must be implemented by activities that contain this
@@ -63,56 +60,63 @@ public class AndroidReaderBook extends Fragment {
 		listener = null;
 	}
 
-	public void fill(final Reader reader, final String luid) {
-		View view = getView();
-		if (view == null) {
-			return;
-		}
+	public void fill(final MetaData meta, final Reader reader) {
+		ViewHolder viewHolder = new ViewHolder(getView());
 
-		final ImageView cover = view.findViewById(R.id.cover);
-		final TextView title = view.findViewById(R.id.title);
-		final FrameLayout frame = view.findViewById(R.id.coverWidget);
-
-		new AsyncTask<Void, Void, MetaData>() {
+		viewHolder.title.setText(meta.getTitle());
+		viewHolder.author.setText(meta.getAuthor());
+		viewHolder.frame.setClickable(true);
+		viewHolder.frame.setFocusable(true);
+		viewHolder.frame.setOnClickListener(new View.OnClickListener() {
 			@Override
-			protected MetaData doInBackground(Void[] objects) {
-				return Instance.getLibrary().getInfo(luid);
+			public void onClick(View v) {
+				OnFragmentInteractionListener llistener = listener;
+				if (llistener != null) {
+					llistener.onFragmentInteraction(meta);
+				}
 			}
+		});
 
+		new AsyncTask<MetaData, Void, Image>() {
 			@Override
-			protected void onPostExecute(MetaData meta) {
-				AndroidReaderBook.this.meta = meta;
-
-				if (meta != null) {
-					title.setText(meta.getTitle());
-					try {
-						Image coverImage = reader.getLibrary().getCover(
-								meta.getLuid());
-						if (coverImage != null) {
-							Bitmap coverBitmap = ImageUtilsAndroid
-									.fromImage(coverImage);
-							coverBitmap = Bitmap.createScaledBitmap(
-									coverBitmap, 128, 128, true);
-							cover.setImageBitmap(coverBitmap);
-						}
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+			protected Image doInBackground(MetaData[] metas) {
+				if (metas[0].getCover() != null) {
+					return metas[0].getCover();
 				}
 
-				frame.setClickable(true);
-				frame.setFocusable(true);
-				frame.setOnClickListener(new View.OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						OnFragmentInteractionListener llistener = listener;
-						if (llistener != null) {
-							llistener
-									.onFragmentInteraction(AndroidReaderBook.this.meta);
-						}
-					}
-				});
+				return reader.getLibrary().getCover(metas[0].getLuid());
 			}
-		}.execute();
+
+			@Override
+			protected void onPostExecute(Image coverImage) {
+				ViewHolder viewHolder = new ViewHolder(getView());
+
+				try {
+					if (coverImage != null) {
+						Bitmap coverBitmap = ImageUtilsAndroid
+								.fromImage(coverImage);
+						coverBitmap = Bitmap.createScaledBitmap(coverBitmap,
+								128, 128, true);
+						viewHolder.cover.setImageBitmap(coverBitmap);
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}.execute(meta);
+	}
+
+	private class ViewHolder {
+		public FrameLayout frame;
+		public TextView title;
+		public TextView author;
+		public ImageView cover;
+
+		public ViewHolder(View book) {
+			frame = book.findViewById(R.id.Book);
+			title = book.findViewById(R.id.Book_lblTitle);
+			author = book.findViewById(R.id.Book_lblAuthor);
+			cover = book.findViewById(R.id.Book_imgCover);
+		}
 	}
 }

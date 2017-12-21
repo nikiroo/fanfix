@@ -124,20 +124,13 @@ public class CacheLibrary extends BasicLibrary {
 
 	@Override
 	protected void invalidateInfo(String luid) {
-		List<MetaData> metas = this.metas;
-
 		if (luid == null) {
-			this.metas = null;
+			metas = null;
 		} else if (metas != null) {
 			MetaData meta = lib.getInfo(luid);
 			for (int i = 0; i < metas.size(); i++) {
 				if (metas.get(i).getLuid().equals(luid)) {
-					if (meta != null) {
-						metas.set(i, meta);
-						meta = null;
-					} else {
-						metas.remove(i--);
-					}
+					metas.remove(i--);
 				}
 			}
 
@@ -179,13 +172,9 @@ public class CacheLibrary extends BasicLibrary {
 		}
 		lib.delete(luid);
 
-		List<MetaData> metas = this.metas;
-		if (metas != null) {
-			for (int i = 0; i < metas.size(); i++) {
-				if (metas.get(i).getLuid().equals(luid)) {
-					metas.set(i, lib.getInfo(luid));
-				}
-			}
+		MetaData meta = getInfo(luid);
+		if (meta != null) {
+			metas.remove(meta);
 		}
 	}
 
@@ -262,6 +251,8 @@ public class CacheLibrary extends BasicLibrary {
 
 		Story story = lib.imprt(url, pgImprt);
 		cacheLib.save(story, story.getMeta().getLuid(), pgCache);
+
+		invalidateInfo(story.getMeta().getLuid());
 
 		pg.done();
 		return story;

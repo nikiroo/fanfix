@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import be.nikiroo.utils.Version;
@@ -19,7 +20,7 @@ import be.nikiroo.utils.Version;
  * @author niki
  */
 public class VersionCheck {
-	private static final String url = "https://github.com/nikiroo/fanfix/raw/master/changelog.md";
+	private static final String base = "https://github.com/nikiroo/fanfix/raw/master/changelog${LANG}.md";
 
 	private Version current;
 	private List<Version> newer;
@@ -108,7 +109,27 @@ public class VersionCheck {
 
 		if (Instance.isVersionCheckNeeded()) {
 			try {
-				InputStream in = Instance.getCache().openNoCache(new URL(url));
+				// Prepare the URLs according to the user's language
+				Locale lang = Instance.getTrans().getLanguage();
+				String fr = lang.getLanguage();
+				String BE = lang.getCountry().replace(".UTF8", "");
+				String urlFrBE = base.replace("${LANG}", "-" + fr + "_" + BE);
+				String urlFr = base.replace("${LANG}", "-" + fr);
+				String urlDefault = base.replace("${LANG}", "");
+
+				InputStream in = null;
+				for (String url : new String[] { urlFrBE, urlFr, urlDefault }) {
+					try {
+						in = Instance.getCache().openNoCache(new URL(url));
+						break;
+					} catch (IOException e) {
+					}
+				}
+
+				if (in == null) {
+					throw new IOException("No changelog found");
+				}
+
 				BufferedReader reader = new BufferedReader(
 						new InputStreamReader(in, "UTF-8"));
 				try {
@@ -140,8 +161,10 @@ public class VersionCheck {
 					reader.close();
 				}
 			} catch (IOException e) {
-				Instance.getTraceHandler().error(new IOException(
-						"Cannot download latest changelist on github.com", e));
+				Instance.getTraceHandler()
+						.error(new IOException(
+								"Cannot download latest changelist on github.com",
+								e));
 			}
 		}
 
