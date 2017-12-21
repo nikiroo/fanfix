@@ -1,8 +1,12 @@
+>English< [Français](README-fr.md)
+
 # Fanfix
 
 Fanfix is a small Java program that can download stories from some supported websites and render them offline.
 
-(If you are interested in the recent changes, please check the [Changelog](changelog.md) -- note that starting from version 1.4.0, the changelog is checked at startup (unless the option is disabled))
+(If you are interested in the recent changes, please check the [Changelog](changelog.md) -- note that starting from version 1.4.0, the changelog is checked at startup.)
+
+(A [TODO list](TODO.md) is also available to know what is expected to come in the future.)
 
 TODO: new screenshots + TUI screenshots
 
@@ -38,38 +42,39 @@ We support a few file types for local story conversion (both as input and as out
   - a cover image may be present with the same filename as the story, but a .png, .jpeg or .jpg extension
 - info_text: contains the same information as the text format, but with a companion .info file to store some metadata (the .info file is supposed to be created by Fanfix or compatible with it)
 - cbz: .cbz (collection of images) files, preferably created with Fanfix (but any .cbz file is supported, though without most of Fanfix metadata, obviously)
-- html: HTML files that you can open with any browser; note that it will create a directory structure with ```index.html``` being the file you need to open (or select if you want to convert it into something else) -- we only support importing HTML files created by Fanfix or compatible
+- html: HTML files that you can open with any browser; note that it will create a directory structure with ```index.html``` as the main file -- we only support importing HTML files created by Fanfix
 
 ## Supported platforms
 
 Any platform with at lest Java 1.6 on it should be ok.
 
-It has been tested on Linux, MacOS X and Windows for now, but feel free to inform me if you try it on another system.
+It has been tested on Linux (Debian, Slackware, Ubuntu), MacOS X and Windows for now, but feel free to inform us if you try it on another system.
 
-If you have any problems to compile it with a supported Java version (1.5 won't work, but you may try to cross-compile; 1.6 and 1.8 have been tested and work), please contact me.
+If you have any problems to compile it with a supported Java version (1.6+), please contact us.
 
 ## Usage
 
 You can start the program in GUI mode (as in the screenshot on top):
 - ```java -jar fanfix.jar```
 
-
 The following arguments are also allowed:
 - ```--import [URL]```: import the story at URL into the local library
 - ```--export [id] [output_type] [target]```: export the story denoted by ID to the target file
 - ```--convert [URL] [output_type] [target] (+info)```: convert the story at URL into target, and force-add the .info and cover if +info is passed
 - ```--read [id] ([chapter number])```: read the given story denoted by ID from the library
-- ```--read-url [URL] ([chapter number])```: convert on the fly and read the story denoted by ID, without saving it
+- ```--read-url [URL] ([chapter number])```: convert on the fly and read the story at URL, without saving it
 - ```--list```: list the stories present in the library and their associated IDs
 - ```--set-reader [reader type]```: set the reader type to CLI, TUI or GUI for this command
-- ```--server [port]```: start a story server on this port
-- ```--remote [host] [port]```: contact this server instead of the usual library
+- ```--server [key] [port]```: start a story server on this port
+- ```--stop-server [key] [port]: stop the remote server running on this port (key must be set to the same value)
+- ```--remote [key] [host] [port]```: contact this server instead of the usual library (key must be set to the same value)
 - ```--help```: display the available options
+- ```--version```: return the version of the program
 
 ### Environment variables
 
 Some environment variables are recognized by the program:
-- ```LANG=en```: force the language to English (the only one for now...)
+- ```LANG=en```: force the language to English
 - ```CONFIG_DIR=$HOME/.fanfix```: use the given directory as a config directory (and copy the default configuration if needed)
 - ```NOUTF=1```: try to fallback to non-unicode values when possible (can have an impact on the resulting files, not only on user messages)
 - ```DEBUG=1```: force the ```DEBUG=true``` option of the configuration file (to show more information on errors)
@@ -86,73 +91,11 @@ There are some unit tests you can run, too:
 
 ### Dependant libraries (included)
 
-- libs/nikiroo-utils-sources.jar: some shared utility functions I also use elsewhere
-- [libs/unbescape-sources.jar](https://github.com/unbescape/unbescape): a nice library to escape/unescape a lot of text formats; I only use it for HTML
+- libs/nikiroo-utils-sources.jar: some shared utility functions
+- [libs/unbescape-sources.jar](https://github.com/unbescape/unbescape): a nice library to escape/unescape a lot of text formats; used here for HTML
 - [libs/jexer-sources.jar](https://github.com/klamonte/jexer): a small library that offers TUI widgets
 
 Nothing else but Java 1.6+.
 
 Note that calling ```make libs``` will export the libraries into the src/ directory.
-
-## TODO
-
-Currently missing, but either in progress or planned:
-- [ ] Support new websites
-  - [x] YiffStar
-  - [ ] [Two Kinds](http://twokinds.keenspot.com/)
-  - [ ] [Slightly damned](http://www.sdamned.com/)
-  - [x] New API on FimFiction.net (faster)
-  - [ ] Others? Any ideas? I'm open for requests
-    - [x] [e-Hentai](https://e-hentai.org/) requested
-      - [ ] Fix "content warning" access
-- [x] A GUI library
-  - [x] Make one
-  - [x] Make it run when no args passed
-  - [x] Fix the UI, it is ugly
-  - [x] Work on the UI thread is BAD
-  - [x] Allow export
-  - [x] Allow delete/refresh
-  - [x] Show a list of types
-    - [x] ..in the menu
-    - [x] ..as a screen view
-  - [x] options screen
-- [ ] A TUI library
-  - [x] Choose an output (Jexer)
-  - [x] Implement it from --set-reader to the actual window
-  - [x] List the stories
-  - [ ] Fix the UI layout
-  - [x] Status bar
-  - [ ] Real menus
-  - [x] Open a story in the reader and/or natively
-  - [ ] Update the screenshots
-  - [ ] Remember the current chapter and current read status of stories
-- [ ] Network support
-  - [x] A server that can send the stories
-  - [x] A network implementation of the Library
-  - [ ] Write access to the library (?)
-  - [ ] Access rights (?)
-  - [ ] More tests, especially with the GUI
-- [ ] Check if it can work on Android
-  - [x] First checks: it should work, but with changes
-  - [ ] Adapt work on images :(
-  - [ ] Partial/Conditional compilation
-  - [ ] APK export
-- [ ] Translations
-  - [x] i18n system in place
-  - [x] Make use of it
-  - [ ] Use it for all user output
-  - [ ] French translation
-- [x] Allow lauching a custom application instead of Desktop.start
-- [x] Install a mechanism to handle stories import/export progress update
-  - [x] Progress system
-  - [x] in support classes (import)
-  - [x] in output classes (export)
-  - [x] CLI usage of such
-  - [x] GUI usage of such
-  - [ ] TUI usage of such
-- [x] Version
-  - [x] Use a version number
-  - [x] Show it in UI
-  - [x] A check-update feature
-- [x] Fix "redownload also reset the source" bug
 
