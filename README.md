@@ -1,4 +1,4 @@
->English< [Français](README-fr.md)
+English [Français](README-fr.md)
 
 # Fanfix
 

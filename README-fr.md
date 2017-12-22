@@ -1,4 +1,4 @@
-[English](README.md) >Français<
+[English](README.md) Français
 
 # Fanfix
 
@@ -66,7 +66,7 @@ Les arguments suivants sont aussi supportés :
 - ```--list```: lister les histoires presentes dans la librairie et leurs IDs
 - ```--set-reader [reader type]```: changer le type de lecteur pour la commande en cours sur CLI, TUI ou GUI
 - ```--server [key] [port]```: démarrer un serveur d'histoires sur ce port
-- ```--stop-server [key] [port]: arrêter le serveur distant sur ce port (key doit avoir la même valeur)
+- ```--stop-server [key] [port]```: arrêter le serveur distant sur ce port (key doit avoir la même valeur)
 - ```--remote [key] [host] [port]```: contacter ce server au lieu de la librairie habituelle (key doit avoir la même valeur)
 - ```--help```: afficher la liste des options disponibles
 - ```--version```: retourne la version du programme
