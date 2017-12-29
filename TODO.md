@@ -65,7 +65,13 @@ My current planning for Fanfix (but not everything appears on this list):
   - [x] Show it in UI
   - [x] A check-update feature
     - [x] ..translated
+- [ ] Add the resume next to the cover icon if available (as an option)
 - [ ] Bugs
     - [x] Fix "Redownload also reset the source"
     - [ ] Fix eHentai "content warning" access
     - [ ] Fix the configuration system (for new or changed options, new or changed languages)
+    - [ ] remote import also download the file in cache, why?
+    - [ ] import file in remote mode tries to import remote file!!
+    - [ ] import file does not find author in cbz with SUMMARY file
+    - [ ] import file:// creates a tmp without auto-deletion in /tmp/fanfic-...
+
