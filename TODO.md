@@ -6,6 +6,7 @@ My current planning for Fanfix (but not everything appears on this list):
   - [x] New API on FimFiction.net (faster)
   - [ ] Others? Any ideas? I'm open for requests
     - [x] [e-Hentai](https://e-hentai.org/) requested
+    - [ ] Find some FR comics/manga websites
 - [x] A GUI library
   - [x] Make one
   - [x] Make it run when no args passed
@@ -17,6 +18,7 @@ My current planning for Fanfix (but not everything appears on this list):
     - [x] ..in the menu
     - [x] ..as a screen view
   - [x] options screen
+  - [x] support progress events
 - [ ] A TUI library
   - [x] Choose an output (Jexer)
   - [x] Implement it from --set-reader to the actual window
@@ -27,13 +29,15 @@ My current planning for Fanfix (but not everything appears on this list):
   - [x] Open a story in the reader and/or natively
   - [ ] Update the screenshots
   - [ ] Remember the current chapter and current read status of stories
-- [ ] Network support
+  - [ ] support progress events
+- [x] Network support
   - [x] A server that can send the stories
   - [x] A network implementation of the Library
   - [x] Write access to the library
   - [x] Access rights (a simple "key")
   - [x] More tests, especially with the GUI
-    - [ ] ..even more
+    - [x] ..even more
+  - [x] support progress events
 - [x] Check if it can work on Android
   - [x] First checks: it should work, but with changes
   - [x] Adapt work on images :(
@@ -45,27 +49,25 @@ My current planning for Fanfix (but not everything appears on this list):
   - [x] Download new stories
   - [ ] Sort stories by Source/Author
   - [ ] Fix UI
+  - [ ] support progress events
 - [ ] Translations
   - [x] i18n system in place
   - [x] Make use of it
   - [ ] Use it for all user output
   - [ ] French translation
   - [x] French manual/readme
-- [x] Allow lauching a custom application instead of Desktop.start
-- [ ] Install a mechanism to handle stories import/export progress update
+- [x] Install a mechanism to handle stories import/export progress update
   - [x] Progress system
   - [x] in support classes (import)
   - [x] in output classes (export)
-  - [x] CLI usage of such
-  - [x] GUI usage of such
-  - [ ] TUI usage of such
-  - [ ] Android usage of such
 - [x] Version
   - [x] Use a version number
   - [x] Show it in UI
   - [x] A check-update feature
     - [x] ..translated
-- [ ] Add the resume next to the cover icon if available (as an option)
+- [ ] Improve GUI library
+    - [x] Allow lauching a custom application instead of Desktop.start
+    - [ ] Add the resume next to the cover icon if available (as an option)
 - [ ] Bugs
     - [x] Fix "Redownload also reset the source"
     - [ ] Fix eHentai "content warning" access
