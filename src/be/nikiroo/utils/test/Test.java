@@ -26,6 +26,7 @@ public class Test extends TestLauncher {
 		addSeries(new SerialTest(args));
 		addSeries(new SerialServerTest(args));
 		addSeries(new StringUtilsTest(args));
+		addSeries(new TempFilesTest(args));
 
 		// TODO: test cache and downloader
 		Cache cache = null;

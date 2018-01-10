@@ -1,5 +1,9 @@
 package be.nikiroo.utils;
 
+import java.io.ByteArrayInputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -8,8 +12,12 @@ import java.io.InputStream;
  * 
  * @author niki
  */
-public class Image {
-	private byte[] data;
+public class Image implements Closeable {
+	static private TempFiles tmpRepository;
+	static private long count = 0;
+	static private Object lock = new Object();
+
+	private File data;
 
 	/**
 	 * Do not use -- for serialisation purposes only.
@@ -25,7 +33,19 @@ public class Image {
 	 *            the data
 	 */
 	public Image(byte[] data) {
-		this.data = data;
+		ByteArrayInputStream in = new ByteArrayInputStream(data);
+		try {
+			this.data = getTemporaryFile();
+			IOUtils.write(in, this.data);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} finally {
+			try {
+				in.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	/**
@@ -51,19 +71,26 @@ public class Image {
 	 *             in case of I/O error
 	 */
 	public Image(InputStream in) throws IOException {
-		this.data = IOUtils.toByteArray(in);
+		data = getTemporaryFile();
+		IOUtils.write(in, data);
 	}
 
 	/**
-	 * The actual image data.
-	 * <p>
-	 * This is the actual data, not a copy, so any change made here will be
-	 * reflected into the {@link Image} and vice-versa.
+	 * <b>Read</b> the actual image data, as a byte array.
 	 * 
 	 * @return the image data
 	 */
 	public byte[] getData() {
-		return data;
+		try {
+			FileInputStream in = new FileInputStream(data);
+			try {
+				return IOUtils.toByteArray(in);
+			} finally {
+				in.close();
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
@@ -74,5 +101,55 @@ public class Image {
 	 */
 	public String toBase64() {
 		return new String(Base64.encodeBytes(getData()));
+	}
+
+	/**
+	 * Closing the {@link Image} will delete the associated temporary file on
+	 * disk.
+	 * <p>
+	 * Note that even if you don't, the program will still <b>try</b> to delete
+	 * all the temporary files at JVM termination.
+	 */
+	@Override
+	public void close() throws IOException {
+		data.delete();
+		synchronized (lock) {
+			count--;
+			if (count <= 0) {
+				count = 0;
+				tmpRepository.close();
+				tmpRepository = null;
+			}
+		}
+	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		try {
+			close();
+		} finally {
+			super.finalize();
+		}
+	}
+
+	/**
+	 * Return a newly created temporary file to work on.
+	 * 
+	 * @return the file
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	private File getTemporaryFile() throws IOException {
+		synchronized (lock) {
+			if (tmpRepository == null) {
+				tmpRepository = new TempFiles("images");
+				count = 0;
+			}
+
+			count++;
+
+			return tmpRepository.createTempFile("image");
+		}
 	}
 }

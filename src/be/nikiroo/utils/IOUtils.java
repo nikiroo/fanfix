@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -213,22 +215,83 @@ public class IOUtils {
 	 * Recursively delete the given {@link File}, which may of course also be a
 	 * directory.
 	 * <p>
+	 * Will either silently continue or throw an exception in case of error,
+	 * depending upon the parameters.
+	 * 
+	 * @param target
+	 *            the target to delete
+	 * @param exception
+	 *            TRUE to throw an {@link IOException} in case of error, FALSE
+	 *            to silently continue
+	 * 
+	 * @return TRUE if all files were deleted, FALSE if an error occurred
+	 * 
+	 * @throws IOException
+	 *             if an error occurred and the parameters allow an exception to
+	 *             be thrown
+	 */
+	public static boolean deltree(File target, boolean exception)
+			throws IOException {
+		List<File> list = deltree(target, null);
+		if (exception && !list.isEmpty()) {
+			String slist = "";
+			for (File file : list) {
+				slist += "\n" + file.getPath();
+			}
+
+			throw new IOException("Cannot delete all the files from: <" //
+					+ target + ">:" + slist);
+		}
+
+		return list.isEmpty();
+	}
+
+	/**
+	 * Recursively delete the given {@link File}, which may of course also be a
+	 * directory.
+	 * <p>
 	 * Will silently continue in case of error.
 	 * 
 	 * @param target
 	 *            the target to delete
+	 * 
+	 * @return TRUE if all files were deleted, FALSE if an error occurred
 	 */
-	public static void deltree(File target) {
+	public static boolean deltree(File target) {
+		return deltree(target, null).isEmpty();
+	}
+
+	/**
+	 * Recursively delete the given {@link File}, which may of course also be a
+	 * directory.
+	 * <p>
+	 * Will collect all {@link File} that cannot be deleted in the given
+	 * accumulator.
+	 * 
+	 * @param target
+	 *            the target to delete
+	 * @param errorAcc
+	 *            the accumulator to use for errors, or NULL to create a new one
+	 * 
+	 * @return the errors accumulator
+	 */
+	public static List<File> deltree(File target, List<File> errorAcc) {
+		if (errorAcc == null) {
+			errorAcc = new ArrayList<File>();
+		}
+
 		File[] files = target.listFiles();
 		if (files != null) {
 			for (File file : files) {
-				deltree(file);
+				errorAcc = deltree(file, errorAcc);
 			}
 		}
 
 		if (!target.delete()) {
-			System.err.println("Cannot delete: " + target.getAbsolutePath());
+			errorAcc.add(target);
 		}
+
+		return errorAcc;
 	}
 
 	/**
