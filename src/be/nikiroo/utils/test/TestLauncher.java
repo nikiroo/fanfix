@@ -287,11 +287,12 @@ public class TestLauncher {
 		name = prefix(depth, false)
 				+ (name == null ? "" : name).replace("\t", "    ");
 
-		while (name.length() < columns - 11) {
-			name += ".";
+		StringBuilder dots = new StringBuilder();
+		while ((name.length() + dots.length()) < columns - 11) {
+			dots.append('.');
 		}
 
-		System.out.print(name);
+		System.out.print(name + dots.toString());
 	}
 
 	/**

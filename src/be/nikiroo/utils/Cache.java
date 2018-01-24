@@ -47,8 +47,8 @@ public class Cache {
 	public Cache(File dir, int hoursChanging, int hoursStable)
 			throws IOException {
 		this.dir = dir;
-		this.tooOldChanging = 1000 * 60 * 60 * hoursChanging;
-		this.tooOldStable = 1000 * 60 * 60 * hoursStable;
+		this.tooOldChanging = 1000L * 60 * 60 * hoursChanging;
+		this.tooOldStable = 1000L * 60 * 60 * hoursStable;
 
 		if (dir != null && !dir.exists()) {
 			dir.mkdirs();
@@ -174,16 +174,19 @@ public class Cache {
 	 */
 	private int clean(boolean onlyOld, File cacheDir) {
 		int num = 0;
-		for (File file : cacheDir.listFiles()) {
-			if (file.isDirectory()) {
-				num += clean(onlyOld, file);
-			} else {
-				if (!onlyOld || isOld(file, true)) {
-					if (file.delete()) {
-						num++;
-					} else {
-						tracer.error("Cannot delete temporary file: "
-								+ file.getAbsolutePath());
+		File[] files = cacheDir.listFiles();
+		if (files != null) {
+			for (File file : files) {
+				if (file.isDirectory()) {
+					num += clean(onlyOld, file);
+				} else {
+					if (!onlyOld || isOld(file, true)) {
+						if (file.delete()) {
+							num++;
+						} else {
+							tracer.error("Cannot delete temporary file: "
+									+ file.getAbsolutePath());
+						}
 					}
 				}
 			}

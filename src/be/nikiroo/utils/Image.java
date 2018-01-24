@@ -100,7 +100,7 @@ public class Image implements Closeable {
 	 * @return the Base64 representation
 	 */
 	public String toBase64() {
-		return new String(Base64.encodeBytes(getData()));
+		return Base64.encodeBytes(getData());
 	}
 
 	/**

@@ -89,8 +89,12 @@ public class IOUtils {
 				}
 				zip.putNextEntry(new ZipEntry(base + "/"));
 			}
-			for (File file : target.listFiles()) {
-				zip(zip, base, file, false);
+
+			File[] files = target.listFiles();
+			if (files != null) {
+				for (File file : files) {
+					zip(zip, base, file, false);
+				}
 			}
 		} else {
 			if (base == null || base.isEmpty()) {
@@ -234,13 +238,13 @@ public class IOUtils {
 			throws IOException {
 		List<File> list = deltree(target, null);
 		if (exception && !list.isEmpty()) {
-			String slist = "";
+			StringBuilder slist = new StringBuilder();
 			for (File file : list) {
-				slist += "\n" + file.getPath();
+				slist.append("\n").append(file.getPath());
 			}
 
 			throw new IOException("Cannot delete all the files from: <" //
-					+ target + ">:" + slist);
+					+ target + ">:" + slist.toString());
 		}
 
 		return list.isEmpty();

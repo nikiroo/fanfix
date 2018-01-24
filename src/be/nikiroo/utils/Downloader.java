@@ -186,12 +186,16 @@ public class Downloader {
 			}
 
 			if (requestData != null) {
-				OutputStreamWriter writer = new OutputStreamWriter(
-						conn.getOutputStream());
-
-				writer.write(requestData.toString());
-				writer.flush();
-				writer.close();
+				OutputStreamWriter writer = null;
+				try {
+					writer = new OutputStreamWriter(conn.getOutputStream());
+					writer.write(requestData.toString());
+					writer.flush();
+				} finally {
+					if (writer != null) {
+						writer.close();
+					}
+				}
 			}
 		}
 

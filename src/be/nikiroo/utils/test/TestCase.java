@@ -151,7 +151,7 @@ abstract public class TestCase {
 	 *             in case they differ
 	 */
 	public void assertEquals(long expected, long actual) throws AssertException {
-		assertEquals(new Long(expected), new Long(actual));
+		assertEquals(Long.valueOf(expected), Long.valueOf(actual));
 	}
 
 	/**
@@ -169,7 +169,7 @@ abstract public class TestCase {
 	 */
 	public void assertEquals(String errorMessage, long expected, long actual)
 			throws AssertException {
-		assertEquals(errorMessage, new Long(expected), new Long(actual));
+		assertEquals(errorMessage, Long.valueOf(expected), Long.valueOf(actual));
 	}
 
 	/**
@@ -185,7 +185,7 @@ abstract public class TestCase {
 	 */
 	public void assertEquals(boolean expected, boolean actual)
 			throws AssertException {
-		assertEquals(new Boolean(expected), new Boolean(actual));
+		assertEquals(Boolean.valueOf(expected), Boolean.valueOf(actual));
 	}
 
 	/**
@@ -203,7 +203,8 @@ abstract public class TestCase {
 	 */
 	public void assertEquals(String errorMessage, boolean expected,
 			boolean actual) throws AssertException {
-		assertEquals(errorMessage, new Boolean(expected), new Boolean(actual));
+		assertEquals(errorMessage, Boolean.valueOf(expected),
+				Boolean.valueOf(actual));
 	}
 
 	/**
@@ -219,7 +220,7 @@ abstract public class TestCase {
 	 */
 	public void assertEquals(double expected, double actual)
 			throws AssertException {
-		assertEquals(new Double(expected), new Double(actual));
+		assertEquals(Double.valueOf(expected), Double.valueOf(actual));
 	}
 
 	/**
@@ -237,7 +238,8 @@ abstract public class TestCase {
 	 */
 	public void assertEquals(String errorMessage, double expected, double actual)
 			throws AssertException {
-		assertEquals(errorMessage, new Double(expected), new Double(actual));
+		assertEquals(errorMessage, Double.valueOf(expected),
+				Double.valueOf(actual));
 	}
 
 	/**
@@ -255,8 +257,8 @@ abstract public class TestCase {
 			throws AssertException {
 		if (actual == null) {
 			String defaultReason = String.format("" //
-					+ "Assertion failed!\n" //
-					+ "Object should have been NULL: [%s]", actual);
+					+ "Assertion failed!%n" //
+					+ "Object should not have been NULL");
 
 			if (errorMessage == null) {
 				throw new AssertException(defaultReason);
@@ -280,8 +282,8 @@ abstract public class TestCase {
 	 */
 	public static String generateAssertMessage(Object expected, Object actual) {
 		return String.format("" //
-				+ "Assertion failed!\n" //
-				+ "Expected value: [%s]\n" //
+				+ "Assertion failed!%n" //
+				+ "Expected value: [%s]%n" //
 				+ "Actual value: [%s]", expected, actual);
 	}
 }

@@ -522,6 +522,6 @@ public class SerialUtils {
 			}
 		}
 
-		return builder.substring(1, builder.length() - 1).toString();
+		return builder.substring(1, builder.length() - 1);
 	}
 }

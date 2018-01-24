@@ -133,9 +133,11 @@ abstract class ConnectAction {
 					}
 				} finally {
 					out.close();
+					out = null;
 				}
 			} finally {
 				in.close();
+				in = null;
 			}
 		} catch (Exception e) {
 			onError(e);

@@ -293,13 +293,13 @@ abstract class Server implements Runnable {
 					}
 				}
 			}
+		}
 
-			// only return when stopped
-			while (started || exiting) {
-				try {
-					Thread.sleep(10);
-				} catch (InterruptedException e) {
-				}
+		// return only when stopped
+		while (started || exiting) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
 			}
 		}
 	}
@@ -357,7 +357,10 @@ abstract class Server implements Runnable {
 		Socket s;
 		if (ssl) {
 			s = SSLSocketFactory.getDefault().createSocket(host, port);
-			((SSLSocket) s).setEnabledCipherSuites(ANON_CIPHERS);
+			if (s instanceof SSLSocket) {
+				// Should always be the case
+				((SSLSocket) s).setEnabledCipherSuites(ANON_CIPHERS);
+			}
 		} else {
 			s = new Socket(host, port);
 		}
@@ -388,7 +391,10 @@ abstract class Server implements Runnable {
 		ServerSocket ss;
 		if (ssl) {
 			ss = SSLServerSocketFactory.getDefault().createServerSocket(port);
-			((SSLServerSocket) ss).setEnabledCipherSuites(ANON_CIPHERS);
+			if (ss instanceof SSLServerSocket) {
+				// Should always be the case
+				((SSLServerSocket) ss).setEnabledCipherSuites(ANON_CIPHERS);
+			}
 		} else {
 			ss = new ServerSocket(port);
 		}

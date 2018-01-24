@@ -397,7 +397,7 @@ public class Progress {
 		if (weight < min || weight > max) {
 			throw new RuntimeException(String.format(
 					"Progress object %s cannot have a weight of %f, "
-							+ "it is outside of its parent (%s) range (%f)",
+							+ "it is outside of its parent (%s) range (%d)",
 					progress.name, weight, name, max));
 		}
 
@@ -407,6 +407,8 @@ public class Progress {
 							+ "as it already has a parent (%s)", progress.name,
 					name, progress.parent.name));
 		}
+
+		progress.parent = this;
 
 		progress.addProgressListener(new ProgressListener() {
 			@Override
