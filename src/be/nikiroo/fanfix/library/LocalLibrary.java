@@ -128,7 +128,7 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected void invalidateInfo(String luid) {
+	protected synchronized void invalidateInfo(String luid) {
 		stories = null;
 		sourceCovers = new HashMap<String, Image>();
 	}

@@ -47,12 +47,17 @@ public class Test extends TestLauncher {
 		tmpCache.delete();
 		tmpCache.mkdir();
 
-		FileOutputStream out = new FileOutputStream(new File(tmpConfig,
-				"config.properties"));
-		Properties props = new Properties();
-		props.setProperty("CACHE_DIR", tmpCache.getAbsolutePath());
-		props.store(out, null);
-		out.close();
+		FileOutputStream out = null;
+		try {
+			out = new FileOutputStream(new File(tmpConfig, "config.properties"));
+			Properties props = new Properties();
+			props.setProperty("CACHE_DIR", tmpCache.getAbsolutePath());
+			props.store(out, null);
+		} finally {
+			if (out != null) {
+				out.close();
+			}
+		}
 
 		ConfigBundle config = new ConfigBundle();
 		Bundles.setDirectory(tmpConfig.getAbsolutePath());

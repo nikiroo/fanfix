@@ -14,11 +14,13 @@ public class InfoCover {
 	public static void writeInfo(File targetDir, String targetName,
 			MetaData meta) throws IOException {
 		File info = new File(targetDir, targetName + ".info");
-		BufferedWriter infoWriter = new BufferedWriter(new OutputStreamWriter(
-				new FileOutputStream(info), "UTF-8"));
 
-		if (meta != null) {
-			try {
+		BufferedWriter infoWriter = null;
+		try {
+			infoWriter = new BufferedWriter(new OutputStreamWriter(
+					new FileOutputStream(info), "UTF-8"));
+
+			if (meta != null) {
 				String tags = "";
 				if (meta.getTags() != null) {
 					for (String tag : meta.getTags()) {
@@ -57,7 +59,9 @@ public class InfoCover {
 				writeMeta(infoWriter, "CREATION_DATE", meta.getCreationDate());
 				writeMeta(infoWriter, "FAKE_COVER",
 						Boolean.toString(meta.isFakeCover()));
-			} finally {
+			}
+		} finally {
+			if (infoWriter != null) {
 				infoWriter.close();
 			}
 		}

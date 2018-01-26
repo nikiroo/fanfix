@@ -71,7 +71,7 @@ public abstract class BasicReader implements Reader {
 	}
 
 	@Override
-	public MetaData getMeta() {
+	public synchronized MetaData getMeta() {
 		return meta;
 	}
 

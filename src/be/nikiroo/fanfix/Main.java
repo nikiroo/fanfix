@@ -309,8 +309,8 @@ public class Main {
 			case VERSION:
 				System.out
 						.println(String.format("Fanfix version %s"
-								+ "\nhttps://github.com/nikiroo/fanfix/"
-								+ "\n\tWritten by Nikiroo",
+								+ "%nhttps://github.com/nikiroo/fanfix/"
+								+ "%n\tWritten by Nikiroo",
 								Version.getCurrentVersion()));
 				updates.ok(); // we consider it read
 				break;

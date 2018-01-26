@@ -72,13 +72,13 @@ public class Story implements Iterable<Chapter>, Cloneable {
 			title = meta.getTitle();
 		}
 
-		String tags = "";
+		StringBuilder tags = new StringBuilder();
 		if (meta != null && meta.getTags() != null) {
 			for (String tag : meta.getTags()) {
-				if (!tags.isEmpty()) {
-					tags += ", ";
+				if (tags.length() > 0) {
+					tags.append(", ");
 				}
-				tags += tag;
+				tags.append(tag);
 			}
 		}
 
@@ -108,11 +108,12 @@ public class Story implements Iterable<Chapter>, Cloneable {
 
 			cover = size + cover;
 		}
+
 		return String.format(
 				"Title: [%s]\nAuthor: [%s]\nDate: [%s]\nTags: [%s]\n"
 						+ "Resume: [%s]\nCover: [%s]", title, meta == null ? ""
 						: meta.getAuthor(), meta == null ? "" : meta.getDate(),
-				tags, resume, cover);
+				tags.toString(), resume, cover);
 	}
 
 	@Override

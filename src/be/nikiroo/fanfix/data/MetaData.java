@@ -380,8 +380,41 @@ public class MetaData implements Cloneable, Comparable<MetaData> {
 
 	@Override
 	public int compareTo(MetaData o) {
-		String oUuid = o == null ? null : o.getUuid();
-		return getUuid().compareTo(oUuid);
+		if (o == null) {
+			return 1;
+		}
+
+		String uuid = getUuid();
+		String oUuid = o.getUuid();
+
+		if (uuid == null) {
+			uuid = "";
+		}
+
+		if (oUuid == null) {
+			oUuid = "";
+		}
+
+		return uuid.compareTo(oUuid);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof MetaData)) {
+			return false;
+		}
+
+		return compareTo((MetaData) obj) == 0;
+	}
+
+	@Override
+	public int hashCode() {
+		String uuid = getUuid();
+		if (uuid == null) {
+			uuid = "" + title + author + source;
+		}
+
+		return uuid.hashCode();
 	}
 
 	@Override
