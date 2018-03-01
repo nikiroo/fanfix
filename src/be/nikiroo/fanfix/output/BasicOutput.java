@@ -328,7 +328,7 @@ public abstract class BasicOutput {
 
 		String chapterNameNum = String.format("%03d", 0);
 		String paragraphNumber = String.format("%04d", 0);
-		imageName = paragraphNumber + "_" + chapterNameNum + ".png";
+		imageName = paragraphNumber + "_" + chapterNameNum;
 
 		if (story.getMeta() != null) {
 			story.getMeta().setType("" + getType());

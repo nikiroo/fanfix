@@ -2,10 +2,14 @@ package be.nikiroo.fanfix.output;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
@@ -53,6 +57,37 @@ class Epub extends BasicOutput {
 		// zip/epub
 		File epub = new File(targetDir, targetName);
 		IOUtils.zip(tmpDir, epub, true);
+
+		OutputStream out = new FileOutputStream(epub);
+		try {
+			ZipOutputStream zip = new ZipOutputStream(out);
+			try {
+				// "mimetype" MUST be the first element and not compressed
+				zip.setLevel(ZipOutputStream.STORED);
+				File mimetype = new File(tmpDir, "mimetype");
+				IOUtils.writeSmallFile(tmpDir, "mimetype",
+						"application/epub+zip");
+				ZipEntry entry = new ZipEntry("mimetype");
+				entry.setExtra(new byte[] {});
+				zip.putNextEntry(entry);
+				FileInputStream in = new FileInputStream(mimetype);
+				try {
+					IOUtils.write(in, zip);
+				} finally {
+					in.close();
+				}
+				IOUtils.deltree(mimetype);
+				zip.setLevel(ZipOutputStream.DEFLATED);
+				//
+
+				IOUtils.zip(zip, "", tmpDir, true);
+			} finally {
+				zip.close();
+			}
+		} finally {
+			out.close();
+		}
+
 		IOUtils.deltree(tmpDir);
 		tmpDir = null;
 
@@ -75,11 +110,8 @@ class Epub extends BasicOutput {
 		File metaInf = new File(tmpDir, "META-INF");
 		metaInf.mkdirs();
 
-		// "root"
-		IOUtils.writeSmallFile(tmpDir, "mimetype", "application/epub+zip");
-
 		// META-INF
-		String containerContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+		String containerContent = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
 				+ "<container xmlns=\"urn:oasis:names:tc:opendocument:xmlns:container\" version=\"1.0\">\n"
 				+ "\t<rootfiles>\n"
 				+ "\t\t<rootfile full-path=\"OPS/epb.opf\" media-type=\"application/oebps-package+xml\"/>\n"
@@ -100,9 +132,7 @@ class Epub extends BasicOutput {
 
 		// OPS/images
 		if (story.getMeta() != null && story.getMeta().getCover() != null) {
-			String format = Instance.getConfig()
-					.getString(Config.IMAGE_FORMAT_COVER).toLowerCase();
-			File file = new File(images, "cover." + format);
+			File file = new File(images, "cover");
 			Instance.getCache().saveAsImage(story.getMeta().getCover(), file,
 					true);
 		}
@@ -110,7 +140,7 @@ class Epub extends BasicOutput {
 		// OPS/* except chapters
 		IOUtils.writeSmallFile(ops, "epb.ncx", generateNcx(story));
 		IOUtils.writeSmallFile(ops, "epb.opf", generateOpf(story));
-		IOUtils.writeSmallFile(ops, "title.xml", generateTitleXml(story));
+		IOUtils.writeSmallFile(ops, "title.xhtml", generateTitleXml(story));
 
 		// Resume
 		if (story.getMeta() != null && story.getMeta().getResume() != null) {
@@ -121,7 +151,7 @@ class Epub extends BasicOutput {
 	@Override
 	protected void writeChapterHeader(Chapter chap) throws IOException {
 		String filename = String.format("%s%03d%s", "chapter-",
-				chap.getNumber(), ".xml");
+				chap.getNumber(), ".xhtml");
 		writer = new BufferedWriter(new OutputStreamWriter(
 				new FileOutputStream(new File(tmpDir + File.separator + "OPS",
 						filename)), "UTF-8"));
@@ -135,9 +165,9 @@ class Epub extends BasicOutput {
 				nameOrNum = chap.getName();
 			}
 
-			writer.write("<?xml version='1.0' encoding='UTF-8'?>");
-			writer.write("\n<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd'>");
-			writer.write("\n<html xmlns='http://www.w3.org/1999/xhtml' lang='en' xml:lang='en'>");
+			writer.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+			writer.append("\n<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">");
+			writer.append("\n<html xmlns=\"http://www.w3.org/1999/xhtml\">");
 			writer.write("\n<head>");
 			writer.write("\n	<title>" + StringUtils.xmlEscape(title)
 					+ "</title>");
@@ -211,7 +241,7 @@ class Epub extends BasicOutput {
 			File file = new File(images, getCurrentImageBestName(false));
 			Instance.getCache().saveAsImage(para.getContentImage(), file,
 					nextParaIsCover);
-			writer.write("			<img class='page-image' src='images/"
+			writer.write("			<img alt='page image' class='page-image' src='images/"
 					+ getCurrentImageBestName(false) + "'/>");
 			break;
 		}
@@ -270,7 +300,7 @@ class Epub extends BasicOutput {
 			title = meta.getTitle();
 		}
 
-		builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+		builder.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		builder.append("\n<!DOCTYPE ncx");
 		builder.append("\nPUBLIC \"-//NISO//DTD ncx 2005-1//EN\" \"http://www.daisy.org/z3986/2005/ncx-2005-1.dtd\">");
 		builder.append("\n<ncx xmlns=\"http://www.daisy.org/z3986/2005/ncx/\" version=\"2005-1\">");
@@ -298,7 +328,7 @@ class Epub extends BasicOutput {
 		builder.append("\n			<navLabel>");
 		builder.append("\n				<text>Title Page</text>");
 		builder.append("\n			</navLabel>");
-		builder.append("\n			<content src=\"title.xml\"/>");
+		builder.append("\n			<content src=\"title.xhtml\"/>");
 		builder.append("\n		</navPoint>");
 
 		int navPoint = 2; // 1 is above
@@ -335,7 +365,7 @@ class Epub extends BasicOutput {
 		builder.append("\n			<navLabel>");
 		builder.append("\n				<text>" + name + "</text>");
 		builder.append("\n			</navLabel>");
-		builder.append("\n			<content src=\"chapter-" + nnn + ".xml\"/>");
+		builder.append("\n			<content src=\"chapter-" + nnn + ".xhtml\"/>");
 		builder.append("\n		</navPoint>\n");
 	}
 
@@ -362,9 +392,8 @@ class Epub extends BasicOutput {
 			lang = meta.getLang();
 		}
 
-		builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-		builder.append("\n<package xmlns=\"http://www.idpf.org/2007/opf\" unique-identifier=\""
-				+ uuid + "\" version=\"2.0\">");
+		builder.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+		builder.append("\n<package xmlns=\"http://www.idpf.org/2007/opf\" unique-identifier=\"BookId\" version=\"2.0\">");
 		builder.append("\n   <metadata xmlns:opf=\"http://www.idpf.org/2007/opf\"");
 		builder.append("\n             xmlns:dc=\"http://purl.org/dc/elements/1.1/\">");
 		builder.append("\n      <dc:title>" + StringUtils.xmlEscape(title)
@@ -382,20 +411,20 @@ class Epub extends BasicOutput {
 		builder.append("\n      <dc:source>" + StringUtils.xmlEscape(source)
 				+ "</dc:source>");
 		builder.append("\n      <dc:rights>Not for commercial use.</dc:rights>");
-		builder.append("\n      <dc:identifier id=\"id\" opf:scheme=\"URI\">"
+		builder.append("\n      <dc:identifier id=\"BookId\" opf:scheme=\"URI\">"
 				+ StringUtils.xmlEscape(uuid) + "</dc:identifier>");
 		builder.append("\n      <dc:language>" + StringUtils.xmlEscape(lang)
 				+ "</dc:language>");
 		builder.append("\n   </metadata>");
 		builder.append("\n   <manifest>");
 		builder.append("\n      <!-- Content Documents -->");
-		builder.append("\n      <item id=\"titlepage\" href=\"title.xml\" media-type=\"application/xhtml+xml\"/>");
+		builder.append("\n      <item id=\"titlepage\" href=\"title.xhtml\" media-type=\"application/xhtml+xml\"/>");
 		for (int i = 0; i <= story.getChapters().size(); i++) {
 			String name = String.format("%s%03d", "chapter-", i);
 			builder.append("\n      <item id=\""
 					+ StringUtils.xmlEscapeQuote(name) + "\" href=\""
 					+ StringUtils.xmlEscapeQuote(name)
-					+ ".xml\" media-type=\"application/xhtml+xml\"/>");
+					+ ".xhtml\" media-type=\"application/xhtml+xml\"/>");
 		}
 
 		builder.append("\n      <!-- CSS Style Sheets -->");
@@ -453,9 +482,9 @@ class Epub extends BasicOutput {
 		String format = Instance.getConfig()
 				.getString(Config.IMAGE_FORMAT_COVER).toLowerCase();
 
-		builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-		builder.append("\n<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd \">");
-		builder.append("\n<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">");
+		builder.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+		builder.append("\n<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">");
+		builder.append("\n<html xmlns=\"http://www.w3.org/1999/xhtml\">");
 		builder.append("\n<head>");
 		builder.append("\n	<title>" + StringUtils.xmlEscape(title) + "</title>");
 		builder.append("\n	<link rel=\"stylesheet\" href=\"css/style.css\" type=\"text/css\"/>");
@@ -466,7 +495,8 @@ class Epub extends BasicOutput {
 		builder.append("\n			<div class=\"type\">"
 				+ StringUtils.xmlEscape(tags) + "</div>");
 		builder.append("\n		<div class=\"cover\">");
-		builder.append("\n			<img src=\"images/cover." + format + "\"></img>");
+		builder.append("\n			<img alt=\"cover image\" src=\"images/cover."
+				+ format + "\"></img>");
 		builder.append("\n		</div>");
 		builder.append("\n		<div class=\"author\">"
 				+ StringUtils.xmlEscape(author) + "</div>");

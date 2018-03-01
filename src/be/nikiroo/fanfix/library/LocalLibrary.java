@@ -205,7 +205,7 @@ public class LocalLibrary extends BasicLibrary {
 	@Override
 	public void setSourceCover(String source, String luid) {
 		sourceCovers.put(source, getCover(luid));
-		File cover = new File(getExpectedDir(source), ".cover.png");
+		File cover = new File(getExpectedDir(source), ".cover");
 		try {
 			Instance.getCache().saveAsImage(sourceCovers.get(source), cover,
 					true);
@@ -519,7 +519,7 @@ public class LocalLibrary extends BasicLibrary {
 	 */
 	void setSourceCover(String source, Image coverImage) {
 		sourceCovers.put(source, coverImage);
-		File cover = new File(getExpectedDir(source), ".cover.png");
+		File cover = new File(getExpectedDir(source), ".cover");
 		try {
 			Instance.getCache().saveAsImage(sourceCovers.get(source), cover,
 					true);
