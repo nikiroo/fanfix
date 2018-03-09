@@ -76,7 +76,7 @@ class StringUtilsTest extends TestLauncher {
 								true, data.trim().equals(result.trim()));
 
 						result = StringUtils.padString(data, size, false,
-								Alignment.End);
+								Alignment.RIGHT);
 						if (size > data.length()) {
 							assertEquals(
 									"Padding a String to the end should work as expected",
@@ -84,7 +84,25 @@ class StringUtilsTest extends TestLauncher {
 						}
 
 						result = StringUtils.padString(data, size, false,
-								Alignment.Center);
+								Alignment.JUSTIFY);
+						if (size > data.length()) {
+							String unspacedData = data.trim();
+							String unspacedResult = result.trim();
+							for (int i = 0; i < size; i++) {
+								unspacedData = unspacedData.replace("  ", " ");
+								unspacedResult = unspacedResult.replace("  ",
+										" ");
+							}
+
+							assertEquals(
+									"Justified text trimmed with all spaces collapsed "
+											+ "sould be identical to original text "
+											+ "trimmed with all spaces collapsed",
+									unspacedData, unspacedResult);
+						}
+
+						result = StringUtils.padString(data, size, false,
+								Alignment.CENTER);
 						if (size > data.length()) {
 							int before = 0;
 							for (int i = 0; i < result.length()
@@ -116,6 +134,17 @@ class StringUtilsTest extends TestLauncher {
 									true, Math.abs(before - after) <= 1);
 						}
 					}
+				}
+			}
+		});
+
+		addTest(new TestCase("Justifying") {
+			@Override
+			public void test() throws Exception {
+				for (String data : new String[] {}) {
+					// TODO: test it!
+					// String result = StringUtils.justifyText(data, 5,
+					// StringUtils.Alignment.LEFT);
 				}
 			}
 		});

@@ -10,6 +10,7 @@ import java.text.Normalizer.Form;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -25,15 +26,46 @@ import org.unbescape.html.HtmlEscapeType;
 public class StringUtils {
 	/**
 	 * This enum type will decide the alignment of a {@link String} when padding
-	 * is applied or if there is enough horizontal space for it to be aligned.
+	 * or justification is applied (if there is enough horizontal space for it
+	 * to be aligned).
 	 */
 	public enum Alignment {
 		/** Aligned at left. */
-		Beginning,
+		LEFT,
 		/** Centered. */
-		Center,
+		CENTER,
 		/** Aligned at right. */
-		End
+		RIGHT,
+		/** Full justified (to both left and right). */
+		JUSTIFY,
+
+		// Old Deprecated values:
+
+		/** DEPRECATED: please use LEFT. */
+		@Deprecated
+		Beginning,
+		/** DEPRECATED: please use CENTER. */
+		@Deprecated
+		Center,
+		/** DEPRECATED: please use RIGHT. */
+		@Deprecated
+		End;
+
+		/**
+		 * Return the non-deprecated version of this enum if needed (or return
+		 * self if not).
+		 * 
+		 * @return the non-deprecated value
+		 */
+		Alignment undeprecate() {
+			if (this == Beginning)
+				return LEFT;
+			if (this == Center)
+				return CENTER;
+			if (this == End)
+				return RIGHT;
+			return this;
+		}
 	}
 
 	static private Pattern marks = getMarks();
@@ -74,8 +106,10 @@ public class StringUtils {
 			Alignment align) {
 
 		if (align == null) {
-			align = Alignment.Beginning;
+			align = Alignment.LEFT;
 		}
+
+		align = align.undeprecate();
 
 		if (width >= 0) {
 			if (text == null)
@@ -87,28 +121,76 @@ public class StringUtils {
 				if (cut)
 					text = text.substring(0, width);
 			} else if (diff > 0) {
-				if (diff < 2 && align != Alignment.End)
-					align = Alignment.Beginning;
+				if (diff < 2 && align != Alignment.RIGHT)
+					align = Alignment.LEFT;
 
 				switch (align) {
-				case Beginning:
-					text = text + new String(new char[diff]).replace('\0', ' ');
-					break;
-				case End:
+				case RIGHT:
 					text = new String(new char[diff]).replace('\0', ' ') + text;
 					break;
-				case Center:
-				default:
+				case CENTER:
 					int pad1 = (diff) / 2;
 					int pad2 = (diff + 1) / 2;
 					text = new String(new char[pad1]).replace('\0', ' ') + text
 							+ new String(new char[pad2]).replace('\0', ' ');
+					break;
+				case LEFT:
+				default:
+					text = text + new String(new char[diff]).replace('\0', ' ');
 					break;
 				}
 			}
 		}
 
 		return text;
+	}
+
+	/**
+	 * Justify a text into width-sized (at the maximum) lines.
+	 * 
+	 * @param text
+	 *            the {@link String} to justify
+	 * @param width
+	 *            the maximum size of the resulting lines
+	 * 
+	 * @return a list of justified text lines
+	 */
+	static public List<String> justifyText(String text, int width) {
+		return justifyText(text, width, null);
+	}
+
+	/**
+	 * Justify a text into width-sized (at the maximum) lines.
+	 * 
+	 * @param text
+	 *            the {@link String} to justify
+	 * @param width
+	 *            the maximum size of the resulting lines
+	 * @param align
+	 *            align the lines in this position (default is
+	 *            Alignment.Beginning)
+	 * 
+	 * @return a list of justified text lines
+	 */
+	static public List<String> justifyText(String text, int width,
+			Alignment align) {
+		if (align == null) {
+			align = Alignment.LEFT;
+		}
+
+		align = align.undeprecate();
+
+		switch (align) {
+		case CENTER:
+			return StringJustifier.center(text, width);
+		case RIGHT:
+			return StringJustifier.right(text, width);
+		case JUSTIFY:
+			return StringJustifier.full(text, width);
+		case LEFT:
+		default:
+			return StringJustifier.left(text, width);
+		}
 	}
 
 	/**
