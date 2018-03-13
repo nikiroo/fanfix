@@ -2,6 +2,7 @@ package be.nikiroo.utils.test;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -141,10 +142,31 @@ class StringUtilsTest extends TestLauncher {
 		addTest(new TestCase("Justifying") {
 			@Override
 			public void test() throws Exception {
-				for (String data : new String[] {}) {
-					// TODO: test it!
-					// String result = StringUtils.justifyText(data, 5,
-					// StringUtils.Alignment.LEFT);
+				for (String data : new String[] { "test",
+						"let's test some words", "" }) {
+					int total = 0;
+					for (String word : data.split((" "))) {
+						total += word.replace("-", "").replace(" ", "")
+								.length();
+					}
+					List<String> result = StringUtils.justifyText(data, 5,
+							StringUtils.Alignment.LEFT);
+					
+					System.out.println("["+data+"] -> [");
+
+					int totalResult = 0;
+					for (String resultLine : result) {
+						System.out.println(resultLine);
+						for (String word : resultLine.split((" "))) {
+							totalResult += word.replace("-", "")
+									.replace(" ", "").length();
+						}
+					}
+					System.out.println("]");
+
+					assertEquals(
+							"The number of letters ('-' not included) should be identical before and after",
+							total, totalResult);
 				}
 			}
 		});

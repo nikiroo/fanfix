@@ -37,6 +37,22 @@ import java.util.List;
  * into justified text paragraphs.
  */
 class StringJustifier {
+	/**
+	 * Process the given text into a list of left-justified lines of a given
+	 * max-width.
+	 * 
+	 * @param data
+	 *            the text to justify
+	 * @param width
+	 *            the maximum width of a line
+	 * 
+	 * @return the list of justified lines
+	 */
+	static List<String> left2(final String data, final int width) {
+		List<String> result = new LinkedList<String>();
+
+		return result;
+	}
 
 	/**
 	 * Left-justify a string into a list of lines.
@@ -104,7 +120,7 @@ class StringJustifier {
 						inWord = true;
 					}
 				}
-			} // for (int j = 0; j < rawLines[i].length(); j++)
+			} // next j
 
 			if (word.length() + line.length() > n) {
 				// This word will exceed the line length. Wrap at it
@@ -118,7 +134,7 @@ class StringJustifier {
 				line.append(word);
 			}
 			result.add(line.toString());
-		} // for (int i = 0; i < rawLines.length; i++) {
+		} // next i
 
 		return result;
 	}
