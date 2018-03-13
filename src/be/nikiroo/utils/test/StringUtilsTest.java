@@ -1,5 +1,6 @@
 package be.nikiroo.utils.test;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -142,32 +143,59 @@ class StringUtilsTest extends TestLauncher {
 		addTest(new TestCase("Justifying") {
 			@Override
 			public void test() throws Exception {
-				for (String data : new String[] { "test",
-						"let's test some words", "" }) {
-					int total = 0;
-					for (String word : data.split((" "))) {
-						total += word.replace("-", "").replace(" ", "")
-								.length();
-					}
-					List<String> result = StringUtils.justifyText(data, 5,
-							StringUtils.Alignment.LEFT);
-					
-					System.out.println("["+data+"] -> [");
+				Map<String, Map<Integer, Entry<Alignment, List<String>>>> source = new HashMap<String, Map<Integer, Entry<Alignment, List<String>>>>();
+				addValue(source, Alignment.LEFT, "testy", 5, "testy");
+				addValue(source, Alignment.LEFT, "testy", 3, "te-", "sty");
+				addValue(source, Alignment.LEFT,
+						"Un petit texte qui se mettra sur plusieurs lignes",
+						10, "Un petit", "texte qui", "se mettra", "sur",
+						"plusieurs", "lignes");
+				addValue(source, Alignment.LEFT,
+						"Un petit texte qui se mettra sur plusieurs lignes", 7,
+						"Un", "petit", "texte", "qui se", "mettra", "sur",
+						"plusie-", "urs", "lignes");
+				addValue(source, Alignment.RIGHT,
+						"Un petit texte qui se mettra sur plusieurs lignes", 7,
+						"     Un", "  petit", "  texte", " qui se", " mettra",
+						"    sur", "plusie-", "    urs", " lignes");
+				addValue(source, Alignment.CENTER,
+						"Un petit texte qui se mettra sur plusieurs lignes", 7,
+						"  Un   ", " petit ", " texte ", "qui se ", "mettra ",
+						"  sur  ", "plusie-", "  urs  ", "lignes ");
+				addValue(source, Alignment.JUSTIFY,
+						"Un petit texte qui se mettra sur plusieurs lignes", 7,
+						"Un", "petit", "texte", "qui  se", "mettra", "sur",
+						"plusie-", "urs", "lignes");
+				addValue(source, Alignment.JUSTIFY,
+						"Un petit texte qui se mettra sur plusieurs lignes",
+						14, "Un       petit", "texte  qui  se",
+						"mettra     sur", "plusieurs lig-", "nes");
 
-					int totalResult = 0;
-					for (String resultLine : result) {
-						System.out.println(resultLine);
-						for (String word : resultLine.split((" "))) {
-							totalResult += word.replace("-", "")
-									.replace(" ", "").length();
+				System.out.println();
+				for (String data : source.keySet()) {
+					for (int size : source.get(data).keySet()) {
+						Alignment align = source.get(data).get(size).getKey();
+						List<String> values = source.get(data).get(size)
+								.getValue();
+
+						List<String> result = StringUtils.justifyText(data,
+								size, align);
+
+						System.out.println("[" + data + " (" + size + ")"
+								+ "] -> [");
+						for (int i = 0; i < result.size(); i++) {
+							String resultLine = result.get(i);
+							System.out.println(i + ": " + resultLine);
+						}
+						System.out.println("]");
+
+						for (int i = 0; i < result.size() && i < values.size(); i++) {
+							assertEquals("The line " + i + " is not correct",
+									values.get(i), result.get(i));
 						}
 					}
-					System.out.println("]");
-
-					assertEquals(
-							"The number of letters ('-' not included) should be identical before and after",
-							total, totalResult);
 				}
+				System.out.println();
 			}
 		});
 
@@ -197,6 +225,33 @@ class StringUtilsTest extends TestLauncher {
 				String zipped = StringUtils.zip64(orig);
 				String unzipped = StringUtils.unzip64(zipped);
 				assertEquals(orig, unzipped);
+			}
+		});
+	}
+
+	static private void addValue(
+			Map<String, Map<Integer, Entry<Alignment, List<String>>>> source,
+			final Alignment align, String input, int size,
+			final String... result) {
+		if (!source.containsKey(input)) {
+			source.put(input,
+					new HashMap<Integer, Entry<Alignment, List<String>>>());
+		}
+
+		source.get(input).put(size, new Entry<Alignment, List<String>>() {
+			@Override
+			public Alignment getKey() {
+				return align;
+			}
+
+			@Override
+			public List<String> getValue() {
+				return Arrays.asList(result);
+			}
+
+			@Override
+			public List<String> setValue(List<String> value) {
+				return null;
 			}
 		});
 	}

@@ -48,95 +48,78 @@ class StringJustifier {
 	 * 
 	 * @return the list of justified lines
 	 */
-	static List<String> left2(final String data, final int width) {
-		List<String> result = new LinkedList<String>();
+	static List<String> left(final String data, final int width) {
+		List<String> lines = new LinkedList<String>();
 
-		return result;
-	}
+		for (String dataLine : data.split("\n")) {
+			String line = rightTrim(dataLine.replace("\t", "    "));
 
-	/**
-	 * Left-justify a string into a list of lines.
-	 * 
-	 * @param str
-	 *            the string
-	 * @param n
-	 *            the maximum number of characters in a line
-	 * @return the list of lines
-	 */
-	static List<String> left(final String str, final int n) {
-		List<String> result = new LinkedList<String>();
+			if (width > 0 && line.length() > width) {
+				while (line.length() > 0) {
+					int i = Math.min(line.length(), width - 1); // -1 for "-"
 
-		/*
-		 * General procedure:
-		 * 
-		 * 1. Split on '\n' into paragraphs.
-		 * 
-		 * 2. Scan each line, noting the position of the last
-		 * beginning-of-a-word.
-		 * 
-		 * 3. Chop at the last #2 if the next beginning-of-a-word exceeds n.
-		 * 
-		 * 4. Return the lines.
-		 */
+					boolean needDash = true;
+					// find the best space if any and if needed
+					int prevSpace = 0;
+					if (i < line.length()) {
+						prevSpace = -1;
+						int space = line.indexOf(' ');
 
-		String[] rawLines = str.split("\n");
-		for (int i = 0; i < rawLines.length; i++) {
-			StringBuilder line = new StringBuilder();
-			StringBuilder word = new StringBuilder();
-			boolean inWord = false;
-			for (int j = 0; j < rawLines[i].length(); j++) {
-				char ch = rawLines[i].charAt(j);
-				if ((ch == ' ') || (ch == '\t')) {
-					if (inWord == true) {
-						// We have just transitioned from a word to
-						// whitespace. See if we have enough space to add
-						// the word to the line.
-						if (word.length() + line.length() > n) {
-							// This word will exceed the line length. Wrap
-							// at it instead.
-							result.add(line.toString());
-							line = new StringBuilder();
+						while (space > -1 && space <= i) {
+							prevSpace = space;
+							space = line.indexOf(' ', space + 1);
 						}
-						if ((word.toString().startsWith(" "))
-								&& (line.length() == 0)) {
-							line.append(word.substring(1));
-						} else {
-							line.append(word);
+
+						if (prevSpace > 0) {
+							i = prevSpace;
+							needDash = false;
 						}
-						word = new StringBuilder();
-						word.append(ch);
-						inWord = false;
-					} else {
-						// We are in the whitespace before another word. Do
-						// nothing.
 					}
-				} else {
-					if (inWord == true) {
-						// We are appending to a word.
-						word.append(ch);
-					} else {
-						// We have transitioned from whitespace to a word.
-						word.append(ch);
-						inWord = true;
+					//
+
+					// no dash before space/dash
+					if ((i + 1) < line.length()) {
+						char car = line.charAt(i);
+						char nextCar = line.charAt(i + 1);
+						if (nextCar == ' ' || car == '-' || nextCar == '-') {
+							needDash = false;
+						}
 					}
+
+					// if the space freed by the removed dash allows it, or if
+					// it is the last char, add the next char
+					if (!needDash || i >= line.length() - 1) {
+						int checkI = Math.min(i + 1, line.length());
+						if (checkI == i || checkI <= width) {
+							needDash = false;
+							i = checkI;
+						}
+					}
+
+					// no dash before parenthesis (but cannot add one more
+					// after)
+					if ((i + 1) < line.length()) {
+						char car = line.charAt(i + 1);
+						if (car == '(' || car == ')') {
+							needDash = false;
+						}
+					}
+
+					if (needDash) {
+						lines.add(rightTrim(line.substring(0, i)) + "-");
+					} else {
+						lines.add(rightTrim(line.substring(0, i)));
+					}
+
+					// full trim (remove spaces when cutting)
+					line = line.substring(i).trim();
 				}
-			} // next j
-
-			if (word.length() + line.length() > n) {
-				// This word will exceed the line length. Wrap at it
-				// instead.
-				result.add(line.toString());
-				line = new StringBuilder();
-			}
-			if ((word.toString().startsWith(" ")) && (line.length() == 0)) {
-				line.append(word.substring(1));
 			} else {
-				line.append(word);
+				lines.add(line);
 			}
-			result.add(line.toString());
-		} // next i
+		}
 
-		return result;
+		return lines;
 	}
 
 	/**
@@ -256,5 +239,19 @@ class StringJustifier {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Trim the given {@link String} on the right only.
+	 * 
+	 * @param data
+	 *            the source {@link String}
+	 * @return the right-trimmed String or Empty if it was NULL
+	 */
+	static private String rightTrim(String data) {
+		if (data == null)
+			return "";
+
+		return ("|" + data).trim().substring(1);
 	}
 }
