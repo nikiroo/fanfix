@@ -1,5 +1,7 @@
 package be.nikiroo.utils.test;
 
+import java.util.List;
+
 /**
  * A {@link TestCase} that can be run with {@link TestLauncher}.
  * 
@@ -140,7 +142,7 @@ abstract public class TestCase {
 	}
 
 	/**
-	 * Check that 2 {@link Object}s are equals.
+	 * Check that 2 longs are equals.
 	 * 
 	 * @param expected
 	 *            the expected value
@@ -155,7 +157,7 @@ abstract public class TestCase {
 	}
 
 	/**
-	 * Check that 2 {@link Object}s are equals.
+	 * Check that 2 longs are equals.
 	 * 
 	 * @param errorMessage
 	 *            the error message to display if they differ
@@ -173,7 +175,7 @@ abstract public class TestCase {
 	}
 
 	/**
-	 * Check that 2 {@link Object}s are equals.
+	 * Check that 2 booleans are equals.
 	 * 
 	 * @param expected
 	 *            the expected value
@@ -189,7 +191,7 @@ abstract public class TestCase {
 	}
 
 	/**
-	 * Check that 2 {@link Object}s are equals.
+	 * Check that 2 booleans are equals.
 	 * 
 	 * @param errorMessage
 	 *            the error message to display if they differ
@@ -208,7 +210,7 @@ abstract public class TestCase {
 	}
 
 	/**
-	 * Check that 2 {@link Object}s are equals.
+	 * Check that 2 doubles are equals.
 	 * 
 	 * @param expected
 	 *            the expected value
@@ -224,7 +226,7 @@ abstract public class TestCase {
 	}
 
 	/**
-	 * Check that 2 {@link Object}s are equals.
+	 * Check that 2 doubles are equals.
 	 * 
 	 * @param errorMessage
 	 *            the error message to display if they differ
@@ -240,6 +242,32 @@ abstract public class TestCase {
 			throws AssertException {
 		assertEquals(errorMessage, Double.valueOf(expected),
 				Double.valueOf(actual));
+	}
+
+	/**
+	 * Check that 2 {@link List}s are equals.
+	 * 
+	 * @param errorMessage
+	 *            the error message to display if they differ
+	 * @param expected
+	 *            the expected value
+	 * @param actual
+	 *            the actual value
+	 * 
+	 * @throws AssertException
+	 *             in case they differ
+	 */
+	public void assertEquals(List<?> expected, List<?> actual)
+			throws AssertException {
+
+		assertEquals("The 2 lists don't contain the same number of items",
+				expected.size(), actual.size());
+
+		int size = expected.size();
+		for (int i = 0; i < size; i++) {
+			assertEquals("Line " + i + " (0-based) is not correct",
+					expected.get(i), actual.get(i));
+		}
 	}
 
 	/**

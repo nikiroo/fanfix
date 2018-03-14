@@ -49,77 +49,7 @@ class StringJustifier {
 	 * @return the list of justified lines
 	 */
 	static List<String> left(final String data, final int width) {
-		List<String> lines = new LinkedList<String>();
-
-		for (String dataLine : data.split("\n")) {
-			String line = rightTrim(dataLine.replace("\t", "    "));
-
-			if (width > 0 && line.length() > width) {
-				while (line.length() > 0) {
-					int i = Math.min(line.length(), width - 1); // -1 for "-"
-
-					boolean needDash = true;
-					// find the best space if any and if needed
-					int prevSpace = 0;
-					if (i < line.length()) {
-						prevSpace = -1;
-						int space = line.indexOf(' ');
-
-						while (space > -1 && space <= i) {
-							prevSpace = space;
-							space = line.indexOf(' ', space + 1);
-						}
-
-						if (prevSpace > 0) {
-							i = prevSpace;
-							needDash = false;
-						}
-					}
-					//
-
-					// no dash before space/dash
-					if ((i + 1) < line.length()) {
-						char car = line.charAt(i);
-						char nextCar = line.charAt(i + 1);
-						if (nextCar == ' ' || car == '-' || nextCar == '-') {
-							needDash = false;
-						}
-					}
-
-					// if the space freed by the removed dash allows it, or if
-					// it is the last char, add the next char
-					if (!needDash || i >= line.length() - 1) {
-						int checkI = Math.min(i + 1, line.length());
-						if (checkI == i || checkI <= width) {
-							needDash = false;
-							i = checkI;
-						}
-					}
-
-					// no dash before parenthesis (but cannot add one more
-					// after)
-					if ((i + 1) < line.length()) {
-						char car = line.charAt(i + 1);
-						if (car == '(' || car == ')') {
-							needDash = false;
-						}
-					}
-
-					if (needDash) {
-						lines.add(rightTrim(line.substring(0, i)) + "-");
-					} else {
-						lines.add(rightTrim(line.substring(0, i)));
-					}
-
-					// full trim (remove spaces when cutting)
-					line = line.substring(i).trim();
-				}
-			} else {
-				lines.add(line);
-			}
-		}
-
-		return lines;
+		return left(data, width, false);
 	}
 
 	/**
@@ -198,11 +128,11 @@ class StringJustifier {
 		List<String> result = new LinkedList<String>();
 
 		/*
-		 * Same as left(), but insert spaces between words to make each line n
-		 * chars long. The "algorithm" here is pretty dumb: it performs a split
-		 * on space and then re-inserts multiples of n between words.
+		 * Same as left(true), but insert spaces between words to make each line
+		 * n chars long. The "algorithm" here is pretty dumb: it performs a
+		 * split on space and then re-inserts multiples of n between words.
 		 */
-		List<String> lines = left(str, n);
+		List<String> lines = left(str, n, true);
 		for (int lineI = 0; lineI < lines.size() - 1; lineI++) {
 			String line = lines.get(lineI);
 			String[] words = line.split(" ");
@@ -239,6 +169,96 @@ class StringJustifier {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Process the given text into a list of left-justified lines of a given
+	 * max-width.
+	 * 
+	 * @param data
+	 *            the text to justify
+	 * @param width
+	 *            the maximum width of a line
+	 * @param minTwoWords
+	 *            use 2 words per line minimum if the text allows it
+	 * 
+	 * @return the list of justified lines
+	 */
+	static private List<String> left(final String data, final int width,
+			boolean minTwoWords) {
+		List<String> lines = new LinkedList<String>();
+
+		for (String dataLine : data.split("\n")) {
+			String line = rightTrim(dataLine.replace("\t", "    "));
+
+			if (width > 0 && line.length() > width) {
+				while (line.length() > 0) {
+					int i = Math.min(line.length(), width - 1); // -1 for "-"
+
+					boolean needDash = true;
+					// find the best space if any and if needed
+					int prevSpace = 0;
+					if (i < line.length()) {
+						prevSpace = -1;
+						int space = line.indexOf(' ');
+						int numOfSpaces = 0;
+
+						while (space > -1 && space <= i) {
+							prevSpace = space;
+							space = line.indexOf(' ', space + 1);
+							numOfSpaces++;
+						}
+
+						if (prevSpace > 0 && (!minTwoWords || numOfSpaces >= 2)) {
+							i = prevSpace;
+							needDash = false;
+						}
+					}
+					//
+
+					// no dash before space/dash
+					if ((i + 1) < line.length()) {
+						char car = line.charAt(i);
+						char nextCar = line.charAt(i + 1);
+						if (nextCar == ' ' || car == '-' || nextCar == '-') {
+							needDash = false;
+						}
+					}
+
+					// if the space freed by the removed dash allows it, or if
+					// it is the last char, add the next char
+					if (!needDash || i >= line.length() - 1) {
+						int checkI = Math.min(i + 1, line.length());
+						if (checkI == i || checkI <= width) {
+							needDash = false;
+							i = checkI;
+						}
+					}
+
+					// no dash before parenthesis (but cannot add one more
+					// after)
+					if ((i + 1) < line.length()) {
+						char car = line.charAt(i + 1);
+						if (car == '(' || car == ')') {
+							needDash = false;
+						}
+					}
+
+					if (needDash) {
+						lines.add(rightTrim(line.substring(0, i)) + "-");
+					} else {
+						lines.add(rightTrim(line.substring(0, i)));
+					}
+
+					// full trim (remove spaces when cutting)
+					line = line.substring(i).trim();
+				}
+			} else {
+				lines.add(line);
+			}
+		}
+
+		return lines;
 	}
 
 	/**
