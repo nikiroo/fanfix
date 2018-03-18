@@ -23,7 +23,7 @@ import be.nikiroo.utils.StringUtils;
  * 
  * @author niki
  */
-class Fimfiction extends BasicSupport {
+class Fimfiction extends BasicSupport_Deprecated {
 	@Override
 	protected boolean isHtml() {
 		return true;

@@ -35,7 +35,6 @@ public class StringIdBundle extends TransBundle<StringId> {
 	 */
 	public Locale getLanguage() {
 		return getLocaleFor(lang);
-
 	}
 
 	/**

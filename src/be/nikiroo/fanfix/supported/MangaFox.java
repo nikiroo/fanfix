@@ -16,7 +16,7 @@ import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 
-class MangaFox extends BasicSupport {
+class MangaFox extends BasicSupport_Deprecated {
 	@Override
 	protected boolean isHtml() {
 		return true;
@@ -376,6 +376,9 @@ class MangaFox extends BasicSupport {
 
 	@Override
 	protected boolean supports(URL url) {
+		// Broken code (see MangaFoxNew)
+		if (true)
+			return false;
 		return "mangafox.me".equals(url.getHost())
 				|| "www.mangafox.me".equals(url.getHost());
 	}

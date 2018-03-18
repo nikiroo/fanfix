@@ -58,7 +58,7 @@ public class InfoReader {
 		if (withCover) {
 			String infoTag = getInfoTag(in, "COVER");
 			if (infoTag != null && !infoTag.trim().isEmpty()) {
-				meta.setCover(BasicSupport.getImage(null, sourceInfoFile,
+				meta.setCover(BasicSupportHelper.getImage(null, sourceInfoFile,
 						infoTag));
 			}
 			// Second chance: try to check for a cover next to the info file
@@ -70,8 +70,8 @@ public class InfoReader {
 							+ Instance.getConfig()
 									.getString(Config.IMAGE_FORMAT_COVER)
 									.toLowerCase();
-					meta.setCover(BasicSupport.getImage(null, sourceInfoFile,
-							info + ext));
+					meta.setCover(BasicSupportHelper.getImage(null,
+							sourceInfoFile, info + ext));
 				}
 			}
 		}
@@ -84,7 +84,7 @@ public class InfoReader {
 		meta.setFakeCover(Boolean.parseBoolean(getInfoTag(in, "FAKE_COVER")));
 
 		if (withCover && meta.getCover() == null) {
-			meta.setCover(BasicSupport.getDefaultCover(meta.getSubject()));
+			meta.setCover(BasicSupportHelper.getDefaultCover(meta.getSubject()));
 		}
 
 		return meta;
@@ -138,7 +138,7 @@ public class InfoReader {
 
 		if (in != null) {
 			in.reset();
-			String value = BasicSupport.getLine(in, key, 0);
+			String value = BasicSupport_Deprecated.getLine(in, key, 0);
 			if (value != null && !value.isEmpty()) {
 				value = value.trim().substring(key.length() - 1).trim();
 				if (value.startsWith("'") && value.endsWith("'")

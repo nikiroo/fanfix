@@ -33,7 +33,7 @@ import be.nikiroo.utils.Progress;
  * 
  * @author niki
  */
-class Text extends BasicSupport {
+class Text extends BasicSupport_Deprecated {
 	@Override
 	protected boolean isHtml() {
 		return false;
@@ -123,7 +123,7 @@ class Text extends BasicSupport {
 			author = authorDate.substring(0, pos);
 		}
 
-		return fixAuthor(author);
+		return BasicSupportHelper.fixAuthor(author);
 	}
 
 	private String getDate(InputStream in) {

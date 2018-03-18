@@ -98,7 +98,7 @@ public abstract class BasicReader implements Reader {
 			throw new IOException("URL not supported: " + source.toString());
 		}
 
-		story = support.process(source, pg);
+		story = support.process(pg);
 		if (story == null) {
 			throw new IOException(
 					"Cannot retrieve story from external source: "

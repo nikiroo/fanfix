@@ -15,7 +15,8 @@ import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.supported.BasicSupport;
-import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
+import be.nikiroo.fanfix.supported.BasicSupport_Deprecated;
+import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.test.TestCase;
@@ -334,11 +335,10 @@ class BasicSupportTest extends TestLauncher {
 
 					@Override
 					public void test() throws Exception {
-						BasicSupport support = BasicSupport
-								.getSupport(SupportType.TEXT);
+						BasicSupport support = BasicSupport.getSupport(
+								SupportType.TEXT, tmp.toURI().toURL());
 
-						Story story = support
-								.process(tmp.toURI().toURL(), null);
+						Story story = support.process(null);
 
 						assertEquals(2, story.getChapters().size());
 						assertEquals(1, story.getChapters().get(1)
@@ -377,11 +377,10 @@ class BasicSupportTest extends TestLauncher {
 
 					@Override
 					public void test() throws Exception {
-						BasicSupport support = BasicSupport
-								.getSupport(SupportType.TEXT);
+						BasicSupport support = BasicSupport.getSupport(
+								SupportType.TEXT, tmp.toURI().toURL());
 
-						Story story = support
-								.process(tmp.toURI().toURL(), null);
+						Story story = support.process(null);
 
 						assertEquals(2, story.getChapters().size());
 						assertEquals(1, story.getChapters().get(1)
@@ -394,7 +393,7 @@ class BasicSupportTest extends TestLauncher {
 		});
 	}
 
-	private class BasicSupportEmpty extends BasicSupport {
+	private class BasicSupportEmpty extends BasicSupport_Deprecated {
 		@Override
 		protected String getSourceName() {
 			return null;

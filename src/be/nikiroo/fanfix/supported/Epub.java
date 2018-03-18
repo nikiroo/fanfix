@@ -200,7 +200,7 @@ class Epub extends InfoText {
 	}
 
 	@Override
-	protected void close() throws IOException {
+	protected void close() {
 		if (tmp != null && tmp.exists()) {
 			if (!tmp.delete()) {
 				tmp.deleteOnExit();
@@ -210,7 +210,11 @@ class Epub extends InfoText {
 		tmp = null;
 
 		if (fakeIn != null) {
-			fakeIn.close();
+			try {
+				fakeIn.close();
+			} catch (Exception e) {
+				Instance.getTraceHandler().error(e);
+			}
 		}
 
 		super.close();

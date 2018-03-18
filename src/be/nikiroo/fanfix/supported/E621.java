@@ -26,7 +26,7 @@ import be.nikiroo.utils.StringUtils;
  * 
  * @author niki
  */
-class E621 extends BasicSupport {
+class E621 extends BasicSupport_Deprecated {
 	@Override
 	public String getSourceName() {
 		return "e621.net";

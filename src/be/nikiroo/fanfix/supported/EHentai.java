@@ -23,7 +23,7 @@ import be.nikiroo.utils.StringUtils;
  * 
  * @author niki
  */
-class EHentai extends BasicSupport {
+class EHentai extends BasicSupport_Deprecated {
 	@Override
 	public String getSourceName() {
 		return "e-hentai.org";

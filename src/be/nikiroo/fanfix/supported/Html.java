@@ -6,6 +6,8 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import be.nikiroo.fanfix.Instance;
+
 /**
  * Support class for HTML files created with this program (as we need some
  * metadata available in those we create).
@@ -34,17 +36,17 @@ class Html extends InfoText {
 	}
 
 	@Override
-	public URL getCanonicalUrl(URL source) throws IOException {
+	public URL getCanonicalUrl(URL source) {
 		if (source.toString().endsWith(File.separator + "index.html")) {
 			try {
 				File fakeFile = new File(source.toURI()); // "story/index.html"
 				fakeFile = new File(fakeFile.getParent()); // "story"
 				fakeFile = new File(fakeFile, fakeFile.getName()); // "story/story"
 				return fakeFile.toURI().toURL();
-			} catch (URISyntaxException e) {
-				throw new IOException(
-						"file not supported (maybe not created with this program or corrupt)",
-						e);
+			} catch (Exception e) {
+				Instance.getTraceHandler().error(
+						new IOException("Cannot find the right URL for "
+								+ source, e));
 			}
 		}
 

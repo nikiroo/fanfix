@@ -24,7 +24,7 @@ import be.nikiroo.utils.StringUtils;
  * 
  * @author niki
  */
-class YiffStar extends BasicSupport {
+class YiffStar extends BasicSupport_Deprecated {
 
 	@Override
 	public String getSourceName() {
@@ -93,19 +93,23 @@ class YiffStar extends BasicSupport {
 	}
 
 	@Override
-	public URL getCanonicalUrl(URL source) throws IOException {
-		if (source.getPath().startsWith("/view")) {
-			source = new URL(source.toString() + "/guest");
-			InputStream in = Instance.getCache().open(source, this, false);
-			String line = getLine(in, "/browse/folder/", 0);
-			if (line != null) {
-				String[] tab = line.split("\"");
-				if (tab.length > 1) {
-					String groupUrl = source.getProtocol() + "://"
-							+ source.getHost() + tab[1];
-					return guest(groupUrl);
+	public URL getCanonicalUrl(URL source) {
+		try {
+			if (source.getPath().startsWith("/view")) {
+				source = new URL(source.toString() + "/guest");
+				InputStream in = Instance.getCache().open(source, this, false);
+				String line = getLine(in, "/browse/folder/", 0);
+				if (line != null) {
+					String[] tab = line.split("\"");
+					if (tab.length > 1) {
+						String groupUrl = source.getProtocol() + "://"
+								+ source.getHost() + tab[1];
+						return guest(groupUrl);
+					}
 				}
 			}
+		} catch (Exception e) {
+			Instance.getTraceHandler().error(e);
 		}
 
 		return super.getCanonicalUrl(source);

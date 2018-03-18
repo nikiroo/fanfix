@@ -23,7 +23,7 @@ import be.nikiroo.utils.Progress;
  * 
  * @author niki
  */
-class FimfictionApi extends BasicSupport {
+class FimfictionApi extends BasicSupport_Deprecated {
 	private String oauth;
 	private String storyId;
 	private String json;

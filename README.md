@@ -94,6 +94,7 @@ There are some unit tests you can run, too:
 - libs/nikiroo-utils-sources.jar: some shared utility functions
 - [libs/unbescape-sources.jar](https://github.com/unbescape/unbescape): a nice library to escape/unescape a lot of text formats; used here for HTML
 - [libs/jexer-sources.jar](https://github.com/klamonte/jexer): a small library that offers TUI widgets
+- [libs/jsoup-sources.jar](https://jsoup.org/): a library to parse HTML
 
 Nothing else but Java 1.6+.
 

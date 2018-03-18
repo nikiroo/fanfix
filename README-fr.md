@@ -94,6 +94,7 @@ Quelques tests unitaires sont disponibles :
 Nécessaires :
 - libs/nikiroo-utils-sources.jar: quelques utilitaires partagés
 - [libs/unbescape-sources.jar](https://github.com/unbescape/unbescape): une librairie sympathique pour convertir du texte depuis/vers beaucoup de formats ; utilisée ici pour la partie HTML
+- [libs/jsoup-sources.jar](https://jsoup.org/): une libraririe pour parser du HTML
 
 Optionnelles :
 - [libs/jexer-sources.jar](https://github.com/klamonte/jexer): une petite librairie qui offre des widgets en mode TUI

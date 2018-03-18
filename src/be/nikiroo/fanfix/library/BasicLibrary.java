@@ -14,7 +14,7 @@ import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.supported.BasicSupport;
-import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
+import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 
@@ -343,8 +343,8 @@ abstract public class BasicLibrary {
 							.getType());
 					URL url = file.toURI().toURL();
 					if (type != null) {
-						story = BasicSupport.getSupport(type).process(url,
-								pgProcess);
+						story = BasicSupport.getSupport(type, url) //
+								.process(pgProcess);
 						// Because we do not want to clear the meta cache:
 						meta.setCover(story.getMeta().getCover());
 						story.setMeta(meta);
@@ -392,7 +392,7 @@ abstract public class BasicLibrary {
 			throw new UnknownHostException("" + url);
 		}
 
-		return save(support.process(url, pg), null);
+		return save(support.process(pg), null);
 	}
 
 	/**

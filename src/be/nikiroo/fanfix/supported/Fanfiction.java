@@ -25,7 +25,7 @@ import be.nikiroo.utils.StringUtils;
  * 
  * @author niki
  */
-class Fanfiction extends BasicSupport {
+class Fanfiction extends BasicSupport_Deprecated {
 	@Override
 	protected boolean isHtml() {
 		return true;
@@ -142,7 +142,7 @@ class Fanfiction extends BasicSupport {
 			}
 		}
 
-		return fixAuthor(author);
+		return BasicSupportHelper.fixAuthor(author);
 	}
 
 	private String getDate(InputStream in) {

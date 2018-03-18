@@ -21,7 +21,7 @@ import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.reader.Reader;
 import be.nikiroo.fanfix.reader.Reader.ReaderType;
 import be.nikiroo.fanfix.supported.BasicSupport;
-import be.nikiroo.fanfix.supported.BasicSupport.SupportType;
+import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.server.ServerObject;
@@ -538,7 +538,7 @@ public class Main {
 							pg.addProgress(pgOut, 1);
 						}
 
-						Story story = support.process(source, pgIn);
+						Story story = support.process(pgIn);
 						try {
 							target = new File(target).getAbsolutePath();
 							BasicOutput.getOutput(type, infoCover, infoCover)
