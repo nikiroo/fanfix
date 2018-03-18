@@ -36,8 +36,7 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 	 *            the name of the {@link Bundles}
 	 */
 	public TransBundle(Class<E> type, Enum<?> name) {
-		super(type, name, null);
-		setLanguage(null);
+		this(type, name, (Locale) null);
 	}
 
 	/**
@@ -49,11 +48,27 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 	 * @param name
 	 *            the name of the {@link Bundles}
 	 * @param language
-	 *            the language to use
+	 *            the language to use, can be NULL for default
 	 */
 	public TransBundle(Class<E> type, Enum<?> name, String language) {
 		super(type, name, null);
-		setLanguage(language);
+		setLocale(language);
+	}
+
+	/**
+	 * Create a translation service for the given language (will fall back to
+	 * the default one i not found).
+	 * 
+	 * @param type
+	 *            a runtime instance of the class of E
+	 * @param name
+	 *            the name of the {@link Bundles}
+	 * @param language
+	 *            the language to use, can be NULL for default
+	 */
+	public TransBundle(Class<E> type, Enum<?> name, Locale language) {
+		super(type, name, null);
+		setLocale(language);
 	}
 
 	/**
@@ -164,15 +179,55 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 	}
 
 	/**
+	 * The current language (which can be the default one, but NOT NULL).
+	 * 
+	 * @return the language, not NULL
+	 */
+	public Locale getLocale() {
+		return locale;
+	}
+
+	/**
+	 * The current language (which can be the default one, but NOT NULL).
+	 * 
+	 * @return the language, not NULL, in a display format (fr-BE, en-GB, es,
+	 *         de...)
+	 */
+	public String getLocaleString() {
+		String lang = locale.getLanguage();
+		String country = locale.getCountry();
+		if (country != null && !country.isEmpty()) {
+			return lang + "-" + country;
+		}
+		return lang;
+	}
+
+	/**
 	 * Initialise the translation mappings for the given language.
 	 * 
 	 * @param language
 	 *            the language to initialise, in the form "en-GB" or "fr" for
 	 *            instance
 	 */
-	private void setLanguage(String language) {
-		defaultLocale = (language == null || language.length() == 0);
-		locale = getLocaleFor(language);
+	private void setLocale(String language) {
+		setLocale(getLocaleFor(language));
+	}
+
+	/**
+	 * Initialise the translation mappings for the given language.
+	 * 
+	 * @param language
+	 *            the language to initialise, or NULL for default
+	 */
+	private void setLocale(Locale language) {
+		if (language != null) {
+			defaultLocale = false;
+			locale = language;
+		} else {
+			defaultLocale = true;
+			locale = Locale.getDefault();
+		}
+
 		setBundle(keyType, locale, false);
 	}
 
@@ -204,22 +259,22 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 		Object status = takeSnapshot();
 
 		// default locale
-		setLanguage(null);
-		if (prev.equals(getLocaleFor(null).getLanguage())) {
+		setLocale((Locale) null);
+		if (prev.equals(Locale.getDefault().getLanguage())) {
 			// restore snapshot if default locale = current locale
 			restoreSnapshot(status);
 		}
 		super.updateFile(path);
 
 		for (String lang : getKnownLanguages()) {
-			setLanguage(lang);
+			setLocale(lang);
 			if (lang.equals(prev)) {
 				restoreSnapshot(status);
 			}
 			super.updateFile(path);
 		}
 
-		setLanguage(prev);
+		setLocale(prev);
 		restoreSnapshot(status);
 	}
 
@@ -283,28 +338,27 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 	 *            the language to initialise, in the form "en-GB" or "fr" for
 	 *            instance
 	 * 
-	 * @return the corresponding {@link Locale} or the default {@link Locale} if
-	 *         it is not known
+	 * @return the corresponding {@link Locale} or NULL if it is not known
 	 */
 	static private Locale getLocaleFor(String language) {
 		Locale locale;
 
-		if (language == null) {
-			locale = Locale.getDefault();
-		} else {
-			language = language.replaceAll("_", "-");
-			String lang = language;
-			String country = null;
-			if (language.contains("-")) {
-				lang = language.split("-")[0];
-				country = language.split("-")[1];
-			}
-
-			if (country != null)
-				locale = new Locale(lang, country);
-			else
-				locale = new Locale(lang);
+		if (language == null || language.trim().isEmpty()) {
+			return null;
 		}
+
+		language = language.replaceAll("_", "-");
+		String lang = language;
+		String country = null;
+		if (language.contains("-")) {
+			lang = language.split("-")[0];
+			country = language.split("-")[1];
+		}
+
+		if (country != null)
+			locale = new Locale(lang, country);
+		else
+			locale = new Locale(lang);
 
 		return locale;
 	}

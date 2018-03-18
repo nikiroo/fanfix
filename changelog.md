@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version WIP
+
+- New getLanguage in TransBundle
+
 ## Version 4.1.0
 
 - New TempFiles (Image.java now uses it instead of memory)
