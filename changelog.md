@@ -1,5 +1,11 @@
 # nikiroo-utils
 
+## Version 4.1.0
+
+- New TempFiles (Image.java now uses it instead of memory)
+- Auto cache cleaning + better errors in ImageUtilsAndroid
+- New String justification options
+
 ## Version 4.0.1
 
 - Android compatibility (see configure.sh --android=yes)
