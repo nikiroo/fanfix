@@ -4,11 +4,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Scanner;
+
+import org.jsoup.helper.DataUtil;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
@@ -16,7 +20,7 @@ import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.StringUtils;
 
-class MangaFox extends BasicSupport_Deprecated {
+class MangaFox extends BasicSupport {
 	@Override
 	protected boolean isHtml() {
 		return true;
@@ -28,168 +32,104 @@ class MangaFox extends BasicSupport_Deprecated {
 	}
 
 	@Override
-	protected MetaData getMeta(URL source, InputStream in) throws IOException {
+	protected MetaData getMeta() throws IOException {
 		MetaData meta = new MetaData();
+		Element doc = getSourceNode();
 
-		meta.setTitle(getTitle(reset(in)));
-		meta.setAuthor(getAuthor(reset(in)));
-		meta.setDate(getDate(reset(in)));
-		meta.setTags(getTags(reset(in)));
+		Element title = doc.getElementById("title");
+		Elements table = null;
+		if (title != null) {
+			table = title.getElementsByTag("table");
+		}
+		if (table != null) {
+			// Rows: header, data
+			Elements rows = table.first().getElementsByTag("tr");
+			if (rows.size() > 1) {
+				table = rows.get(1).getElementsByTag("td");
+				// Columns: Realeased, Authors, Artists, Genres
+				if (table.size() < 4) {
+					table = null;
+				}
+			}
+		}
+
+		meta.setTitle(getTitle());
+		if (table != null) {
+			meta.setAuthor(getAuthors(table.get(1).text() + ","
+					+ table.get(2).text()));
+
+			meta.setDate(StringUtils.unhtml(table.get(0).text()).trim());
+			meta.setTags(explode(table.get(3).text()));
+		}
 		meta.setSource(getSourceName());
-		meta.setUrl(source.toString());
+		meta.setUrl(getSource().toString());
 		meta.setPublisher(getSourceName());
-		meta.setUuid(source.toString());
+		meta.setUuid(getSource().toString());
 		meta.setLuid("");
 		meta.setLang("EN");
 		meta.setSubject("manga");
 		meta.setType(getType().toString());
 		meta.setImageDocument(true);
-		meta.setCover(getCover(reset(in)));
+		meta.setCover(getCover());
 
 		return meta;
 	}
 
-	private List<String> getTags(InputStream in) {
-		List<String> tags = new ArrayList<String>();
+	private String getTitle() {
+		Element doc = getSourceNode();
 
-		String line = getLine(in, "/genres/", 0);
-		if (line != null) {
-			line = StringUtils.unhtml(line);
-			String[] tab = line.split(",");
-			if (tab != null) {
-				for (String tag : tab) {
-					tags.add(tag.trim());
-				}
-			}
-		}
-
-		return tags;
-	}
-
-	private String getTitle(InputStream in) {
-		String line = getLine(in, " property=\"og:title\"", 0);
-		if (line != null) {
-			int pos = -1;
-			for (int i = 0; i < 3; i++) {
-				pos = line.indexOf('"', pos + 1);
-			}
-
-			if (pos >= 0) {
-				line = line.substring(pos + 1);
-				pos = line.indexOf('"');
-				if (pos >= 0) {
-					return line.substring(0, pos);
-				}
-			}
+		Element title = doc.getElementById("title");
+		Element h1 = title.getElementsByTag("h1").first();
+		if (h1 != null) {
+			return StringUtils.unhtml(h1.text()).trim();
 		}
 
 		return null;
 	}
 
-	private String getAuthor(InputStream in) {
-		List<String> authors = new ArrayList<String>();
-
-		String line = getLine(in, "/author/", 0, false);
-		if (line != null) {
-			for (String ln : StringUtils.unhtml(line).split(",")) {
-				if (ln != null && !ln.trim().isEmpty()
-						&& !authors.contains(ln.trim())) {
-					authors.add(ln.trim());
-				}
+	private String getAuthors(String authorList) {
+		String author = "";
+		for (String auth : explode(authorList)) {
+			if (!author.isEmpty()) {
+				author = author + ", ";
 			}
+			author += auth;
 		}
 
-		try {
-			in.reset();
-		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
-		}
-
-		line = getLine(in, "/artist/", 0, false);
-		if (line != null) {
-			for (String ln : StringUtils.unhtml(line).split(",")) {
-				if (ln != null && !ln.trim().isEmpty()
-						&& !authors.contains(ln.trim())) {
-					authors.add(ln.trim());
-				}
-			}
-		}
-
-		if (authors.isEmpty()) {
-			return null;
-		}
-
-		StringBuilder builder = new StringBuilder();
-		for (String author : authors) {
-			if (builder.length() > 0) {
-				builder.append(", ");
-			}
-
-			builder.append(author);
-		}
-
-		return builder.toString();
-	}
-
-	private String getDate(InputStream in) {
-		String line = getLine(in, "/released/", 0);
-		if (line != null) {
-			line = StringUtils.unhtml(line);
-			return line.trim();
-		}
-
-		return null;
+		return author;
 	}
 
 	@Override
-	protected String getDesc(URL source, InputStream in) {
-		String line = getLine(in, " property=\"og:description\"", 0);
-		if (line != null) {
-			int pos = -1;
-			for (int i = 0; i < 3; i++) {
-				pos = line.indexOf('"', pos + 1);
-			}
-
-			if (pos >= 0) {
-				line = line.substring(pos + 1);
-				pos = line.indexOf('"');
-				if (pos >= 0) {
-					return line.substring(0, pos);
-				}
-			}
+	protected String getDesc() {
+		Element doc = getSourceNode();
+		Element title = doc.getElementsByClass("summary").first();
+		if (title != null) {
+			StringUtils.unhtml(title.text()).trim();
 		}
 
 		return null;
 	}
 
-	private Image getCover(InputStream in) {
-		String line = getLine(in, " property=\"og:image\"", 0);
-		String cover = null;
-		if (line != null) {
-			int pos = -1;
-			for (int i = 0; i < 3; i++) {
-				pos = line.indexOf('"', pos + 1);
-			}
-
-			if (pos >= 0) {
-				line = line.substring(pos + 1);
-				pos = line.indexOf('"');
-				if (pos >= 0) {
-					cover = line.substring(0, pos);
-				}
-			}
+	private Image getCover() {
+		Element doc = getSourceNode();
+		Element cover = doc.getElementsByClass("cover").first();
+		if (cover != null) {
+			cover = cover.getElementsByTag("img").first();
 		}
 
 		if (cover != null) {
+			String coverUrl = cover.absUrl("src");
+
 			InputStream coverIn;
 			try {
-				coverIn = openEx(cover);
+				coverIn = openEx(coverUrl);
 				try {
 					return new Image(coverIn);
 				} finally {
 					coverIn.close();
 				}
 			} catch (IOException e) {
+				Instance.getTraceHandler().error(e);
 			}
 		}
 
@@ -197,86 +137,36 @@ class MangaFox extends BasicSupport_Deprecated {
 	}
 
 	@Override
-	protected List<Entry<String, URL>> getChapters(URL source, InputStream in,
-			Progress pg) {
+	protected List<Entry<String, URL>> getChapters(Progress pg) {
 		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
 
-		String volumeAt = "<h3 class=\"volume\">";
-		String linkAt = "href=\"http://mangafox.me/";
-		String endAt = "<script type=\"text/javascript\">";
-
-		boolean started = false;
-
-		@SuppressWarnings("resource")
-		Scanner scan = new Scanner(in, "UTF-8");
-		scan.useDelimiter("\\n");
-		while (scan.hasNext()) {
-			String line = scan.next();
-
-			if (started && line.contains(endAt)) {
-				break;
-			} else if (!started && line.contains(volumeAt)) {
-				started = true;
+		Element doc = getSourceNode();
+		for (Element li : doc.getElementsByTag("li")) {
+			Element el = li.getElementsByTag("h4").first();
+			if (el == null) {
+				el = li.getElementsByTag("h3").first();
 			}
+			if (el != null) {
+				Element a = el.getElementsByTag("a").first();
+				if (a != null) {
+					String title = StringUtils.unhtml(el.text()).trim();
+					try {
+						String url = a.absUrl("href");
+						if (url.endsWith("1.html")) {
+							url = url.substring(0,
+									url.length() - "1.html".length());
+						}
+						if (!url.endsWith("/")) {
+							url += "/";
+						}
 
-			if (started && line.contains(linkAt)) {
-				// Chapter content url
-				String url = null;
-				int pos = line.indexOf("href=\"");
-				if (pos >= 0) {
-					line = line.substring(pos + "href=\"".length());
-					pos = line.indexOf('\"');
-					if (pos >= 0) {
-						url = line.substring(0, pos);
+						urls.add(new AbstractMap.SimpleEntry<String, URL>(
+								title, new URL(url)));
+					} catch (Exception e) {
+						Instance.getTraceHandler().error(e);
 					}
 				}
-
-				// Chapter name
-				String name = null;
-				if (scan.hasNext()) {
-					name = StringUtils.unhtml(scan.next()).trim();
-					// Remove the "new" tag if present
-					if (name.endsWith("new")) {
-						name = name.substring(0, name.length() - 3).trim();
-					}
-				}
-
-				try {
-					final String key = name;
-					final URL value = new URL(url);
-					urls.add(new Entry<String, URL>() {
-						@Override
-						public URL setValue(URL value) {
-							return null;
-						}
-
-						@Override
-						public String getKey() {
-							return key;
-						}
-
-						@Override
-						public URL getValue() {
-							return value;
-						}
-					});
-				} catch (MalformedURLException e) {
-					Instance.getTraceHandler().error(e);
-				}
 			}
-		}
-
-		if (pg == null) {
-			pg = new Progress(0, urls.size());
-		} else {
-			pg.setMinMax(0, urls.size());
-		}
-
-		int i = 1;
-		for (Entry<String, URL> entry : urls) {
-			// to help with the retry and the originalUrl
-			refresh(entry.getValue().toString());
-			pg.setProgress(i++);
 		}
 
 		// the chapters are in reversed order
@@ -286,52 +176,46 @@ class MangaFox extends BasicSupport_Deprecated {
 	}
 
 	@Override
-	protected String getChapterContent(URL source, InputStream in, int number,
-			Progress pg) {
+	protected String getChapterContent(URL chapUrl, int number, Progress pg)
+			throws IOException {
 		if (pg == null) {
 			pg = new Progress();
-		} else {
-			// Since we have no idea how many images we have, we cycle from 0
-			// to max, then again, then again...
-			pg.setMinMax(0, 20);
 		}
 
 		StringBuilder builder = new StringBuilder();
-		String base = getCurrentReferer().toString();
-		int pos = base.lastIndexOf('/');
-		base = base.substring(0, pos + 1); // including the '/' at the end
 
-		int i = 1;
-		boolean close = false;
-		while (in != null) {
-			String linkNextLine = getLine(in, "return enlarge()", 0);
-			try {
-				in.reset();
-			} catch (IOException e) {
-				Instance.getTraceHandler().error(e);
-			}
+		String url = chapUrl.toString();
+		InputStream imageIn = null;
+		Element imageDoc = null;
 
-			String linkImageLine = getLine(in, "return enlarge()", 1);
-			String linkNext = null;
-			String linkImage = null;
-			pos = linkNextLine.indexOf("href=\"");
-			if (pos >= 0) {
-				linkNextLine = linkNextLine.substring(pos + "href=\"".length());
-				pos = linkNextLine.indexOf('\"');
-				if (pos >= 0) {
-					linkNext = linkNextLine.substring(0, pos);
-				}
-			}
-			pos = linkImageLine.indexOf("src=\"");
-			if (pos >= 0) {
-				linkImageLine = linkImageLine
-						.substring(pos + "src=\"".length());
-				pos = linkImageLine.indexOf('\"');
-				if (pos >= 0) {
-					linkImage = linkImageLine.substring(0, pos);
+		// 1. find out how many images there are
+		int size;
+		try {
+			// note: when used, the base URL can be an ad-page
+			imageIn = openEx(url + "1.html");
+			imageDoc = DataUtil.load(imageIn, "UTF-8", url + "1.html");
+		} finally {
+			imageIn.close();
+		}
+		Element select = imageDoc.getElementsByClass("m").first();
+		Elements options = select.getElementsByTag("option");
+		size = options.size() - 1; // last is "Comments"
+
+		pg.setMinMax(0, size);
+
+		// 2. list them
+		for (int i = 1; i <= size; i++) {
+			if (i > 1) { // because fist one was opened for size
+				try {
+					imageIn = openEx(url + i + ".html");
+					imageDoc = DataUtil.load(imageIn, "UTF-8", url + i
+							+ ".html");
+				} finally {
+					imageIn.close();
 				}
 			}
 
+			String linkImage = imageDoc.getElementById("image").absUrl("src");
 			if (linkImage != null) {
 				builder.append("[");
 				// to help with the retry and the originalUrl, part 1
@@ -341,50 +225,13 @@ class MangaFox extends BasicSupport_Deprecated {
 
 			// to help with the retry and the originalUrl, part 2
 			refresh(linkImage);
-			pg.setProgress((i++) % pg.getMax());
-
-			if (close) {
-				try {
-					in.close();
-				} catch (IOException e) {
-					Instance.getTraceHandler().error(e);
-				}
-			}
-
-			in = null;
-			if (linkNext != null && !"javascript:void(0);".equals(linkNext)) {
-				URL url;
-				try {
-					url = new URL(base + linkNext);
-					in = openEx(base + linkNext);
-					setCurrentReferer(url);
-					pg.setProgress((i++) % pg.getMax());
-				} catch (IOException e) {
-					Instance.getTraceHandler().error(
-							new IOException(
-									"Cannot get the next manga page which is: "
-											+ linkNext, e));
-				}
-			}
-
-			close = true;
 		}
 
-		setCurrentReferer(source);
 		return builder.toString();
 	}
 
-	@Override
-	protected boolean supports(URL url) {
-		// Broken code (see MangaFoxNew)
-		if (true)
-			return false;
-		return "mangafox.me".equals(url.getHost())
-				|| "www.mangafox.me".equals(url.getHost());
-	}
-
 	/**
-	 * Refresh the {@link URL} by calling {@link MangaFox#openEx(String)}.
+	 * Refresh the {@link URL} by calling {@link MangaFoxNew#openEx(String)}.
 	 * 
 	 * @param url
 	 *            the URL to refresh
@@ -449,5 +296,36 @@ class MangaFox extends BasicSupport_Deprecated {
 		} catch (MalformedURLException e) {
 			return null;
 		}
+	}
+
+	/**
+	 * Explode an HTML comma-separated list of values into a non-duplicate text
+	 * {@link List} .
+	 * 
+	 * @param values
+	 *            the comma-separated values in HTML format
+	 * 
+	 * @return the full list with no duplicate in text format
+	 */
+	private List<String> explode(String values) {
+		List<String> list = new ArrayList<String>();
+		if (values != null && !values.isEmpty()) {
+			for (String auth : values.split(",")) {
+				String a = StringUtils.unhtml(auth).trim();
+				if (!a.isEmpty() && !list.contains(a.trim())) {
+					list.add(a);
+				}
+			}
+		}
+
+		return list;
+	}
+
+	@Override
+	protected boolean supports(URL url) {
+		return "mangafox.me".equals(url.getHost())
+				|| "www.mangafox.me".equals(url.getHost())
+				|| "fanfox.net".equals(url.getHost())
+				|| "www.fanfox.net".equals(url.getHost());
 	}
 }
