@@ -4,6 +4,8 @@
 
 - update: mise à jour de nikiroo-utils
 - android: compatibilité Android
+- MangaFox: fix après une mise-à-jour du site
+- new: utilisation de jsoup (uniquement pour MangaFox pour l'instant)
 
 # Version 1.6.3
 

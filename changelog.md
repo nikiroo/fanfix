@@ -1,9 +1,11 @@
 # Fanfix
 
-# Version WIP
+# Version 1.6.4
 
 - update nikiroo-utils
 - android: Android compatibility
+- MangaFox: fix after website update
+- new: use jsoup (only for MangaFox for now)
 
 # Version 1.6.3
 
