@@ -3,6 +3,7 @@
 # Export script
 # 
 # Version:
+# - 1.1.1: use the new sjar command to make sources
 # - 1.1.0: allow multiple targets
 # - 1.0.0: add a version comment
 
@@ -17,7 +18,7 @@ LIBNAME="`cat configure.sh | grep '^echo "NAME = ' | cut -d'"' -f2 | cut -d= -f2
 LIBNAME="`echo $LIBNAME`"
 
 make mrpropre
-./configure.sh && make
+./configure.sh && make && make sjar
 if [ $? = 0 ]; then
 	while [ "$1" != "" ]; do
 		mkdir -p "$1"/libs/
