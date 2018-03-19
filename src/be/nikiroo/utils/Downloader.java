@@ -202,11 +202,19 @@ public class Downloader {
 		conn.connect();
 
 		// Check if redirect
-		if (conn instanceof HttpURLConnection
-				&& ((HttpURLConnection) conn).getResponseCode() / 100 == 3) {
-			String newUrl = conn.getHeaderField("Location");
-			return open(new URL(newUrl), originalUrl, currentReferer,
-					cookiesValues, postParams, getParams, oauth);
+		if (conn instanceof HttpURLConnection) {
+			int repCode = 0;
+			try {
+				// Can fail in some circumstances
+				repCode = ((HttpURLConnection) conn).getResponseCode();
+			} catch (IOException e) {
+			}
+
+			if (repCode / 100 == 3) {
+				String newUrl = conn.getHeaderField("Location");
+				return open(new URL(newUrl), originalUrl, currentReferer,
+						cookiesValues, postParams, getParams, oauth);
+			}
 		}
 
 		InputStream in = conn.getInputStream();
