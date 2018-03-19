@@ -110,7 +110,7 @@ public class VersionCheck {
 		if (Instance.isVersionCheckNeeded()) {
 			try {
 				// Prepare the URLs according to the user's language
-				Locale lang = Instance.getTrans().getLanguage();
+				Locale lang = Instance.getTrans().getLocale();
 				String fr = lang.getLanguage();
 				String BE = lang.getCountry().replace(".UTF8", "");
 				String urlFrBE = base.replace("${LANG}", "-" + fr + "_" + BE);

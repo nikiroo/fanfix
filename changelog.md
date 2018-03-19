@@ -1,6 +1,6 @@
 # Fanfix
 
-# Version 1.6.4
+# Version WIP
 
 - update nikiroo-utils
 - android: Android compatibility

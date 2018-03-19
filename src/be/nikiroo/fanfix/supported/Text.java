@@ -28,7 +28,7 @@ import be.nikiroo.utils.Progress;
  * number</li>
  * <li>A description of the story must be given as chapter number 0</li>
  * <li>A cover may be present, with the same filename but a PNG, JPEG or JPG
- * extension</li<
+ * extension</li>
  * </ul>
  * 
  * @author niki
