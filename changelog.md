@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version 4.2.1
+
+- Fix small bug in Downloader
+
 ## Version 4.2.0
 
 - New getLanguage() in TransBundle
