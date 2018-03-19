@@ -1,8 +1,8 @@
 # nikiroo-utils
 
-## Version WIP
+## Version 4.2.0
 
-- New getLanguage in TransBundle
+- New getLanguage() in TransBundle
 
 ## Version 4.1.0
 
