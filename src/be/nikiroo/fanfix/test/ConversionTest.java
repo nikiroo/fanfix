@@ -24,9 +24,18 @@ class ConversionTest extends TestLauncher {
 	private File testFile;
 	private File expectedDir;
 	private File resultDir;
+	private List<BasicOutput.OutputType> realTypes;
 
 	public ConversionTest(String[] args) {
 		super("Conversion", args);
+
+		// Special mode SYSOUT is not a file type (System.out)
+		realTypes = new ArrayList<BasicOutput.OutputType>();
+		for (BasicOutput.OutputType type : BasicOutput.OutputType.values()) {
+			if (!BasicOutput.OutputType.SYSOUT.equals(type)) {
+				realTypes.add(type);
+			}
+		}
 
 		addTest(new TestCase("Read the test file") {
 			@Override
@@ -48,11 +57,8 @@ class ConversionTest extends TestLauncher {
 			}
 		});
 
-		for (BasicOutput.OutputType type : BasicOutput.OutputType.values()) {
-			// NOT for special mode SYSOUT
-			if (!BasicOutput.OutputType.SYSOUT.equals(type)) {
-				addTest(getTestFor(type));
-			}
+		for (BasicOutput.OutputType type : realTypes) {
+			addTest(getTestFor(type));
 		}
 	}
 
@@ -81,21 +87,17 @@ class ConversionTest extends TestLauncher {
 				// Check conversion:
 				compareFiles(this, expectedDir, resultDir, type, null);
 
-				// Cross-checks:
-
 				// LATEX not supported as input
-				if (!BasicOutput.OutputType.LATEX.equals(type)) {
-					for (BasicOutput.OutputType crossType : BasicOutput.OutputType
-							.values()) {
-						// NOT for special mode SYSOUT
-						if (!BasicOutput.OutputType.SYSOUT.equals(crossType)) {
-							File crossDir = tempFiles
-									.createTempDir("cross-result");
-							generate(this, target, crossDir, crossType);
-							compareFiles(this, crossDir, resultDir, crossType,
-									crossType);
-						}
-					}
+				if (BasicOutput.OutputType.LATEX.equals(type)) {
+					return;
+				}
+
+				// Cross-checks:
+				for (BasicOutput.OutputType crossType : realTypes) {
+					File crossDir = tempFiles.createTempDir("cross-result");
+					generate(this, target, crossDir, crossType);
+					compareFiles(this, resultDir, crossDir, crossType,
+							crossType);
 				}
 			}
 		};

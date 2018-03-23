@@ -22,14 +22,17 @@ class Html extends InfoText {
 
 	@Override
 	protected boolean supports(URL url) {
-		if (url.getPath().toLowerCase()
-				.endsWith(File.separatorChar + "index.html")) {
-			try {
-				File file = new File(url.toURI()).getParentFile();
-				return super.supports(file.toURI().toURL());
-			} catch (URISyntaxException e) {
-			} catch (MalformedURLException e) {
+		try {
+			File file = new File(url.toURI());
+			if (file.getName().equals("index.html")) {
+				file = file.getParentFile();
 			}
+
+			file = new File(file, file.getName());
+
+			return super.supports(file.toURI().toURL());
+		} catch (URISyntaxException e) {
+		} catch (MalformedURLException e) {
 		}
 
 		return false;
@@ -37,17 +40,22 @@ class Html extends InfoText {
 
 	@Override
 	public URL getCanonicalUrl(URL source) {
-		if (source.toString().endsWith(File.separator + "index.html")) {
-			try {
-				File fakeFile = new File(source.toURI()); // "story/index.html"
-				fakeFile = new File(fakeFile.getParent()); // "story"
-				fakeFile = new File(fakeFile, fakeFile.getName()); // "story/story"
-				return fakeFile.toURI().toURL();
-			} catch (Exception e) {
-				Instance.getTraceHandler().error(
-						new IOException("Cannot find the right URL for "
-								+ source, e));
+
+		try {
+			File fakeFile = new File(source.toURI());
+			if (fakeFile.getName().equals("index.html")) { // "story/index.html"
+				fakeFile = new File(fakeFile.getParent()); // -> "story/"
 			}
+
+			if (fakeFile.isDirectory()) { // "story/"
+				fakeFile = new File(fakeFile, fakeFile.getName() + ".txt"); // "story/story.txt"
+			}
+
+			return fakeFile.toURI().toURL();
+		} catch (Exception e) {
+			Instance.getTraceHandler().error(
+					new IOException("Cannot find the right URL for " + source,
+							e));
 		}
 
 		return source;

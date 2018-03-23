@@ -236,20 +236,55 @@ class Text extends BasicSupport_Deprecated {
 
 	@Override
 	protected boolean supports(URL url) {
+		return supports(url, false);
+	}
+
+	/**
+	 * Check if we supports this {@link URL}, that is, if the info file can be
+	 * found OR not found.
+	 * 
+	 * @param url
+	 *            the {@link URL} to check
+	 * @param info
+	 *            TRUE to require the info file, FALSE to forbid the info file
+	 * 
+	 * @return TRUE if it is supported
+	 */
+	protected boolean supports(URL url, boolean info) {
+		boolean infoPresent = false;
 		if ("file".equals(url.getProtocol())) {
 			File file;
 			try {
 				file = new File(url.toURI());
+				file = assureNoTxt(file);
 				file = new File(file.getPath() + ".info");
 			} catch (URISyntaxException e) {
 				Instance.getTraceHandler().error(e);
 				file = null;
 			}
 
-			return file == null || !file.exists();
+			infoPresent = (file != null && file.exists());
 		}
 
-		return false;
+		return infoPresent == info;
+	}
+
+	/**
+	 * Remove the ".txt" extension if it is present.
+	 * 
+	 * @param file
+	 *            the file to process
+	 * 
+	 * @return the same file or a copy of it without the ".txt" extension if it
+	 *         was present
+	 */
+	protected File assureNoTxt(File file) {
+		if (file.getName().endsWith(".txt")) {
+			file = new File(file.getPath().substring(0,
+					file.getPath().length() - 4));
+		}
+
+		return file;
 	}
 
 	/**

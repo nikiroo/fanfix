@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 
 /**
@@ -27,9 +26,11 @@ class InfoText extends Text {
 	@Override
 	protected MetaData getMeta(URL source, InputStream in) throws IOException {
 		try {
-			MetaData meta = InfoReader.readMeta(
-					new File(new File(source.toURI()).getPath() + ".info"),
-					true);
+			File sourceFile = new File(source.toURI());
+			sourceFile = assureNoTxt(sourceFile);
+
+			MetaData meta = InfoReader.readMeta(new File(sourceFile.getPath()
+					+ ".info"), true);
 
 			// Some old .info files don't have those now required fields...
 			String test = meta.getTitle() == null ? "" : meta.getTitle();
@@ -61,19 +62,6 @@ class InfoText extends Text {
 
 	@Override
 	protected boolean supports(URL url) {
-		if ("file".equals(url.getProtocol())) {
-			File file;
-			try {
-				file = new File(url.toURI());
-				file = new File(file.getPath() + ".info");
-			} catch (URISyntaxException e) {
-				Instance.getTraceHandler().error(e);
-				file = null;
-			}
-
-			return file != null && file.exists();
-		}
-
-		return false;
+		return supports(url, true);
 	}
 }
