@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version 4.3.0
+
+- New: IOUtils.Unzip()
+
 ## Version 4.2.1
 
 - Fix small bug in Downloader

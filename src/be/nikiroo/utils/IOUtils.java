@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 /**
@@ -139,6 +140,58 @@ public class IOUtils {
 		} finally {
 			out.close();
 		}
+	}
+
+	/**
+	 * Unzip the given ZIP file into the target directory.
+	 * 
+	 * @param zipFile
+	 *            the ZIP file
+	 * @param targetDirectory
+	 *            the target directory
+	 * 
+	 * @return the number of extracted files (not directories)
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
+	public static long unzip(File zipFile, File targetDirectory)
+			throws IOException {
+		long count = 0;
+
+		if (targetDirectory.exists() && targetDirectory.isFile()) {
+			throw new IOException("Cannot unzip " + zipFile + " into "
+					+ targetDirectory + ": it is not a directory");
+		}
+
+		targetDirectory.mkdir();
+		if (!targetDirectory.exists()) {
+			throw new IOException("Cannot create target directory "
+					+ targetDirectory);
+		}
+
+		FileInputStream in = new FileInputStream(zipFile);
+		try {
+			ZipInputStream zipStream = new ZipInputStream(in);
+			try {
+				for (ZipEntry entry = zipStream.getNextEntry(); entry != null; entry = zipStream
+						.getNextEntry()) {
+					File file = new File(targetDirectory, entry.getName());
+					if (entry.isDirectory()) {
+						file.mkdirs();
+					} else {
+						IOUtils.write(zipStream, file);
+						count++;
+					}
+				}
+			} finally {
+				zipStream.close();
+			}
+		} finally {
+			in.close();
+		}
+
+		return count;
 	}
 
 	/**
