@@ -79,16 +79,22 @@ class ConversionTest extends TestLauncher {
 						+ type.getDefaultExtension(false));
 
 				// Check conversion:
-				compareFiles(this, expectedDir, resultDir, type);
+				compareFiles(this, expectedDir, resultDir, type, null);
 
 				// Cross-checks:
-				for (BasicOutput.OutputType type : BasicOutput.OutputType
-						.values()) {
-					// NOT for special mode SYSOUT
-					if (!BasicOutput.OutputType.SYSOUT.equals(type)) {
-						File crossDir = tempFiles.createTempDir("cross-result");
-						generate(this, target, crossDir, type);
-						compareFiles(this, crossDir, resultDir, type);
+
+				// LATEX not supported as input
+				if (!BasicOutput.OutputType.LATEX.equals(type)) {
+					for (BasicOutput.OutputType crossType : BasicOutput.OutputType
+							.values()) {
+						// NOT for special mode SYSOUT
+						if (!BasicOutput.OutputType.SYSOUT.equals(crossType)) {
+							File crossDir = tempFiles
+									.createTempDir("cross-result");
+							generate(this, target, crossDir, crossType);
+							compareFiles(this, crossDir, resultDir, crossType,
+									crossType);
+						}
 					}
 				}
 			}
@@ -144,8 +150,8 @@ class ConversionTest extends TestLauncher {
 	}
 
 	private void compareFiles(TestCase testCase, File expectedDir,
-			File resultDir, final BasicOutput.OutputType typeToCompare)
-			throws Exception {
+			File resultDir, final BasicOutput.OutputType typeToCompare,
+			final BasicOutput.OutputType sourceType) throws Exception {
 
 		FilenameFilter filter = null;
 		if (typeToCompare != null) {
@@ -177,7 +183,7 @@ class ConversionTest extends TestLauncher {
 					expected.isDirectory(), result.isDirectory());
 
 			if (expected.isDirectory()) {
-				compareFiles(testCase, expected, result, null);
+				compareFiles(testCase, expected, result, null, sourceType);
 				continue;
 			}
 
@@ -189,7 +195,7 @@ class ConversionTest extends TestLauncher {
 						+ "[zip-content]");
 				unzip(expected, tmpExpected);
 				unzip(result, tmpResult);
-				compareFiles(testCase, tmpExpected, tmpResult, null);
+				compareFiles(testCase, tmpExpected, tmpResult, null, sourceType);
 			} else {
 				List<String> expectedLines = Arrays.asList(IOUtils
 						.readSmallFile(expected).split("\n"));
@@ -205,15 +211,25 @@ class ConversionTest extends TestLauncher {
 				for (int j = 0; j < expectedLines.size(); j++) {
 					String expectedLine = expectedLines.get(j);
 					String resultLine = resultLines.get(j);
-					if (name.endsWith(".info")
-							&& expectedLine.startsWith("CREATION_DATE=")
-							&& resultLine.startsWith("CREATION_DATE=")) {
-						// TODO: check the format?
+
+					boolean skip = false;
+					for (String skipStart : new String[] { "CREATION_DATE=",
+							"SUBJECT=", "URL=", "UUID=" }) {
+						if (name.endsWith(".info")
+								&& expectedLine.startsWith(skipStart)
+								&& resultLine.startsWith(skipStart)) {
+							// TODO: check the format?
+							skip = true;
+						}
+					}
+
+					if (skip) {
 						continue;
 					}
-					testCase.assertEquals("Line " + (j + 1)
-							+ " is not the same in file " + name, expectedLine,
-							resultLine);
+
+					testCase.assertEquals("Line " + (j + 1) + " (" + sourceType
+							+ ") is not the same in file " + name,
+							expectedLine, resultLine);
 				}
 			}
 		}
