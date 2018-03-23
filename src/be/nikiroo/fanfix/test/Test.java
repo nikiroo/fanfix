@@ -29,6 +29,7 @@ public class Test extends TestLauncher {
 		Instance.setTraceHandler(null);
 		addSeries(new BasicSupportTest(args));
 		addSeries(new LibraryTest(args));
+		addSeries(new ConversionTest(args));
 	}
 
 	/**

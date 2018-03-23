@@ -506,7 +506,7 @@ public class Main {
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	private static int convert(String urlString, String typeString,
+	public static int convert(String urlString, String typeString,
 			String target, boolean infoCover, Progress pg) {
 		int exitCode = 0;
 

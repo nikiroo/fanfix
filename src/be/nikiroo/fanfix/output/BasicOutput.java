@@ -79,9 +79,10 @@ public abstract class BasicOutput {
 		 * The default extension to add to the output files.
 		 * 
 		 * @param readerTarget
-		 *            the target to point to to read the {@link Story} (for
-		 *            instance, the main entry point if this {@link Story} is in
-		 *            a directory bundle)
+		 *            TRUE to point to the main {@link Story} entry point for a
+		 *            reader (for instance, the main entry point if this
+		 *            {@link Story} is in a directory bundle), FALSE to point to
+		 *            the main file even if it is a directory for instance
 		 * 
 		 * @return the extension
 		 */
@@ -284,9 +285,10 @@ public abstract class BasicOutput {
 	 * The default extension to add to the output files.
 	 * 
 	 * @param readerTarget
-	 *            the target to point to to read the {@link Story} (for
-	 *            instance, the main entry point if this {@link Story} is in a
-	 *            directory bundle)
+	 *            TRUE to point to the main {@link Story} entry point for a
+	 *            reader (for instance, the main entry point if this
+	 *            {@link Story} is in a directory bundle), FALSE to point to the
+	 *            main file even if it is a directory for instance
 	 * 
 	 * @return the extension
 	 */
