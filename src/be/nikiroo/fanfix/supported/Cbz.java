@@ -1,7 +1,6 @@
 package be.nikiroo.fanfix.supported;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,14 +45,13 @@ class Cbz extends Epub {
 	}
 
 	@Override
-	protected boolean getCover() {
-		return false;
+	protected boolean isImagesDocumentByDefault() {
+		return true;
 	}
 
 	@Override
-	protected void preprocess(URL source, InputStream in) throws IOException {
-		super.preprocess(source, in);
-		meta.setImageDocument(true);
+	protected boolean getCover() {
+		return false;
 	}
 
 	@Override

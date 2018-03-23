@@ -196,6 +196,7 @@ class Epub extends InfoText {
 			meta.setUrl(url);
 			meta.setTitle(title);
 			meta.setAuthor(author);
+			meta.setImageDocument(isImagesDocumentByDefault());
 		}
 	}
 
@@ -230,5 +231,9 @@ class Epub extends InfoText {
 
 	protected boolean getCover() {
 		return true;
+	}
+
+	protected boolean isImagesDocumentByDefault() {
+		return false;
 	}
 }

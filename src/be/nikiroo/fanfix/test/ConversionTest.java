@@ -235,6 +235,7 @@ class ConversionTest extends TestLauncher {
 		}
 	}
 
+	// TODO: remove and use IOUtils when updated
 	private static void unzip(File zipFile, File targetDirectory)
 			throws IOException {
 		if (targetDirectory.exists() && targetDirectory.isFile()) {
