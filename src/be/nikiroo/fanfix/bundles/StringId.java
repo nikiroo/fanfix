@@ -49,9 +49,9 @@ public enum StringId {
 	ERR_NOT_SUPPORTED, //
 	@Meta(info = "%s = cover URL", description = "Failed to download cover : %s")
 	ERR_BS_NO_COVER, //
-	@Meta(def = "`", info = "single char", description = "Canonical OPEN SINGLE QUOTE char (for instance: `)")
+	@Meta(def = "`", info = "single char", description = "Canonical OPEN SINGLE QUOTE char (for instance: ‘)")
 	OPEN_SINGLE_QUOTE, //
-	@Meta(def = "‘", info = "single char", description = "Canonical CLOSE SINGLE QUOTE char (for instance: ‘)")
+	@Meta(def = "‘", info = "single char", description = "Canonical CLOSE SINGLE QUOTE char (for instance: ’)")
 	CLOSE_SINGLE_QUOTE, //
 	@Meta(def = "“", info = "single char", description = "Canonical OPEN DOUBLE QUOTE char (for instance: “)")
 	OPEN_DOUBLE_QUOTE, //
