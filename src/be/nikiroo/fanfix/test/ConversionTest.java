@@ -6,7 +6,10 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -25,6 +28,7 @@ class ConversionTest extends TestLauncher {
 	private File expectedDir;
 	private File resultDir;
 	private List<BasicOutput.OutputType> realTypes;
+	private Map<String, List<String>> skipCompare;
 
 	public ConversionTest(String[] args) {
 		super("Conversion", args);
@@ -69,6 +73,15 @@ class ConversionTest extends TestLauncher {
 		resultDir = new File("test/result/");
 
 		tempFiles = new TempFiles("Fanfix-ConversionTest");
+
+		skipCompare = new HashMap<String, List<String>>();
+		skipCompare.put("epb.ncx",
+				Arrays.asList("		<meta name=\"dtb:uid\" content="));
+		skipCompare.put("epb.opf", Arrays.asList("      <dc:subject>",
+				"      <dc:identifier id=\"BookId\" opf:scheme=\"URI\">"));
+		skipCompare.put(".info",
+				Arrays.asList("CREATION_DATE=", "SUBJECT=", "URL=", "UUID="));
+		skipCompare.put("URL", Arrays.asList("file:/"));
 	}
 
 	@Override
@@ -215,13 +228,14 @@ class ConversionTest extends TestLauncher {
 					String resultLine = resultLines.get(j);
 
 					boolean skip = false;
-					for (String skipStart : new String[] { "CREATION_DATE=",
-							"SUBJECT=", "URL=", "UUID=" }) {
-						if (name.endsWith(".info")
-								&& expectedLine.startsWith(skipStart)
-								&& resultLine.startsWith(skipStart)) {
-							// TODO: check the format?
-							skip = true;
+					for (Entry<String, List<String>> skipThose : skipCompare
+							.entrySet()) {
+						for (String skipStart : skipThose.getValue()) {
+							if (name.endsWith(skipThose.getKey())
+									&& expectedLine.startsWith(skipStart)
+									&& resultLine.startsWith(skipStart)) {
+								skip = true;
+							}
 						}
 					}
 
