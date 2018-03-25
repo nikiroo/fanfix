@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.jsoup.helper.DataUtil;
 import org.jsoup.nodes.Element;
@@ -140,6 +142,9 @@ class MangaFox extends BasicSupport {
 	protected List<Entry<String, URL>> getChapters(Progress pg) {
 		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
 
+		String prefix = null; // each chapter starts with this prefix, then a
+								// chapter number (including "x.5"), then name
+
 		Element doc = getSourceNode();
 		for (Element li : doc.getElementsByTag("li")) {
 			Element el = li.getElementsByTag("h4").first();
@@ -160,6 +165,32 @@ class MangaFox extends BasicSupport {
 							url += "/";
 						}
 
+						if (prefix == null || !prefix.isEmpty()) {
+							StringBuilder possiblePrefix = new StringBuilder(
+									StringUtils.unhtml(a.text()).trim());
+							while (possiblePrefix.length() > 0) {
+								char car = possiblePrefix.charAt(possiblePrefix
+										.length() - 1);
+								boolean punctuation = (car == '.' || car == ' ');
+								boolean digit = (car >= '0' && car <= '9');
+								if (!punctuation && !digit) {
+									break;
+								}
+
+								possiblePrefix.setLength(possiblePrefix
+										.length() - 1);
+							}
+
+							if (prefix == null) {
+								prefix = possiblePrefix.toString();
+							}
+
+							if (!prefix.equalsIgnoreCase(possiblePrefix
+									.toString())) {
+								prefix = ""; // prefix not ok
+							}
+						}
+
 						urls.add(new AbstractMap.SimpleEntry<String, URL>(
 								title, new URL(url)));
 					} catch (Exception e) {
@@ -169,8 +200,44 @@ class MangaFox extends BasicSupport {
 			}
 		}
 
-		// the chapters are in reversed order
-		Collections.reverse(urls);
+		if (prefix != null && !prefix.isEmpty()) {
+			try {
+				// We found a prefix, so everything should be sortable
+				SortedMap<Double, Entry<String, URL>> map = new TreeMap<Double, Entry<String, URL>>();
+				for (Entry<String, URL> entry : urls) {
+					String num = entry.getKey().substring(prefix.length() + 1)
+							.trim();
+					String name = "";
+					int pos = num.indexOf(' ');
+					if (pos >= 0) {
+						name = num.substring(pos).trim();
+						num = num.substring(0, pos).trim();
+					}
+
+					if (!name.isEmpty()) {
+						name = "Tome " + num + ": " + name;
+					} else {
+						name = "Tome " + num;
+					}
+
+					double key = Double.parseDouble(num);
+
+					map.put(key, new AbstractMap.SimpleEntry<String, URL>(name,
+							entry.getValue()));
+				}
+				urls = new ArrayList<Entry<String, URL>>(map.values());
+			} catch (NumberFormatException e) {
+				Instance.getTraceHandler()
+						.error(new IOException(
+								"Cannot find a tome number, revert to default sorting",
+								e));
+				// by default, the chapters are in reversed order
+				Collections.reverse(urls);
+			}
+		} else {
+			// by default, the chapters are in reversed order
+			Collections.reverse(urls);
+		}
 
 		return urls;
 	}
@@ -231,7 +298,7 @@ class MangaFox extends BasicSupport {
 	}
 
 	/**
-	 * Refresh the {@link URL} by calling {@link MangaFoxNew#openEx(String)}.
+	 * Refresh the {@link URL} by calling {@link MangaFox#openEx(String)}.
 	 * 
 	 * @param url
 	 *            the URL to refresh

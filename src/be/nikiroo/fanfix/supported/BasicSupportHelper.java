@@ -80,8 +80,7 @@ class BasicSupportHelper {
 			}
 			InputStream in = null;
 			try {
-				in = Instance.getCache().open(url,
-						BasicSupport.getSupport(url), true);
+				in = Instance.getCache().open(url, support, true);
 				return new Image(in);
 			} catch (IOException e) {
 			} finally {

@@ -3,7 +3,6 @@ package be.nikiroo.fanfix.supported;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 
 import be.nikiroo.fanfix.Instance;
@@ -22,25 +21,38 @@ class Html extends InfoText {
 
 	@Override
 	protected boolean supports(URL url) {
-		try {
-			File file = new File(url.toURI());
-			if (file.getName().equals("index.html")) {
-				file = file.getParentFile();
-			}
-
-			file = new File(file, file.getName());
-
-			return super.supports(file.toURI().toURL());
-		} catch (URISyntaxException e) {
-		} catch (MalformedURLException e) {
-		}
-
-		return false;
+		File txt = getTxt(url);
+		return txt != null && txt.exists();
 	}
 
 	@Override
 	public URL getCanonicalUrl(URL source) {
+		File txt = getTxt(source);
+		if (txt != null) {
+			try {
+				source = txt.toURI().toURL();
+			} catch (MalformedURLException e) {
+				Instance.getTraceHandler().error(
+						new IOException("Cannot convert the right URL for "
+								+ source, e));
+			}
+		} else {
+			Instance.getTraceHandler().error(
+					new IOException("Cannot find the right URL for " + source));
+		}
 
+		return source;
+	}
+
+	/**
+	 * Return the associated TXT source file if it can be found.
+	 * 
+	 * @param source
+	 *            the source URL
+	 * 
+	 * @return the supported source text file or NULL
+	 */
+	private static File getTxt(URL source) {
 		try {
 			File fakeFile = new File(source.toURI());
 			if (fakeFile.getName().equals("index.html")) { // "story/index.html"
@@ -51,13 +63,12 @@ class Html extends InfoText {
 				fakeFile = new File(fakeFile, fakeFile.getName() + ".txt"); // "story/story.txt"
 			}
 
-			return fakeFile.toURI().toURL();
+			if (fakeFile.getName().endsWith(".txt")) {
+				return fakeFile;
+			}
 		} catch (Exception e) {
-			Instance.getTraceHandler().error(
-					new IOException("Cannot find the right URL for " + source,
-							e));
 		}
 
-		return source;
+		return null;
 	}
 }
