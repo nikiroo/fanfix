@@ -44,7 +44,6 @@ abstract public class TestCase {
 	 * @throws Exception
 	 *             in case of error
 	 */
-	@SuppressWarnings("unused")
 	public void setUp() throws Exception {
 	}
 
@@ -54,7 +53,6 @@ abstract public class TestCase {
 	 * @throws Exception
 	 *             in case of error
 	 */
-	@SuppressWarnings("unused")
 	public void tearDown() throws Exception {
 	}
 
@@ -259,14 +257,37 @@ abstract public class TestCase {
 	 */
 	public void assertEquals(List<?> expected, List<?> actual)
 			throws AssertException {
+		assertEquals("Assertion failed", expected, actual);
+	}
 
-		assertEquals("The 2 lists don't contain the same number of items",
-				expected.size(), actual.size());
+	/**
+	 * Check that 2 {@link List}s are equals.
+	 * 
+	 * @param errorMessage
+	 *            the error message to display if they differ
+	 * @param expected
+	 *            the expected value
+	 * @param actual
+	 *            the actual value
+	 * @param errorMessage
+	 *            the error message to display if they differ
+	 * 
+	 * @throws AssertException
+	 *             in case they differ
+	 */
+	public void assertEquals(String errorMessage, List<?> expected,
+			List<?> actual) throws AssertException {
+
+		if (expected.size() != actual.size()) {
+			assertEquals(errorMessage + ": not same number of items",
+					list(expected), list(actual));
+		}
 
 		int size = expected.size();
 		for (int i = 0; i < size; i++) {
-			assertEquals("Line " + i + " (0-based) is not correct",
-					expected.get(i), actual.get(i));
+			assertEquals(errorMessage + ": item " + i
+					+ " (0-based) is not correct", expected.get(i),
+					actual.get(i));
 		}
 	}
 
@@ -313,5 +334,26 @@ abstract public class TestCase {
 				+ "Assertion failed!%n" //
 				+ "Expected value: [%s]%n" //
 				+ "Actual value: [%s]", expected, actual);
+	}
+
+	private static String list(List<?> items) {
+		StringBuilder builder = new StringBuilder();
+		for (Object item : items) {
+			if (builder.length() == 0) {
+				builder.append(items.size() + " item(s): ");
+			} else {
+				builder.append(", ");
+			}
+
+			builder.append("" + item);
+
+			if (builder.length() > 60) {
+				builder.setLength(57);
+				builder.append("...");
+				break;
+			}
+		}
+
+		return builder.toString();
 	}
 }
