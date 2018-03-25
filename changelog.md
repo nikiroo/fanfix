@@ -3,6 +3,7 @@
 ## Version 4.3.0
 
 - New: IOUtils.Unzip()
+- TestCase: better message for lists comparisons
 
 ## Version 4.2.1
 
