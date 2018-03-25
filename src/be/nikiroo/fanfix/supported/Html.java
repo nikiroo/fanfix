@@ -21,8 +21,15 @@ class Html extends InfoText {
 
 	@Override
 	protected boolean supports(URL url) {
-		File txt = getTxt(url);
-		return txt != null && txt.exists();
+		try {
+			File txt = getTxt(url);
+			if (txt != null) {
+				return super.supports(txt.toURI().toURL());
+			}
+		} catch (MalformedURLException e) {
+		}
+
+		return false;
 	}
 
 	@Override
@@ -36,9 +43,6 @@ class Html extends InfoText {
 						new IOException("Cannot convert the right URL for "
 								+ source, e));
 			}
-		} else {
-			Instance.getTraceHandler().error(
-					new IOException("Cannot find the right URL for " + source));
 		}
 
 		return source;

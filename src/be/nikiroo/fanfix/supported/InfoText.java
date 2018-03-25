@@ -54,7 +54,6 @@ class InfoText extends Text {
 			}
 
 			return meta;
-
 		} catch (URISyntaxException e) {
 			throw new IOException("Cannot parse URL to file: " + source, e);
 		}
