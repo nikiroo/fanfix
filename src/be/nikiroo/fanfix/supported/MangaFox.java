@@ -261,8 +261,13 @@ class MangaFox extends BasicSupport {
 			// note: when used, the base URL can be an ad-page
 			imageIn = openEx(url + "1.html");
 			imageDoc = DataUtil.load(imageIn, "UTF-8", url + "1.html");
+		} catch (IOException e) {
+			Instance.getTraceHandler().error(
+					new IOException("Cannot get image " + 1 + " of manga", e));
 		} finally {
-			imageIn.close();
+			if (imageIn != null) {
+				imageIn.close();
+			}
 		}
 		Element select = imageDoc.getElementsByClass("m").first();
 		Elements options = select.getElementsByTag("option");
@@ -272,26 +277,33 @@ class MangaFox extends BasicSupport {
 
 		// 2. list them
 		for (int i = 1; i <= size; i++) {
-			if (i > 1) { // because fist one was opened for size
+			if (i > 1) { // because first one was opened for size
 				try {
 					imageIn = openEx(url + i + ".html");
 					imageDoc = DataUtil.load(imageIn, "UTF-8", url + i
 							+ ".html");
+
+					String linkImage = imageDoc.getElementById("image").absUrl(
+							"src");
+					if (linkImage != null) {
+						builder.append("[");
+						// to help with the retry and the originalUrl, part 1
+						builder.append(withoutQuery(linkImage));
+						builder.append("]<br/>");
+					}
+
+					// to help with the retry and the originalUrl, part 2
+					refresh(linkImage);
+				} catch (IOException e) {
+					Instance.getTraceHandler().error(
+							new IOException("Cannot get image " + i
+									+ " of manga", e));
 				} finally {
-					imageIn.close();
+					if (imageIn != null) {
+						imageIn.close();
+					}
 				}
 			}
-
-			String linkImage = imageDoc.getElementById("image").absUrl("src");
-			if (linkImage != null) {
-				builder.append("[");
-				// to help with the retry and the originalUrl, part 1
-				builder.append(withoutQuery(linkImage));
-				builder.append("]<br/>");
-			}
-
-			// to help with the retry and the originalUrl, part 2
-			refresh(linkImage);
 		}
 
 		return builder.toString();
