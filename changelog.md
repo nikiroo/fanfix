@@ -5,7 +5,10 @@
 - update nikiroo-utils
 - android: Android compatibility
 - MangaFox: fix after website update
+- MangaFox: tomes order was not always correct
 - new: use jsoup (only for MangaFox for now)
+- fix: TYPE= était parfois mauvais dans l'info-file
+- fix: les guillemets n'étaient pas toujours bien ordonnés
 
 # Version 1.6.3
 

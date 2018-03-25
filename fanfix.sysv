@@ -2,10 +2,10 @@
 #
 # fanfix 	This starts the Fanfix remote service.
 #
-# chkconfig: 2345 10 90
 # description: Starts the Fanfix remote service
 #
 ### BEGIN INIT INFO
+# Default-Start:  3 4 5
 # Short-Description: Fanfix service
 # Description: Starts the Fanfix remote service
 ### END INIT INFO
@@ -37,6 +37,8 @@ start)
 		echo "Fanfix is already running." >&2
 		false
 	else
+		[ -e "$OUT" ] && mv "$OUT" "$OUT".previous
+		[ -e "$ERR" ] && mv "$ERR" "$ERR".previous
 		sudo -u "$USER" -- java -jar "$JAR" --server "$PINCODE" "$PORT" > "$OUT" 2> "$ERR" &
 		echo $! > "$FPID"
 	fi
