@@ -98,7 +98,8 @@ class ConversionTest extends TestLauncher {
 						+ type.getDefaultExtension(false));
 
 				// Check conversion:
-				compareFiles(this, expectedDir, resultDir, type, null);
+				compareFiles(this, expectedDir, resultDir, type, "Generate "
+						+ type);
 
 				// LATEX not supported as input
 				if (BasicOutput.OutputType.LATEX.equals(type)) {
@@ -110,7 +111,8 @@ class ConversionTest extends TestLauncher {
 					File crossDir = tempFiles.createTempDir("cross-result");
 					generate(this, target, crossDir, crossType);
 					compareFiles(this, resultDir, crossDir, crossType,
-							crossType);
+							"Cross compare " + crossType + " generated from "
+									+ type);
 				}
 			}
 		};
@@ -165,15 +167,15 @@ class ConversionTest extends TestLauncher {
 	}
 
 	private void compareFiles(TestCase testCase, File expectedDir,
-			File resultDir, final BasicOutput.OutputType typeToCompare,
-			final BasicOutput.OutputType sourceType) throws Exception {
-
+			File resultDir, final BasicOutput.OutputType limitTiFiles,
+			final String errMess) throws Exception {
 		FilenameFilter filter = null;
-		if (typeToCompare != null) {
+		if (limitTiFiles != null) {
 			filter = new FilenameFilter() {
 				@Override
 				public boolean accept(File dir, String name) {
-					return name.startsWith(typeToCompare.toString());
+					return name.toLowerCase().startsWith(
+							limitTiFiles.toString().toLowerCase());
 				}
 			};
 		}
@@ -183,22 +185,20 @@ class ConversionTest extends TestLauncher {
 		List<String> expectedFiles = Arrays.asList(expectedDir.list(filter));
 		expectedFiles.sort(null);
 
-		testCase.assertEquals("The resulting file names are not expected",
-				expectedFiles, resultFiles);
+		testCase.assertEquals(errMess, expectedFiles, resultFiles);
 
 		for (int i = 0; i < resultFiles.size(); i++) {
 			File expected = new File(expectedDir, expectedFiles.get(i));
 			File result = new File(resultDir, resultFiles.get(i));
 
-			testCase.assertEquals(
-					"Type mismatch: expected a "
-							+ (expected.isDirectory() ? "directory" : "file")
-							+ ", received a "
-							+ (result.isDirectory() ? "directory" : "file"),
+			testCase.assertEquals(errMess + ": type mismatch: expected a "
+					+ (expected.isDirectory() ? "directory" : "file")
+					+ ", received a "
+					+ (result.isDirectory() ? "directory" : "file"),
 					expected.isDirectory(), result.isDirectory());
 
 			if (expected.isDirectory()) {
-				compareFiles(testCase, expected, result, null, sourceType);
+				compareFiles(testCase, expected, result, null, errMess);
 				continue;
 			}
 
@@ -210,7 +210,7 @@ class ConversionTest extends TestLauncher {
 						+ "[zip-content]");
 				unzip(expected, tmpExpected);
 				unzip(result, tmpResult);
-				compareFiles(testCase, tmpExpected, tmpResult, null, sourceType);
+				compareFiles(testCase, tmpExpected, tmpResult, null, errMess);
 			} else {
 				List<String> expectedLines = Arrays.asList(IOUtils
 						.readSmallFile(expected).split("\n"));
@@ -243,9 +243,9 @@ class ConversionTest extends TestLauncher {
 						continue;
 					}
 
-					testCase.assertEquals("Line " + (j + 1) + " (" + sourceType
-							+ ") is not the same in file " + name,
-							expectedLine, resultLine);
+					testCase.assertEquals(errMess + ": line " + (j + 1)
+							+ " is not the same in file " + name, expectedLine,
+							resultLine);
 				}
 			}
 		}
