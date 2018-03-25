@@ -336,10 +336,10 @@ public abstract class BasicOutput {
 			story.getMeta().setType("" + getType());
 		}
 
-		if (writeCover) {
+		if (isWriteCover()) {
 			InfoCover.writeCover(targetDir, targetName, story.getMeta());
 		}
-		if (writeInfo) {
+		if (isWriteInfo()) {
 			InfoCover.writeInfo(targetDir, targetName, story.getMeta());
 		}
 

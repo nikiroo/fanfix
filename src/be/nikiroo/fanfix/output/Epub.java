@@ -44,6 +44,8 @@ class Epub extends BasicOutput {
 					"Cannot create a temporary directory: no space left on device?");
 		}
 
+		super.process(story, targetDir, targetNameOrig);
+
 		// "Originals"
 		File data = new File(tmpDir, "DATA");
 		data.mkdir();
@@ -51,8 +53,6 @@ class Epub extends BasicOutput {
 				.process(story, data, targetNameOrig);
 		InfoCover.writeInfo(data, targetNameOrig, story.getMeta());
 		IOUtils.writeSmallFile(data, "version", "3.0");
-
-		super.process(story, targetDir, targetNameOrig);
 
 		// zip/epub
 		File epub = new File(targetDir, targetName);

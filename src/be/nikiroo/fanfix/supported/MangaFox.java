@@ -66,7 +66,7 @@ class MangaFox extends BasicSupport {
 		meta.setPublisher(getSourceName());
 		meta.setUuid(getSource().toString());
 		meta.setLuid("");
-		meta.setLang("EN");
+		meta.setLang("en");
 		meta.setSubject("manga");
 		meta.setType(getType().toString());
 		meta.setImageDocument(true);

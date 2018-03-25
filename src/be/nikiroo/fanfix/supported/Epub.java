@@ -189,7 +189,7 @@ class Epub extends InfoText {
 			}
 
 			meta = new MetaData();
-			meta.setLang("EN");
+			meta.setLang("en");
 			meta.setTags(new ArrayList<String>());
 			meta.setSource(getSourceName());
 			meta.setUuid(url);

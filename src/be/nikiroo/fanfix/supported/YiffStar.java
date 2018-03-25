@@ -44,7 +44,7 @@ class YiffStar extends BasicSupport_Deprecated {
 		meta.setPublisher(getSourceName());
 		meta.setUuid(source.toString());
 		meta.setLuid("");
-		meta.setLang("EN");
+		meta.setLang("en");
 		meta.setSubject("Furry");
 		meta.setType(getType().toString());
 		meta.setImageDocument(false);

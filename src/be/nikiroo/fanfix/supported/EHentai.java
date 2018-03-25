@@ -108,11 +108,11 @@ class EHentai extends BasicSupport_Deprecated {
 		if (langLine != null) {
 			langLine = StringUtils.unhtml(langLine).trim();
 			if (langLine.equalsIgnoreCase("English")) {
-				lang = "EN";
+				lang = "en";
 			} else if (langLine.equalsIgnoreCase("Japanese")) {
-				lang = "JP";
+				lang = "jp";
 			} else if (langLine.equalsIgnoreCase("French")) {
-				lang = "FR";
+				lang = "fr";
 			} else {
 				// TODO find the code?
 				lang = langLine;

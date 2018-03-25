@@ -95,9 +95,9 @@ class Text extends BasicSupport_Deprecated {
 		}
 
 		if (lang == null) {
-			lang = "EN";
+			lang = "en";
 		} else {
-			lang = lang.toUpperCase();
+			lang = lang.toLowerCase();
 		}
 
 		return lang;

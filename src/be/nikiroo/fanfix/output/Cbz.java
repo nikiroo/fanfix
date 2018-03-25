@@ -33,17 +33,17 @@ class Cbz extends BasicOutput {
 					.setType(OutputType.TEXT, isWriteInfo(), false)
 					.process(story, dir, targetNameOrig);
 
+			try {
+				super.process(story, targetDir, targetNameOrig);
+			} finally {
+			}
+
 			InfoCover.writeInfo(dir, targetNameOrig, story.getMeta());
 			if (story.getMeta() != null && !story.getMeta().isFakeCover()) {
 				InfoCover.writeCover(dir, targetNameOrig, story.getMeta());
 			}
 
 			IOUtils.writeSmallFile(dir, "version", "3.0");
-
-			try {
-				super.process(story, targetDir, targetNameOrig);
-			} finally {
-			}
 
 			IOUtils.zip(dir, target, true);
 		} finally {

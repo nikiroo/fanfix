@@ -32,12 +32,6 @@ class Html extends BasicOutput {
 		target.mkdir();
 		dir = target;
 
-		// write a copy of the originals inside
-		InfoCover.writeInfo(dir, targetName, story.getMeta());
-		InfoCover.writeCover(dir, targetName, story.getMeta());
-		BasicOutput.getOutput(OutputType.TEXT, isWriteInfo(), isWriteCover())
-				.process(story, dir, targetNameOrig);
-
 		target = new File(targetDir, targetName + getDefaultExtension(true));
 
 		writer = new BufferedWriter(new OutputStreamWriter(
@@ -48,6 +42,12 @@ class Html extends BasicOutput {
 			writer.close();
 			writer = null;
 		}
+
+		// write a copy of the originals inside
+		InfoCover.writeInfo(dir, targetName, story.getMeta());
+		InfoCover.writeCover(dir, targetName, story.getMeta());
+		BasicOutput.getOutput(OutputType.TEXT, isWriteInfo(), isWriteCover())
+				.process(story, dir, targetNameOrig);
 
 		if (story.getMeta().getCover() != null) {
 			Instance.getCache().saveAsImage(story.getMeta().getCover(),
