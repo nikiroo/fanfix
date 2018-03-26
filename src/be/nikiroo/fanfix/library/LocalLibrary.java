@@ -20,7 +20,6 @@ import be.nikiroo.fanfix.output.InfoCover;
 import be.nikiroo.fanfix.supported.InfoReader;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
-import be.nikiroo.utils.MarkableFileInputStream;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -468,10 +467,8 @@ public class LocalLibrary extends BasicLibrary {
 								// not normal!!
 								throw new IOException(
 										"Cannot understand the LUID of "
-												+ infoFile
-												+ ": "
-												+ (meta == null ? "[meta is NULL]"
-														: meta.getLuid()), e);
+												+ infoFile + ": "
+												+ meta.getLuid(), e);
 							}
 						} catch (IOException e) {
 							// We should not have not-supported files in the

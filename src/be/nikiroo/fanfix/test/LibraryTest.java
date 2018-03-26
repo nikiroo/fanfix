@@ -2,6 +2,8 @@ package be.nikiroo.fanfix.test;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import be.nikiroo.fanfix.data.Chapter;
@@ -25,10 +27,16 @@ class LibraryTest extends TestLauncher {
 		final String luid1 = "001"; // A
 		final String luid2 = "002"; // B
 		final String luid3 = "003"; // B then A, then B
+		final String name1 = "My story 1";
+		final String name2 = "My story 2";
+		final String name3 = "My story 3";
+		final String name3ex = "My story 3 [edited]";
 		final String source1 = "Source A";
 		final String source2 = "Source B";
 		final String author1 = "Unknown author";
 		final String author2 = "Another other otter author";
+
+		final String errMess = "The resulting stories in the list are not what we expected";
 
 		addSeries(new TestLauncher("Local", args) {
 			{
@@ -36,18 +44,20 @@ class LibraryTest extends TestLauncher {
 					@Override
 					public void test() throws Exception {
 						List<MetaData> metas = lib.getList();
-						assertEquals(0, metas.size());
+						assertEquals(errMess, Arrays.asList(),
+								titlesAsList(metas));
 					}
 				});
 
 				addTest(new TestCase("save") {
 					@Override
 					public void test() throws Exception {
-						lib.save(story(luid1, "My story 1", source1, author1),
-								luid1, null);
+						lib.save(story(luid1, name1, source1, author1), luid1,
+								null);
 
 						List<MetaData> metas = lib.getList();
-						assertEquals(1, metas.size());
+						assertEquals(errMess, Arrays.asList(name1),
+								titlesAsList(metas));
 					}
 				});
 
@@ -56,17 +66,20 @@ class LibraryTest extends TestLauncher {
 					public void test() throws Exception {
 						List<MetaData> metas = null;
 
-						lib.save(story(luid2, "My story 2", source2, author1),
-								luid2, null);
+						lib.save(story(luid2, name2, source2, author1), luid2,
+								null);
 
 						metas = lib.getList();
-						assertEquals(2, metas.size());
+						assertEquals(errMess, Arrays.asList(name1, name2),
+								titlesAsList(metas));
 
-						lib.save(story(luid3, "My story 3", source2, author1),
-								luid3, null);
+						lib.save(story(luid3, name3, source2, author1), luid3,
+								null);
 
 						metas = lib.getList();
-						assertEquals(3, metas.size());
+						assertEquals(errMess,
+								Arrays.asList(name1, name2, name3),
+								titlesAsList(metas));
 					}
 				});
 
@@ -74,12 +87,13 @@ class LibraryTest extends TestLauncher {
 					@Override
 					public void test() throws Exception {
 						// same luid as a previous one
-						lib.save(
-								story(luid3, "My story 3 [edited]", source2,
-										author2), luid3, null);
+						lib.save(story(luid3, name3ex, source2, author2),
+								luid3, null);
 
 						List<MetaData> metas = lib.getList();
-						assertEquals(3, metas.size());
+						assertEquals(errMess,
+								Arrays.asList(name1, name2, name3ex),
+								titlesAsList(metas));
 					}
 				});
 
@@ -176,6 +190,25 @@ class LibraryTest extends TestLauncher {
 	@Override
 	protected void stop() throws Exception {
 		IOUtils.deltree(tmp);
+	}
+
+	/**
+	 * Return the (sorted) list of titles present in this list of
+	 * {@link MetaData}s.
+	 * 
+	 * @param metas
+	 *            the meta
+	 * 
+	 * @return the sorted list
+	 */
+	private List<String> titlesAsList(List<MetaData> metas) {
+		List<String> list = new ArrayList<String>();
+		for (MetaData meta : metas) {
+			list.add(meta.getTitle());
+		}
+
+		Collections.sort(list);
+		return list;
 	}
 
 	private Story story(String luid, String title, String source, String author) {
