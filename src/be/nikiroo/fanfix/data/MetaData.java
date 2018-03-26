@@ -384,18 +384,12 @@ public class MetaData implements Cloneable, Comparable<MetaData> {
 			return 1;
 		}
 
-		String uuid = getUuid();
-		String oUuid = o.getUuid();
+		String id = (getUuid() == null ? "" : getUuid())
+				+ (getLuid() == null ? "" : getLuid());
+		String oId = (getUuid() == null ? "" : o.getUuid())
+				+ (o.getLuid() == null ? "" : o.getLuid());
 
-		if (uuid == null) {
-			uuid = "";
-		}
-
-		if (oUuid == null) {
-			oUuid = "";
-		}
-
-		return uuid.compareTo(oUuid);
+		return id.compareTo(oId);
 	}
 
 	@Override
