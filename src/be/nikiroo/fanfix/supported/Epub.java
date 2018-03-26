@@ -28,6 +28,7 @@ import be.nikiroo.utils.StringUtils;
  */
 class Epub extends InfoText {
 	protected MetaData meta;
+	private File tmpDir;
 	private File tmp;
 	private String desc;
 
@@ -93,8 +94,9 @@ class Epub extends InfoText {
 	protected void preprocess(URL source, InputStream in) throws IOException {
 		// Note: do NOT close this stream, as it would also close "in"
 		ZipInputStream zipIn = new ZipInputStream(in);
-		tmp = File.createTempFile("fanfic-reader-parser_", ".tmp");
-		File tmpInfo = new File(tmp + ".info");
+		tmpDir = Instance.getTempFiles().createTempDir("fanfic-reader-parser");
+		tmp = new File(tmpDir, "file.txt");
+		File tmpInfo = new File(tmpDir, "file.info");
 		fakeSource = tmp.toURI().toURL();
 		Image cover = null;
 
@@ -202,12 +204,11 @@ class Epub extends InfoText {
 
 	@Override
 	protected void close() {
-		if (tmp != null && tmp.exists()) {
-			if (!tmp.delete()) {
-				tmp.deleteOnExit();
-			}
+		if (tmpDir != null) {
+			IOUtils.deltree(tmpDir);
 		}
 
+		tmpDir = null;
 		tmp = null;
 
 		if (fakeIn != null) {

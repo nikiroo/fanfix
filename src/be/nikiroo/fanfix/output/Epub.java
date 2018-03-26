@@ -36,7 +36,7 @@ class Epub extends BasicOutput {
 		String targetNameOrig = targetName;
 		targetName += getDefaultExtension(false);
 
-		tmpDir = File.createTempFile("fanfic-reader-epub_", ".wip");
+		tmpDir = Instance.getTempFiles().createTempDir("fanfic-reader-epub");
 		tmpDir.delete();
 
 		if (!tmpDir.mkdir()) {
@@ -46,50 +46,53 @@ class Epub extends BasicOutput {
 
 		super.process(story, targetDir, targetNameOrig);
 
-		// "Originals"
-		File data = new File(tmpDir, "DATA");
-		data.mkdir();
-		BasicOutput.getOutput(OutputType.TEXT, isWriteInfo(), isWriteCover())
-				.process(story, data, targetNameOrig);
-		InfoCover.writeInfo(data, targetNameOrig, story.getMeta());
-		IOUtils.writeSmallFile(data, "version", "3.0");
-
-		// zip/epub
-		File epub = new File(targetDir, targetName);
-		IOUtils.zip(tmpDir, epub, true);
-
-		OutputStream out = new FileOutputStream(epub);
+		File epub = null;
 		try {
-			ZipOutputStream zip = new ZipOutputStream(out);
-			try {
-				// "mimetype" MUST be the first element and not compressed
-				zip.setLevel(ZipOutputStream.STORED);
-				File mimetype = new File(tmpDir, "mimetype");
-				IOUtils.writeSmallFile(tmpDir, "mimetype",
-						"application/epub+zip");
-				ZipEntry entry = new ZipEntry("mimetype");
-				entry.setExtra(new byte[] {});
-				zip.putNextEntry(entry);
-				FileInputStream in = new FileInputStream(mimetype);
-				try {
-					IOUtils.write(in, zip);
-				} finally {
-					in.close();
-				}
-				IOUtils.deltree(mimetype);
-				zip.setLevel(ZipOutputStream.DEFLATED);
-				//
+			// "Originals"
+			File data = new File(tmpDir, "DATA");
+			data.mkdir();
+			BasicOutput.getOutput(OutputType.TEXT, isWriteInfo(),
+					isWriteCover()).process(story, data, targetNameOrig);
+			InfoCover.writeInfo(data, targetNameOrig, story.getMeta());
+			IOUtils.writeSmallFile(data, "version", "3.0");
 
-				IOUtils.zip(zip, "", tmpDir, true);
+			// zip/epub
+			epub = new File(targetDir, targetName);
+			IOUtils.zip(tmpDir, epub, true);
+
+			OutputStream out = new FileOutputStream(epub);
+			try {
+				ZipOutputStream zip = new ZipOutputStream(out);
+				try {
+					// "mimetype" MUST be the first element and not compressed
+					zip.setLevel(ZipOutputStream.STORED);
+					File mimetype = new File(tmpDir, "mimetype");
+					IOUtils.writeSmallFile(tmpDir, "mimetype",
+							"application/epub+zip");
+					ZipEntry entry = new ZipEntry("mimetype");
+					entry.setExtra(new byte[] {});
+					zip.putNextEntry(entry);
+					FileInputStream in = new FileInputStream(mimetype);
+					try {
+						IOUtils.write(in, zip);
+					} finally {
+						in.close();
+					}
+					IOUtils.deltree(mimetype);
+					zip.setLevel(ZipOutputStream.DEFLATED);
+					//
+
+					IOUtils.zip(zip, "", tmpDir, true);
+				} finally {
+					zip.close();
+				}
 			} finally {
-				zip.close();
+				out.close();
 			}
 		} finally {
-			out.close();
+			IOUtils.deltree(tmpDir);
+			tmpDir = null;
 		}
-
-		IOUtils.deltree(tmpDir);
-		tmpDir = null;
 
 		return epub;
 	}

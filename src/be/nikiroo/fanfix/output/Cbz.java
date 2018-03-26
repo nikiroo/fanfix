@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
+import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
@@ -22,9 +23,7 @@ class Cbz extends BasicOutput {
 
 		File target = new File(targetDir, targetName);
 
-		dir = File.createTempFile("fanfic-reader-cbz-dir", ".wip");
-		dir.delete();
-		dir.mkdir();
+		dir = Instance.getTempFiles().createTempDir("fanfic-reader-cbz-dir");
 		try {
 			// will also save the images! (except the cover -> false)
 			BasicOutput

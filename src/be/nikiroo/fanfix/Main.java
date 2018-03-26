@@ -351,6 +351,14 @@ public class Main {
 			}
 		}
 
+		try {
+			Instance.getTempFiles().close();
+		} catch (IOException e) {
+			Instance.getTraceHandler()
+					.error(new IOException(
+							"Cannot dispose of the temporary files", e));
+		}
+
 		if (exitCode == 255) {
 			syntax(false);
 		}

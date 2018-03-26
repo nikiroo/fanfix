@@ -1,29 +1,23 @@
 package be.nikiroo.fanfix.test;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.Main;
 import be.nikiroo.fanfix.output.BasicOutput;
 import be.nikiroo.utils.IOUtils;
-import be.nikiroo.utils.TempFiles;
 import be.nikiroo.utils.TraceHandler;
 import be.nikiroo.utils.test.TestCase;
 import be.nikiroo.utils.test.TestLauncher;
 
 class ConversionTest extends TestLauncher {
-	private TempFiles tempFiles;
 	private File testFile;
 	private File expectedDir;
 	private File resultDir;
@@ -72,8 +66,6 @@ class ConversionTest extends TestLauncher {
 		expectedDir = new File("test/expected/");
 		resultDir = new File("test/result/");
 
-		tempFiles = new TempFiles("Fanfix-ConversionTest");
-
 		skipCompare = new HashMap<String, List<String>>();
 		skipCompare.put("epb.ncx",
 				Arrays.asList("		<meta name=\"dtb:uid\" content="));
@@ -86,7 +78,6 @@ class ConversionTest extends TestLauncher {
 
 	@Override
 	protected void stop() throws Exception {
-		tempFiles.close();
 	}
 
 	private TestCase getTestFor(final BasicOutput.OutputType type) {
@@ -108,7 +99,8 @@ class ConversionTest extends TestLauncher {
 
 				// Cross-checks:
 				for (BasicOutput.OutputType crossType : realTypes) {
-					File crossDir = tempFiles.createTempDir("cross-result");
+					File crossDir = Test.tempFiles
+							.createTempDir("cross-result");
 					generate(this, target, crossDir, crossType);
 					compareFiles(this, resultDir, crossDir, crossType,
 							"Cross compare " + crossType + " generated from "
@@ -204,12 +196,12 @@ class ConversionTest extends TestLauncher {
 
 			if (expected.getName().endsWith(".cbz")
 					|| expected.getName().endsWith(".epub")) {
-				File tmpExpected = tempFiles.createTempDir(expected.getName()
+				File tmpExpected = Test.tempFiles.createTempDir(expected
+						.getName() + "[zip-content]");
+				File tmpResult = Test.tempFiles.createTempDir(result.getName()
 						+ "[zip-content]");
-				File tmpResult = tempFiles.createTempDir(result.getName()
-						+ "[zip-content]");
-				unzip(expected, tmpExpected);
-				unzip(result, tmpResult);
+				IOUtils.unzip(expected, tmpExpected);
+				IOUtils.unzip(result, tmpResult);
 				compareFiles(testCase, tmpExpected, tmpResult, null, errMess);
 			} else {
 				List<String> expectedLines = Arrays.asList(IOUtils
@@ -223,6 +215,11 @@ class ConversionTest extends TestLauncher {
 							+ name.substring(expectedDir.getAbsolutePath()
 									.length());
 				}
+
+				testCase.assertEquals(errMess + ": " + name
+						+ ": the number of lines is not the same",
+						expectedLines.size(), resultLines.size());
+
 				for (int j = 0; j < expectedLines.size(); j++) {
 					String expectedLine = expectedLines.get(j);
 					String resultLine = resultLines.get(j);
@@ -248,41 +245,6 @@ class ConversionTest extends TestLauncher {
 							resultLine);
 				}
 			}
-		}
-	}
-
-	// TODO: remove and use IOUtils when updated
-	private static void unzip(File zipFile, File targetDirectory)
-			throws IOException {
-		if (targetDirectory.exists() && targetDirectory.isFile()) {
-			throw new IOException("Cannot unzip " + zipFile + " into "
-					+ targetDirectory + ": it is not a directory");
-		}
-
-		targetDirectory.mkdir();
-		if (!targetDirectory.exists()) {
-			throw new IOException("Cannot create target directory "
-					+ targetDirectory);
-		}
-
-		FileInputStream in = new FileInputStream(zipFile);
-		try {
-			ZipInputStream zipStream = new ZipInputStream(in);
-			try {
-				for (ZipEntry entry = zipStream.getNextEntry(); entry != null; entry = zipStream
-						.getNextEntry()) {
-					File file = new File(targetDirectory, entry.getName());
-					if (entry.isDirectory()) {
-						file.mkdirs();
-					} else {
-						IOUtils.write(zipStream, file);
-					}
-				}
-			} finally {
-				zipStream.close();
-			}
-		} finally {
-			in.close();
 		}
 	}
 }

@@ -16,6 +16,7 @@ import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.library.RemoteLibrary;
 import be.nikiroo.utils.Cache;
 import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.TempFiles;
 import be.nikiroo.utils.TraceHandler;
 import be.nikiroo.utils.resources.Bundles;
 
@@ -35,6 +36,7 @@ public class Instance {
 	private static File remoteDir;
 	private static String configDir;
 	private static TraceHandler tracer;
+	private static TempFiles tempFiles;
 
 	static {
 		// Before we can configure it:
@@ -98,6 +100,12 @@ public class Instance {
 					"The 'default covers' directory does not exists: "
 							+ coverDir));
 			coverDir = null;
+		}
+
+		try {
+			tempFiles = new TempFiles("fanfix");
+		} catch (IOException e) {
+			tracer.error(new IOException("Cannot create temporary directory", e));
 		}
 	}
 
@@ -302,6 +310,17 @@ public class Instance {
 		} catch (IOException e) {
 			tracer.error(e);
 		}
+	}
+
+	/**
+	 * The facility to use temporary files in this program.
+	 * <p>
+	 * <b>MUST</b> be closed at end of program.
+	 * 
+	 * @return the facility
+	 */
+	public static TempFiles getTempFiles() {
+		return tempFiles;
 	}
 
 	/**
