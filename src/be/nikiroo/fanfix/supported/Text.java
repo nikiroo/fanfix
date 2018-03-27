@@ -1,19 +1,24 @@
 package be.nikiroo.fanfix.supported;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Scanner;
 
+import org.jsoup.nodes.Document;
+
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.Image;
+import be.nikiroo.utils.MarkableFileInputStream;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -33,7 +38,29 @@ import be.nikiroo.utils.Progress;
  * 
  * @author niki
  */
-class Text extends BasicSupport_Deprecated {
+class Text extends BasicSupport {
+	private File sourceFile;
+	private InputStream in;
+
+	protected File getSourceFile() {
+		return sourceFile;
+	}
+
+	protected InputStream getInput() {
+		if (in != null) {
+			try {
+				in.reset();
+			} catch (IOException e) {
+				Instance.getTraceHandler().error(
+						new IOException("Cannot reset the Text stream", e));
+			}
+
+			return in;
+		}
+
+		return null;
+	}
+
 	@Override
 	protected boolean isHtml() {
 		return false;
@@ -45,41 +72,42 @@ class Text extends BasicSupport_Deprecated {
 	}
 
 	@Override
-	protected MetaData getMeta(URL source, InputStream in) throws IOException {
+	protected Document loadDocument(URL source) throws IOException {
+		try {
+			sourceFile = new File(source.toURI());
+			in = new MarkableFileInputStream(new FileInputStream(sourceFile));
+		} catch (URISyntaxException e) {
+			throw new IOException("Cannot load the text document: " + source);
+		}
+
+		return null;
+	}
+
+	@Override
+	protected MetaData getMeta() throws IOException {
 		MetaData meta = new MetaData();
 
-		meta.setTitle(getTitle(reset(in)));
-		meta.setAuthor(getAuthor(reset(in)));
-		meta.setDate(getDate(reset(in)));
+		meta.setTitle(getTitle());
+		meta.setAuthor(getAuthor());
+		meta.setDate(getDate());
 		meta.setTags(new ArrayList<String>());
 		meta.setSource(getSourceName());
-		meta.setUrl(source.toString());
+		meta.setUrl(getSourceFile().toURI().toURL().toString());
 		meta.setPublisher("");
-		meta.setUuid(source.toString());
+		meta.setUuid(getSourceFile().toString());
 		meta.setLuid("");
-		meta.setLang(getLang(reset(in))); // default is EN
-		meta.setSubject(getSubject(source));
+		meta.setLang(getLang()); // default is EN
+		meta.setSubject(getSourceFile().getParentFile().getName());
 		meta.setType(getType().toString());
 		meta.setImageDocument(false);
-		meta.setCover(getCover(source));
+		meta.setCover(getCover(getSourceFile()));
 
 		return meta;
 	}
 
-	private String getSubject(URL source) throws IOException {
-		try {
-			File file = new File(source.toURI());
-			return file.getParentFile().getName();
-		} catch (URISyntaxException e) {
-			throw new IOException("Cannot parse the URL to File: "
-					+ source.toString(), e);
-		}
-
-	}
-
-	private String getLang(InputStream in) {
+	private String getLang() {
 		@SuppressWarnings("resource")
-		Scanner scan = new Scanner(in, "UTF-8");
+		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
 		scan.next(); // Title
 		scan.next(); // Author (Date)
@@ -103,16 +131,16 @@ class Text extends BasicSupport_Deprecated {
 		return lang;
 	}
 
-	private String getTitle(InputStream in) {
+	private String getTitle() {
 		@SuppressWarnings("resource")
-		Scanner scan = new Scanner(in, "UTF-8");
+		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
 		return scan.next();
 	}
 
-	private String getAuthor(InputStream in) {
+	private String getAuthor() {
 		@SuppressWarnings("resource")
-		Scanner scan = new Scanner(in, "UTF-8");
+		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
 		scan.next();
 		String authorDate = scan.next();
@@ -126,9 +154,9 @@ class Text extends BasicSupport_Deprecated {
 		return BasicSupportHelper.fixAuthor(author);
 	}
 
-	private String getDate(InputStream in) {
+	private String getDate() {
 		@SuppressWarnings("resource")
-		Scanner scan = new Scanner(in, "UTF-8");
+		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
 		scan.next();
 		String authorDate = scan.next();
@@ -147,18 +175,12 @@ class Text extends BasicSupport_Deprecated {
 	}
 
 	@Override
-	protected String getDesc(URL source, InputStream in) throws IOException {
-		return getChapterContent(source, in, 0, null);
+	protected String getDesc() throws IOException {
+		return getChapterContent(null, 0, null);
 	}
 
-	private Image getCover(URL source) {
-		String path;
-		try {
-			path = new File(source.toURI()).getPath();
-		} catch (URISyntaxException e) {
-			Instance.getTraceHandler().error(e);
-			path = null;
-		}
+	private Image getCover(File sourceFile) {
+		String path = sourceFile.getName();
 
 		for (String ext : new String[] { ".txt", ".text", ".story" }) {
 			if (path.endsWith(ext)) {
@@ -166,15 +188,16 @@ class Text extends BasicSupport_Deprecated {
 			}
 		}
 
-		return getImage(this, source, path);
+		return BasicSupportImages.getImage(this, sourceFile.getParentFile(),
+				path);
 	}
 
 	@Override
-	protected List<Entry<String, URL>> getChapters(URL source, InputStream in,
-			Progress pg) throws IOException {
+	protected List<Entry<String, URL>> getChapters(Progress pg)
+			throws IOException {
 		List<Entry<String, URL>> chaps = new ArrayList<Entry<String, URL>>();
 		@SuppressWarnings("resource")
-		Scanner scan = new Scanner(in, "UTF-8");
+		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
 		boolean prevLineEmpty = false;
 		while (scan.hasNext()) {
@@ -185,24 +208,10 @@ class Text extends BasicSupport_Deprecated {
 				if (pos >= 0 && pos + 1 < line.length()) {
 					chapName = line.substring(pos + 1).trim();
 				}
-				final URL value = source;
-				final String key = chapName;
-				chaps.add(new Entry<String, URL>() {
-					@Override
-					public URL setValue(URL value) {
-						return null;
-					}
 
-					@Override
-					public URL getValue() {
-						return value;
-					}
-
-					@Override
-					public String getKey() {
-						return key;
-					}
-				});
+				chaps.add(new AbstractMap.SimpleEntry<String, URL>(//
+						chapName, //
+						getSourceFile().toURI().toURL()));
 			}
 
 			prevLineEmpty = line.trim().isEmpty();
@@ -212,11 +221,11 @@ class Text extends BasicSupport_Deprecated {
 	}
 
 	@Override
-	protected String getChapterContent(URL source, InputStream in, int number,
-			Progress pg) throws IOException {
+	protected String getChapterContent(URL source, int number, Progress pg)
+			throws IOException {
 		StringBuilder builder = new StringBuilder();
 		@SuppressWarnings("resource")
-		Scanner scan = new Scanner(in, "UTF-8");
+		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
 		boolean inChap = false;
 		while (scan.hasNext()) {
@@ -232,6 +241,22 @@ class Text extends BasicSupport_Deprecated {
 		}
 
 		return builder.toString();
+	}
+
+	@Override
+	protected void close() {
+		InputStream in = getInput();
+		if (in != null) {
+			try {
+				in.close();
+			} catch (IOException e) {
+				Instance.getTraceHandler().error(
+						new IOException(
+								"Cannot close the text source file input", e));
+			}
+		}
+
+		super.close();
 	}
 
 	@Override
@@ -296,7 +321,7 @@ class Text extends BasicSupport_Deprecated {
 	 * 
 	 * @return the language or NULL
 	 */
-	private String detectChapter(String line, int number) {
+	static private String detectChapter(String line, int number) {
 		line = line.toUpperCase();
 		for (String lang : Instance.getConfig().getString(Config.CHAPTER)
 				.split(",")) {

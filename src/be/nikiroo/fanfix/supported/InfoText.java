@@ -2,8 +2,6 @@ package be.nikiroo.fanfix.supported;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.net.URL;
 
 import be.nikiroo.fanfix.data.MetaData;
@@ -23,40 +21,36 @@ class InfoText extends Text {
 		return "info-text";
 	}
 
+	protected File getInfoFile() {
+		return new File(assureNoTxt(getSourceFile()).getPath() + ".info");
+	}
+
 	@Override
-	protected MetaData getMeta(URL source, InputStream in) throws IOException {
-		try {
-			File sourceFile = new File(source.toURI());
-			sourceFile = assureNoTxt(sourceFile);
+	protected MetaData getMeta() throws IOException {
+		MetaData meta = InfoReader.readMeta(getInfoFile(), true);
 
-			MetaData meta = InfoReader.readMeta(new File(sourceFile.getPath()
-					+ ".info"), true);
-
-			// Some old .info files don't have those now required fields...
-			String test = meta.getTitle() == null ? "" : meta.getTitle();
-			test += meta.getAuthor() == null ? "" : meta.getAuthor();
-			test += meta.getDate() == null ? "" : meta.getDate();
-			test += meta.getUrl() == null ? "" : meta.getUrl();
-			if (test.isEmpty()) {
-				MetaData superMeta = super.getMeta(source, reset(in));
-				if (meta.getTitle() == null || meta.getTitle().isEmpty()) {
-					meta.setTitle(superMeta.getTitle());
-				}
-				if (meta.getAuthor() == null || meta.getAuthor().isEmpty()) {
-					meta.setAuthor(superMeta.getAuthor());
-				}
-				if (meta.getDate() == null || meta.getDate().isEmpty()) {
-					meta.setDate(superMeta.getDate());
-				}
-				if (meta.getUrl() == null || meta.getUrl().isEmpty()) {
-					meta.setUrl(superMeta.getUrl());
-				}
+		// Some old .info files don't have those now required fields...
+		String test = meta.getTitle() == null ? "" : meta.getTitle();
+		test += meta.getAuthor() == null ? "" : meta.getAuthor();
+		test += meta.getDate() == null ? "" : meta.getDate();
+		test += meta.getUrl() == null ? "" : meta.getUrl();
+		if (test.isEmpty()) {
+			MetaData superMeta = super.getMeta();
+			if (meta.getTitle() == null || meta.getTitle().isEmpty()) {
+				meta.setTitle(superMeta.getTitle());
 			}
-
-			return meta;
-		} catch (URISyntaxException e) {
-			throw new IOException("Cannot parse URL to file: " + source, e);
+			if (meta.getAuthor() == null || meta.getAuthor().isEmpty()) {
+				meta.setAuthor(superMeta.getAuthor());
+			}
+			if (meta.getDate() == null || meta.getDate().isEmpty()) {
+				meta.setDate(superMeta.getDate());
+			}
+			if (meta.getUrl() == null || meta.getUrl().isEmpty()) {
+				meta.setUrl(superMeta.getUrl());
+			}
 		}
+
+		return meta;
 	}
 
 	@Override

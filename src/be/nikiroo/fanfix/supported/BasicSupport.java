@@ -214,8 +214,8 @@ public abstract class BasicSupport {
 	/**
 	 * Open an input link that will be used for the support.
 	 * <p>
-	 * Can return NULL, in which case you are supposed to work without an
-	 * {@link InputStream}.
+	 * Can return NULL, in which case you are supposed to work without a source
+	 * node.
 	 * 
 	 * @param source
 	 *            the source {@link URL}
@@ -237,7 +237,6 @@ public abstract class BasicSupport {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	@SuppressWarnings("unused")
 	protected void login() throws IOException {
 	}
 
@@ -247,7 +246,6 @@ public abstract class BasicSupport {
 	 * @throws IOException
 	 *             on I/O error
 	 */
-	@SuppressWarnings("unused")
 	protected void preprocess() throws IOException {
 	}
 

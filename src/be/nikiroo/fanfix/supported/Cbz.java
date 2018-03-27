@@ -13,6 +13,7 @@ import java.util.zip.ZipInputStream;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.Chapter;
+import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.IOUtils;
@@ -57,7 +58,7 @@ class Cbz extends Epub {
 	}
 
 	@Override
-	public Story process(URL url, Progress pg) throws IOException {
+	public Story process(Progress pg) throws IOException {
 		if (pg == null) {
 			pg = new Progress();
 		} else {
@@ -66,7 +67,9 @@ class Cbz extends Epub {
 
 		Progress pgMeta = new Progress();
 		pg.addProgress(pgMeta, 10);
-		Story story = processMeta(url, false, true, pgMeta);
+		Story story = processMeta(true, pgMeta);
+		MetaData meta = story.getMeta();
+
 		pgMeta.done(); // 10%
 
 		File tmpDir = Instance.getTempFiles().createTempDir("info-text");
@@ -81,7 +84,7 @@ class Cbz extends Epub {
 						&& entry.getName().startsWith(getDataPrefix())) {
 					String entryLName = entry.getName().toLowerCase();
 					boolean imageEntry = false;
-					for (String ext : getImageExt(false)) {
+					for (String ext : BasicSupportImages.getImageExt(false)) {
 						if (entryLName.endsWith(ext)) {
 							imageEntry = true;
 						}
