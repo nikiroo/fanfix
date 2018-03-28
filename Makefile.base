@@ -5,6 +5,7 @@
 # - 1.1.0: add 'help', 'sjar'
 # - 1.2.0: add 'apk'
 # - 1.2.1: improve 'apk' and add 'android'
+# - 1.3.0: add 'man' for man(ual) pages
 
 # Required parameters (the commented out ones are supposed to be per project):
 
@@ -29,12 +30,12 @@ JAR = jar
 RJAR = java
 RJAR_FLAGS += -jar
 
-all: build jar
+all: build jar man
 
 help:
 	@echo "Usual options:"
 	@echo "=============="
-	@echo "	make		: to build the jar file"
+	@echo "	make		: to build the jar file and man pages IF possible"
 	@echo "	make help	: to get this help screen"
 	@echo "	make libs	: to update the libraries into src/"
 	@echo "	make build	: to update the binaries (not the jar)"
@@ -49,8 +50,10 @@ help:
 	@echo "	make install	: to install the application into $$PREFIX"
 	@echo "	make android	: to prepare the sources in android/ for Studio"
 	@echo "	make apk	: to compile the APK file"
+	@echo " make ifman	: to make the manual pages (if pandoc is found)"
+	@echo " make man	: to make the manual pages (requires pandoc)"
 
-.PHONY: all clean mrproper mrpropre build run jrun jar sjar resources test-resources install libs love apk android
+.PHONY: all clean mrproper mrpropre build run jrun jar sjar resources test-resources install libs love apk android ifman man
 
 bin:
 	@mkdir -p bin
@@ -237,4 +240,49 @@ ${NAME}-debug.apk: android
 			[ ! -e VERSION ] || cp $(NAME).apk "$(NAME)-`cat VERSION`-debug.apk"; \
 		); \
 	)
+
+ifman:
+	@if pandoc -v >/dev/null 2>&1; then \
+		make man; \
+	else \
+		echo "man pages not generated: "'`'"pandoc' required"; \
+	fi
+
+man: 
+	@echo Checking for possible manual pages...
+	@if [ -e README.md ]; then \
+		echo Sources found for man pages; \
+		if pandoc -v >/dev/null 2>&1; then \
+			ls README*.md 2>/dev/null \
+					| grep 'README\(-..\|\)\.md' \
+					| while read man; do \
+				echo "	Processing page $$lang..."; \
+				lang="`echo "$$man" \
+					| sed 's:README\.md:en:' \
+					| sed 's:README-\(.*\)\.md:\1:'`"; \
+				mkdir -p man/"$$lang"/man1; \
+				( \
+					echo ".TH \"${NAME}\" 1 `\
+						date +%Y-%m-%d\
+						` \"version `cat VERSION`\""; \
+					echo; \
+					UNAME="`echo "${NAME}" \
+						| sed 's:\(.*\):\U\1:g'`"; \
+					( \
+						cat "$$man" | head -n1 \
+	| sed 's:.*(README\(-fr\|\)\.md).*::g'; \
+						cat "$$man" | tail -n+2; \
+					) | sed 's:^#\(#.*\):\1:g' \
+	| sed 's:^\(#.*\):\U\1:g;s:# *'"$$UNAME"':# NAME\n'"${NAME}"' \\- :g' \
+	| sed 's:--:——:g' \
+	| pandoc -f markdown -t man | sed 's:——:--:g' ; \
+				) > man/"$$lang"/man1/"${NAME}.1"; \
+			done; \
+			mkdir -p "man/man1"; \
+			cp man/en/man1/"${NAME}".1 man/man1/; \
+		else \
+			echo "man pages generation: pandoc required" >&2; \
+			false; \
+		fi; \
+	fi;
 
