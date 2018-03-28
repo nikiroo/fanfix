@@ -3,6 +3,20 @@
 # Fanfix
 Fanfix est un petit programme Java qui peut télécharger des histoires sur internet et les afficher hors ligne.
 
+## Synopsis
+
+- ```fanfix``` --import [*URL*]
+- ```fanfix``` --export [*id*] [*output_type*] [*target*]
+- ```fanfix``` --convert [*URL*] [*output_type*] [*target*] (+info)
+- ```fanfix``` --read [*id*] ([*chapter number*])
+- ```fanfix``` --read-url [*URL*] ([*chapter number*])
+- ```fanfix``` --list
+- ```fanfix``` --set-reader [*reader type*]
+- ```fanfix``` --server [*key*] [*port*]
+- ```fanfix``` --stop-server [*key*] [*port*]
+- ```fanfix``` --remote [*key*] [*host*] [*port*]
+- ```fanfix``` --help
+
 ## Description
 
 (Si vous voulez juste voir les derniers changements, vous pouvez regarder le [Changelog](changelog-fr.md) -- remarquez que le programme affiche le changelog si une version plus récente est détectée depuis la version 1.4.0.)
@@ -22,7 +36,7 @@ Pour vous aider à organiser vos histoires, il peut aussi servir de bibliothèqu
 - d'afficher une histoire en mode texte
 - d'afficher une histoire en mode GUI **en appelant un programme natif pour lire le fichier** (mais Fanfix peut convertir le fichier en HTML avant, pour que n'importe quel navigateur web puisse l'afficher)
 
-## Sites supportés
+### Sites supportés
 
 Pour le moment, les sites suivants sont supportés :
 
@@ -33,7 +47,7 @@ Pour le moment, les sites suivants sont supportés :
 - https://sofurry.com/ : même chose, mais orienté sur les histoires plutôt que les images
 - https://e-hentai.org/ : support ajouté sur demande : n'hésitez pas à demander un site !
 
-## À propos des types de fichiers supportés
+### Types de fichiers supportés
 
 Nous supportons les types de fichiers suivants (aussi bien en entrée qu'en sortie) :
 
@@ -48,7 +62,7 @@ Nous supportons les types de fichiers suivants (aussi bien en entrée qu'en sort
 - cbz : les fichiers .cbz (une collection d'images zipées), de préférence créés avec Fanfix (même si les autres .cbz sont aussi supportés, mais sans la majorité des metadata de Fanfix dans ce cas)
 - html : les fichiers HTML que vous pouvez ouvrir avec n'importe quel navigateur ; remarquez que Fanfix créera un répertoire pour y mettre les fichiers nécessaires, dont un fichier ```index.html``` pour afficher le tout -- nous ne supportons en entrée que les fichiers HTML créés par Fanfix
 
-## Plateformes supportées
+### Plateformes supportées
 
 Toute plateforme supportant Java 1.6 devrait suffire.
 
@@ -56,11 +70,12 @@ Le programme a été testé sur Linux (Debian, Slackware et Ubuntu), MacOS X et 
 
 Si vous avez des difficultés pour le compiler avec une version supportée de Java (1.6+), contactez-nous.
 
-## Utilisation
+## Options
 
 Vous pouvez démarrer le programme en mode graphique (comme dans le screenshot en haut) :
 
 - ```java -jar fanfix.jar```
+- ```fanfix``` (si vous avez utilisé *make install*)
 
 Les arguments suivants sont aussi supportés :
 
@@ -77,7 +92,7 @@ Les arguments suivants sont aussi supportés :
 - ```--help```: afficher la liste des options disponibles
 - ```--version```: retourne la version du programme
 
-### Variables d'environnement
+### Environnement
 
 Certaines variables d'environnement sont reconnues par le programme :
 
@@ -100,13 +115,14 @@ Quelques tests unitaires sont disponibles :
 
 Nécessaires :
 
-- libs/nikiroo-utils-sources.jar: quelques utilitaires partagés
-- [libs/unbescape-sources.jar](https://github.com/unbescape/unbescape): une librairie sympathique pour convertir du texte depuis/vers beaucoup de formats ; utilisée ici pour la partie HTML
-- [libs/jsoup-sources.jar](https://jsoup.org/): une libraririe pour parser du HTML
+- ```libs/nikiroo-utils-sources.jar```: quelques utilitaires partagés
+- [```libs/unbescape-sources.jar```](https://github.com/unbescape/unbescape): une librairie sympathique pour convertir du texte depuis/vers beaucoup de formats ; utilisée ici pour la partie HTML
+- [```libs/jsoup-sources.jar```](https://jsoup.org/): une libraririe pour parser du HTML
 
 Optionnelles :
 
-- [libs/jexer-sources.jar](https://github.com/klamonte/jexer): une petite librairie qui offre des widgets en mode TUI
+- [```libs/jexer-sources.jar```](https://github.com/klamonte/jexer): une petite librairie qui offre des widgets en mode TUI
+- [```pandoc```](http://pandoc.org/): pour générer les man pages depuis les fichiers README
 
 Rien d'autre, si ce n'est Java 1.6+.
 

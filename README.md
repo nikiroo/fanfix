@@ -3,6 +3,20 @@ English [Français](README-fr.md)
 # Fanfix
 Fanfix is a small Java program that can download stories from some supported websites and render them offline.
 
+## Synopsis
+
+- ```fanfix``` --import [*URL*]
+- ```fanfix``` --export [*id*] [*output_type*] [*target*]
+- ```fanfix``` --convert [*URL*] [*output_type*] [*target*] (+info)
+- ```fanfix``` --read [*id*] ([*chapter number*])
+- ```fanfix``` --read-url [*URL*] ([*chapter number*])
+- ```fanfix``` --list
+- ```fanfix``` --set-reader [*reader type*]
+- ```fanfix``` --server [*key*] [*port*]
+- ```fanfix``` --stop-server [*key*] [*port*]
+- ```fanfix``` --remote [*key*] [*host*] [*port*]
+- ```fanfix``` --help
+
 ## Description
 
 (If you are interested in the recent changes, please check the [Changelog](changelog.md) -- note that starting from version 1.4.0, the changelog is checked at startup.)
@@ -22,7 +36,7 @@ To help organize your stories, it can also work as a local library so you can:
 - Display a story from the local library in text format in the console
 - Display a story from the local library graphically **by calling a native program to handle it** (though Fanfix can automatically process it into HTML so any browser can open it)
 
-## Supported websites
+### Supported websites
 
 Currently, the following websites are supported:
 
@@ -33,7 +47,7 @@ Currently, the following websites are supported:
 - https://sofurry.com/: same thing, but story-oriented
 - https://e-hentai.org/: done upon request (so, feel free to ask for more websites!)
 
-## A note about file support
+### Support file types
 
 We support a few file types for local story conversion (both as input and as output):
 
@@ -48,7 +62,7 @@ We support a few file types for local story conversion (both as input and as out
 - cbz: .cbz (collection of images) files, preferably created with Fanfix (but any .cbz file is supported, though without most of Fanfix metadata, obviously)
 - html: HTML files that you can open with any browser; note that it will create a directory structure with ```index.html``` as the main file -- we only support importing HTML files created by Fanfix
 
-## Supported platforms
+### Supported platforms
 
 Any platform with at lest Java 1.6 on it should be ok.
 
@@ -56,11 +70,12 @@ It has been tested on Linux (Debian, Slackware, Ubuntu), MacOS X and Windows for
 
 If you have any problems to compile it with a supported Java version (1.6+), please contact us.
 
-## Usage
+## Options
 
 You can start the program in GUI mode (as in the screenshot on top):
 
 - ```java -jar fanfix.jar```
+- ```fanfix``` (if you used *make install*)
 
 The following arguments are also allowed:
 
@@ -77,7 +92,7 @@ The following arguments are also allowed:
 - ```--help```: display the available options
 - ```--version```: return the version of the program
 
-### Environment variables
+### Environment
 
 Some environment variables are recognized by the program:
 
@@ -98,10 +113,16 @@ There are some unit tests you can run, too:
 
 ### Dependant libraries (included)
 
-- libs/nikiroo-utils-sources.jar: some shared utility functions
-- [libs/unbescape-sources.jar](https://github.com/unbescape/unbescape): a nice library to escape/unescape a lot of text formats; used here for HTML
-- [libs/jexer-sources.jar](https://github.com/klamonte/jexer): a small library that offers TUI widgets
-- [libs/jsoup-sources.jar](https://jsoup.org/): a library to parse HTML
+Required:
+
+- ```libs/nikiroo-utils-sources.jar```: some shared utility functions
+- [```libs/unbescape-sources.jar```](https://github.com/unbescape/unbescape): a nice library to escape/unescape a lot of text formats; used here for HTML
+- [```libs/jsoup-sources.jar```](https://jsoup.org/): a library to parse HTML
+
+Optional:
+
+- [```libs/jexer-sources.jar```](https://github.com/klamonte/jexer): a small library that offers TUI widgets
+- [```pandoc```](http://pandoc.org/): to generate the man pages from the README files
 
 Nothing else but Java 1.6+.
 
