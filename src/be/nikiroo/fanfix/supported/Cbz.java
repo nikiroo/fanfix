@@ -58,7 +58,7 @@ class Cbz extends Epub {
 	}
 
 	@Override
-	public Story process(Progress pg) throws IOException {
+	public Story doProcess(Progress pg) throws IOException {
 		if (pg == null) {
 			pg = new Progress();
 		} else {

@@ -216,6 +216,17 @@ class ConversionTest extends TestLauncher {
 									.length());
 				}
 
+				if (expectedLines.size() != resultLines.size()) {
+					System.out.println();
+					System.out.println("expected: [");
+					for (String line : expectedLines)
+						System.out.println(line);
+					System.out.println("]");
+					System.out.println("actual: [");
+					for (String line : resultLines)
+						System.out.println(line);
+					System.out.println("]");
+				}
 				testCase.assertEquals(errMess + ": " + name
 						+ ": the number of lines is not the same",
 						expectedLines.size(), resultLines.size());
