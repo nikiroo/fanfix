@@ -274,7 +274,8 @@ man:
 						cat "$$man" | tail -n+2; \
 					) | sed 's:^#\(#.*\):\1:g' \
 	| sed 's:^\(#.*\):\U\1:g;s:# *'"$$UNAME"':# NAME\n'"${NAME}"' \\- :g' \
-	| pandoc -f markdown -t man | sed 's:-:\\-:g' ; \
+	| sed 's:--:——:g' \
+	| pandoc -f markdown -t man | sed 's:——:--:g' ; \
 				) > man/"$$lang"/man1/"${NAME}.1"; \
 			done; \
 			mkdir -p "man/man1"; \
