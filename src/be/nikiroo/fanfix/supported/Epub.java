@@ -27,8 +27,6 @@ import be.nikiroo.utils.StringUtils;
  * @author niki
  */
 class Epub extends InfoText {
-	private File sourceFileOriginal;
-
 	private MetaData meta;
 	private File tmpDir;
 	private String desc;
@@ -42,7 +40,7 @@ class Epub extends InfoText {
 	}
 
 	public File getSourceFileOriginal() {
-		return sourceFileOriginal;
+		return super.getSourceFile();
 	}
 
 	@Override
@@ -61,7 +59,19 @@ class Epub extends InfoText {
 
 	@Override
 	protected InputStream getInput() {
-		return fakeIn;
+		if (fakeIn != null) {
+			try {
+				fakeIn.reset();
+			} catch (IOException e) {
+				Instance.getTraceHandler()
+						.error(new IOException(
+								"Cannot reset the Epub Text stream", e));
+			}
+
+			return fakeIn;
+		}
+
+		return null;
 	}
 
 	@Override

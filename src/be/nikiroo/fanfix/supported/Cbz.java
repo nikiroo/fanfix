@@ -1,7 +1,9 @@
 package be.nikiroo.fanfix.supported;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,6 +20,7 @@ import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
+import be.nikiroo.utils.MarkableFileInputStream;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -76,8 +79,12 @@ class Cbz extends Epub {
 		String basename = null;
 
 		Map<String, Image> images = new HashMap<String, Image>();
+		InputStream cbzIn = null;
+		ZipInputStream zipIn = null;
 		try {
-			ZipInputStream zipIn = new ZipInputStream(getInput());
+			cbzIn = new MarkableFileInputStream(new FileInputStream(
+					getSourceFileOriginal()));
+			zipIn = new ZipInputStream(cbzIn);
 			for (ZipEntry entry = zipIn.getNextEntry(); entry != null; entry = zipIn
 					.getNextEntry()) {
 				if (!entry.isDirectory()
@@ -119,23 +126,12 @@ class Cbz extends Epub {
 
 			pg.setProgress(90);
 
-			File txt = new File(tmpDir, basename + ".txt");
-			if (!txt.exists()) {
-				basename = null;
-			}
-			if (basename != null) {
-				try {
-					BasicSupport support = BasicSupport.getSupport(txt.toURI()
-							.toURL());
-					Story origStory = support.process(null);
-					story.setChapters(origStory.getChapters());
-					story.setMeta(origStory.getMeta());
-				} catch (Exception e) {
-					basename = null;
-				}
-			}
-
-			if (basename == null) {
+			// include original story
+			Story origStory = getStoryFromTxt(tmpDir, basename);
+			if (origStory != null) {
+				story.setChapters(origStory.getChapters());
+				story.setMeta(origStory.getMeta());
+			} else {
 				story.setChapters(new ArrayList<Chapter>());
 			}
 
@@ -160,9 +156,36 @@ class Cbz extends Epub {
 
 		} finally {
 			IOUtils.deltree(tmpDir);
+			if (zipIn != null) {
+				zipIn.close();
+			}
+			if (cbzIn != null) {
+				cbzIn.close();
+			}
 		}
 
 		pg.setProgress(100);
 		return story;
+	}
+
+	private Story getStoryFromTxt(File tmpDir, String basename) {
+		Story origStory = null;
+
+		File txt = new File(tmpDir, basename + ".txt");
+		if (!txt.exists()) {
+			basename = null;
+		}
+		if (basename != null) {
+			try {
+				BasicSupport support = BasicSupport.getSupport(txt.toURI()
+						.toURL());
+				origStory = support.process(null);
+			} catch (Exception e) {
+				basename = null;
+			}
+		}
+
+		return origStory;
+
 	}
 }
