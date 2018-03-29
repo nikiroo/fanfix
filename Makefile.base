@@ -188,6 +188,9 @@ install:
 	echo "#!/bin/sh" > "$(PREFIX)/bin/$(NAME)"
 	echo "$(RJAR) $(RJAR_FLAGS) \"$(PREFIX)/lib/$(NAME).jar\" \"\$$@\"" >> "$(PREFIX)/bin/$(NAME)"
 	chmod a+rx "$(PREFIX)/bin/$(NAME)"
+	if [ -e "man/man1/$(NAME).1" ]; then \
+		cp -r man/ "$(PREFIX)"/share/; \
+	fi
 
 android: android/app/src
 
