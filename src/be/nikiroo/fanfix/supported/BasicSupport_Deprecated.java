@@ -75,7 +75,6 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 		throw new RuntimeException("should not be used by legacy code");
 	}
 
-	@Override
 	public Story process(Progress pg) throws IOException {
 		return process(getSource(), pg);
 	}

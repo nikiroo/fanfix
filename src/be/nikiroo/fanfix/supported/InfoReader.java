@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
@@ -29,7 +30,6 @@ public class InfoReader {
 				return createMeta(infoFile.toURI().toURL(), in, withCover);
 			} finally {
 				in.close();
-				in = null;
 			}
 		}
 
@@ -138,7 +138,7 @@ public class InfoReader {
 
 		if (in != null) {
 			in.reset();
-			String value = BasicSupport_Deprecated.getLine(in, key, 0);
+			String value = getLine(in, key, 0);
 			if (value != null && !value.isEmpty()) {
 				value = value.trim().substring(key.length() - 1).trim();
 				if (value.startsWith("'") && value.endsWith("'")
@@ -151,5 +151,82 @@ public class InfoReader {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Return the first line from the given input which correspond to the given
+	 * selectors.
+	 * 
+	 * @param in
+	 *            the input
+	 * @param needle
+	 *            a string that must be found inside the target line (also
+	 *            supports "^" at start to say "only if it starts with" the
+	 *            needle)
+	 * @param relativeLine
+	 *            the line to return based upon the target line position (-1 =
+	 *            the line before, 0 = the target line...)
+	 * 
+	 * @return the line
+	 */
+	static private String getLine(InputStream in, String needle,
+			int relativeLine) {
+		return getLine(in, needle, relativeLine, true);
+	}
+
+	/**
+	 * Return a line from the given input which correspond to the given
+	 * selectors.
+	 * 
+	 * @param in
+	 *            the input
+	 * @param needle
+	 *            a string that must be found inside the target line (also
+	 *            supports "^" at start to say "only if it starts with" the
+	 *            needle)
+	 * @param relativeLine
+	 *            the line to return based upon the target line position (-1 =
+	 *            the line before, 0 = the target line...)
+	 * @param first
+	 *            takes the first result (as opposed to the last one, which will
+	 *            also always spend the input)
+	 * 
+	 * @return the line
+	 */
+	static private String getLine(InputStream in, String needle,
+			int relativeLine, boolean first) {
+		String rep = null;
+
+		List<String> lines = new ArrayList<String>();
+		@SuppressWarnings("resource")
+		Scanner scan = new Scanner(in, "UTF-8");
+		int index = -1;
+		scan.useDelimiter("\\n");
+		while (scan.hasNext()) {
+			lines.add(scan.next());
+
+			if (index == -1) {
+				if (needle.startsWith("^")) {
+					if (lines.get(lines.size() - 1).startsWith(
+							needle.substring(1))) {
+						index = lines.size() - 1;
+					}
+
+				} else {
+					if (lines.get(lines.size() - 1).contains(needle)) {
+						index = lines.size() - 1;
+					}
+				}
+			}
+
+			if (index >= 0 && index + relativeLine < lines.size()) {
+				rep = lines.get(index + relativeLine);
+				if (first) {
+					break;
+				}
+			}
+		}
+
+		return rep;
 	}
 }

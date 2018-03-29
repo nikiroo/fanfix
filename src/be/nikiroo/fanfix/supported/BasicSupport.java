@@ -214,8 +214,8 @@ public abstract class BasicSupport {
 	/**
 	 * Open an input link that will be used for the support.
 	 * <p>
-	 * Can return NULL, in which case you are supposed to work without an
-	 * {@link InputStream}.
+	 * Can return NULL, in which case you are supposed to work without a source
+	 * node.
 	 * 
 	 * @param source
 	 *            the source {@link URL}
@@ -237,18 +237,7 @@ public abstract class BasicSupport {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	@SuppressWarnings("unused")
 	protected void login() throws IOException {
-	}
-
-	/**
-	 * Prepare the support if needed before processing.
-	 * 
-	 * @throws IOException
-	 *             on I/O error
-	 */
-	@SuppressWarnings("unused")
-	protected void preprocess() throws IOException {
 	}
 
 	/**
@@ -267,10 +256,9 @@ public abstract class BasicSupport {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public Story processMeta() throws IOException {
+	public final Story processMeta() throws IOException {
 		Story story = null;
 
-		preprocess();
 		try {
 			story = processMeta(false, null);
 		} finally {
@@ -333,6 +321,32 @@ public abstract class BasicSupport {
 	}
 
 	/**
+	 * Actual processing step, without the calls to other methods.
+	 * <p>
+	 * Will convert the story resource into a fully filled {@link Story} object.
+	 * 
+	 * @param pg
+	 *            the optional progress reporter
+	 * 
+	 * @return the {@link Story}, never NULL
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	// TODO: add final
+	public Story process(Progress pg) throws IOException {
+		setCurrentReferer(source);
+		login();
+		sourceNode = loadDocument(source);
+
+		try {
+			return doProcess(pg);
+		} finally {
+			close();
+		}
+	}
+
+	/**
 	 * Process the given story resource into a fully filled {@link Story}
 	 * object.
 	 * 
@@ -344,87 +358,78 @@ public abstract class BasicSupport {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public Story process(Progress pg) throws IOException {
+	public Story doProcess(Progress pg) throws IOException {
 		if (pg == null) {
 			pg = new Progress();
 		} else {
 			pg.setMinMax(0, 100);
 		}
 
-		setCurrentReferer(source);
-		login();
-		sourceNode = loadDocument(source);
-
 		pg.setProgress(1);
-		try {
-			Progress pgMeta = new Progress();
-			pg.addProgress(pgMeta, 10);
-			preprocess();
-			Story story = processMeta(true, pgMeta);
-			if (!pgMeta.isDone()) {
-				pgMeta.setProgress(pgMeta.getMax()); // 10%
-			}
+		Progress pgMeta = new Progress();
+		pg.addProgress(pgMeta, 10);
+		Story story = processMeta(true, pgMeta);
+		if (!pgMeta.isDone()) {
+			pgMeta.setProgress(pgMeta.getMax()); // 10%
+		}
 
-			pg.setName("Retrieving " + story.getMeta().getTitle());
+		pg.setName("Retrieving " + story.getMeta().getTitle());
 
-			Progress pgGetChapters = new Progress();
-			pg.addProgress(pgGetChapters, 10);
-			story.setChapters(new ArrayList<Chapter>());
-			List<Entry<String, URL>> chapters = getChapters(pgGetChapters);
-			if (!pgGetChapters.isDone()) {
-				pgGetChapters.setProgress(pgGetChapters.getMax()); // 20%
-			}
+		Progress pgGetChapters = new Progress();
+		pg.addProgress(pgGetChapters, 10);
+		story.setChapters(new ArrayList<Chapter>());
+		List<Entry<String, URL>> chapters = getChapters(pgGetChapters);
+		if (!pgGetChapters.isDone()) {
+			pgGetChapters.setProgress(pgGetChapters.getMax()); // 20%
+		}
 
-			if (chapters != null) {
-				Progress pgChaps = new Progress("Extracting chapters", 0,
-						chapters.size() * 300);
-				pg.addProgress(pgChaps, 80);
+		if (chapters != null) {
+			Progress pgChaps = new Progress("Extracting chapters", 0,
+					chapters.size() * 300);
+			pg.addProgress(pgChaps, 80);
 
-				long words = 0;
-				int i = 1;
-				for (Entry<String, URL> chap : chapters) {
-					pgChaps.setName("Extracting chapter " + i);
-					URL chapUrl = chap.getValue();
-					String chapName = chap.getKey();
-					if (chapUrl != null) {
-						setCurrentReferer(chapUrl);
-					}
-
-					pgChaps.setProgress(i * 100);
-					Progress pgGetChapterContent = new Progress();
-					Progress pgMakeChapter = new Progress();
-					pgChaps.addProgress(pgGetChapterContent, 100);
-					pgChaps.addProgress(pgMakeChapter, 100);
-
-					String content = getChapterContent(chapUrl, i,
-							pgGetChapterContent);
-					if (!pgGetChapterContent.isDone()) {
-						pgGetChapterContent.setProgress(pgGetChapterContent
-								.getMax());
-					}
-
-					Chapter cc = BasicSupportPara.makeChapter(this, chapUrl, i,
-							chapName, content, isHtml(), pgMakeChapter);
-					if (!pgMakeChapter.isDone()) {
-						pgMakeChapter.setProgress(pgMakeChapter.getMax());
-					}
-
-					words += cc.getWords();
-					story.getChapters().add(cc);
-					story.getMeta().setWords(words);
-
-					i++;
+			long words = 0;
+			int i = 1;
+			for (Entry<String, URL> chap : chapters) {
+				pgChaps.setName("Extracting chapter " + i);
+				URL chapUrl = chap.getValue();
+				String chapName = chap.getKey();
+				if (chapUrl != null) {
+					setCurrentReferer(chapUrl);
 				}
 
-				pgChaps.setName("Extracting chapters");
-			} else {
-				pg.setProgress(80);
+				pgChaps.setProgress(i * 100);
+				Progress pgGetChapterContent = new Progress();
+				Progress pgMakeChapter = new Progress();
+				pgChaps.addProgress(pgGetChapterContent, 100);
+				pgChaps.addProgress(pgMakeChapter, 100);
+
+				String content = getChapterContent(chapUrl, i,
+						pgGetChapterContent);
+				if (!pgGetChapterContent.isDone()) {
+					pgGetChapterContent.setProgress(pgGetChapterContent
+							.getMax());
+				}
+
+				Chapter cc = BasicSupportPara.makeChapter(this, chapUrl, i,
+						chapName, content, isHtml(), pgMakeChapter);
+				if (!pgMakeChapter.isDone()) {
+					pgMakeChapter.setProgress(pgMakeChapter.getMax());
+				}
+
+				words += cc.getWords();
+				story.getChapters().add(cc);
+				story.getMeta().setWords(words);
+
+				i++;
 			}
 
-			return story;
-		} finally {
-			close();
+			pgChaps.setName("Extracting chapters");
+		} else {
+			pg.setProgress(80);
 		}
+
+		return story;
 	}
 
 	/**

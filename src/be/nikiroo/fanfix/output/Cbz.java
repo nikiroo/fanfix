@@ -73,7 +73,7 @@ class Cbz extends BasicOutput {
 				new FileOutputStream(new File(dir, "URL")), "UTF-8"));
 		try {
 			if (meta != null) {
-				writer.write(meta.getUuid());
+				writer.write(meta.getUrl());
 			}
 		} finally {
 			writer.close();
