@@ -2,13 +2,20 @@
 
 # Version WIP
 
+- new: use jsoup for parsing HTML (not everywhere yet)
 - update nikiroo-utils
 - android: Android compatibility
 - MangaFox: fix after website update
 - MangaFox: tomes order was not always correct
-- new: use jsoup (only for MangaFox for now)
-- fix: TYPE= était parfois mauvais dans l'info-file
-- fix: les guillemets n'étaient pas toujours bien ordonnés
+- ePub: fix for compatibility with some ePub viewers
+- remote: cache usage fix
+- fix: TYPE= not always correct in info-file
+- fix: quotes error
+- fix: improve external launcher (native viewer)
+- test: more unit tests
+- doc: changelog available in French
+- doc: man pages (en, fr)
+- doc: SysV init script
 
 # Version 1.6.3
 
