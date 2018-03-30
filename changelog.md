@@ -1,6 +1,6 @@
 # Fanfix
 
-# Version WIP
+# Version 1.7.0
 
 - new: use jsoup for parsing HTML (not everywhere yet)
 - update nikiroo-utils
