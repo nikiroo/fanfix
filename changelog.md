@@ -1,5 +1,10 @@
 # nikiroo-utils
 
+## Version WIP
+
+- New: Utils now have a main class
+- Image to text converion fixes
+
 ## Version 4.3.0
 
 - New: IOUtils.Unzip()

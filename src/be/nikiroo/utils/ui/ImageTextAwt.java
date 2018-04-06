@@ -165,30 +165,48 @@ public class ImageTextAwt {
 				mult = 2;
 			}
 
+			Dimension srcSize = getSize(image);
+			srcSize = new Dimension(srcSize.width * 2, srcSize.height);
+			int x = 0;
+			int y = 0;
+
 			int w = size.width * mult;
 			int h = size.height * mult;
+
+			// Default = original ratio or original size if none
+			if (w < 0 || h < 0) {
+				if (w < 0 && h < 0) {
+					w = srcSize.width * mult;
+					h = srcSize.height * mult;
+				} else {
+					double ratioSrc = (double) srcSize.width
+							/ (double) srcSize.height;
+					if (w < 0) {
+						w = (int) Math.round(h * ratioSrc);
+					} else {
+						h = (int) Math.round(w / ratioSrc);
+					}
+				}
+			}
+
+			// Fail safe: we consider this to be too much
+			if (w > 1000 || h > 1000) {
+				return "[IMAGE TOO BIG]";
+			}
 
 			BufferedImage buff = new BufferedImage(w, h,
 					BufferedImage.TYPE_INT_ARGB);
 
 			Graphics gfx = buff.getGraphics();
 
-			Dimension srcSize = getSize(image);
-			srcSize = new Dimension(srcSize.width * 2, srcSize.height);
-			int x = 0;
-			int y = 0;
-
+			double ratioAsked = (double) (w) / (double) (h);
+			double ratioSrc = (double) srcSize.height / (double) srcSize.width;
+			double ratio = ratioAsked * ratioSrc;
 			if (srcSize.width < srcSize.height) {
-				double ratio = (double) size.width / (double) size.height;
-				ratio *= (double) srcSize.height / (double) srcSize.width;
-
 				h = (int) Math.round(ratio * h);
 				y = (buff.getHeight() - h) / 2;
 			} else {
-				double ratio = (double) size.height / (double) size.width;
-				ratio *= (double) srcSize.width / (double) srcSize.height;
-
-				w = (int) Math.round(ratio * w);
+				w = (int) Math.round(w / ratio);
 				x = (buff.getWidth() - w) / 2;
 			}
 
@@ -214,12 +232,12 @@ public class ImageTextAwt {
 
 			StringBuilder builder = new StringBuilder();
 
-			for (int row = 0; row < buff.getHeight(); row += mult) {
+			for (int row = 0; row + (mult - 1) < buff.getHeight(); row += mult) {
 				if (row > 0) {
 					builder.append('\n');
 				}
 
-				for (int col = 0; col < buff.getWidth(); col += mult) {
+				for (int col = 0; col + (mult - 1) < buff.getWidth(); col += mult) {
 					if (mult == 1) {
 						char car = ' ';
 						float brightness = getBrightness(buff.getRGB(col, row));

@@ -213,7 +213,23 @@ public class IOUtils {
 			dir.mkdirs();
 		}
 
-		FileWriter writerVersion = new FileWriter(new File(dir, filename));
+		writeSmallFile(new File(dir, filename), content);
+	}
+
+	/**
+	 * Write the {@link String} content to {@link File}.
+	 * 
+	 * @param file
+	 *            the {@link File} to write
+	 * @param content
+	 *            the content
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public static void writeSmallFile(File file, String content)
+			throws IOException {
+		FileWriter writerVersion = new FileWriter(file);
 		try {
 			writerVersion.write(content);
 		} finally {
