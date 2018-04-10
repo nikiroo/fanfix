@@ -15,11 +15,17 @@ import be.nikiroo.utils.ui.ImageTextAwt;
 import be.nikiroo.utils.ui.ImageTextAwt.Mode;
 import be.nikiroo.utils.ui.ImageUtilsAwt;
 
-public class StartImageUtils {
+/**
+ * Image to ASCII conversion.
+ * 
+ * @author niki
+ */
+public class img2aa {
 	/**
-	 * ImageUtils main entry point.
+	 * Syntax: (--mode=MODE) (--width=WIDTH) (--height=HEIGHT) (--size=SIZE)
+	 * (--output=OUTPUT) (--invert) (--help)
 	 * <p>
-	 * Syntax: see --help
+	 * See "--help".
 	 * 
 	 * @param args
 	 */
@@ -47,8 +53,8 @@ public class StartImageUtils {
 					height = Integer.parseInt(arg.substring("--height="
 							.length()));
 				} else if (arg.startsWith("--size=")) {
-					String content = arg.substring("--size=".length())
-							.replace("X", "x");
+					String content = arg.substring("--size=".length()).replace(
+							"X", "x");
 					width = Integer.parseInt(content.split("x")[0]);
 					height = Integer.parseInt(content.split("x")[1]);
 				} else if (arg.startsWith("--ouput=")) {

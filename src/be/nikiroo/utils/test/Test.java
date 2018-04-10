@@ -2,8 +2,8 @@ package be.nikiroo.utils.test;
 
 import be.nikiroo.utils.Cache;
 import be.nikiroo.utils.Downloader;
-import be.nikiroo.utils.main.StartImageUtils;
-import be.nikiroo.utils.main.StartStringUtils;
+import be.nikiroo.utils.main.img2aa;
+import be.nikiroo.utils.main.justify;
 
 /**
  * Tests for nikiroo-utils.
@@ -35,8 +35,8 @@ public class Test extends TestLauncher {
 		Downloader downloader = null;
 
 		// To include the sources:
-		StartImageUtils siu;
-		StartStringUtils ssu;
+		img2aa siu;
+		justify ssu;
 	}
 
 	/**

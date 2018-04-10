@@ -1,0 +1,3 @@
+#!/bin/sh
+exec nikiroo-utils be.nikiroo.utils.main.img2aa "$@"
+
