@@ -38,7 +38,7 @@ public class justify {
 		// TODO: move to utils?
 		List<String> lines = new ArrayList<String>();
 		Scanner scan = new Scanner(System.in);
-		scan.useDelimiter("[\r\n]");
+		scan.useDelimiter("\r\n|[\r\n]");
 		try {
 			StringBuilder previous = null;
 			StringBuilder tmp = new StringBuilder();
@@ -90,6 +90,7 @@ public class justify {
 		return line.length() == 0 //
 				|| line.charAt(line.length() - 1) == '.'
 				|| line.charAt(line.length() - 1) == '"'
-				|| line.charAt(line.length() - 1) == '»';
+				|| line.charAt(line.length() - 1) == '»'
+		;
 	}
 }
