@@ -15,5 +15,5 @@ if [ ! -e "$jar" ]; then
 	exit 1
 fi
 
-exec java -cp "$jar" be.nikiroo.utils.main.img2aa "$@"
+exec java -cp "$jar" be.nikiroo.utils.main.justify "$@"
 
