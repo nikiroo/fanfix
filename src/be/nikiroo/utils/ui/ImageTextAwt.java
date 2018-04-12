@@ -389,7 +389,13 @@ public class ImageTextAwt {
 				avg += getBrightness(lowerright);
 				avg /= 4;
 
-				return getDitheringChar(avg, " ░▒▓█");
+				// Since all the quarters are > 0.5, avg is between 0.5 and 1.0
+				// So, expand the range of the value
+				avg = (avg - 0.5f) * 2;
+
+				// Do not use the " " char, as it would make a
+				// "all quarters > 0.5" pixel go black
+				return getDitheringChar(avg, "░▒▓█");
 			}
 
 			return '█';
