@@ -267,7 +267,8 @@ public class StringUtils {
 
 				previousLineComplete = current.isEmpty()
 						|| previousItemBulletSpacing != null
-						|| (previous != null && isFullLine(previous));
+						|| (previous != null && isFullLine(previous))
+						|| isHrLine(current) || isHrLine(previous);
 			}
 
 			if (previous == null) {
@@ -575,7 +576,8 @@ public class StringUtils {
 
 	static private boolean isItemLine(String line) {
 		String spacing = getItemSpacing(line);
-		return spacing != null && line.charAt(spacing.length()) == '-';
+		return spacing != null && !spacing.isEmpty()
+				&& line.charAt(spacing.length()) == '-';
 	}
 
 	static private String getItemSpacing(String line) {
@@ -587,5 +589,23 @@ public class StringUtils {
 		}
 
 		return "";
+	}
+
+	static private boolean isHrLine(CharSequence line) {
+		int count = 0;
+		if (line != null) {
+			for (int i = 0; i < line.length(); i++) {
+				char car = line.charAt(i);
+				if (car == ' ' || car == '\t' || car == '*' || car == '-'
+						|| car == '_' || car == '~' || car == '=' || car == '/'
+						|| car == '\\') {
+					count++;
+				} else {
+					return false;
+				}
+			}
+		}
+
+		return count > 2;
 	}
 }
