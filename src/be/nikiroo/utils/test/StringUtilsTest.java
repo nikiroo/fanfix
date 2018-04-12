@@ -174,6 +174,8 @@ class StringUtilsTest extends TestLauncher {
 						"Un petit texte qui se mettra sur plusieurs lignes",
 						14, "Un       petit", "texte  qui  se",
 						"mettra     sur", "plusieurs lig-", "nes");
+				addValue(source, Alignment.JUSTIFY, "le dash-test", 9,
+						"le  dash-", "test");
 
 				for (String data : source.keySet()) {
 					for (int size : source.get(data).keySet()) {
