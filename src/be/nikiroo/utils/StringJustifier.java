@@ -26,6 +26,9 @@
  *
  * @author Kevin Lamonte [kevin.lamonte@gmail.com]
  * @version 1
+ * 
+ * I added some changes to integrate it here.
+ * @author Niki
  */
 package be.nikiroo.utils;
 
@@ -220,8 +223,14 @@ class StringJustifier {
 					if ((i + 1) < line.length()) {
 						char car = line.charAt(i);
 						char nextCar = line.charAt(i + 1);
-						if (nextCar == ' ' || car == '-' || nextCar == '-') {
+						if (car == ' ' || car == '-' || nextCar == ' ') {
 							needDash = false;
+						} else if (i > 0) {
+							char prevCar = line.charAt(i - 1);
+							if (prevCar == ' ' || prevCar == '-') {
+								needDash = false;
+								i--;
+							}
 						}
 					}
 
@@ -238,8 +247,8 @@ class StringJustifier {
 					// no dash before parenthesis (but cannot add one more
 					// after)
 					if ((i + 1) < line.length()) {
-						char car = line.charAt(i + 1);
-						if (car == '(' || car == ')') {
+						char nextCar = line.charAt(i + 1);
+						if (nextCar == '(' || nextCar == ')') {
 							needDash = false;
 						}
 					}
