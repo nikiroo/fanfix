@@ -9,8 +9,11 @@ import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -191,6 +194,128 @@ public class StringUtils {
 		default:
 			return StringJustifier.left(text, width);
 		}
+	}
+
+	/**
+	 * Justify a text into width-sized (at the maximum) lines.
+	 * 
+	 * @param text
+	 *            the {@link String} to justify
+	 * @param width
+	 *            the maximum size of the resulting lines
+	 * 
+	 * @return a list of justified text lines
+	 */
+	static public List<String> justifyText(List<String> text, int width) {
+		return justifyText(text, width, null);
+	}
+
+	/**
+	 * Justify a text into width-sized (at the maximum) lines.
+	 * 
+	 * @param text
+	 *            the {@link String} to justify
+	 * @param width
+	 *            the maximum size of the resulting lines
+	 * @param align
+	 *            align the lines in this position (default is
+	 *            Alignment.Beginning)
+	 * 
+	 * @return a list of justified text lines
+	 */
+	static public List<String> justifyText(List<String> text, int width,
+			Alignment align) {
+		List<String> result = new ArrayList<String>();
+
+		// Content <-> Bullet spacing (null = no spacing)
+		List<Entry<String, String>> lines = new ArrayList<Entry<String, String>>();
+		StringBuilder previous = null;
+		StringBuilder tmp = new StringBuilder();
+		String previousItemBulletSpacing = null;
+		String itemBulletSpacing = null;
+		for (String inputLine : text) {
+			boolean previousLineComplete = true;
+
+			String current = inputLine.replace("\t", "    ");
+			itemBulletSpacing = getItemSpacing(current);
+			boolean bullet = isItemLine(current);
+			if ((previousItemBulletSpacing == null || itemBulletSpacing
+					.length() <= previousItemBulletSpacing.length()) && !bullet) {
+				itemBulletSpacing = null;
+			}
+
+			if (itemBulletSpacing != null) {
+				current = current.trim();
+				if (!current.isEmpty() && bullet) {
+					current = current.substring(1);
+				}
+				current = current.trim();
+				previousLineComplete = bullet;
+			} else {
+				tmp.setLength(0);
+				for (String word : current.split(" ")) {
+					if (word.isEmpty()) {
+						continue;
+					}
+
+					if (tmp.length() > 0) {
+						tmp.append(' ');
+					}
+					tmp.append(word.trim());
+				}
+				current = tmp.toString();
+
+				previousLineComplete = current.isEmpty()
+						|| previousItemBulletSpacing != null
+						|| (previous != null && isFullLine(previous));
+			}
+
+			if (previous == null) {
+				previous = new StringBuilder();
+			} else {
+				if (previousLineComplete) {
+					lines.add(new AbstractMap.SimpleEntry<String, String>(
+							previous.toString(), previousItemBulletSpacing));
+					previous.setLength(0);
+					previousItemBulletSpacing = itemBulletSpacing;
+				} else {
+					previous.append(' ');
+				}
+			}
+
+			previous.append(current);
+
+		}
+
+		if (previous != null) {
+			lines.add(new AbstractMap.SimpleEntry<String, String>(previous
+					.toString(), previousItemBulletSpacing));
+		}
+
+		for (Entry<String, String> line : lines) {
+			String content = line.getKey();
+			String spacing = line.getValue();
+
+			String bullet = "- ";
+			if (spacing == null) {
+				bullet = "";
+				spacing = "";
+			}
+
+			if (spacing.length() > width + 3) {
+				spacing = "";
+			}
+
+			for (String subline : StringUtils.justifyText(content, width
+					- (spacing.length() + bullet.length()), align)) {
+				result.add(spacing + bullet + subline);
+				if (!bullet.isEmpty()) {
+					bullet = "  ";
+				}
+			}
+		}
+
+		return result;
 	}
 
 	/**
@@ -437,5 +562,30 @@ public class StringUtils {
 			// Can fail on Android...
 			return null;
 		}
+	}
+
+	// justify List<String> related:
+
+	static private boolean isFullLine(StringBuilder line) {
+		return line.length() == 0 //
+				|| line.charAt(line.length() - 1) == '.'
+				|| line.charAt(line.length() - 1) == '"'
+				|| line.charAt(line.length() - 1) == '»';
+	}
+
+	static private boolean isItemLine(String line) {
+		String spacing = getItemSpacing(line);
+		return spacing != null && line.charAt(spacing.length()) == '-';
+	}
+
+	static private String getItemSpacing(String line) {
+		int i;
+		for (i = 0; i < line.length(); i++) {
+			if (line.charAt(i) != ' ') {
+				return line.substring(0, i);
+			}
+		}
+
+		return "";
 	}
 }
