@@ -30,6 +30,24 @@ class SerialTest extends TestLauncher {
 			}
 		});
 
+		addTest(new TestCase() {
+			private TestCase me = setName("Anonymous inner class");
+
+			@Override
+			public void test() throws Exception {
+				Data data = new Data() {
+				};
+
+				String encoded = new Exporter().append(data).toString(false);
+				Object redata = new Importer().read(encoded).getValue();
+				String reencoded = new Exporter().append(redata)
+						.toString(false);
+
+				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
+						reencoded.replaceAll("@[0-9]*", "@REF"));
+			}
+		});
+
 		addTest(new TestCase("URL Import/Export") {
 			@Override
 			public void test() throws Exception {

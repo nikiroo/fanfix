@@ -39,6 +39,15 @@ abstract public class TestCase {
 	}
 
 	/**
+	 * This constructor can be used if you require a no-param constructor. In
+	 * this case, you are allowed to set the name manually via
+	 * {@link TestCase#setName}.
+	 */
+	protected TestCase() {
+		this("no name");
+	}
+
+	/**
 	 * Setup the test (called before the test is run).
 	 * 
 	 * @throws Exception
@@ -63,6 +72,20 @@ abstract public class TestCase {
 	 */
 	public String getName() {
 		return name;
+	}
+
+	/**
+	 * The test name.
+	 * 
+	 * @param name
+	 *            the new name (internal use only)
+	 * 
+	 * @return this (so we can chain and so we can initialize it in a member
+	 *         variable if this is an anonymous inner class)
+	 */
+	protected TestCase setName(String name) {
+		this.name = name;
+		return this;
 	}
 
 	/**

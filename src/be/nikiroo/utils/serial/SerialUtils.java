@@ -7,7 +7,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UnknownFormatConversionException;
 
@@ -170,27 +172,59 @@ public class SerialUtils {
 	public static Object createObject(String type)
 			throws ClassNotFoundException, NoSuchMethodException {
 
+		String desc = null;
+
 		try {
 			Class<?> clazz = getClass(type);
 			String className = clazz.getName();
-			Object[] args = null;
+			List<Object> args = new ArrayList<Object>();
+			List<Class<?>> classes = new ArrayList<Class<?>>();
 			Constructor<?> ctor = null;
 			if (className.contains("$")) {
-				Object javaParent = createObject(className.substring(0,
-						className.lastIndexOf('$')));
-				args = new Object[] { javaParent };
-				ctor = clazz.getDeclaredConstructor(new Class[] { javaParent
-						.getClass() });
+				for (String parentName = className.substring(0,
+						className.lastIndexOf('$'));; parentName = parentName
+								.substring(0, parentName.lastIndexOf('$'))) {
+					Object parent = createObject(parentName);
+					args.add(parent);
+					classes.add(parent.getClass());
+					
+					if (!parentName.contains("$")) {
+						break;
+					}
+				}
+
+				// Better error description in case there is no empty
+				// constructor:
+				desc = "";
+				String end = "";
+				for (Class<?> parent = clazz; parent != null
+						&& !parent.equals(Object.class); parent = parent
+								.getSuperclass()) {
+					if (!desc.isEmpty()) {
+						desc += " [:";
+						end += "]";
+					}
+					desc += parent;
+				}
+				desc += end;
+				//
+
+				ctor = clazz.getDeclaredConstructor(
+						classes.toArray(new Class[] {}));
+				desc = null;
 			} else {
-				args = new Object[] {};
 				ctor = clazz.getDeclaredConstructor();
 			}
 
 			ctor.setAccessible(true);
-			return ctor.newInstance(args);
+			return ctor.newInstance(args.toArray());
 		} catch (ClassNotFoundException e) {
 			throw e;
 		} catch (NoSuchMethodException e) {
+			if (desc != null) {
+				throw new NoSuchMethodException(
+						"Empty constructor not found: " + desc);
+			}
 			throw e;
 		} catch (Exception e) {
 			throw new NoSuchMethodException("Cannot instantiate: " + type);
@@ -241,10 +275,8 @@ public class SerialUtils {
 			fields = o.getClass().getDeclaredFields();
 			type = o.getClass().getCanonicalName();
 			if (type == null) {
-				throw new NotSerializableException(
-						String.format(
-								"Cannot find the class for this object: %s (it could be an inner class, which is not supported)",
-								o));
+				// Anonymous inner classes support
+				type = o.getClass().getName();
 			}
 			id = Integer.toString(hash);
 			if (map.containsKey(hash)) {
@@ -307,7 +339,9 @@ public class SerialUtils {
 	static boolean encode(StringBuilder builder, Object value) {
 		if (value == null) {
 			builder.append("NULL");
-		} else if (value.getClass().getCanonicalName().endsWith("[]")) {
+		} else if (value.getClass().getSimpleName().endsWith("[]")) {
+			// Simple name does support [] suffix and do not return NULL for
+			// inner anonymous classes
 			return customTypes.get("[]").encode(builder, value);
 		} else if (customTypes.containsKey(value.getClass().getCanonicalName())) {
 			return customTypes.get(value.getClass().getCanonicalName())//
