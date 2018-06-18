@@ -3,6 +3,7 @@
 # Version:
 # - 1.0.0: add a version comment
 # - 1.1.0: add help, sjar
+# - 1.1.1: fix "jar" instead of ${JAR}
 
 # Required parameters (the commented out ones are supposed to change per project):
 
@@ -76,10 +77,10 @@ clean:
 	@for lib in libs/*-sources.jar libs/*-sources.patch.jar; do \
 		if [ "$$lib" != 'libs/*-sources.jar' -a "$$lib" != 'libs/*-sources.patch.jar' ]; then \
 			basename "$$lib"; \
-			jar tf "$$lib" | while read -r ln; do \
+			${JAR} tf "$$lib" | while read -r ln; do \
 				[ -f "src/$$ln" ] && rm "src/$$ln"; \
 			done; \
-			jar tf "$$lib" | tac | while read -r ln; do \
+			${JAR} tf "$$lib" | tac | while read -r ln; do \
 				[ -d "src/$$ln" ] && rmdir "src/$$ln" 2>/dev/null || true; \
 			done; \
 		fi \
@@ -122,7 +123,7 @@ libs: bin
 	@[ -e bin/libs -o ! -d libs ] || (cd src && for lib in ../libs/*-sources.jar ../libs/*-sources.patch.jar; do \
 		if [ "$$lib" != '../libs/*-sources.jar' -a "$$lib" != '../libs/*-sources.patch.jar' ]; then \
 			basename "$$lib"; \
-			jar xf "$$lib"; \
+			${JAR} xf "$$lib"; \
 		fi \
 	done )
 	@[ ! -d libs ] || touch bin/libs
