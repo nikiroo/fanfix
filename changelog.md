@@ -1,9 +1,17 @@
 # nikiroo-utils
 
-## Version WIP
+## Version 4.4.0
 
-- New: Utils now have a main class
+- Text justification: now supports bullet lists and HR lines
+- Text justification: fix a bug with dashes (-) and a crash
 - Image to text converion fixes
+- Serial: now supports anonymous inner classes
+- Test: now allow an Exception argument to the "fail(..)" command
+- Downloader: add an optional cache
+- Cache: auto-clean when saving
+- Bridge: fix a NPE when tracing
+- New: justify, img2aa and bridge tools (see package Main)
+
 
 ## Version 4.3.0
 
