@@ -220,8 +220,9 @@ public class Cache {
 	 * @param allowTooOld
 	 *            allow files even if they are considered too old
 	 * @param stable
-	 *            a stable file (that dones't change too often) -- parameter
-	 *            used to check if the file is too old to keep or not
+	 *            a stable file (that doesn't change too often) -- parameter
+	 *            used to check if the file is too old to keep or not in the
+	 *            cache
 	 * 
 	 * @return the opened resource if found, NULL if not
 	 */
@@ -290,6 +291,8 @@ public class Cache {
 
 	/**
 	 * Save the given resource to the cache.
+	 * <p>
+	 * Will also clean the {@link Cache} from old files.
 	 * 
 	 * @param in
 	 *            the input data
@@ -300,6 +303,7 @@ public class Cache {
 	 *             in case of I/O error
 	 */
 	private void save(InputStream in, File cached) throws IOException {
+		clean(true);
 		IOUtils.write(in, cached);
 	}
 

@@ -29,6 +29,7 @@ public class Downloader {
 	private String UA;
 	private CookieManager cookies;
 	private TraceHandler tracer = new TraceHandler();
+	private Cache cache;
 
 	/**
 	 * Create a new {@link Downloader}.
@@ -40,11 +41,28 @@ public class Downloader {
 	 *            only (!)
 	 */
 	public Downloader(String UA) {
+		this(UA, null);
+	}
+
+	/**
+	 * Create a new {@link Downloader}.
+	 * 
+	 * @param UA
+	 *            the User-Agent to use to download the resources -- note that
+	 *            some websites require one, some actively blacklist real UAs
+	 *            like the one from wget, some whitelist a couple of browsers
+	 *            only (!)
+	 * @param cache
+	 *            the {@link Cache} to use for all access (can be NULL)
+	 */
+	public Downloader(String UA, Cache cache) {
 		this.UA = UA;
 
 		cookies = new CookieManager();
 		cookies.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
 		CookieHandler.setDefault(cookies);
+
+		this.cache = cache;
 	}
 
 	/**
@@ -90,7 +108,26 @@ public class Downloader {
 	 *             in case of I/O error
 	 **/
 	public InputStream open(URL url) throws IOException {
-		return open(url, url, url, null, null, null, null);
+		return open(url, false);
+	}
+
+	/**
+	 * Open the given {@link URL} and update the cookies.
+	 * 
+	 * @param url
+	 *            the {@link URL} to open
+	 * @param stable
+	 *            stable a stable file (that doesn't change too often) --
+	 *            parameter used to check if the file is too old to keep or not
+	 *            in the cache (default is false)
+	 * 
+	 * @return the {@link InputStream} of the opened page
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 **/
+	public InputStream open(URL url, boolean stable) throws IOException {
+		return open(url, url, url, null, null, null, null, stable);
 	}
 
 	/**
@@ -117,8 +154,41 @@ public class Downloader {
 	public InputStream open(URL url, URL currentReferer,
 			Map<String, String> cookiesValues, Map<String, String> postParams,
 			Map<String, String> getParams, String oauth) throws IOException {
+		return open(url, currentReferer, cookiesValues, postParams, getParams,
+				oauth, false);
+	}
+
+	/**
+	 * Open the given {@link URL} and update the cookies.
+	 * 
+	 * @param url
+	 *            the {@link URL} to open
+	 * @param currentReferer
+	 *            the current referer, for websites that needs this info
+	 * @param cookiesValues
+	 *            the cookies
+	 * @param postParams
+	 *            the POST parameters
+	 * @param getParams
+	 *            the GET parameters (priority over POST)
+	 * @param oauth
+	 *            OAuth authorization (aka, "bearer XXXXXXX")
+	 * @param stable
+	 *            stable a stable file (that doesn't change too often) --
+	 *            parameter used to check if the file is too old to keep or not
+	 *            in the cache (default is false)
+	 * 
+	 * @return the {@link InputStream} of the opened page
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public InputStream open(URL url, URL currentReferer,
+			Map<String, String> cookiesValues, Map<String, String> postParams,
+			Map<String, String> getParams, String oauth, boolean stable)
+			throws IOException {
 		return open(url, url, currentReferer, cookiesValues, postParams,
-				getParams, oauth);
+				getParams, oauth, stable);
 	}
 
 	/**
@@ -134,6 +204,11 @@ public class Downloader {
 	 *            the GET parameters (priority over POST)
 	 * @param oauth
 	 *            OAuth authorisation (aka, "bearer XXXXXXX")
+	 * @param stable
+	 *            a stable file (that doesn't change too often) -- parameter
+	 *            used to check if the file is too old to keep or not in the
+	 *            cache
+	 * 
 	 * @return the {@link InputStream} of the opened page
 	 * 
 	 * @throws IOException
@@ -142,7 +217,17 @@ public class Downloader {
 	private InputStream open(URL url, final URL originalUrl,
 			URL currentReferer, Map<String, String> cookiesValues,
 			Map<String, String> postParams, Map<String, String> getParams,
-			String oauth) throws IOException {
+			String oauth, boolean stable) throws IOException {
+
+		tracer.trace("Request: " + url);
+
+		if (cache != null) {
+			InputStream in = cache.load(url, false, stable);
+			if (in != null) {
+				tracer.trace("Take from cache: " + url);
+				return in;
+			}
+		}
 
 		tracer.trace("Download: " + url);
 
@@ -213,13 +298,24 @@ public class Downloader {
 			if (repCode / 100 == 3) {
 				String newUrl = conn.getHeaderField("Location");
 				return open(new URL(newUrl), originalUrl, currentReferer,
-						cookiesValues, postParams, getParams, oauth);
+						cookiesValues, postParams, getParams, oauth, stable);
 			}
 		}
 
 		InputStream in = conn.getInputStream();
 		if ("gzip".equals(conn.getContentEncoding())) {
 			in = new GZIPInputStream(in);
+		}
+
+		if (in != null && cache != null) {
+			tracer.trace("Save to cache: " + url);
+			try {
+				cache.save(in, url);
+			} catch (IOException e) {
+				tracer.error(new IOException(
+						"Cannot save URL to cache, will ignore cache: " + url,
+						e));
+			}
 		}
 
 		return in;
