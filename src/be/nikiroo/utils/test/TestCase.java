@@ -111,12 +111,28 @@ abstract public class TestCase {
 	 * 
 	 * @param reason
 	 *            the failure reason
+	 * 
 	 * @throws AssertException
 	 *             every time
 	 */
 	public void fail(String reason) throws AssertException {
+		fail(reason, null);
+	}
+
+	/**
+	 * Force a failure.
+	 * 
+	 * @param reason
+	 *            the failure reason
+	 * @param e
+	 *            the exception that caused the failure (can be NULL)
+	 * 
+	 * @throws AssertException
+	 *             every time
+	 */
+	public void fail(String reason, Exception e) throws AssertException {
 		throw new AssertException("Failed!" + //
-				reason != null ? "\n" + reason : "");
+				reason != null ? "\n" + reason : "", e);
 	}
 
 	/**

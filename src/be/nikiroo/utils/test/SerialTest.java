@@ -31,6 +31,7 @@ class SerialTest extends TestLauncher {
 		});
 
 		addTest(new TestCase() {
+			@SuppressWarnings("unused")
 			private TestCase me = setName("Anonymous inner class");
 
 			@Override
@@ -42,6 +43,36 @@ class SerialTest extends TestLauncher {
 				Object redata = new Importer().read(encoded).getValue();
 				String reencoded = new Exporter().append(redata)
 						.toString(false);
+
+				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
+						reencoded.replaceAll("@[0-9]*", "@REF"));
+			}
+		});
+
+		addTest(new TestCase() {
+			@SuppressWarnings("unused")
+			private TestCase me = setName("Array of anonymous inner classes");
+
+			@Override
+			public void test() throws Exception {
+				Data[] data = new Data[] { new Data() {
+				} };
+
+				String encoded = new Exporter().append(data).toString(false);
+				Object redata = new Importer().read(encoded).getValue();
+				String reencoded = new Exporter().append(redata)
+						.toString(false);
+
+				// Comparing the 2 strings won't be useful, because the @REFs
+				// will be ZIP-encoded; so we parse and re-encode the object
+				encoded = new Exporter().append(data[0]).toString(false);
+				try {
+					reencoded = new Exporter().append(((Data[]) redata)[0])
+							.toString(false);
+				} catch (Exception e) {
+					fail("Cannot cast the returned data into its original object",
+							e);
+				}
 
 				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
 						reencoded.replaceAll("@[0-9]*", "@REF"));
