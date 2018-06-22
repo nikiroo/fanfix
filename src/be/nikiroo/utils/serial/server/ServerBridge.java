@@ -220,7 +220,7 @@ public class ServerBridge extends Server {
 	 *            the data to trace
 	 */
 	private void trace(String prefix, String data) {
-		int size = data.length();
+		int size = data == null ? 0 : data.length();
 		String ssize = size + " byte";
 		if (size > 1) {
 			ssize = size + " bytes";
