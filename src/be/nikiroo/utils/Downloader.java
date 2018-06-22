@@ -89,6 +89,25 @@ public class Downloader {
 	}
 
 	/**
+	 * The {@link Cache} to use for all access (can be NULL).
+	 * 
+	 * @return the cache
+	 */
+	public Cache getCache() {
+		return cache;
+	}
+
+	/**
+	 * The {@link Cache} to use for all access (can be NULL).
+	 * 
+	 * @param cache
+	 *            the new cache
+	 */
+	public void setCache(Cache cache) {
+		this.cache = cache;
+	}
+
+	/**
 	 * Clear all the cookies currently in the jar.
 	 * <p>
 	 * As long as you don't, the cookies are kept.
