@@ -37,6 +37,7 @@ class SerialTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				Data data = new Data() {
+					int value = 42;
 				};
 
 				String encoded = new Exporter().append(data).toString(false);
@@ -56,6 +57,7 @@ class SerialTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				Data[] data = new Data[] { new Data() {
+					int value = 42;
 				} };
 
 				String encoded = new Exporter().append(data).toString(false);
