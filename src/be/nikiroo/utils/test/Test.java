@@ -2,6 +2,7 @@ package be.nikiroo.utils.test;
 
 import be.nikiroo.utils.Cache;
 import be.nikiroo.utils.Downloader;
+import be.nikiroo.utils.main.bridge;
 import be.nikiroo.utils.main.img2aa;
 import be.nikiroo.utils.main.justify;
 
@@ -37,6 +38,7 @@ public class Test extends TestLauncher {
 		// To include the sources:
 		img2aa siu;
 		justify ssu;
+		bridge aa;
 	}
 
 	/**
