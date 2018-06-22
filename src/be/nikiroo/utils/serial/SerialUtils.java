@@ -183,11 +183,11 @@ public class SerialUtils {
 			if (className.contains("$")) {
 				for (String parentName = className.substring(0,
 						className.lastIndexOf('$'));; parentName = parentName
-								.substring(0, parentName.lastIndexOf('$'))) {
+						.substring(0, parentName.lastIndexOf('$'))) {
 					Object parent = createObject(parentName);
 					args.add(parent);
 					classes.add(parent.getClass());
-					
+
 					if (!parentName.contains("$")) {
 						break;
 					}
@@ -199,7 +199,7 @@ public class SerialUtils {
 				String end = "";
 				for (Class<?> parent = clazz; parent != null
 						&& !parent.equals(Object.class); parent = parent
-								.getSuperclass()) {
+						.getSuperclass()) {
 					if (!desc.isEmpty()) {
 						desc += " [:";
 						end += "]";
@@ -209,8 +209,8 @@ public class SerialUtils {
 				desc += end;
 				//
 
-				ctor = clazz.getDeclaredConstructor(
-						classes.toArray(new Class[] {}));
+				ctor = clazz.getDeclaredConstructor(classes
+						.toArray(new Class[] {}));
 				desc = null;
 			} else {
 				ctor = clazz.getDeclaredConstructor();
@@ -222,8 +222,8 @@ public class SerialUtils {
 			throw e;
 		} catch (NoSuchMethodException e) {
 			if (desc != null) {
-				throw new NoSuchMethodException(
-						"Empty constructor not found: " + desc);
+				throw new NoSuchMethodException("Empty constructor not found: "
+						+ desc);
 			}
 			throw e;
 		} catch (Exception e) {
@@ -326,7 +326,13 @@ public class SerialUtils {
 	}
 
 	/**
-	 * Encode the object into the given builder if possible (if supported).
+	 * Encode the object into the given builder if possible and if supported.
+	 * <p>
+	 * A supported object in this context means an object we can directly
+	 * encode, like an Integer or a String. Custom objects and arrays are also
+	 * considered supported, but <b>compound objects are not supported here</b>.
+	 * <p>
+	 * For compound objects, you should use {@link Exporter}.
 	 * 
 	 * @param builder
 	 *            the builder to append to
@@ -377,7 +383,13 @@ public class SerialUtils {
 	}
 
 	/**
-	 * Decode the data into an equivalent source object.
+	 * Decode the data into an equivalent supported source object.
+	 * <p>
+	 * A supported object in this context means an object we can directly
+	 * encode, like an Integer or a String. Custom objects and arrays are also
+	 * considered supported, but <b>compound objects are not supported here</b>.
+	 * <p>
+	 * For compound objects, you should use {@link Importer}.
 	 * 
 	 * @param encodedValue
 	 *            the encoded data, cannot be NULL
