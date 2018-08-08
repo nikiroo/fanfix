@@ -130,6 +130,7 @@ public class TempFiles implements Closeable {
 	public synchronized void close() throws IOException {
 		IOUtils.deltree(root); // NO exception here
 		root.getParentFile().delete(); // only if empty
+		root = null;
 	}
 
 	@Override
