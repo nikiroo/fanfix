@@ -351,12 +351,18 @@ public class Main {
 			}
 		}
 
-		try {
-			Instance.getTempFiles().close();
-		} catch (IOException e) {
-			Instance.getTraceHandler()
-					.error(new IOException(
-							"Cannot dispose of the temporary files", e));
+		// We cannot do it when in GUI mode, because it is async...
+		// So if we close the temp files before it is actually used,
+		// we have a problem...
+		// TODO: close it at the correct time (for now, finalize try to do it)
+		if (false) {
+			try {
+				Instance.getTempFiles().close();
+			} catch (IOException e) {
+				Instance.getTraceHandler().error(
+						new IOException(
+								"Cannot dispose of the temporary files", e));
+			}
 		}
 
 		if (exitCode == 255) {

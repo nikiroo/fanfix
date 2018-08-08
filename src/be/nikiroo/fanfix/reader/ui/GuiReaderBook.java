@@ -393,11 +393,12 @@ class GuiReaderBook extends JPanel {
 		if (resizedImage == null) {
 			try {
 				Image cover = null;
-				if (meta.getLuid() == null) {
+				if (meta.getLuid() != null) {
+					cover = reader.getLibrary().getCover(meta.getLuid());
+				}
+				if (cover == null) {
 					cover = reader.getLibrary()
 							.getSourceCover(meta.getSource());
-				} else {
-					cover = reader.getLibrary().getCover(meta.getLuid());
 				}
 
 				BufferedImage coverb = ImageUtilsAwt.fromImage(cover);

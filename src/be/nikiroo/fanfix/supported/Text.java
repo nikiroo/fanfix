@@ -18,6 +18,7 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.Image;
+import be.nikiroo.utils.ImageUtils;
 import be.nikiroo.utils.MarkableFileInputStream;
 import be.nikiroo.utils.Progress;
 
@@ -188,8 +189,20 @@ class Text extends BasicSupport {
 			}
 		}
 
-		return BasicSupportImages.getImage(this, sourceFile.getParentFile(),
-				path);
+		Image cover = BasicSupportImages.getImage(this,
+				sourceFile.getParentFile(), path);
+		if (cover != null) {
+			try {
+				File tmp = Instance.getTempFiles().createTempFile(
+						"test_cover_image");
+				ImageUtils.getInstance().saveAsImage(cover, tmp, "png");
+				tmp.delete();
+			} catch (IOException e) {
+				cover = null;
+			}
+		}
+
+		return cover;
 	}
 
 	@Override
