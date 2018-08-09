@@ -1,5 +1,11 @@
 # Fanfix
 
+# Version 1.7.1
+
+- fix: tmp files deleted too soon in GUI mode
+- fix: cover unavailable could cause a crash
+- fix: local EPUB import error when no cover
+
 # Version 1.7.0
 
 - new: use jsoup for parsing HTML (not everywhere yet)

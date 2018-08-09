@@ -1,5 +1,11 @@
 # Fanfix
 
+# Version 1.7.1
+
+- fix: fichiers tmp supprimés trop vite en mode GUI
+- fix: une histoire sans cover pouvait planter le programme
+- fix: erreur d'import ou un EPUB local sans cover
+
 # Version 1.7.0
 
 - new: utilisation de jsoup pour parser le HTML (pas encore partout)
