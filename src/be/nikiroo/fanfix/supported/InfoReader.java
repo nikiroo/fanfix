@@ -108,7 +108,7 @@ public class InfoReader {
 		int pos = name.lastIndexOf(".");
 		if (cover == null && pos > 0) {
 			name = name.substring(0, pos);
-			basefile = new File(basefile.getParent(), basefile.getName());
+			basefile = new File(basefile.getParent(), name);
 
 System.out.println(">>> " + basefile);
 			cover = BasicSupportHelper.getImage(null, sourceInfoFile,
