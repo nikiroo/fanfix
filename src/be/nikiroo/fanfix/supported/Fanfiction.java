@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -49,7 +50,7 @@ class Fanfiction extends BasicSupport_Deprecated {
 		meta.setPublisher(getSourceName());
 		meta.setUuid(source.toString());
 		meta.setLuid("");
-		meta.setLang("en"); //TODO!
+		meta.setLang("en"); // TODO!
 		meta.setSubject(getSubject(reset(in)));
 		meta.setType(getType().toString());
 		meta.setImageDocument(false);
@@ -244,24 +245,8 @@ class Fanfiction extends BasicSupport_Deprecated {
 						}
 
 						try {
-							final String chapName = name.trim();
-							final URL chapURL = new URL(base + i + suffix);
-							urls.add(new Entry<String, URL>() {
-								@Override
-								public URL setValue(URL value) {
-									return null;
-								}
-
-								@Override
-								public URL getValue() {
-									return chapURL;
-								}
-
-								@Override
-								public String getKey() {
-									return chapName;
-								}
-							});
+							urls.add(new AbstractMap.SimpleEntry<String, URL>(
+									name.trim(), new URL(base + i + suffix)));
 						} catch (MalformedURLException e) {
 							Instance.getTraceHandler()
 									.error(new IOException(

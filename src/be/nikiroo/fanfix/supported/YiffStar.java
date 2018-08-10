@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -206,24 +207,8 @@ class YiffStar extends BasicSupport_Deprecated {
 						link = source.getProtocol() + "://" + source.getHost()
 								+ link;
 					}
-					final URL value = guest(link);
-					final String key = StringUtils.unhtml(line).trim();
-					urls.add(new Entry<String, URL>() {
-						@Override
-						public URL setValue(URL value) {
-							return null;
-						}
-
-						@Override
-						public URL getValue() {
-							return value;
-						}
-
-						@Override
-						public String getKey() {
-							return key;
-						}
-					});
+					urls.add(new AbstractMap.SimpleEntry<String, URL>(
+							StringUtils.unhtml(line).trim(), guest(link)));
 				}
 			}
 		}

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -231,25 +232,8 @@ class Fimfiction extends BasicSupport_Deprecated {
 					}
 
 					try {
-						final String key = name;
-						final URL value = new URL("http://www.fimfiction.net"
-								+ line);
-						urls.add(new Entry<String, URL>() {
-							@Override
-							public URL setValue(URL value) {
-								return null;
-							}
-
-							@Override
-							public String getKey() {
-								return key;
-							}
-
-							@Override
-							public URL getValue() {
-								return value;
-							}
-						});
+						urls.add(new AbstractMap.SimpleEntry<String, URL>(name,
+								new URL("http://www.fimfiction.net" + line)));
 					} catch (MalformedURLException e) {
 						Instance.getTraceHandler().error(e);
 					}

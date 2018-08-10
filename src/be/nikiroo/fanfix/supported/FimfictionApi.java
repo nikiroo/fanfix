@@ -3,11 +3,13 @@ package be.nikiroo.fanfix.supported;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
@@ -132,9 +134,9 @@ class FimfictionApi extends BasicSupport_Deprecated {
 		meta.setSubject("MLP");
 		meta.setType(getType().toString());
 		meta.setImageDocument(false);
-		
-		String coverImageLink = 
-				getKeyJson(json, 0, "type", "story", "cover_image", "full");
+
+		String coverImageLink = getKeyJson(json, 0, "type", "story",
+				"cover_image", "full");
 		if (!coverImageLink.trim().isEmpty()) {
 			meta.setCover(getImage(this, null, coverImageLink.trim()));
 		}
@@ -166,10 +168,8 @@ class FimfictionApi extends BasicSupport_Deprecated {
 	@Override
 	protected List<Entry<String, URL>> getChapters(URL source, InputStream in,
 			Progress pg) {
-		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
-
-		chapterNames = new HashMap<Integer, String>();
-		chapterContents = new HashMap<Integer, String>();
+		chapterNames = new TreeMap<Integer, String>();
+		chapterContents = new TreeMap<Integer, String>();
 
 		int pos = 0;
 		while (pos >= 0) {
@@ -182,32 +182,19 @@ class FimfictionApi extends BasicSupport_Deprecated {
 				final String title = getKeyJson(json, pos, "title");
 				String notes = getKeyJson(json, pos, "authors_note_html");
 				String content = getKeyJson(json, pos, "content_html");
-				
+
 				if (!notes.trim().isEmpty()) {
 					notes = "<br/>* * *<br/>" + notes;
 				}
-				
+
 				chapterNames.put(number, title);
-				chapterContents
-						.put(number, content + notes);
-
-				urls.add(new Entry<String, URL>() {
-					@Override
-					public URL setValue(URL value) {
-						return null;
-					}
-
-					@Override
-					public String getKey() {
-						return title;
-					}
-
-					@Override
-					public URL getValue() {
-						return null;
-					}
-				});
+				chapterContents.put(number, content + notes);
 			}
+		}
+
+		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
+		for (String title : chapterNames.values()) {
+			urls.add(new AbstractMap.SimpleEntry(title, null));
 		}
 
 		return urls;
@@ -311,10 +298,9 @@ class FimfictionApi extends BasicSupport_Deprecated {
 				result = wip.substring(0, pos);
 			}
 		}
-		
-		result = result.replace("\\t", "\t")
-			.replace("\\\"", "\"");
-		
+
+		result = result.replace("\\t", "\t").replace("\\\"", "\"");
+
 		return result;
 	}
 

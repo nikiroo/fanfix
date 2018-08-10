@@ -3,6 +3,7 @@ package be.nikiroo.fanfix.supported;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -219,24 +220,8 @@ class E621 extends BasicSupport_Deprecated {
 		}
 
 		for (int i = 1; i <= last; i++) {
-			final String key = Integer.toString(i);
-			final URL value = new URL(source.toString() + "?page=" + i);
-			urls.add(new Entry<String, URL>() {
-				@Override
-				public URL setValue(URL value) {
-					return null;
-				}
-
-				@Override
-				public URL getValue() {
-					return value;
-				}
-
-				@Override
-				public String getKey() {
-					return key;
-				}
-			});
+			urls.add(new AbstractMap.SimpleEntry<String, URL>(Integer
+					.toString(i), new URL(source.toString() + "?page=" + i)));
 		}
 
 		return urls;

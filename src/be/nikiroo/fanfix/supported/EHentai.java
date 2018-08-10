@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -229,24 +230,8 @@ class EHentai extends BasicSupport_Deprecated {
 		}
 
 		for (int i = 0; i <= last; i++) {
-			final String key = Integer.toString(i + 1);
-			final URL value = new URL(source.toString() + "?p=" + i);
-			urls.add(new Entry<String, URL>() {
-				@Override
-				public URL setValue(URL value) {
-					return null;
-				}
-
-				@Override
-				public URL getValue() {
-					return value;
-				}
-
-				@Override
-				public String getKey() {
-					return key;
-				}
-			});
+			urls.add(new AbstractMap.SimpleEntry<String, URL>(Integer
+					.toString(i + 1), new URL(source.toString() + "?p=" + i)));
 		}
 
 		return urls;
