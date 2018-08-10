@@ -1,10 +1,14 @@
 # Fanfix
 
+# Version WIP
+
+- FimfictionAPI: chapter names are now correctly ordered
+
 # Version 1.7.1
 
-- fix: tmp files deleted too soon in GUI mode
-- fix: cover unavailable could cause a crash
-- fix: local EPUB import error when no cover
+- GUI: tmp files deleted too soon in GUI mode
+- fix: unavailable cover could cause a crash
+- ePub: local EPUB import error when no cover
 
 # Version 1.7.0
 
