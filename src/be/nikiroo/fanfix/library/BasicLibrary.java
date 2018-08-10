@@ -355,6 +355,8 @@ abstract public class BasicLibrary {
 					if (type != null) {
 						story = BasicSupport.getSupport(type, url) //
 								.process(pgProcess);
+						System.out.println("orig meta: "+meta);
+						System.out.println("story retrieved: "+story);
 						// Because we do not want to clear the meta cache:
 						meta.setCover(story.getMeta().getCover());
 						story.setMeta(meta);
@@ -517,9 +519,7 @@ abstract public class BasicLibrary {
 	 */
 	public synchronized Story save(Story story, String luid, Progress pg)
 			throws IOException {
-		
-		System.out.println("story before save: "+story);
-		
+
 		// Do not change the original metadata, but change the original story
 		MetaData meta = story.getMeta().clone();
 		story.setMeta(meta);
@@ -535,8 +535,7 @@ abstract public class BasicLibrary {
 		}
 
 		story = doSave(story, pg);
-		System.out.println("story after save: "+story);
-		
+
 		updateInfo(story.getMeta());
 
 		return story;
