@@ -178,8 +178,6 @@ public class RemoteLibraryServer extends ServerObject {
 	 * @return the list of {@link Object}s
 	 */
 	static List<Object> breakStory(Story story) {
-		System.out.println("Story to break: "+story);
-		
 		List<Object> list = new ArrayList<Object>();
 
 		story = story.clone();
@@ -220,7 +218,6 @@ public class RemoteLibraryServer extends ServerObject {
 			}
 		}
 
-		System.out.println("rebuilt story: "+story);
 		return story;
 	}
 

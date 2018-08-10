@@ -124,7 +124,7 @@ public class CacheLibrary extends BasicLibrary {
 
 	@Override
 	protected void updateInfo(MetaData meta) {
-		if (meta != null) {
+		if (meta != null && metas != null) {
 			for (int i = 0; i < metas.size(); i++) {
 				if (metas.get(i).getLuid().equals(meta.getLuid())) {
 					metas.set(i, meta);

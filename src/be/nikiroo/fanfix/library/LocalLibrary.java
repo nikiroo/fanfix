@@ -86,7 +86,7 @@ public class LocalLibrary extends BasicLibrary {
 
 		this.lastId = 0;
 		this.stories = null;
-		this.sourceCovers = new HashMap<String, Image>();
+		this.sourceCovers = null;
 
 		baseDir.mkdirs();
 	}
@@ -134,7 +134,7 @@ public class LocalLibrary extends BasicLibrary {
 	@Override
 	protected void deleteInfo(String luid) {
 		stories = null;
-		sourceCovers = new HashMap<String, Image>();
+		sourceCovers = null;
 	}
 
 	@Override
@@ -199,6 +199,10 @@ public class LocalLibrary extends BasicLibrary {
 
 	@Override
 	public Image getSourceCover(String source) {
+		if (sourceCovers == null) {
+			getStories(null);
+		}
+
 		if (!sourceCovers.containsKey(source)) {
 			sourceCovers.put(source, super.getSourceCover(source));
 		}
@@ -208,6 +212,10 @@ public class LocalLibrary extends BasicLibrary {
 
 	@Override
 	public void setSourceCover(String source, String luid) {
+		if (sourceCovers == null) {
+			getStories(null);
+		}
+
 		sourceCovers.put(source, getCover(luid));
 		File cover = new File(getExpectedDir(source), ".cover");
 		try {
@@ -273,7 +281,6 @@ public class LocalLibrary extends BasicLibrary {
 		}
 
 		super.imprt(other, luid, pg);
-
 		deleteInfo();
 	}
 
@@ -425,6 +432,7 @@ public class LocalLibrary extends BasicLibrary {
 
 		if (stories == null) {
 			stories = new HashMap<MetaData, File[]>();
+			sourceCovers = new HashMap<String, Image>();
 
 			lastId = 0;
 
@@ -520,6 +528,10 @@ public class LocalLibrary extends BasicLibrary {
 	 *            the cover image
 	 */
 	void setSourceCover(String source, Image coverImage) {
+		if (sourceCovers == null) {
+			getStories(null);
+		}
+
 		sourceCovers.put(source, coverImage);
 		File cover = new File(getExpectedDir(source), ".cover");
 		try {
