@@ -67,53 +67,9 @@ public class Story implements Iterable<Chapter>, Cloneable {
 	 */
 	@Override
 	public String toString() {
-		String title = "";
-		if (meta != null && meta.getTitle() != null) {
-			title = meta.getTitle();
-		}
-
-		StringBuilder tags = new StringBuilder();
-		if (meta != null && meta.getTags() != null) {
-			for (String tag : meta.getTags()) {
-				if (tags.length() > 0) {
-					tags.append(", ");
-				}
-				tags.append(tag);
-			}
-		}
-
-		String resume = "";
-		if (meta != null && meta.getResume() != null) {
-			for (Paragraph para : meta.getResume()) {
-				resume += "\n\t";
-				resume += para.toString().substring(0,
-						Math.min(para.toString().length(), 120));
-			}
-			resume += "\n";
-		}
-
-		String cover = "none";
-		if (meta != null && meta.getCover() != null) {
-			cover = " bytes";
-
-			int size = meta.getCover().getData().length;
-			if (size > 1000) {
-				size /= 1000;
-				cover = " kb";
-				if (size > 1000) {
-					size /= 1000;
-					cover = " mb";
-				}
-			}
-
-			cover = size + cover;
-		}
-
-		return String.format(
-				"Title: [%s]\nAuthor: [%s]\nDate: [%s]\nTags: [%s]\n"
-						+ "Resume: [%s]\nCover: [%s]", title, meta == null ? ""
-						: meta.getAuthor(), meta == null ? "" : meta.getDate(),
-				tags.toString(), resume, cover);
+		if (getMeta() != null)
+			return "Story: [\n" + getMeta().toString() + "\n]";
+		return "Story: [ no metadata found ]";
 	}
 
 	@Override

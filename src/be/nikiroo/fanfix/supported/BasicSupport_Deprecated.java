@@ -1128,7 +1128,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 	 *            the line to return based upon the target line position (-1 =
 	 *            the line before, 0 = the target line...)
 	 * 
-	 * @return the line
+	 * @return the line, or NULL if not found
 	 */
 	static protected String getLine(InputStream in, String needle,
 			int relativeLine) {
@@ -1152,7 +1152,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 	 *            takes the first result (as opposed to the last one, which will
 	 *            also always spend the input)
 	 * 
-	 * @return the line
+	 * @return the line, or NULL if not found
 	 */
 	static protected String getLine(InputStream in, String needle,
 			int relativeLine, boolean first) {

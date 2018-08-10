@@ -3,6 +3,7 @@
 # Version WIP
 
 - FimfictionAPI: les noms des chapitres sont maintenant triés correctement
+- e621: supporte aussi les recherches (/post/)
 
 # Version 1.7.1
 

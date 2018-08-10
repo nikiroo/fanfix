@@ -3,6 +3,7 @@
 # Version WIP
 
 - FimfictionAPI: chapter names are now correctly ordered
+- e621: now supports searches (/post/)
 
 # Version 1.7.1
 

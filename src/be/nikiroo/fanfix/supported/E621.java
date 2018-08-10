@@ -2,10 +2,15 @@ package be.nikiroo.fanfix.supported;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
 import java.util.Scanner;
 
@@ -40,7 +45,7 @@ class E621 extends BasicSupport_Deprecated {
 		meta.setTitle(getTitle(reset(in)));
 		meta.setAuthor(getAuthor(source, reset(in)));
 		meta.setDate("");
-		meta.setTags(new ArrayList<String>()); // TODDO ???
+		meta.setTags(getTags(source, reset(in), false));
 		meta.setSource(getSourceName());
 		meta.setUrl(source.toString());
 		meta.setPublisher(getSourceName());
@@ -50,10 +55,46 @@ class E621 extends BasicSupport_Deprecated {
 		meta.setSubject("Furry");
 		meta.setType(getType().toString());
 		meta.setImageDocument(true);
-		meta.setCover(getCover(source));
+		meta.setCover(getCover(source, reset(in)));
 		meta.setFakeCover(true);
 
 		return meta;
+	}
+
+	private List<String> getTags(URL source, InputStream in, boolean authors) {
+		List<String> tags = new ArrayList<String>();
+
+		if (isSearch(source)) {
+			String tagLine = getLine(in, "id=\"tag-sidebar\"", 1);
+			if (tagLine != null) {
+				String key = "href=\"";
+				for (int pos = tagLine.indexOf(key); pos >= 0; pos = tagLine
+						.indexOf(key, pos + 1)) {
+					int end = tagLine.indexOf("\"", pos + key.length());
+					if (end >= 0) {
+						String href = tagLine.substring(pos, end);
+						String subkey;
+						if (authors)
+							subkey = "?name=";
+						else
+							subkey = "?title=";
+						if (href.contains(subkey)) {
+							String tag = href.substring(href.indexOf(subkey)
+									+ subkey.length());
+							try {
+								tags.add(URLDecoder.decode(tag, "UTF-8"));
+							} catch (UnsupportedEncodingException e) {
+								// supported JVMs must have UTF-8 support
+								e.printStackTrace();
+							}
+						}
+					}
+				}
+
+			}
+		}
+
+		return tags;
 	}
 
 	@Override
@@ -80,7 +121,7 @@ class E621 extends BasicSupport_Deprecated {
 		}
 
 		return ("e621.net".equals(host) || "e926.net".equals(host))
-				&& url.getPath().startsWith("/pool/");
+				&& (isPool(url) || isSearch(url));
 	}
 
 	@Override
@@ -88,8 +129,11 @@ class E621 extends BasicSupport_Deprecated {
 		return true;
 	}
 
-	private Image getCover(URL source) throws IOException {
-		InputStream in = Instance.getCache().open(source, this, true);
+	private Image getCover(URL source, InputStream in) throws IOException {
+		// No cover on searches (/post/)
+		if (isSearch(source))
+			return null;
+
 		String images = getChapterContent(new URL(source.toString() + "?page="
 				+ 1), in, 1, null);
 		if (!images.isEmpty()) {
@@ -104,6 +148,17 @@ class E621 extends BasicSupport_Deprecated {
 	}
 
 	private String getAuthor(URL source, InputStream in) {
+		if (isSearch(source)) {
+			StringBuilder builder = new StringBuilder();
+			for (String author : getTags(source, in, true)) {
+				if (builder.length() > 0)
+					builder.append(", ");
+				builder.append(author);
+			}
+
+			return builder.toString();
+		}
+
 		String author = getLine(in, "href=\"/post/show/", 0);
 		if (author != null) {
 			String key = "href=\"";
@@ -194,6 +249,56 @@ class E621 extends BasicSupport_Deprecated {
 	@Override
 	protected List<Entry<String, URL>> getChapters(URL source, InputStream in,
 			Progress pg) throws IOException {
+		if (isPool(source)) {
+			return getChaptersPool(source, in, pg);
+		} else if (isSearch(source)) {
+			return getChaptersSearch(source, in, pg);
+		}
+
+		return new LinkedList<Entry<String, URL>>();
+	}
+
+	private List<Entry<String, URL>> getChaptersSearch(URL source,
+			InputStream in, Progress pg) throws IOException {
+		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
+
+		String search = source.getPath();
+		if (search.endsWith("/")) {
+			search = search.substring(0, search.length() - 1);
+		}
+
+		int pos = search.lastIndexOf('/');
+		if (pos >= 0) {
+			search = search.substring(pos + 1);
+		}
+
+		String baseUrl = "https://e621.net/post/index/";
+		if (source.getHost().contains("e926")) {
+			baseUrl = baseUrl.replace("e621", "e926");
+		}
+
+		for (int i = 1; true; i++) {
+			URL url = new URL(baseUrl + i + "/" + search + "/");
+			try {
+				InputStream pageI = Instance.getCache().open(url, this, false);
+				try {
+					if (getLine(pageI, "No posts matched your search.", 0) != null)
+						break;
+					urls.add(new AbstractMap.SimpleEntry<String, URL>(Integer
+							.toString(i), url));
+				} finally {
+					pageI.close();
+				}
+			} catch (Exception e) {
+				break;
+			}
+		}
+
+		return urls;
+	}
+
+	private List<Entry<String, URL>> getChaptersPool(URL source,
+			InputStream in, Progress pg) throws IOException {
 		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
 		int last = 1; // no pool/show when only one page
 
@@ -264,5 +369,13 @@ class E621 extends BasicSupport_Deprecated {
 		}
 
 		return builder.toString();
+	}
+
+	private boolean isPool(URL url) {
+		return url.getPath().startsWith("/pool/");
+	}
+
+	private boolean isSearch(URL url) {
+		return url.getPath().startsWith("/post/index/");
 	}
 }

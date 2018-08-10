@@ -431,4 +431,59 @@ public class MetaData implements Cloneable, Comparable<MetaData> {
 
 		return meta;
 	}
+
+	/**
+	 * Display a DEBUG {@link String} representation of this object.
+	 * <p>
+	 * This is not efficient, nor intended to be.
+	 */
+	@Override
+	public String toString() {
+		String title = "";
+		if (getTitle() != null) {
+			title = getTitle();
+		}
+
+		StringBuilder tags = new StringBuilder();
+		if (getTags() != null) {
+			for (String tag : getTags()) {
+				if (tags.length() > 0) {
+					tags.append(", ");
+				}
+				tags.append(tag);
+			}
+		}
+
+		String resume = "";
+		if (getResume() != null) {
+			for (Paragraph para : getResume()) {
+				resume += "\n\t";
+				resume += para.toString().substring(0,
+						Math.min(para.toString().length(), 120));
+			}
+			resume += "\n";
+		}
+
+		String cover = "none";
+		if (getCover() != null) {
+			cover = " bytes";
+
+			int size = getCover().getData().length;
+			if (size > 1000) {
+				size /= 1000;
+				cover = " kb";
+				if (size > 1000) {
+					size /= 1000;
+					cover = " mb";
+				}
+			}
+
+			cover = size + cover;
+		}
+
+		return String.format(
+				"Title: [%s]\nAuthor: [%s]\nDate: [%s]\nTags: [%s]\n"
+						+ "Resume: [%s]\nCover: [%s]", title, getAuthor(),
+				getDate(), tags.toString(), resume, cover);
+	}
 }
