@@ -355,7 +355,7 @@ abstract public class BasicLibrary {
 					if (type != null) {
 						story = BasicSupport.getSupport(type, url) //
 								.process(pgProcess);
-System.out.println("after process: "+story);
+
 						// Because we do not want to clear the meta cache:
 						meta.setCover(story.getMeta().getCover());
 						story.setMeta(meta);

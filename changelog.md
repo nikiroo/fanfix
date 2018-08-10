@@ -4,6 +4,7 @@
 
 - FimfictionAPI: chapter names are now correctly ordered
 - e621: now supports searches (/post/)
+- remote: cover is now sent over the network for imported stories
 
 # Version 1.7.1
 

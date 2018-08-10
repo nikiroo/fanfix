@@ -73,8 +73,6 @@ class Cbz extends Epub {
 		Story story = processMeta(true, pgMeta);
 		MetaData meta = story.getMeta();
 		
-System.out.println("Meta from Cbz support: "+meta);
-
 		pgMeta.done(); // 10%
 
 		File tmpDir = Instance.getTempFiles().createTempDir("info-text");
