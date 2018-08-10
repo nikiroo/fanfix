@@ -517,6 +517,9 @@ abstract public class BasicLibrary {
 	 */
 	public synchronized Story save(Story story, String luid, Progress pg)
 			throws IOException {
+		
+		System.out.println("story before save: "+story);
+		
 		// Do not change the original metadata, but change the original story
 		MetaData meta = story.getMeta().clone();
 		story.setMeta(meta);
@@ -532,7 +535,8 @@ abstract public class BasicLibrary {
 		}
 
 		story = doSave(story, pg);
-
+		System.out.println("story after save: "+story);
+		
 		updateInfo(story.getMeta());
 
 		return story;

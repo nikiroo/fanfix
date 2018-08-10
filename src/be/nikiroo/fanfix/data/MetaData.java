@@ -482,8 +482,8 @@ public class MetaData implements Cloneable, Comparable<MetaData> {
 		}
 
 		return String.format(
-				"Title: [%s]\nAuthor: [%s]\nDate: [%s]\nTags: [%s]\n"
-						+ "Resume: [%s]\nCover: [%s]", title, getAuthor(),
-				getDate(), tags.toString(), resume, cover);
+				"Meta %s:\n\tTitle: [%s]\n\tAuthor: [%s]\n\tDate: [%s]\n\tTags: [%s]"
+						+ "\n\tResume: [%s]\n\tCover: [%s]", luid, title,
+				getAuthor(), getDate(), tags.toString(), resume, cover);
 	}
 }

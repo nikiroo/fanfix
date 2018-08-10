@@ -281,7 +281,6 @@ public class LocalLibrary extends BasicLibrary {
 		}
 
 		super.imprt(other, luid, pg);
-		deleteInfo();
 	}
 
 	/**
