@@ -91,17 +91,31 @@ public class InfoReader {
 	 * @return the cover if present, NULL if not
 	 */
 	public static Image getCoverByName(URL sourceInfoFile) {
-		String info = sourceInfoFile.getFile().toString();
-		if (info.endsWith(".info")) {
-			info = info.substring(0, info.length() - ".info".length());
-			String ext = "."
-					+ Instance.getConfig().getString(Config.IMAGE_FORMAT_COVER)
-							.toLowerCase();
-			return BasicSupportHelper
-					.getImage(null, sourceInfoFile, info + ext);
+		Image cover = null;
+
+		File basefile = new File(sourceInfoFile.getFile());
+
+		String ext = "."
+				+ Instance.getConfig().getString(Config.IMAGE_FORMAT_COVER)
+						.toLowerCase();
+
+		// Without removing ext
+		cover = BasicSupportHelper.getImage(null, sourceInfoFile,
+				basefile.getAbsolutePath() + ext);
+
+		// Try without ext
+		String name = basefile.getName();
+		int pos = name.lastIndexOf(".");
+		if (cover == null && pos > 0) {
+			name = name.substring(0, pos);
+			basefile = new File(basefile.getParent(), basefile.getName());
+
+System.out.println(">>> " + basefile);
+			cover = BasicSupportHelper.getImage(null, sourceInfoFile,
+					basefile.getAbsolutePath() + ext);
 		}
 
-		return null;
+		return cover;
 	}
 
 	private static boolean getInfoTagBoolean(InputStream in, String key,

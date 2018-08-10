@@ -210,7 +210,6 @@ class Epub extends InfoText {
 				if (cover != null) {
 					meta.setCover(cover);
 				} else {
-System.out.println(">>> " + getSourceFileOriginal());
 					meta.setCover(InfoReader
 							.getCoverByName(getSourceFileOriginal().toURI()
 									.toURL()));
