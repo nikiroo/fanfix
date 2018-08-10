@@ -294,6 +294,7 @@ public abstract class BasicSupport {
 
 		Story story = new Story();
 		MetaData meta = getMeta();
+System.out.println("meta from support get: "+meta);
 		if (meta.getCreationDate() == null || meta.getCreationDate().isEmpty()) {
 			meta.setCreationDate(StringUtils.fromTime(new Date().getTime()));
 		}

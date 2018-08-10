@@ -353,10 +353,9 @@ abstract public class BasicLibrary {
 							.getType());
 					URL url = file.toURI().toURL();
 					if (type != null) {
+System.out.println("selected support: "+BasicSupport.getSupport(type, url));
 						story = BasicSupport.getSupport(type, url) //
 								.process(pgProcess);
-						System.out.println("orig meta: "+meta);
-						System.out.println("story retrieved: "+story);
 						// Because we do not want to clear the meta cache:
 						meta.setCover(story.getMeta().getCover());
 						story.setMeta(meta);
