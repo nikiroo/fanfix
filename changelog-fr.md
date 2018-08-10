@@ -1,6 +1,6 @@
 # Fanfix
 
-# Version WIP
+# Version 1.8.0
 
 - FimfictionAPI: les noms des chapitres sont maintenant triés correctement
 - e621: supporte aussi les recherches (/post/)

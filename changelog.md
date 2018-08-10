@@ -1,6 +1,6 @@
 # Fanfix
 
-# Version WIP
+# Version 1.8.0
 
 - FimfictionAPI: chapter names are now correctly ordered
 - e621: now supports searches (/post/)
