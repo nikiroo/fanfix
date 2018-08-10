@@ -72,6 +72,8 @@ class Cbz extends Epub {
 		pg.addProgress(pgMeta, 10);
 		Story story = processMeta(true, pgMeta);
 		MetaData meta = story.getMeta();
+		
+System.out.println("Meta from Cbz support: "+meta);
 
 		pgMeta.done(); // 10%
 
@@ -130,6 +132,9 @@ class Cbz extends Epub {
 			Story origStory = getStoryFromTxt(tmpDir, basename);
 			if (origStory != null) {
 				story.setChapters(origStory.getChapters());
+				if (origStory.getMeta().getCover() == null) {
+					origStory.getMeta().setCover(story.getMeta().getCover());
+				}
 				story.setMeta(origStory.getMeta());
 			} else {
 				story.setChapters(new ArrayList<Chapter>());
@@ -153,7 +158,8 @@ class Cbz extends Epub {
 				meta.setCover(images.get(imagesList.get(0)));
 				meta.setFakeCover(true);
 			}
-
+			
+System.out.println("Meta from Cbz support at end: "+meta);
 		} finally {
 			IOUtils.deltree(tmpDir);
 			if (zipIn != null) {
