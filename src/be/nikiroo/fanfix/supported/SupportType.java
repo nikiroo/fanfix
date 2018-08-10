@@ -27,6 +27,8 @@ public enum SupportType {
 	YIFFSTAR,
 	/** Comics and images groups, mostly but not only NSFW */
 	E_HENTAI,
+	/** Website with lots of Mangas, in French */
+	MANGA_LEL,
 	/** CBZ files */
 	CBZ,
 	/** HTML files */

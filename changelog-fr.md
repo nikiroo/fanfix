@@ -5,6 +5,7 @@
 - FimfictionAPI: les noms des chapitres sont maintenant triés correctement
 - e621: supporte aussi les recherches (/post/)
 - remote: la cover est maintenant envoyée au client pour les imports
+- MangaLel: support pour MangaLel
 
 # Version 1.7.1
 

@@ -514,6 +514,9 @@ public abstract class BasicSupport {
 		case E_HENTAI:
 			support = new EHentai();
 			break;
+		case MANGA_LEL:
+			support = new MangaLel();
+			break;
 		case CBZ:
 			support = new Cbz();
 			break;

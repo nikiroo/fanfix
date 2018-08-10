@@ -106,7 +106,7 @@ class MangaFox extends BasicSupport {
 		Element doc = getSourceNode();
 		Element title = doc.getElementsByClass("summary").first();
 		if (title != null) {
-			StringUtils.unhtml(title.text()).trim();
+			return StringUtils.unhtml(title.text()).trim();
 		}
 
 		return null;
