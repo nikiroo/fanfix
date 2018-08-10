@@ -130,12 +130,12 @@ class E621 extends BasicSupport_Deprecated {
 	}
 
 	private Image getCover(URL source, InputStream in) throws IOException {
-		// No cover on searches (/post/)
-		if (isSearch(source))
-			return null;
+		URL urlForCover = source;
+		if (isPool(source)) {
+			urlForCover = new URL(source.toString() + "?page=1");
+		}
 
-		String images = getChapterContent(new URL(source.toString() + "?page="
-				+ 1), in, 1, null);
+		String images = getChapterContent(urlForCover, in, 1, null);
 		if (!images.isEmpty()) {
 			int pos = images.indexOf("<br/>");
 			if (pos >= 0) {
