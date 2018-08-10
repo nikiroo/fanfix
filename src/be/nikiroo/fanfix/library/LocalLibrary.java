@@ -127,7 +127,12 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected synchronized void invalidateInfo(String luid) {
+	protected synchronized void updateInfo(MetaData meta) {
+		deleteInfo();
+	}
+
+	@Override
+	protected void deleteInfo(String luid) {
 		stories = null;
 		sourceCovers = new HashMap<String, Image>();
 	}
@@ -189,7 +194,7 @@ public class LocalLibrary extends BasicLibrary {
 			}
 		}
 
-		invalidateInfo();
+		deleteInfo();
 	}
 
 	@Override
@@ -261,7 +266,7 @@ public class LocalLibrary extends BasicLibrary {
 					pg.add(1);
 				}
 
-				invalidateInfo();
+				deleteInfo();
 				pg.done();
 				return;
 			}
@@ -269,7 +274,7 @@ public class LocalLibrary extends BasicLibrary {
 
 		super.imprt(other, luid, pg);
 
-		invalidateInfo();
+		deleteInfo();
 	}
 
 	/**
@@ -404,7 +409,7 @@ public class LocalLibrary extends BasicLibrary {
 	 * {@link LocalLibrary#baseDir}.
 	 * <p>
 	 * Will use a cached list when possible (see
-	 * {@link BasicLibrary#invalidateInfo()}).
+	 * {@link BasicLibrary#deleteInfo()}).
 	 * 
 	 * @param pg
 	 *            the optional {@link Progress}

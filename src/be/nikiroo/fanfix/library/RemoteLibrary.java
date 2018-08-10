@@ -233,10 +233,14 @@ public class RemoteLibrary extends BasicLibrary {
 		}.connect();
 
 		// because the meta changed:
-		invalidateInfo(luidSaved[0]);
-
 		MetaData meta = getInfo(luidSaved[0]);
-		meta.setCover(story.getMeta().getCover());
+		if (story.getMeta().getClass() != null) {
+			// If already available locally:
+			meta.setCover(story.getMeta().getCover());
+		} else {
+			// If required:
+			meta.setCover(getCover(meta.getLuid()));
+		}
 		story.setMeta(meta);
 
 		pg.done();
@@ -411,7 +415,13 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected void invalidateInfo(String luid) {
+	protected void updateInfo(MetaData meta) {
+		// Will be taken care of directly server side
+	}
+
+	@Override
+	protected void deleteInfo(String luid) {
+		// Will be taken care of directly server side
 	}
 
 	// The following methods are only used by Save and Delete in BasicLibrary:
