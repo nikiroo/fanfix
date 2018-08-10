@@ -58,8 +58,6 @@ class E621 extends BasicSupport_Deprecated {
 		meta.setCover(getCover(source, reset(in)));
 		meta.setFakeCover(true);
 
-		System.out.println("Meta from e621: "+meta);
-		
 		return meta;
 	}
 

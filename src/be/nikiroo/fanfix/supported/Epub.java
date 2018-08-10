@@ -185,9 +185,6 @@ class Epub extends InfoText {
 
 			if (tmpInfo.exists()) {
 				meta = InfoReader.readMeta(tmpInfo, true);
-				if (cover != null) {
-					meta.setCover(cover);
-				}
 				tmpInfo.delete();
 			} else {
 				if (title == null || title.isEmpty()) {
@@ -207,6 +204,17 @@ class Epub extends InfoText {
 				meta.setTitle(title);
 				meta.setAuthor(author);
 				meta.setImageDocument(isImagesDocumentByDefault());
+			}
+
+			if (meta.getCover() == null) {
+				if (cover != null) {
+					meta.setCover(cover);
+				} else {
+System.out.println(">>> " + getSourceFileOriginal());
+					meta.setCover(InfoReader
+							.getCoverByName(getSourceFileOriginal().toURI()
+									.toURL()));
+				}
 			}
 		} finally {
 			if (zipIn != null) {

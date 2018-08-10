@@ -353,7 +353,6 @@ abstract public class BasicLibrary {
 							.getType());
 					URL url = file.toURI().toURL();
 					if (type != null) {
-System.out.println("selected support: "+BasicSupport.getSupport(type, url));
 						story = BasicSupport.getSupport(type, url) //
 								.process(pgProcess);
 						// Because we do not want to clear the meta cache:

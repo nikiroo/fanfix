@@ -13,6 +13,7 @@ import java.util.Scanner;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.MarkableFileInputStream;
 
 // not complete: no "description" tag
@@ -61,18 +62,9 @@ public class InfoReader {
 				meta.setCover(BasicSupportHelper.getImage(null, sourceInfoFile,
 						infoTag));
 			}
-			// Second chance: try to check for a cover next to the info file
 			if (meta.getCover() == null) {
-				String info = sourceInfoFile.getFile().toString();
-				if (info.endsWith(".info")) {
-					info = info.substring(0, info.length() - ".info".length());
-					String ext = "."
-							+ Instance.getConfig()
-									.getString(Config.IMAGE_FORMAT_COVER)
-									.toLowerCase();
-					meta.setCover(BasicSupportHelper.getImage(null,
-							sourceInfoFile, info + ext));
-				}
+				// Second chance: try to check for a cover next to the info file
+				meta.setCover(getCoverByName(sourceInfoFile));
 			}
 		}
 		try {
@@ -88,6 +80,28 @@ public class InfoReader {
 		}
 
 		return meta;
+	}
+
+	/**
+	 * Return the cover image if it is next to the source file.
+	 * 
+	 * @param sourceInfoFile
+	 *            the source file
+	 * 
+	 * @return the cover if present, NULL if not
+	 */
+	public static Image getCoverByName(URL sourceInfoFile) {
+		String info = sourceInfoFile.getFile().toString();
+		if (info.endsWith(".info")) {
+			info = info.substring(0, info.length() - ".info".length());
+			String ext = "."
+					+ Instance.getConfig().getString(Config.IMAGE_FORMAT_COVER)
+							.toLowerCase();
+			return BasicSupportHelper
+					.getImage(null, sourceInfoFile, info + ext);
+		}
+
+		return null;
 	}
 
 	private static boolean getInfoTagBoolean(InputStream in, String key,
