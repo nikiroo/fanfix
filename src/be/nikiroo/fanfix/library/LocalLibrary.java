@@ -98,12 +98,25 @@ public class LocalLibrary extends BasicLibrary {
 
 	@Override
 	public File getFile(String luid, Progress pg) {
-		File[] files = getStories(pg).get(getInfo(luid));
+		Instance.getTraceHandler().trace(
+				this.getClass().getSimpleName() + ": get file for " + luid);
+
+		File file = null;
+		String mess = "no file found for ";
+
+		MetaData meta = getInfo(luid);
+		Instance.getTraceHandler().trace("(info is: " + meta + ")");
+
+		File[] files = getStories(pg).get(meta);
 		if (files != null) {
-			return files[1];
+			mess = "file retrieved for ";
+			file = files[1];
 		}
 
-		return null;
+		Instance.getTraceHandler().trace(
+				this.getClass().getSimpleName() + ": " + mess + luid);
+
+		return file;
 	}
 
 	@Override
@@ -420,7 +433,8 @@ public class LocalLibrary extends BasicLibrary {
 	 * @param pg
 	 *            the optional {@link Progress}
 	 * 
-	 * @return the list of stories
+	 * @return the list of stories (for each item, the first {@link File} is the info file, the
+	 *         second file is the target {@link File})
 	 */
 	private synchronized Map<MetaData, File[]> getStories(Progress pg) {
 		if (pg == null) {

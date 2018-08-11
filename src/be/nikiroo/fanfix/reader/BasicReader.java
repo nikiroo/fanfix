@@ -267,6 +267,8 @@ public abstract class BasicReader implements Reader {
 			for (String starter : new String[] { "xdg-open", "open", "see",
 					"start", "run" }) {
 				try {
+					Instance.getTraceHandler().trace(
+							"starting external program");
 					Runtime.getRuntime().exec(
 							new String[] { starter, target.getAbsolutePath() });
 					ok = true;
@@ -278,6 +280,7 @@ public abstract class BasicReader implements Reader {
 				throw new IOException("Cannot find a program to start the file");
 			}
 		} else {
+			Instance.getTraceHandler().trace("starting external program");
 			Runtime.getRuntime().exec(
 					new String[] { program, target.getAbsolutePath() });
 		}

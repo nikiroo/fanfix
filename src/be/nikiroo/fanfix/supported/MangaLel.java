@@ -156,14 +156,16 @@ class MangaLel extends BasicSupport {
 	protected List<Entry<String, URL>> getChapters(Progress pg) {
 		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
 
-		int i = 1;
+		int i = 0;
 		Element doc = getSourceNode();
-		Element chapEls = doc.getElementsByClass("chapters").first();
-		for (Element chapEl : chapEls.getElementsByTag("li")) {
+		Elements chapEls = doc.getElementsByClass("chapters").first()
+				.getElementsByTag("li");
+		for (Element chapEl : chapEls) {
 			Element titleEl = chapEl.getElementsByTag("h5").first();
 			String title = StringUtils.unhtml(titleEl.text()).trim();
-			title = Integer.toString(i++); // because Atril does not support
-											// strange file names
+
+			// because Atril does not support strange file names
+			title = Integer.toString(chapEls.size() - i);
 
 			Element linkEl = chapEl.getElementsByTag("h5").first()
 					.getElementsByTag("a").first();
@@ -175,6 +177,8 @@ class MangaLel extends BasicSupport {
 			} catch (MalformedURLException e) {
 				Instance.getTraceHandler().error(e);
 			}
+
+			i++;
 		}
 
 		Collections.reverse(urls);

@@ -242,7 +242,6 @@ public class CacheLibrary extends BasicLibrary {
 	public void clearFromCache(String luid) throws IOException {
 		if (isCached(luid)) {
 			cacheLib.delete(luid);
-			deleteInfo(luid);
 		}
 	}
 

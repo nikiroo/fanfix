@@ -137,7 +137,8 @@ public class Paragraph implements Cloneable {
 	 */
 	@Override
 	public String toString() {
-		return String.format("%s: [%s]", "" + type, "" + content);
+		return String.format("%s: [%s]", "" + type, content == null ? "N/A"
+				: content);
 	}
 
 	@Override

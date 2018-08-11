@@ -156,8 +156,6 @@ class Cbz extends Epub {
 				meta.setCover(images.get(imagesList.get(0)));
 				meta.setFakeCover(true);
 			}
-			
-System.out.println("Meta from Cbz support at end: "+meta);
 		} finally {
 			IOUtils.deltree(tmpDir);
 			if (zipIn != null) {

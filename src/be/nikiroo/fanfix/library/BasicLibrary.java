@@ -519,6 +519,9 @@ abstract public class BasicLibrary {
 	public synchronized Story save(Story story, String luid, Progress pg)
 			throws IOException {
 
+		Instance.getTraceHandler().trace(
+				this.getClass().getSimpleName() + ": saving story " + luid);
+
 		// Do not change the original metadata, but change the original story
 		MetaData meta = story.getMeta().clone();
 		story.setMeta(meta);
@@ -537,6 +540,10 @@ abstract public class BasicLibrary {
 
 		updateInfo(story.getMeta());
 
+		Instance.getTraceHandler().trace(
+				this.getClass().getSimpleName() + ": story saved (" + luid
+						+ ")");
+
 		return story;
 	}
 
@@ -550,8 +557,15 @@ abstract public class BasicLibrary {
 	 *             in case of I/O error
 	 */
 	public synchronized void delete(String luid) throws IOException {
+		Instance.getTraceHandler().trace(
+				this.getClass().getSimpleName() + ": deleting story " + luid);
+
 		doDelete(luid);
 		deleteInfo(luid);
+
+		Instance.getTraceHandler().trace(
+				this.getClass().getSimpleName() + ": story deleted (" + luid
+						+ ")");
 	}
 
 	/**
