@@ -80,7 +80,15 @@ public class ImageUtilsAwt extends ImageUtils {
 		}
 
 		in.reset();
-		BufferedImage image = ImageIO.read(in);
+		BufferedImage image;
+		try {
+			image = ImageIO.read(in);
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new IOException("Undocumented exception occured, "
+					+ "converting to IOException", e);
+		}
 
 		if (image == null) {
 			throw new IOException("Failed to convert input to image");
