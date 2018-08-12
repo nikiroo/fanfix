@@ -36,7 +36,14 @@ public class ImageUtilsAwt extends ImageUtils {
 			// Some formats are not reliable
 			// Second chance: PNG
 			if (!ok && !format.equals("png")) {
-				ok = ImageIO.write(image, "png", target);
+				try {
+					ok = ImageIO.write(image, "png", target);
+				} catch (IllegalArgumentException e) {
+					throw e;
+				} catch (Exception e) {
+					throw new IOException("Undocumented exception occured, "
+							+ "converting to IOException", e);
+				}
 			}
 
 			if (!ok) {
