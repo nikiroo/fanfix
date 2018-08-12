@@ -3,11 +3,14 @@ package be.nikiroo.fanfix.supported;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.AbstractMap.SimpleEntry;
@@ -284,8 +287,8 @@ class E621 extends BasicSupport_Deprecated {
 				try {
 					if (getLine(pageI, "No posts matched your search.", 0) != null)
 						break;
-					urls.add(new AbstractMap.SimpleEntry<String, URL>(Integer
-							.toString(i), url));
+					urls.add(new AbstractMap.SimpleEntry<String, URL>("Page "
+							+ Integer.toString(i), url));
 				} finally {
 					pageI.close();
 				}
@@ -294,6 +297,8 @@ class E621 extends BasicSupport_Deprecated {
 			}
 		}
 
+		// They are sorted in reverse order on the website
+		Collections.reverse(urls);
 		return urls;
 	}
 
@@ -371,11 +376,33 @@ class E621 extends BasicSupport_Deprecated {
 		return builder.toString();
 	}
 
+	@Override
+	protected URL getCanonicalUrl(URL source) {
+		if (isSearch(source)) {
+			// /post?tags=tag1+tag2 -> ../post/index/1/tag1%32tag2
+			String key = "post?tags=";
+			if (source.toString().contains(key)) {
+				int pos = source.toString().indexOf(key);
+				String tags = source.toString().substring(pos + key.length());
+				tags = tags.replace("+", "%32");
+				try {
+					return new URL(source.toString().substring(0, pos)
+							+ "post/index/1/" + tags);
+				} catch (MalformedURLException e) {
+					Instance.getTraceHandler().error(e);
+				}
+			}
+		}
+		return super.getCanonicalUrl(source);
+	}
+
 	private boolean isPool(URL url) {
 		return url.getPath().startsWith("/pool/");
 	}
 
 	private boolean isSearch(URL url) {
-		return url.getPath().startsWith("/post/index/");
+		return url.getPath().startsWith("/post/index/")
+				|| (url.getPath().equals("/post") && url.getQuery().startsWith(
+						"tags="));
 	}
 }

@@ -105,8 +105,6 @@ public class LocalLibrary extends BasicLibrary {
 		String mess = "no file found for ";
 
 		MetaData meta = getInfo(luid);
-		Instance.getTraceHandler().trace("(info is: " + meta + ")");
-
 		File[] files = getStories(pg).get(meta);
 		if (files != null) {
 			mess = "file retrieved for ";
@@ -114,7 +112,8 @@ public class LocalLibrary extends BasicLibrary {
 		}
 
 		Instance.getTraceHandler().trace(
-				this.getClass().getSimpleName() + ": " + mess + luid);
+				this.getClass().getSimpleName() + ": " + mess + luid + " ("
+						+ meta.getTitle() + ")");
 
 		return file;
 	}
@@ -433,8 +432,8 @@ public class LocalLibrary extends BasicLibrary {
 	 * @param pg
 	 *            the optional {@link Progress}
 	 * 
-	 * @return the list of stories (for each item, the first {@link File} is the info file, the
-	 *         second file is the target {@link File})
+	 * @return the list of stories (for each item, the first {@link File} is the
+	 *         info file, the second file is the target {@link File})
 	 */
 	private synchronized Map<MetaData, File[]> getStories(Progress pg) {
 		if (pg == null) {

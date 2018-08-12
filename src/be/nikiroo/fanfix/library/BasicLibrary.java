@@ -398,12 +398,24 @@ abstract public class BasicLibrary {
 	 *             in case of I/O error
 	 */
 	public Story imprt(URL url, Progress pg) throws IOException {
+		if (pg == null)
+			pg = new Progress();
+
+		pg.setMinMax(0, 1000);
+		Progress pgProcess = new Progress();
+		Progress pgSave = new Progress();
+		pg.addProgress(pgProcess, 800);
+		pg.addProgress(pgSave, 200);
+
 		BasicSupport support = BasicSupport.getSupport(url);
 		if (support == null) {
 			throw new UnknownHostException("" + url);
 		}
 
-		return save(support.process(pg), null);
+		Story story = save(support.process(pgProcess), pgSave);
+		pg.done();
+
+		return story;
 	}
 
 	/**

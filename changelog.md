@@ -1,5 +1,10 @@
 # Fanfix
 
+# Version WIP
+
+- e621: the images were stored in reverse order for searches (/post/)
+- remote: fix some timeout issues
+
 # Version 1.8.0
 
 - FimfictionAPI: chapter names are now correctly ordered

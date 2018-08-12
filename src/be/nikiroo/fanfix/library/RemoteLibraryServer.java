@@ -3,6 +3,7 @@ package be.nikiroo.fanfix.library;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import be.nikiroo.fanfix.Instance;
@@ -106,8 +107,9 @@ public class RemoteLibraryServer extends ServerObject {
 			return "PONG";
 		} else if ("GET_METADATA".equals(command)) {
 			if ("*".equals(args[0])) {
-				List<MetaData> metas = Instance.getLibrary().getMetas(
-						createPgForwarder(action));
+				Progress pg = createPgForwarder(action);
+				List<MetaData> metas = Instance.getLibrary().getMetas(pg);
+				forcePgDoneSent(pg);
 				return metas.toArray(new MetaData[] {});
 			}
 
@@ -142,8 +144,10 @@ public class RemoteLibraryServer extends ServerObject {
 			Instance.getLibrary().save(story, (String) args[0], null);
 			return story.getMeta().getLuid();
 		} else if ("IMPORT".equals(command)) {
+			Progress pg = createPgForwarder(action);
 			Story story = Instance.getLibrary().imprt(
-					new URL((String) args[0]), createPgForwarder(action));
+					new URL((String) args[0]), pg);
+			forcePgDoneSent(pg);
 			return story.getMeta().getLuid();
 		} else if ("DELETE_STORY".equals(command)) {
 			Instance.getLibrary().delete((String) args[0]);
@@ -155,8 +159,10 @@ public class RemoteLibraryServer extends ServerObject {
 			Instance.getLibrary().setSourceCover((String) args[0],
 					(String) args[1]);
 		} else if ("CHANGE_SOURCE".equals(command)) {
+			Progress pg = createPgForwarder(action);
 			Instance.getLibrary().changeSource((String) args[0],
-					(String) args[1], createPgForwarder(action));
+					(String) args[1], pg);
+			forcePgDoneSent(pg);
 		} else if ("EXIT".equals(command)) {
 			stop(0, false);
 		}
@@ -263,8 +269,16 @@ public class RemoteLibraryServer extends ServerObject {
 	 */
 	private static Progress createPgForwarder(
 			final ConnectActionServerObject action) {
-		final Progress pg = new Progress();
+		final Boolean[] isDoneForwarded = new Boolean[] { false };
+		final Progress pg = new Progress() {
+			@Override
+			public boolean isDone() {
+				return isDoneForwarded[0];
+			}
+		};
+
 		final Integer[] p = new Integer[] { -1, -1, -1 };
+		final Long[] lastTime = new Long[] { new Date().getTime() };
 		pg.addProgressListener(new ProgressListener() {
 			@Override
 			public void progress(Progress progress, String name) {
@@ -274,8 +288,11 @@ public class RemoteLibraryServer extends ServerObject {
 						+ (int) Math.round(pg.getRelativeProgress()
 								* (max - min));
 
-				// Do not re-send the same value twice over the wire
-				if (p[0] != min || p[1] != max || p[2] != relativeProgress) {
+				// Do not re-send the same value twice over the wire,
+				// unless more than 2 seconds have elapsed (to maintain the
+				// connection)
+				if ((p[0] != min || p[1] != max || p[2] != relativeProgress)
+						|| (new Date().getTime() - lastTime[0] > 2000)) {
 					p[0] = min;
 					p[1] = max;
 					p[2] = relativeProgress;
@@ -286,10 +303,26 @@ public class RemoteLibraryServer extends ServerObject {
 					} catch (Exception e) {
 						Instance.getTraceHandler().error(e);
 					}
+
+					isDoneForwarded[0] = pg.isDone();
+					lastTime[0] = new Date().getTime();
 				}
 			}
 		});
 
 		return pg;
+	}
+
+	// with 30 seconds timeout
+	private static void forcePgDoneSent(Progress pg) {
+		long start = new Date().getTime();
+		pg.done();
+		while (!pg.isDone() && new Date().getTime() - start < 30000) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				Instance.getTraceHandler().error(e);
+			}
+		}
 	}
 }

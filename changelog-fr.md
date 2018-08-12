@@ -1,5 +1,10 @@
 # Fanfix
 
+# Version WIP
+
+- e621: les images étaient rangées à l'envers pour les recherches (/post/)
+- remote: correction de certains problèmes de timeout
+
 # Version 1.8.0
 
 - FimfictionAPI: les noms des chapitres sont maintenant triés correctement
