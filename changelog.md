@@ -4,6 +4,7 @@
 
 - e621: the images were stored in reverse order for searches (/post/)
 - remote: fix some timeout issues
+- fix: allow I/O errors on CBZ files (skip image)
 
 # Version 1.8.0
 
