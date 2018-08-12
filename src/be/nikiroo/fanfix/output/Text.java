@@ -105,8 +105,13 @@ class Text extends BasicOutput {
 	protected void writeParagraphHeader(Paragraph para) throws IOException {
 		if (para.getType() == ParagraphType.IMAGE) {
 			File file = new File(targetDir, getCurrentImageBestName(true));
-			Instance.getCache().saveAsImage(para.getContentImage(), file,
-					nextParaIsCover);
+			try {
+				Instance.getCache().saveAsImage(para.getContentImage(), file,
+						nextParaIsCover);
+			} catch (IOException e) {
+				Instance.getTraceHandler().error(
+						new IOException("Cannot save an image", e));
+			}
 		}
 
 		nextParaIsCover = false;
