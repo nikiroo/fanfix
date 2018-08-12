@@ -384,7 +384,7 @@ class E621 extends BasicSupport_Deprecated {
 			if (source.toString().contains(key)) {
 				int pos = source.toString().indexOf(key);
 				String tags = source.toString().substring(pos + key.length());
-				tags = tags.replace("+", "%32");
+				tags = tags.replace("+", "%20");
 				try {
 					return new URL(source.toString().substring(0, pos)
 							+ "post/index/1/" + tags);

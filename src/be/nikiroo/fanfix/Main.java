@@ -221,6 +221,9 @@ public class Main {
 				int diff = progress.getProgress() - current;
 				current += diff;
 
+				if (diff <= 0)
+					return;
+
 				StringBuilder builder = new StringBuilder();
 				for (int i = 0; i < diff; i++) {
 					builder.append('.');
