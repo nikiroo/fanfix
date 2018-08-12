@@ -1,5 +1,10 @@
 # nikiroo-utils
 
+## Version 4.4.1
+
+- Image: fix undocumented exception on save images
+- TempFiles: crash early on error
+
 ## Version 4.4.0
 
 - Text justification: now supports bullet lists and HR lines
