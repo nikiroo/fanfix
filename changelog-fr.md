@@ -3,6 +3,7 @@
 # Version WIP
 
 - e621: les images étaient rangées à l'envers pour les recherches (/post/)
+- e621: correction pour /post/search/
 - remote: correction de certains problèmes de timeout
 - fix: permettre les erreurs I/O pour les CBZ (ignore l'image)
 

@@ -3,6 +3,7 @@
 # Version WIP
 
 - e621: the images were stored in reverse order for searches (/post/)
+- e621: fix for /post/search/
 - remote: fix some timeout issues
 - fix: allow I/O errors on CBZ files (skip image)
 
