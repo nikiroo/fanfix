@@ -6,14 +6,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
 import java.util.Scanner;
 
@@ -402,7 +399,7 @@ class E621 extends BasicSupport_Deprecated {
 
 	private boolean isSearch(URL url) {
 		return url.getPath().startsWith("/post/index/")
-				|| (url.getPath().equals("/post") && url.getQuery().startsWith(
-						"tags="));
+				|| (url.getPath().equals("/post/search") && url.getQuery()
+						.startsWith("tags="));
 	}
 }
