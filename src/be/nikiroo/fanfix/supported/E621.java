@@ -377,19 +377,28 @@ class E621 extends BasicSupport_Deprecated {
 	protected URL getCanonicalUrl(URL source) {
 		if (isSearch(source)) {
 			// /post?tags=tag1+tag2 -> ../post/index/1/tag1%32tag2
-			String key = "post?tags=";
+			String key = "?tags=";
 			if (source.toString().contains(key)) {
 				int pos = source.toString().indexOf(key);
 				String tags = source.toString().substring(pos + key.length());
 				tags = tags.replace("+", "%20");
+
+				String base = source.toString().substring(0, pos);
+				if (!base.endsWith("/")) {
+					base += "/";
+				}
+				if (base.endsWith("/search/")) {
+					base = base.substring(0, base.indexOf("/search/") + 1);
+				}
+
 				try {
-					return new URL(source.toString().substring(0, pos)
-							+ "post/index/1/" + tags);
+					return new URL(base + "index/1/" + tags);
 				} catch (MalformedURLException e) {
 					Instance.getTraceHandler().error(e);
 				}
 			}
 		}
+
 		return super.getCanonicalUrl(source);
 	}
 
