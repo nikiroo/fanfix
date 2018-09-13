@@ -11,10 +11,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.jsoup.nodes.Document;
+
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -25,9 +29,8 @@ import be.nikiroo.utils.Progress;
  * 
  * @author niki
  */
-class FimfictionApi extends BasicSupport_Deprecated {
+class FimfictionApi extends BasicSupport {
 	private String oauth;
-	private String storyId;
 	private String json;
 
 	private Map<Integer, String> chapterNames;
@@ -66,6 +69,12 @@ class FimfictionApi extends BasicSupport_Deprecated {
 	}
 
 	@Override
+	protected Document loadDocument(URL source) throws IOException {
+		json = getJsonData();
+		return null;
+	}
+
+	@Override
 	public String getOAuth() {
 		return oauth;
 	}
@@ -80,11 +89,19 @@ class FimfictionApi extends BasicSupport_Deprecated {
 		return "FimFiction.net";
 	}
 
-	@Override
-	protected void preprocess(URL source, InputStream in) throws IOException {
+	/**
+	 * Extract the full JSON data we will later use to build the {@link Story}.
+	 * 
+	 * @return the data in a JSON format
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	private String getJsonData() throws IOException {
 		// extract the ID from:
 		// https://www.fimfiction.net/story/123456/name-of-story
-		storyId = getKeyText(source.toString(), "/story/", null, "/");
+		String storyId = getKeyText(getSource().toString(), "/story/", null,
+				"/");
 
 		// Selectors, so to download all I need and only what I need
 		String storyContent = "fields[story]=title,description,date_published,cover_image";
@@ -106,19 +123,14 @@ class FimfictionApi extends BasicSupport_Deprecated {
 		URL url = new URL(urlString);
 		InputStream jsonIn = Instance.getCache().open(url, this, false);
 		try {
-			json = IOUtils.readSmallStream(jsonIn);
+			return IOUtils.readSmallStream(jsonIn);
 		} finally {
 			jsonIn.close();
 		}
 	}
 
 	@Override
-	protected InputStream openInput(URL source) throws IOException {
-		return null;
-	}
-
-	@Override
-	protected MetaData getMeta(URL source, InputStream in) throws IOException {
+	protected MetaData getMeta() throws IOException {
 		MetaData meta = new MetaData();
 
 		meta.setTitle(getKeyJson(json, 0, "type", "story", "title"));
@@ -126,9 +138,9 @@ class FimfictionApi extends BasicSupport_Deprecated {
 		meta.setDate(getKeyJson(json, 0, "type", "story", "date_published"));
 		meta.setTags(getTags());
 		meta.setSource(getSourceName());
-		meta.setUrl(source.toString());
+		meta.setUrl(getSource().toString());
 		meta.setPublisher(getSourceName());
-		meta.setUuid(source.toString());
+		meta.setUuid(getSource().toString());
 		meta.setLuid("");
 		meta.setLang("en");
 		meta.setSubject("MLP");
@@ -138,7 +150,14 @@ class FimfictionApi extends BasicSupport_Deprecated {
 		String coverImageLink = getKeyJson(json, 0, "type", "story",
 				"cover_image", "full");
 		if (!coverImageLink.trim().isEmpty()) {
-			meta.setCover(getImage(this, null, coverImageLink.trim()));
+			InputStream in = null;
+			try {
+				URL coverImageUrl = new URL(coverImageLink.trim());
+				in = Instance.getCache().open(coverImageUrl, this, true);
+				meta.setCover(new Image(in));
+			} finally {
+				in.close();
+			}
 		}
 
 		return meta;
@@ -160,14 +179,13 @@ class FimfictionApi extends BasicSupport_Deprecated {
 	}
 
 	@Override
-	protected String getDesc(URL source, InputStream in) {
+	protected String getDesc() {
 		String desc = getKeyJson(json, 0, "type", "story", "description");
 		return unbbcode(desc);
 	}
 
 	@Override
-	protected List<Entry<String, URL>> getChapters(URL source, InputStream in,
-			Progress pg) {
+	protected List<Entry<String, URL>> getChapters(Progress pg) {
 		chapterNames = new TreeMap<Integer, String>();
 		chapterContents = new TreeMap<Integer, String>();
 
@@ -201,8 +219,7 @@ class FimfictionApi extends BasicSupport_Deprecated {
 	}
 
 	@Override
-	protected String getChapterContent(URL source, InputStream in, int number,
-			Progress pg) {
+	protected String getChapterContent(URL source, int number, Progress pg) {
 		return chapterContents.get(number);
 	}
 
@@ -248,8 +265,8 @@ class FimfictionApi extends BasicSupport_Deprecated {
 		// access_token = "xxxxxxxxxxxxxx"
 		// }
 
-		String token = getKeyText(jsonToken, "\"access_token\"", "\"", "\"");
 		String tokenType = getKeyText(jsonToken, "\"token_type\"", "\"", "\"");
+		String token = getKeyText(jsonToken, "\"access_token\"", "\"", "\"");
 
 		return tokenType + " " + token;
 	}
@@ -327,5 +344,78 @@ class FimfictionApi extends BasicSupport_Deprecated {
 				.replace("[b]", "*").replace("[/b]", "*") //
 				.replaceAll("\\[[^\\]]*\\]", "");
 		return text;
+	}
+
+	/**
+	 * Return the text between the key and the endKey (and optional subKey can
+	 * be passed, in this case we will look for the key first, then take the
+	 * text between the subKey and the endKey).
+	 * 
+	 * @param in
+	 *            the input
+	 * @param key
+	 *            the key to match (also supports "^" at start to say
+	 *            "only if it starts with" the key)
+	 * @param subKey
+	 *            the sub key or NULL if none
+	 * @param endKey
+	 *            the end key or NULL for "up to the end"
+	 * @return the text or NULL if not found
+	 */
+	static private String getKeyText(String in, String key, String subKey,
+			String endKey) {
+		String result = null;
+
+		String line = in;
+		if (line != null && line.contains(key)) {
+			line = line.substring(line.indexOf(key) + key.length());
+			if (subKey == null || subKey.isEmpty() || line.contains(subKey)) {
+				if (subKey != null) {
+					line = line.substring(line.indexOf(subKey)
+							+ subKey.length());
+				}
+				if (endKey == null || line.contains(endKey)) {
+					if (endKey != null) {
+						line = line.substring(0, line.indexOf(endKey));
+						result = line;
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * Return the first index after all the given "afters" have been found in
+	 * the {@link String}, or -1 if it was not possible.
+	 * 
+	 * @param in
+	 *            the input
+	 * @param startAt
+	 *            start at this position in the string
+	 * @param afters
+	 *            the sub-keys to find before checking for key/endKey
+	 * 
+	 * @return the text or NULL if not found
+	 */
+	static private int indexOfAfter(String in, int startAt, String... afters) {
+		int pos = -1;
+		if (in != null && !in.isEmpty()) {
+			pos = startAt;
+			if (afters != null) {
+				for (int i = 0; pos >= 0 && i < afters.length; i++) {
+					String subKey = afters[i];
+					if (!subKey.isEmpty()) {
+						pos = in.indexOf(subKey, pos);
+						if (pos >= 0) {
+							pos += subKey.length();
+						}
+					}
+				}
+			}
+		}
+
+		return pos;
 	}
 }

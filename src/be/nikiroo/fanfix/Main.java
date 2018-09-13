@@ -527,6 +527,7 @@ public class Main {
 			String target, boolean infoCover, Progress pg) {
 		int exitCode = 0;
 
+		Instance.getTraceHandler().trace("Convert: " + urlString);
 		String sourceName = urlString;
 		try {
 			URL source = BasicReader.getUrl(urlString);
@@ -547,6 +548,7 @@ public class Main {
 					BasicSupport support = BasicSupport.getSupport(source);
 
 					if (support != null) {
+						Instance.getTraceHandler().trace("Support found: " + support.getClass());
 						Progress pgIn = new Progress();
 						Progress pgOut = new Progress();
 						if (pg != null) {

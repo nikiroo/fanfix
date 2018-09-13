@@ -84,7 +84,7 @@ public abstract class BasicSupport {
 	protected abstract String getDesc() throws IOException;
 
 	/**
-	 * Return the list of chapters (name and resource). *
+	 * Return the list of chapters (name and resource).
 	 * <p>
 	 * Can be NULL if this {@link BasicSupport} do no use chapters.
 	 * 
@@ -249,27 +249,6 @@ public abstract class BasicSupport {
 
 	/**
 	 * Process the given story resource into a partially filled {@link Story}
-	 * object containing the name and metadata, except for the description.
-	 * 
-	 * @return the {@link Story}
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
-	public final Story processMeta() throws IOException {
-		Story story = null;
-
-		try {
-			story = processMeta(false, null);
-		} finally {
-			close();
-		}
-
-		return story;
-	}
-
-	/**
-	 * Process the given story resource into a partially filled {@link Story}
 	 * object containing the name and metadata.
 	 * 
 	 * @param getDesc
@@ -321,9 +300,8 @@ public abstract class BasicSupport {
 	}
 
 	/**
-	 * Actual processing step, without the calls to other methods.
-	 * <p>
-	 * Will convert the story resource into a fully filled {@link Story} object.
+	 * Process the given story resource into a fully filled {@link Story}
+	 * object.
 	 * 
 	 * @param pg
 	 *            the optional progress reporter
@@ -333,7 +311,7 @@ public abstract class BasicSupport {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	// TODO: add final
+	// ADD final when BasicSupport_Deprecated is gone
 	public Story process(Progress pg) throws IOException {
 		setCurrentReferer(source);
 		login();
@@ -347,8 +325,9 @@ public abstract class BasicSupport {
 	}
 
 	/**
-	 * Process the given story resource into a fully filled {@link Story}
-	 * object.
+	 * Actual processing step, without the calls to other methods.
+	 * <p>
+	 * Will convert the story resource into a fully filled {@link Story} object.
 	 * 
 	 * @param pg
 	 *            the optional progress reporter
@@ -358,7 +337,7 @@ public abstract class BasicSupport {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public Story doProcess(Progress pg) throws IOException {
+	protected Story doProcess(Progress pg) throws IOException {
 		if (pg == null) {
 			pg = new Progress();
 		} else {
