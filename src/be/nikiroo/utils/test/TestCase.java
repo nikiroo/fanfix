@@ -1,6 +1,12 @@
 package be.nikiroo.utils.test;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import be.nikiroo.utils.IOUtils;
 
 /**
  * A {@link TestCase} that can be run with {@link TestLauncher}.
@@ -308,8 +314,6 @@ abstract public class TestCase {
 	 *            the expected value
 	 * @param actual
 	 *            the actual value
-	 * @param errorMessage
-	 *            the error message to display if they differ
 	 * 
 	 * @throws AssertException
 	 *             in case they differ
@@ -327,6 +331,136 @@ abstract public class TestCase {
 			assertEquals(errorMessage + ": item " + i
 					+ " (0-based) is not correct", expected.get(i),
 					actual.get(i));
+		}
+	}
+
+	/**
+	 * Check that 2 {@link File}s are equals, by doing a line-by-line
+	 * comparison.
+	 * 
+	 * @param expected
+	 *            the expected value
+	 * @param actual
+	 *            the actual value
+	 * @param errorMessage
+	 *            the error message to display if they differ
+	 * 
+	 * @throws AssertException
+	 *             in case they differ
+	 */
+	public void assertEquals(File expected, File actual) throws AssertException {
+		assertEquals(generateAssertMessage(expected, actual), expected, actual);
+	}
+
+	/**
+	 * Check that 2 {@link File}s are equals, by doing a line-by-line
+	 * comparison.
+	 * 
+	 * @param errorMessage
+	 *            the error message to display if they differ
+	 * @param expected
+	 *            the expected value
+	 * @param actual
+	 *            the actual value
+	 * 
+	 * @throws AssertException
+	 *             in case they differ
+	 */
+	public void assertEquals(String errorMessage, File expected, File actual)
+			throws AssertException {
+		assertEquals(errorMessage, expected, actual, null);
+	}
+
+	/**
+	 * Check that 2 {@link File}s are equals, by doing a line-by-line
+	 * comparison.
+	 * 
+	 * @param errorMessage
+	 *            the error message to display if they differ
+	 * @param expected
+	 *            the expected value
+	 * @param actual
+	 *            the actual value
+	 * @param skipCompare
+	 *            skip the lines starting with some values for the given files
+	 *            (relative path from base directory in recursive mode)
+	 * 
+	 * @throws AssertException
+	 *             in case they differ
+	 */
+	public void assertEquals(String errorMessage, File expected, File actual,
+			Map<String, List<String>> skipCompare) throws AssertException {
+		assertEquals(errorMessage, expected, actual, skipCompare, null);
+	}
+
+	private void assertEquals(String errorMessage, File expected, File actual,
+			Map<String, List<String>> skipCompare, String removeFromName)
+			throws AssertException {
+
+		if (expected.isDirectory() || actual.isDirectory()) {
+			assertEquals(errorMessage + ": type mismatch: expected a "
+					+ (expected.isDirectory() ? "directory" : "file")
+					+ ", received a "
+					+ (actual.isDirectory() ? "directory" : "file"),
+					expected.isDirectory(), actual.isDirectory());
+
+			List<String> expectedFiles = Arrays.asList(expected.list());
+			expectedFiles.sort(null);
+			List<String> actualFiles = Arrays.asList(actual.list());
+			actualFiles.sort(null);
+
+			assertEquals(errorMessage, expectedFiles, actualFiles);
+			for (int i = 0; i < actualFiles.size(); i++) {
+				File expectedFile = new File(expected, expectedFiles.get(i));
+				File actualFile = new File(actual, actualFiles.get(i));
+
+				assertEquals(errorMessage, expectedFile, actualFile,
+						skipCompare, expected.getAbsolutePath());
+			}
+		} else {
+			try {
+				List<String> expectedLines = Arrays.asList(IOUtils
+						.readSmallFile(expected).split("\n"));
+				List<String> resultLines = Arrays.asList(IOUtils.readSmallFile(
+						actual).split("\n"));
+
+				String name = expected.getAbsolutePath();
+				if (removeFromName != null && name.startsWith(removeFromName)) {
+					name = expected.getName()
+							+ name.substring(removeFromName.length());
+				}
+
+				assertEquals(errorMessage + ": " + name
+						+ ": the number of lines is not the same",
+						expectedLines.size(), resultLines.size());
+
+				for (int j = 0; j < expectedLines.size(); j++) {
+					String expectedLine = expectedLines.get(j);
+					String resultLine = resultLines.get(j);
+
+					boolean skip = false;
+					for (Entry<String, List<String>> skipThose : skipCompare
+							.entrySet()) {
+						for (String skipStart : skipThose.getValue()) {
+							if (name.endsWith(skipThose.getKey())
+									&& expectedLine.startsWith(skipStart)
+									&& resultLine.startsWith(skipStart)) {
+								skip = true;
+							}
+						}
+					}
+
+					if (skip) {
+						continue;
+					}
+
+					assertEquals(errorMessage + ": line " + (j + 1)
+							+ " is not the same in file " + name, expectedLine,
+							resultLine);
+				}
+			} catch (Exception e) {
+				throw new AssertException(errorMessage, e);
+			}
 		}
 	}
 

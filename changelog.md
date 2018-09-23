@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version 4.4.2
+
+- Test assertions: can now compare files/dir content
+
 ## Version 4.4.1
 
 - Image: fix undocumented exception on save images
