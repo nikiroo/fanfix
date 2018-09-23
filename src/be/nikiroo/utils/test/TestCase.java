@@ -439,13 +439,15 @@ abstract public class TestCase {
 					String resultLine = resultLines.get(j);
 
 					boolean skip = false;
-					for (Entry<String, List<String>> skipThose : skipCompare
-							.entrySet()) {
-						for (String skipStart : skipThose.getValue()) {
-							if (name.endsWith(skipThose.getKey())
-									&& expectedLine.startsWith(skipStart)
-									&& resultLine.startsWith(skipStart)) {
-								skip = true;
+					if (skipCompare != null) {
+						for (Entry<String, List<String>> skipThose : skipCompare
+								.entrySet()) {
+							for (String skipStart : skipThose.getValue()) {
+								if (name.endsWith(skipThose.getKey())
+										&& expectedLine.startsWith(skipStart)
+										&& resultLine.startsWith(skipStart)) {
+									skip = true;
+								}
 							}
 						}
 					}

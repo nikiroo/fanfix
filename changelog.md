@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version 4.4.3
+
+- Test assertions: fix files/dir content comparison code
+
 ## Version 4.4.2
 
 - Test assertions: can now compare files/dir content
