@@ -2,6 +2,7 @@ package be.nikiroo.utils.test;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -405,9 +406,9 @@ abstract public class TestCase {
 					expected.isDirectory(), actual.isDirectory());
 
 			List<String> expectedFiles = Arrays.asList(expected.list());
-			expectedFiles.sort(null);
+			Collections.sort(expectedFiles);
 			List<String> actualFiles = Arrays.asList(actual.list());
-			actualFiles.sort(null);
+			Collections.sort(actualFiles);
 
 			assertEquals(errorMessage, expectedFiles, actualFiles);
 			for (int i = 0; i < actualFiles.size(); i++) {
