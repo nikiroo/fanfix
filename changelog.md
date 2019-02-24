@@ -1,5 +1,12 @@
 # nikiroo-utils
 
+## Version 4.4.4
+
+- Java 1.6: fix bad dependency so it can compiles on 1.6 again
+- TempFilesTest: fix test
+- Serial: fix for some constructors
+- Serial: better default choice for ZIP/noZIP content
+
 ## Version 4.4.3
 
 - Test assertions: fix files/dir content comparison code
