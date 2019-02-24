@@ -173,7 +173,6 @@ public class SerialUtils {
 			throws ClassNotFoundException, NoSuchMethodException {
 
 		String desc = null;
-
 		try {
 			Class<?> clazz = getClass(type);
 			String className = clazz.getName();
@@ -209,8 +208,18 @@ public class SerialUtils {
 				desc += end;
 				//
 
-				ctor = clazz.getDeclaredConstructor(classes
-						.toArray(new Class[] {}));
+				try {
+					ctor = clazz.getDeclaredConstructor(classes
+							.toArray(new Class[] {}));
+				} catch (NoSuchMethodException nsme) {
+					// TODO: it seems e do not always need a parameter for each
+					// level, so we currently try "ALL" levels or "FIRST" level
+					// only -> we should check the actual rule and use it
+					ctor = clazz.getDeclaredConstructor(classes.get(0));
+					Object firstParent = args.get(0);
+					args.clear();
+					args.add(firstParent);
+				}
 				desc = null;
 			} else {
 				ctor = clazz.getDeclaredConstructor();
