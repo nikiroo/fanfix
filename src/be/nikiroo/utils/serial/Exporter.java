@@ -59,18 +59,21 @@ public class Exporter {
 	 * The exported items in a serialised form.
 	 * 
 	 * @param zip
-	 *            TRUE to have zipped content, FALSE to have raw content, NULL
-	 *            to let the system decide
+	 *            TRUE to have zipped (and BASE64-coded) content, FALSE to have
+	 *            raw content, NULL to let the system decide
 	 * 
 	 * @return the items currently in this {@link Exporter}
 	 */
 	public String toString(Boolean zip) {
-		if (zip == null) {
-			zip = builder.length() > 128;
+		if (zip == null && builder.length() > 128) {
+			zip = false;
 		}
 
-		if (zip) {
-			return "ZIP:" + StringUtils.zip64(builder.toString());
+		if (zip == null || zip) {
+			String zipped = "ZIP:" + StringUtils.zip64(builder.toString());
+
+			if (zip != null || builder.length() < zipped.length())
+				return zipped;
 		}
 
 		return builder.toString();
