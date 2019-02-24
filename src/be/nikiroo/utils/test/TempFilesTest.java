@@ -86,12 +86,22 @@ class TempFilesTest extends TestLauncher {
 	}
 
 	private class RootTempFiles extends TempFiles {
+		private File root = null;
+
 		public RootTempFiles(String name) throws IOException {
 			super(name);
 		}
 
 		public File getRoot() {
-			return root;
+			if (root != null)
+				return root;
+			return super.root;
+		}
+
+		@Override
+		public synchronized void close() throws IOException {
+			root = super.root;
+			super.close();
 		}
 	}
 }
