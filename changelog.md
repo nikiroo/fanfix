@@ -6,6 +6,7 @@
 - e621: fix for /post/search/
 - remote: fix some timeout issues
 - fix: allow I/O errors on CBZ files (skip image)
+- fix: fix the defaukt covers directory
 
 # Version 1.8.0
 

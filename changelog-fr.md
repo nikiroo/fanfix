@@ -6,6 +6,7 @@
 - e621: correction pour /post/search/
 - remote: correction de certains problèmes de timeout
 - fix: permettre les erreurs I/O pour les CBZ (ignore l'image)
+- fix: corriger le répertoire des covers par défaut
 
 # Version 1.8.0
 

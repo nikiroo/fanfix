@@ -28,7 +28,7 @@ public enum Config {
 	CACHE_MAX_TIME_STABLE, //
 	@Meta(def = "Mozilla/5.0 (X11; Linux x86_64; rv:44.0) Gecko/20100101 Firefox/44.0 -- ELinks/0.9.3 (Linux 2.6.11 i686; 80x24)", description = "string", info = "The user-agent to use to download files")
 	USER_AGENT, //
-	@Meta(def = "$HOME/bin/epub/", description = "absolute path, $HOME variable supported, / is always accepted as dir separator", format = Format.DIRECTORY, info = "The directory where to get the default story covers")
+	@Meta(def = "$HOME/.fanfix/covers/", description = "absolute path, $HOME variable supported, / is always accepted as dir separator", format = Format.DIRECTORY, info = "The directory where to get the default story covers")
 	DEFAULT_COVERS_DIR, //
 	@Meta(description = "string", info = "The default library to use (KEY:SERVER:PORT), or empty for the local library")
 	DEFAULT_LIBRARY, //
