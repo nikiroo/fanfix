@@ -1,6 +1,6 @@
 # Fanfix
 
-# Version WIP
+# Version 1.8.1
 
 - e621: the images were stored in reverse order for searches (/post/)
 - e621: fix for /post/search/
