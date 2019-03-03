@@ -103,12 +103,38 @@ public class RemoteLibraryServer extends ServerObject {
 			return null;
 		}
 
+		long start = new Date().getTime();
+		Object rep = doRequest(action, command, args);
+
+		getTraceHandler().trace(
+				String.format("[/%s]: %d ms", command,
+						(new Date().getTime() - start)));
+
+		return rep;
+	}
+
+	private Object doRequest(ConnectActionServerObject action, String command,
+			Object[] args) throws NoSuchFieldException, NoSuchMethodException,
+			ClassNotFoundException, IOException {
 		if ("PING".equals(command)) {
 			return "PONG";
 		} else if ("GET_METADATA".equals(command)) {
 			if ("*".equals(args[0])) {
 				Progress pg = createPgForwarder(action);
-				List<MetaData> metas = Instance.getLibrary().getMetas(pg);
+
+				List<MetaData> metas = new ArrayList<MetaData>();
+				for (MetaData meta : Instance.getLibrary().getMetas(pg)) {
+					MetaData light;
+					if (meta.getCover() == null) {
+						light = meta;
+					} else {
+						light = meta.clone();
+						light.setCover(null);
+					}
+
+					metas.add(light);
+				}
+
 				forcePgDoneSent(pg);
 				return metas.toArray(new MetaData[] {});
 			}

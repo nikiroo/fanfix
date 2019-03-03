@@ -446,6 +446,8 @@ public class RemoteLibrary extends BasicLibrary {
 	/**
 	 * Return the meta of the given story or a list of all known metas if the
 	 * luid is "*".
+	 * <p>
+	 * Will not get the covers.
 	 * 
 	 * @param luid
 	 *            the luid of the story or *
