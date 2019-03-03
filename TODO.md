@@ -70,6 +70,7 @@ My current planning for Fanfix (but not everything appears on this list):
     - [ ] Add the resume next to the cover icon if available (as an option)
 - [ ] Bugs
     - [x] Fix "Redownload also reset the source"
+    - [ ] Fix "Redownload remote does not show the new item before restart of client app"
     - [ ] Fix eHentai "content warning" access
     - [ ] Fix the configuration system (for new or changed options, new or changed languages)
     - [ ] remote import also download the file in cache, why?
