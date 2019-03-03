@@ -5,8 +5,9 @@
 - e621: the images were stored in reverse order for searches (/post/)
 - e621: fix for /post/search/
 - remote: fix some timeout issues
+- remote: improve perfs
 - fix: allow I/O errors on CBZ files (skip image)
-- fix: fix the defaukt covers directory
+- fix: fix the default covers directory
 
 # Version 1.8.0
 
