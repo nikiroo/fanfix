@@ -1,5 +1,9 @@
 # Fanfix
 
+# Version WIP
+
+- remote: fix de setSourceCover (ce n'était pas vu par le client)
+
 # Version 1.8.1
 
 - e621: the images were stored in reverse order for searches (/post/)

@@ -136,7 +136,7 @@ public class CacheLibrary extends BasicLibrary {
 	@Override
 	public void setSourceCover(String source, String luid) {
 		lib.setSourceCover(source, luid);
-		cacheLib.setSourceCover(source, getSourceCover(source));
+		cacheLib.setSourceCover(source, getCover(luid));
 	}
 
 	@Override

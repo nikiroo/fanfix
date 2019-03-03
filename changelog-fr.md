@@ -1,5 +1,9 @@
 # Fanfix
 
+# Version WIP
+
+- remote: fix setSourceCover (was not seen by client)
+
 # Version 1.8.1
 
 - e621: les images étaient rangées à l'envers pour les recherches (/post/)
