@@ -1,5 +1,12 @@
 # nikiroo-utils
 
+## Version 4.4.5
+
+- Base64: allow access to not-zipped Base64 utilities
+- Justify text: better handling of full text lines
+- jDoc: improve
+- IOUtils: new convenience method for reading a File into bytes
+
 ## Version 4.4.4
 
 - Java 1.6: fix bad dependency so it can compiles on 1.6 again

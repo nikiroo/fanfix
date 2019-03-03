@@ -512,11 +512,15 @@ public class StringUtils {
 	/**
 	 * Zip the data and then encode it into Base64.
 	 * 
+	 * @deprecated use {@link StringUtils#base64(byte[], boolean)} with the
+	 *             correct parameter instead
+	 * 
 	 * @param data
 	 *            the data
 	 * 
 	 * @return the Base64 zipped version
 	 */
+	@Deprecated
 	public static String zip64(String data) {
 		try {
 			return Base64.encodeBytes(data.getBytes(), Base64.GZIP);
@@ -529,6 +533,9 @@ public class StringUtils {
 	/**
 	 * Unconvert from Base64 then unzip the content.
 	 * 
+	 * @deprecated use {@link StringUtils#unbase64s(String, boolean)} with the
+	 *             correct parameter instead
+	 * 
 	 * @param data
 	 *            the data in Base64 format
 	 * 
@@ -537,9 +544,77 @@ public class StringUtils {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
+	@Deprecated
 	public static String unzip64(String data) throws IOException {
 		ByteArrayInputStream in = new ByteArrayInputStream(Base64.decode(data,
 				Base64.GZIP));
+
+		Scanner scan = new Scanner(in);
+		scan.useDelimiter("\\A");
+		try {
+			return scan.next();
+		} finally {
+			scan.close();
+		}
+	}
+
+	/**
+	 * Convert the given data to Base64 format.
+	 * 
+	 * @param data
+	 *            the data to convert
+	 * @param zip
+	 *            TRUE to also compress the data in GZIP format; remember that
+	 *            compressed and not-compressed content are different; you need
+	 *            to know which is which when decoding
+	 * 
+	 * @return the Base64 {@link String} representation of the data
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
+	public static String base64(byte[] data, boolean zip) throws IOException {
+		return Base64.encodeBytes(data, zip ? Base64.GZIP : Base64.NO_OPTIONS);
+	}
+
+	/**
+	 * Unonvert the given data from Base64 format back to a raw array of bytes.
+	 * 
+	 * @param data
+	 *            the data to unconvert
+	 * @param zip
+	 *            TRUE to also uncompress the data from a GZIP format; take care
+	 *            about this flag, as it could easily cause errors in the
+	 *            returned content or an {@link IOException}
+	 * 
+	 * @return the raw data represented by the given Base64 {@link String},
+	 *         optionally compressed with GZIP
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
+	public static byte[] unbase64(String data, boolean zip) throws IOException {
+		return Base64.decode(data, zip ? Base64.GZIP : Base64.NO_OPTIONS);
+	}
+
+	/**
+	 * Unonvert the given data from Base64 format back to a {@link String}.
+	 * 
+	 * @param data
+	 *            the data to unconvert
+	 * @param zip
+	 *            TRUE to also uncompress the data from a GZIP format; take care
+	 *            about this flag, as it could easily cause errors in the
+	 *            returned content or an {@link IOException}
+	 * 
+	 * @return the {@link String} represented by the given Base64 {@link String}
+	 *         , optionally compressed with GZIP
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
+	public static String unbase64s(String data, boolean zip) throws IOException {
+		ByteArrayInputStream in = new ByteArrayInputStream(unbase64(data, zip));
 
 		Scanner scan = new Scanner(in);
 		scan.useDelimiter("\\A");
@@ -565,21 +640,70 @@ public class StringUtils {
 		}
 	}
 
+	//
 	// justify List<String> related:
+	//
 
+	/**
+	 * Check if this line ends as a complete line (ends with a "." or similar).
+	 * <p>
+	 * Note that we consider an empty line as full, and a line ending with
+	 * spaces as not complete.
+	 * 
+	 * @param line
+	 *            the line to check
+	 * 
+	 * @return TRUE if it does
+	 */
 	static private boolean isFullLine(StringBuilder line) {
-		return line.length() == 0 //
-				|| line.charAt(line.length() - 1) == '.'
-				|| line.charAt(line.length() - 1) == '"'
-				|| line.charAt(line.length() - 1) == '»';
+		if (line.length() == 0) {
+			return true;
+		}
+
+		char lastCar = line.charAt(line.length() - 1);
+		switch (lastCar) {
+		case '.': // points
+		case '?':
+		case '!':
+
+		case '\'': // quotes
+		case '‘':
+		case '’':
+
+		case '"': // double quotes
+		case '”':
+		case '“':
+		case '»':
+		case '«':
+			return true;
+		default:
+			return false;
+		}
 	}
 
+	/**
+	 * Check if this line represent an item in a list or description (i.e.,
+	 * check that the first non-space char is "-").
+	 * 
+	 * @param line
+	 *            the line to check
+	 * 
+	 * @return TRUE if it is
+	 */
 	static private boolean isItemLine(String line) {
 		String spacing = getItemSpacing(line);
 		return spacing != null && !spacing.isEmpty()
 				&& line.charAt(spacing.length()) == '-';
 	}
 
+	/**
+	 * Return all the spaces that start this line (or Empty if none).
+	 * 
+	 * @param line
+	 *            the line to get the starting spaces from
+	 * 
+	 * @return the left spacing
+	 */
 	static private String getItemSpacing(String line) {
 		int i;
 		for (i = 0; i < line.length(); i++) {
@@ -591,6 +715,14 @@ public class StringUtils {
 		return "";
 	}
 
+	/**
+	 * This line is an horizontal spacer line.
+	 * 
+	 * @param line
+	 *            the line to test
+	 * 
+	 * @return TRUE if it is
+	 */
 	static private boolean isHrLine(CharSequence line) {
 		int count = 0;
 		if (line != null) {

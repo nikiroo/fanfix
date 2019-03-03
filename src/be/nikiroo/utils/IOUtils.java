@@ -17,7 +17,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 /**
- * This class offer some utilities based around Streams.
+ * This class offer some utilities based around Streams and Files.
  * 
  * @author niki
  */
@@ -447,5 +447,25 @@ public class IOUtils {
 		out.close();
 
 		return array;
+	}
+
+	/**
+	 * Convert the {@link File} into a byte array.
+	 * 
+	 * @param file
+	 *            the input {@link File}
+	 * 
+	 * @return the array
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public static byte[] toByteArray(File file) throws IOException {
+		FileInputStream fis = new FileInputStream(file);
+		try {
+			return toByteArray(fis);
+		} finally {
+			fis.close();
+		}
 	}
 }
