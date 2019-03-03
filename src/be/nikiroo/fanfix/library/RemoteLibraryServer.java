@@ -92,7 +92,7 @@ public class RemoteLibraryServer extends ServerObject {
 			}
 		}
 
-		String trace = "[" + command + "] ";
+		String trace = "[ " + command + "] ";
 		for (Object arg : args) {
 			trace += arg + " ";
 		}
@@ -107,7 +107,7 @@ public class RemoteLibraryServer extends ServerObject {
 		Object rep = doRequest(action, command, args);
 
 		getTraceHandler().trace(
-				String.format("[/%s]: %d ms", command,
+				String.format("[>%s]: %d ms", command,
 						(new Date().getTime() - start)));
 
 		return rep;
@@ -123,6 +123,7 @@ public class RemoteLibraryServer extends ServerObject {
 				Progress pg = createPgForwarder(action);
 
 				List<MetaData> metas = new ArrayList<MetaData>();
+
 				for (MetaData meta : Instance.getLibrary().getMetas(pg)) {
 					MetaData light;
 					if (meta.getCover() == null) {
@@ -330,9 +331,10 @@ public class RemoteLibraryServer extends ServerObject {
 						Instance.getTraceHandler().error(e);
 					}
 
-					isDoneForwarded[0] = pg.isDone();
 					lastTime[0] = new Date().getTime();
 				}
+
+				isDoneForwarded[0] = (pg.getProgress() >= pg.getMax());
 			}
 		});
 
