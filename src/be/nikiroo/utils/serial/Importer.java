@@ -70,11 +70,20 @@ public class Importer {
 
 				if (line.startsWith("ZIP:")) {
 					try {
-						line = StringUtils.unzip64(line.substring("ZIP:"
-								.length()));
+						line = StringUtils.unbase64s(
+								line.substring("ZIP:".length()), true);
 					} catch (IOException e) {
 						throw new IOException(
 								"Internal error when decoding ZIP content: input may be corrupt");
+					}
+					read(line);
+				} else if (line.startsWith("B64:")) {
+					try {
+						line = StringUtils.unbase64s(
+								line.substring("B64:".length()), false);
+					} catch (IOException e) {
+						throw new IOException(
+								"Internal error when decoding B64 content: input may be corrupt");
 					}
 					read(line);
 				} else {

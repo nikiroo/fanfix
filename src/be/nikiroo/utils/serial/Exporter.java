@@ -1,5 +1,6 @@
 package be.nikiroo.utils.serial;
 
+import java.io.IOException;
 import java.io.NotSerializableException;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,7 +57,45 @@ public class Exporter {
 	}
 
 	/**
+	 * Append the exported items in a serialised form into the given
+	 * {@link StringBuilder}.
+	 * 
+	 * @param toBuilder
+	 *            the {@link StringBuilder}
+	 * @param b64
+	 *            TRUE to have BASE64-coded content, FALSE to have raw content,
+	 *            NULL to let the system decide
+	 * @param zip
+	 *            TRUE to zip the BASE64 output if the output is indeed in
+	 *            BASE64 format, FALSE not to
+	 */
+	public void appendTo(StringBuilder toBuilder, Boolean b64, boolean zip) {
+		if (b64 == null && builder.length() < 128) {
+			b64 = false;
+		}
+
+		if (b64 != null || b64) {
+			try {
+				String zipped = StringUtils.base64(builder.toString(), zip);
+				if (b64 != null || zipped.length() < builder.length() - 4) {
+					toBuilder.append(zip ? "ZIP:" : "B64:");
+					toBuilder.append(zipped);
+					return;
+				}
+			} catch (IOException e) {
+				throw new RuntimeException(
+						"Base64 conversion of data failed, maybe not enough memory?",
+						e);
+			}
+		}
+
+		toBuilder.append(builder);
+	}
+
+	/**
 	 * The exported items in a serialised form.
+	 * 
+	 * @deprecated use {@link Exporter#toString(Boolean, boolean)} instead
 	 * 
 	 * @param zip
 	 *            TRUE to have zipped (and BASE64-coded) content, FALSE to have
@@ -64,28 +103,37 @@ public class Exporter {
 	 * 
 	 * @return the items currently in this {@link Exporter}
 	 */
+	@Deprecated
 	public String toString(Boolean zip) {
-		if (zip == null && builder.length() > 128) {
-			zip = false;
-		}
-
-		if (zip == null || zip) {
-			String zipped = "ZIP:" + StringUtils.zip64(builder.toString());
-
-			if (zip != null || builder.length() < zipped.length())
-				return zipped;
-		}
-
-		return builder.toString();
+		return toString(zip, zip == null || zip);
 	}
 
 	/**
-	 * The exported items in a serialised form (possibly zipped).
+	 * The exported items in a serialised form.
+	 * 
+	 * @param b64
+	 *            TRUE to have BASE64-coded content, FALSE to have raw content,
+	 *            NULL to let the system decide
+	 * @param zip
+	 *            TRUE to zip the BASE64 output if the output is indeed in
+	 *            BASE64 format, FALSE not to
+	 * 
+	 * @return the items currently in this {@link Exporter}
+	 */
+	public String toString(Boolean b64, boolean zip) {
+		StringBuilder toBuilder = new StringBuilder();
+		appendTo(toBuilder, b64, zip);
+		return toBuilder.toString();
+	}
+
+	/**
+	 * The exported items in a serialised form (possibly BASE64-coded, possibly
+	 * zipped).
 	 * 
 	 * @return the items currently in this {@link Exporter}
 	 */
 	@Override
 	public String toString() {
-		return toString(null);
+		return toString(null, true);
 	}
 }

@@ -66,8 +66,8 @@ public class SerialUtils {
 						if (!SerialUtils.encode(builder, item)) {
 							try {
 								// use ZIP: if not
-								builder.append(new Exporter().append(item)
-										.toString(true));
+								new Exporter().append(item).appendTo(builder,
+										true, false);
 							} catch (NotSerializableException e) {
 								throw new UnknownFormatConversionException(e
 										.getMessage());

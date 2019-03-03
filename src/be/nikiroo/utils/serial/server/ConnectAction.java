@@ -175,7 +175,8 @@ abstract class ConnectAction {
 	protected Object sendObject(Object data) throws IOException,
 			NoSuchFieldException, NoSuchMethodException, ClassNotFoundException {
 		synchronized (lock) {
-			String rep = sendString(new Exporter().append(data).toString(true));
+			String rep = sendString(new Exporter().append(data).toString(true,
+					true));
 			if (rep != null) {
 				return new Importer().read(rep).getValue();
 			}

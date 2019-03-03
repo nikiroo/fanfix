@@ -223,8 +223,8 @@ class StringUtilsTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				String orig = "test";
-				String zipped = StringUtils.zip64(orig);
-				String unzipped = StringUtils.unzip64(zipped);
+				String zipped = StringUtils.base64(orig, true);
+				String unzipped = StringUtils.unbase64s(zipped, true);
 				assertEquals(orig, unzipped);
 			}
 		});

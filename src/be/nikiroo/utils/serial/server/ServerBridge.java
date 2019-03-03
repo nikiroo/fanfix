@@ -238,8 +238,12 @@ public class ServerBridge extends Server {
 
 		if (getTraceHandler().getTraceLevel() >= 2) {
 			try {
-				if (data.startsWith("ZIP:")) {
-					data = StringUtils.unzip64(data.substring(4));
+				while (data.startsWith("ZIP:") || data.startsWith("B64:")) {
+					if (data.startsWith("ZIP:")) {
+						data = StringUtils.unbase64s(data.substring(4), true);
+					} else if (data.startsWith("B64:")) {
+						data = StringUtils.unbase64s(data.substring(4), false);
+					}
 				}
 
 				Object obj = new Importer().read(data).getValue();

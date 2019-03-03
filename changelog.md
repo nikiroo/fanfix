@@ -1,5 +1,11 @@
 # nikiroo-utils
 
+## Version 4.5.0
+
+- Base64: allow access to streams
+- Deprecated: do not use our on deprecated functions
+- Serial: fix ZIP/noZIP error
+
 ## Version 4.4.5
 
 - Base64: allow access to not-zipped Base64 utilities
