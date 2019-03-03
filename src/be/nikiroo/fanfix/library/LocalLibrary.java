@@ -3,6 +3,7 @@ package be.nikiroo.fanfix.library;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -210,13 +211,32 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public Image getSourceCover(String source) {
+	public synchronized Image getCustomSourceCover(String source) {
 		if (sourceCovers == null) {
-			getStories(null);
+			sourceCovers = new HashMap<String, Image>();
 		}
 
-		if (!sourceCovers.containsKey(source)) {
-			sourceCovers.put(source, super.getSourceCover(source));
+		Image img = sourceCovers.get(source);
+		if (img != null) {
+			return img;
+		}
+
+		File coverDir = new File(baseDir, source);
+		if (coverDir.isDirectory()) {
+			File cover = new File(coverDir, ".cover.png");
+			InputStream in;
+			try {
+				in = new FileInputStream(cover);
+				try {
+					sourceCovers.put(source, new Image(in));
+				} finally {
+					in.close();
+				}
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 
 		return sourceCovers.get(source);
@@ -224,18 +244,26 @@ public class LocalLibrary extends BasicLibrary {
 
 	@Override
 	public void setSourceCover(String source, String luid) {
-		if (sourceCovers == null) {
-			getStories(null);
-		}
+		setSourceCover(source, getCover(luid));
+	}
 
-		sourceCovers.put(source, getCover(luid));
+	/**
+	 * Fix the source cover to the given story cover.
+	 * 
+	 * @param source
+	 *            the source to change
+	 * @param coverImage
+	 *            the cover image
+	 */
+	synchronized void setSourceCover(String source, Image coverImage) {
 		File cover = new File(getExpectedDir(source), ".cover");
 		try {
-			Instance.getCache().saveAsImage(sourceCovers.get(source), cover,
-					true);
+			Instance.getCache().saveAsImage(coverImage, cover, true);
+			if (sourceCovers != null) {
+				sourceCovers.put(source, coverImage);
+			}
 		} catch (IOException e) {
 			Instance.getTraceHandler().error(e);
-			sourceCovers.remove(source);
 		}
 	}
 
@@ -444,7 +472,6 @@ public class LocalLibrary extends BasicLibrary {
 
 		if (stories == null) {
 			stories = new HashMap<MetaData, File[]>();
-			sourceCovers = new HashMap<String, Image>();
 
 			lastId = 0;
 
@@ -473,13 +500,11 @@ public class LocalLibrary extends BasicLibrary {
 					pgDirs.addProgress(pgFiles, 100);
 					pgDirs.setName("Loading from: " + dir.getName());
 
-					String source = null;
 					for (File infoFile : infoFiles) {
 						pgFiles.setName(infoFile.getName());
 						try {
 							MetaData meta = InfoReader
 									.readMeta(infoFile, false);
-							source = meta.getSource();
 							try {
 								int id = Integer.parseInt(meta.getLuid());
 								if (id > lastId) {
@@ -506,20 +531,6 @@ public class LocalLibrary extends BasicLibrary {
 						pgFiles.add(1);
 					}
 
-					File cover = new File(dir, ".cover.png");
-					if (cover.exists()) {
-						try {
-							InputStream in = new FileInputStream(cover);
-							try {
-								sourceCovers.put(source, new Image(in));
-							} finally {
-								in.close();
-							}
-						} catch (IOException e) {
-							Instance.getTraceHandler().error(e);
-						}
-					}
-
 					pgFiles.setName(null);
 				}
 
@@ -529,29 +540,5 @@ public class LocalLibrary extends BasicLibrary {
 
 		pg.done();
 		return stories;
-	}
-
-	/**
-	 * Fix the source cover to the given story cover.
-	 * 
-	 * @param source
-	 *            the source to change
-	 * @param coverImage
-	 *            the cover image
-	 */
-	void setSourceCover(String source, Image coverImage) {
-		if (sourceCovers == null) {
-			getStories(null);
-		}
-
-		sourceCovers.put(source, coverImage);
-		File cover = new File(getExpectedDir(source), ".cover");
-		try {
-			Instance.getCache().saveAsImage(sourceCovers.get(source), cover,
-					true);
-		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
-			sourceCovers.remove(source);
-		}
 	}
 }

@@ -112,8 +112,25 @@ public class CacheLibrary extends BasicLibrary {
 
 	@Override
 	public Image getSourceCover(String source) {
-		// no cache for the source cover
-		return lib.getSourceCover(source);
+		Image custom = getCustomSourceCover(source);
+		if (custom != null) {
+			return custom;
+		}
+
+		return cacheLib.getSourceCover(source);
+	}
+
+	@Override
+	public Image getCustomSourceCover(String source) {
+		Image custom = cacheLib.getCustomSourceCover(source);
+		if (custom == null) {
+			custom = lib.getCustomSourceCover(source);
+			if (custom != null) {
+				cacheLib.setSourceCover(source, custom);
+			}
+		}
+
+		return custom;
 	}
 
 	@Override

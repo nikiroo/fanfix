@@ -41,7 +41,7 @@ import be.nikiroo.utils.serial.server.ServerObject;
  * the LUID</li>
  * <li>[md5] DELETE_STORY [luid]: delete the story of LUID luid</li>
  * <li>[md5] GET_COVER [luid]: return the cover of the story</li>
- * <li>[md5] GET_SOURCE_COVER [source]: return the cover for this source</li>
+ * <li>[md5] GET_CUSTOM_SOURCE_COVER [source]: return the cover for this source</li>
  * <li>[md5] SET_SOURCE_COVER [source], [luid]: set the default cover for the
  * given source to the cover of the story denoted by luid</li>
  * <li>[md5] CHANGE_SOURCE [luid] [new source]: change the source of the story
@@ -153,8 +153,8 @@ public class RemoteLibraryServer extends ServerObject {
 			Instance.getLibrary().delete((String) args[0]);
 		} else if ("GET_COVER".equals(command)) {
 			return Instance.getLibrary().getCover((String) args[0]);
-		} else if ("GET_SOURCE_COVER".equals(command)) {
-			return Instance.getLibrary().getSourceCover((String) args[0]);
+		} else if ("GET_CUSTOM_SOURCE_COVER".equals(command)) {
+			return Instance.getLibrary().getCustomSourceCover((String) args[0]);
 		} else if ("SET_SOURCE_COVER".equals(command)) {
 			Instance.getLibrary().setSourceCover((String) args[0],
 					(String) args[1]);

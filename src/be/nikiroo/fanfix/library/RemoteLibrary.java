@@ -119,15 +119,15 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public Image getSourceCover(final String source) {
+	public Image getCustomSourceCover(final String source) {
 		final Image[] result = new Image[1];
 
 		try {
 			new ConnectActionClientObject(host, port, true) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					Object rep = send(new Object[] { md5, "GET_SOURCE_COVER",
-							source });
+					Object rep = send(new Object[] { md5,
+							"GET_CUSTOM_SOURCE_COVER", source });
 					result[0] = (Image) rep;
 				}
 

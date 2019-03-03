@@ -94,7 +94,8 @@ abstract public class BasicLibrary {
 	/**
 	 * Return the cover image associated to this source.
 	 * <p>
-	 * By default, return the cover of the first story with this source.
+	 * By default, return the custom cover if any, and if not, return the cover
+	 * of the first story with this source.
 	 * 
 	 * @param source
 	 *            the source
@@ -102,11 +103,30 @@ abstract public class BasicLibrary {
 	 * @return the cover image or NULL
 	 */
 	public Image getSourceCover(String source) {
+		Image custom = getCustomSourceCover(source);
+		if (custom != null) {
+			return custom;
+		}
+
 		List<MetaData> metas = getListBySource(source);
 		if (metas.size() > 0) {
 			return getCover(metas.get(0).getLuid());
 		}
 
+		return null;
+	}
+
+	/**
+	 * Return the custom cover image associated to this source.
+	 * <p>
+	 * By default, return NULL.
+	 * 
+	 * @param source
+	 *            the source to look for
+	 * 
+	 * @return the custom cover or NULL if none
+	 */
+	public Image getCustomSourceCover(@SuppressWarnings("unused") String source) {
 		return null;
 	}
 
