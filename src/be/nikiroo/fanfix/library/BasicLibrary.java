@@ -378,6 +378,7 @@ abstract public class BasicLibrary {
 
 						// Because we do not want to clear the meta cache:
 						meta.setCover(story.getMeta().getCover());
+						meta.setResume(story.getMeta().getResume());
 						story.setMeta(meta);
 						//
 					} else {
