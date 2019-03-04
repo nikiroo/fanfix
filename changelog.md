@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version 4.5.1
+
+- Progress: fix deadlock in rare cases
+
 ## Version 4.5.0
 
 - Base64: allow access to streams

@@ -138,7 +138,7 @@ public class Progress {
 			throw new RuntimeException("negative values not supported");
 		}
 
-		synchronized (getLock()) {
+		synchronized (lock) {
 			if (min > max) {
 				throw new RuntimeException(
 						"The minimum progress value must be <= the maximum progress value");
@@ -168,7 +168,7 @@ public class Progress {
 	 *             if max &lt; min
 	 */
 	public void setMax(int max) {
-		synchronized (getLock()) {
+		synchronized (lock) {
 			if (max < min) {
 				throw new Error(
 						"The maximum progress value must be >= the minimum progress value");
@@ -199,7 +199,7 @@ public class Progress {
 					"The minimum progress value must be <= the maximum progress value");
 		}
 
-		synchronized (getLock()) {
+		synchronized (lock) {
 			this.min = min;
 			this.max = max;
 		}
@@ -225,7 +225,7 @@ public class Progress {
 	 *            the progress to set
 	 */
 	public void setProgress(int progress) {
-		synchronized (getLock()) {
+		synchronized (lock) {
 			double childrenProgress = relativeProgress - relativeLocalProgress;
 
 			relativeLocalProgress = ((double) progress) / (max - min);
@@ -260,7 +260,7 @@ public class Progress {
 	 */
 	private void setRelativeProgress(Progress pg, String name,
 			double relativeProgress) {
-		synchronized (getLock()) {
+		synchronized (lock) {
 			relativeProgress = Math.max(0, relativeProgress);
 			relativeProgress = Math.min(1, relativeProgress);
 			this.relativeProgress = relativeProgress;
@@ -286,7 +286,7 @@ public class Progress {
 	 *            the amount to add
 	 */
 	public void add(int step) {
-		synchronized (getLock()) {
+		synchronized (lock) {
 			setProgress(getLocalProgress() + step);
 		}
 	}
@@ -305,7 +305,7 @@ public class Progress {
 	 * Mark the {@link Progress} as done by setting its value to max.
 	 */
 	public void done() {
-		synchronized (getLock()) {
+		synchronized (lock) {
 			double childrenProgress = relativeProgress - relativeLocalProgress;
 			relativeLocalProgress = 1 - childrenProgress;
 			setRelativeProgress(this, name, 1d);
@@ -318,7 +318,7 @@ public class Progress {
 	 * @return the children (Who will think of the children??)
 	 */
 	public List<Progress> getChildren() {
-		synchronized (getLock()) {
+		synchronized (lock) {
 			return new ArrayList<Progress>(children.keySet());
 		}
 	}
@@ -342,7 +342,7 @@ public class Progress {
 			name = this.name;
 		}
 
-		synchronized (getLock()) {
+		synchronized (lock) {
 			for (ProgressListener l : listeners) {
 				l.progress(pg, name);
 			}
@@ -360,7 +360,7 @@ public class Progress {
 	 *            the listener
 	 */
 	public void addProgressListener(ProgressListener l) {
-		synchronized (getLock()) {
+		synchronized (lock) {
 			this.listeners.add(l);
 		}
 	}
@@ -374,7 +374,7 @@ public class Progress {
 	 * @return TRUE if it was found (and removed)
 	 */
 	public boolean removeProgressListener(ProgressListener l) {
-		synchronized (getLock()) {
+		synchronized (lock) {
 			return this.listeners.remove(l);
 		}
 	}
@@ -408,43 +408,25 @@ public class Progress {
 					name, progress.parent.name));
 		}
 
-		progress.parent = this;
-
-		progress.addProgressListener(new ProgressListener() {
+		ProgressListener progressListener = new ProgressListener() {
 			@Override
 			public void progress(Progress pg, String name) {
-				synchronized (getLock()) {
+				synchronized (lock) {
 					double total = relativeLocalProgress;
-					synchronized (getLock()) {
-						for (Entry<Progress, Double> entry : children
-								.entrySet()) {
-							total += (entry.getValue() / (max - min))
-									* entry.getKey().getRelativeProgress();
-						}
+					for (Entry<Progress, Double> entry : children.entrySet()) {
+						total += (entry.getValue() / (max - min))
+								* entry.getKey().getRelativeProgress();
 					}
 
 					setRelativeProgress(pg, name, total);
 				}
 			}
-		});
+		};
 
-		synchronized (getLock()) {
-			this.children.put(progress, weight);
-		}
-	}
-
-	/**
-	 * The lock object to use (this one or the recursively-parent one).
-	 * 
-	 * @return the lock object to use
-	 */
-	private Object getLock() {
 		synchronized (lock) {
-			if (parent != null) {
-				return parent.getLock();
-			}
-
-			return lock;
+			progress.parent = this;
+			this.children.put(progress, weight);
+			progress.addProgressListener(progressListener);
 		}
 	}
 }
