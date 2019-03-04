@@ -3,6 +3,7 @@
 # Version WIP
 
 - remote: fix de setSourceCover (ce n'était pas vu par le client)
+- fix: deadlock dans certains cas rares (nikiroo-utils)
 
 # Version 1.8.1
 
