@@ -15,6 +15,7 @@ import jexer.event.TResizeEvent;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
+import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
 
@@ -160,7 +161,13 @@ class TuiReaderStoryWindow extends TWindow {
 			builder.append("\n\n");
 			if (chap != null) {
 				for (Paragraph para : chap) {
-					builder.append(para.getContent()).append("\n\n");
+					if (para.getType() == ParagraphType.BREAK) {
+						builder.append("\n");
+					}
+					builder.append(para.getContent()).append("\n");
+					if (para.getType() == ParagraphType.BREAK) {
+						builder.append("\n");
+					}
 				}
 			}
 			textField.setText(builder.toString());
