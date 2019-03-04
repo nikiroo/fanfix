@@ -39,8 +39,7 @@ class TuiReaderMainWindow extends TWindow {
 	public TuiReaderMainWindow(TuiReaderApplication reader) {
 		// Construct a demo window. X and Y don't matter because it will be
 		// centred on screen.
-		super(reader, "Library", 0, 0, 60, 18, CENTERED | RESIZABLE
-				| UNCLOSABLE);
+		super(reader, "Library", 0, 0, 60, 18, CENTERED | RESIZABLE);
 
 		this.reader = reader;
 
@@ -85,6 +84,12 @@ class TuiReaderMainWindow extends TWindow {
 		//
 		// root.addChild("child");
 		// root.addChild("child 2").addChild("sub child");
+	}
+
+	@Override
+	public void onClose() {
+		setVisible(false);
+		super.onClose();
 	}
 
 	/**

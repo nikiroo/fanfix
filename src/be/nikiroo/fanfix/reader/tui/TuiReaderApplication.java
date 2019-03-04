@@ -34,10 +34,15 @@ class TuiReaderApplication extends TApplication implements Reader {
 	public static final int MENU_IMPORT_URL = 1026;
 	public static final int MENU_IMPORT_FILE = 1027;
 	public static final int MENU_EXPORT = 1028;
-	public static final int MENU_EXIT = 1029;
+	public static final int MENU_LIBRARY = 1029;
+	public static final int MENU_EXIT = 1030;
 
 	private Reader reader;
 	private TuiReaderMainWindow main;
+
+	private MetaData meta;
+	private String source;
+	private boolean useMeta;
 
 	// start reading if meta present
 	public TuiReaderApplication(Reader reader, BackendType backend)
@@ -47,11 +52,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 
 		MetaData meta = getMeta();
 
-		main = new TuiReaderMainWindow(this);
-		main.setMeta(meta);
-		if (meta != null) {
-			read();
-		}
+		showMain(meta, null, true);
 	}
 
 	public TuiReaderApplication(Reader reader, String source,
@@ -59,8 +60,32 @@ class TuiReaderApplication extends TApplication implements Reader {
 		super(backend);
 		init(reader);
 
-		main = new TuiReaderMainWindow(this);
-		main.setSource(source);
+		showMain(null, source, false);
+	}
+
+	private void showMain(MetaData meta, String source, boolean useMeta)
+			throws IOException {
+		// TODO: thread-safety
+		this.meta = meta;
+		this.source = source;
+		this.useMeta = useMeta;
+
+		if (main != null && main.isVisible()) {
+			main.activate();
+		} else {
+			if (main != null) {
+				main.close();
+			}
+			main = new TuiReaderMainWindow(this);
+			if (useMeta) {
+				main.setMeta(meta);
+				if (meta != null) {
+					read();
+				}
+			} else {
+				main.setSource(source);
+			}
+		}
 	}
 
 	@Override
@@ -151,6 +176,8 @@ class TuiReaderApplication extends TApplication implements Reader {
 		fileMenu.addItem(MENU_IMPORT_URL, "Import &URL...");
 		fileMenu.addItem(MENU_IMPORT_FILE, "Import &file...");
 		fileMenu.addSeparator();
+		fileMenu.addItem(MENU_LIBRARY, "Lib&rary");
+		fileMenu.addSeparator();
 		fileMenu.addItem(MENU_EXIT, "E&xit");
 
 		TStatusBar statusBar = fileMenu.newStatusBar("File-management "
@@ -174,7 +201,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 		case MENU_EXIT:
 			if (messageBox("Confirmation", "(TODO: i18n) Exit application?",
 					TMessageBox.Type.YESNO).getResult() == TMessageBox.Result.YES) {
-				// exit(false);
+				exit(); // TODO: exit(false) for "no confirm box"
 			}
 
 			return true;
@@ -208,6 +235,14 @@ class TuiReaderApplication extends TApplication implements Reader {
 				}
 			} catch (IOException e) {
 				// TODO: bad file
+				e.printStackTrace();
+			}
+
+			return true;
+		case MENU_LIBRARY:
+			try {
+				showMain(meta, source, useMeta);
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 

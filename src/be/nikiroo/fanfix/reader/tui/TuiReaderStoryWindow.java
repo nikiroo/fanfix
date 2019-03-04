@@ -12,6 +12,7 @@ import jexer.TLabel;
 import jexer.TText;
 import jexer.TWindow;
 import jexer.event.TResizeEvent;
+import jexer.event.TResizeEvent.Type;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
@@ -90,10 +91,10 @@ class TuiReaderStoryWindow extends TWindow {
 	public void onResize(TResizeEvent resize) {
 		super.onResize(resize);
 
-		// Resize the text field
-		textField.setWidth(resize.getWidth() - 2);
-		textField.setHeight(resize.getHeight() - 2);
-		textField.reflow();
+		// Resize the text field TODO: why setW/setH/reflow not enough for the
+		// scrollbars?
+		textField.onResize(new TResizeEvent(Type.WIDGET, resize.getWidth() - 2,
+				resize.getHeight() - 2));
 
 		// -3 because 0-based and 2 for borders
 		int row = getHeight() - 3;
@@ -171,7 +172,7 @@ class TuiReaderStoryWindow extends TWindow {
 				}
 			}
 			textField.setText(builder.toString());
-			textField.reflow();
+			textField.reflowData();
 			textField.toTop();
 		}
 	}
