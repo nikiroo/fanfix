@@ -133,7 +133,10 @@ class TuiReaderStoryWindow extends TWindow {
 			String name;
 			if (chapter == 0) {
 				chap = getStory().getMeta().getResume();
-				name = String.format(" %s", chap.getName());
+				if (chap != null)
+					name = String.format(" %s", chap.getName());
+				else
+					name = "[No RESUME]";
 			} else {
 				chap = getStory().getChapters().get(chapter - 1);
 				name = String
@@ -148,14 +151,17 @@ class TuiReaderStoryWindow extends TWindow {
 
 			StringBuilder builder = new StringBuilder();
 			// TODO: i18n
-			String c = String.format("Chapter %d: %s", chapter, chap.getName());
+			String c = String.format("Chapter %d: %s", chapter,
+					chap == null ? "[No RESUME]" : chap.getName());
 			builder.append(c).append("\n");
 			for (int i = 0; i < c.length(); i++) {
 				builder.append("═");
 			}
 			builder.append("\n\n");
-			for (Paragraph para : chap) {
-				builder.append(para.getContent()).append("\n\n");
+			if (chap != null) {
+				for (Paragraph para : chap) {
+					builder.append(para.getContent()).append("\n\n");
+				}
 			}
 			textField.setText(builder.toString());
 			textField.reflow();

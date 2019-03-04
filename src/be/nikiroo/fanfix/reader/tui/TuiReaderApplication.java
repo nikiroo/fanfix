@@ -57,7 +57,6 @@ class TuiReaderApplication extends TApplication implements Reader {
 	public TuiReaderApplication(Reader reader, String source,
 			TApplication.BackendType backend) throws Exception {
 		super(backend);
-
 		init(reader);
 
 		main = new TuiReaderMainWindow(this);

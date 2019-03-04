@@ -295,7 +295,7 @@ public abstract class BasicSupport {
 							getDesc(), isHtml(), null));
 		}
 
-		pg.setProgress(100);
+		pg.done();
 		return story;
 	}
 
@@ -394,6 +394,7 @@ public abstract class BasicSupport {
 			}
 
 			pgChaps.setName("Extracting chapters");
+			pgChaps.done();
 		}
 
 		pg.done();
