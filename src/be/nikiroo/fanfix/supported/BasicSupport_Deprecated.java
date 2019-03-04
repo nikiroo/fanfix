@@ -40,7 +40,6 @@ import be.nikiroo.utils.StringUtils;
 @Deprecated
 public abstract class BasicSupport_Deprecated extends BasicSupport {
 	private InputStream in;
-	private URL currentReferer; // with only one 'r', as in 'HTTP'...
 
 	// quote chars
 	private char openQuote = Instance.getTrans().getCharacter(
@@ -75,6 +74,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 		throw new RuntimeException("should not be used by legacy code");
 	}
 
+	@Override
 	public Story process(Progress pg) throws IOException {
 		return process(getSource(), pg);
 	}

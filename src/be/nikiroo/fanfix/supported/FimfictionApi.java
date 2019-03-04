@@ -212,7 +212,7 @@ class FimfictionApi extends BasicSupport {
 
 		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
 		for (String title : chapterNames.values()) {
-			urls.add(new AbstractMap.SimpleEntry(title, null));
+			urls.add(new AbstractMap.SimpleEntry<String, URL>(title, null));
 		}
 
 		return urls;
