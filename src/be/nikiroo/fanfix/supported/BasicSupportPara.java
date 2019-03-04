@@ -450,7 +450,6 @@ class BasicSupportPara {
 					paras.add(makeParagraph(support, source, line.trim(), html));
 					pg.setProgress(i++);
 				}
-				pg.setName(null);
 			} else {
 				List<String> lines = new ArrayList<String>();
 				BufferedReader buff = null;
@@ -477,8 +476,10 @@ class BasicSupportPara {
 					paras.add(makeParagraph(support, source, line, html));
 					pg.setProgress(i++);
 				}
-				pg.setName(null);
 			}
+
+			pg.done();
+			pg.setName(null);
 
 			// Check quotes for "bad" format
 			List<Paragraph> newParas = new ArrayList<Paragraph>();

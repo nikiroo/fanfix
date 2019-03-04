@@ -348,9 +348,7 @@ public abstract class BasicSupport {
 		Progress pgMeta = new Progress();
 		pg.addProgress(pgMeta, 10);
 		Story story = processMeta(true, pgMeta);
-		if (!pgMeta.isDone()) {
-			pgMeta.setProgress(pgMeta.getMax()); // 10%
-		}
+		pgMeta.done(); // 10%
 
 		pg.setName("Retrieving " + story.getMeta().getTitle());
 
@@ -358,9 +356,7 @@ public abstract class BasicSupport {
 		pg.addProgress(pgGetChapters, 10);
 		story.setChapters(new ArrayList<Chapter>());
 		List<Entry<String, URL>> chapters = getChapters(pgGetChapters);
-		if (!pgGetChapters.isDone()) {
-			pgGetChapters.setProgress(pgGetChapters.getMax()); // 20%
-		}
+		pgGetChapters.done(); // 20%
 
 		if (chapters != null) {
 			Progress pgChaps = new Progress("Extracting chapters", 0,
@@ -385,16 +381,10 @@ public abstract class BasicSupport {
 
 				String content = getChapterContent(chapUrl, i,
 						pgGetChapterContent);
-				if (!pgGetChapterContent.isDone()) {
-					pgGetChapterContent.setProgress(pgGetChapterContent
-							.getMax());
-				}
-
+				pgGetChapterContent.done();
 				Chapter cc = BasicSupportPara.makeChapter(this, chapUrl, i,
 						chapName, content, isHtml(), pgMakeChapter);
-				if (!pgMakeChapter.isDone()) {
-					pgMakeChapter.setProgress(pgMakeChapter.getMax());
-				}
+				pgMakeChapter.done();
 
 				words += cc.getWords();
 				story.getChapters().add(cc);
@@ -404,9 +394,9 @@ public abstract class BasicSupport {
 			}
 
 			pgChaps.setName("Extracting chapters");
-		} else {
-			pg.setProgress(80);
 		}
+
+		pg.done();
 
 		return story;
 	}
