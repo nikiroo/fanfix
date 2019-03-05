@@ -5,9 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jexer.TAction;
-import jexer.TCommand;
 import jexer.TFileOpenBox.Type;
-import jexer.TKeypress;
 import jexer.TList;
 import jexer.TWindow;
 import jexer.event.TMenuEvent;
@@ -58,8 +56,7 @@ class TuiReaderMainWindow extends TWindow {
 		});
 
 		// TODO: add the current "source/type" or filter
-		statusBar = newStatusBar("Library");
-		statusBar.addShortcutKeypress(TKeypress.kbF10, TCommand.cmExit, "Exit");
+		reader.setStatusBar(this, "Library");
 
 		// TODO: remove when not used anymore
 

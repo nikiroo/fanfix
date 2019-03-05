@@ -4,10 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jexer.TAction;
-import jexer.TApplication;
 import jexer.TButton;
-import jexer.TCommand;
-import jexer.TKeypress;
 import jexer.TLabel;
 import jexer.TText;
 import jexer.TWindow;
@@ -27,22 +24,19 @@ class TuiReaderStoryWindow extends TWindow {
 	private TText textField;
 	private int chapter = -1;
 	private List<TButton> navigationButtons;
-	private TLabel chapterName;
+	private TLabel currentChapter;
 
 	// chapter: -1 for "none" (0 is desc)
-	public TuiReaderStoryWindow(TApplication app, BasicLibrary lib,
+	public TuiReaderStoryWindow(TuiReaderApplication app, BasicLibrary lib,
 			MetaData meta, int chapter) {
 		super(app, desc(meta), 0, 0, 60, 18, CENTERED | RESIZABLE);
 
 		this.lib = lib;
 		this.meta = meta;
 
-		// TODO: show all meta info before?
+		app.setStatusBar(this, desc(meta));
 
 		textField = new TText(this, "", 0, 0, getWidth() - 2, getHeight() - 2);
-
-		statusBar = newStatusBar(desc(meta));
-		statusBar.addShortcutKeypress(TKeypress.kbF10, TCommand.cmExit, "Exit");
 
 		navigationButtons = new ArrayList<TButton>(5);
 
@@ -82,8 +76,8 @@ class TuiReaderStoryWindow extends TWindow {
 		navigationButtons.get(1).setEnabled(false);
 		navigationButtons.get(2).setEnabled(false);
 
-		chapterName = addLabel("", 14, row);
-		chapterName.setWidth(getWidth() - 10);
+		currentChapter = addLabel("", 14, row);
+		currentChapter.setWidth(getWidth() - 10);
 		setChapter(chapter);
 	}
 
@@ -99,24 +93,28 @@ class TuiReaderStoryWindow extends TWindow {
 		// -3 because 0-based and 2 for borders
 		int row = getHeight() - 3;
 
-		String name = chapterName.getLabel();
-		while (name.length() < resize.getWidth() - chapterName.getX()) {
+		String name = currentChapter.getLabel();
+		while (name.length() < resize.getWidth() - currentChapter.getX()) {
 			name += " ";
 		}
-		chapterName.setLabel(name);
-		chapterName.setWidth(resize.getWidth() - 10);
-		chapterName.setY(row);
+		currentChapter.setLabel(name);
+		currentChapter.setWidth(resize.getWidth() - 10);
+		currentChapter.setY(row);
 
 		for (TButton button : navigationButtons) {
 			button.setY(row);
 		}
 	}
 
+	/**
+	 * Display the current chapter in the window, or the {@link Story} info
+	 * page.
+	 * 
+	 * @param chapter
+	 *            the chapter (including "0" which is the description) or "-1"
+	 *            to display the info page instead
+	 */
 	private void setChapter(int chapter) {
-		if (chapter < 0) {
-			chapter = 0;
-		}
-
 		if (chapter > getStory().getChapters().size()) {
 			chapter = getStory().getChapters().size();
 		}
@@ -125,55 +123,79 @@ class TuiReaderStoryWindow extends TWindow {
 			this.chapter = chapter;
 
 			int max = getStory().getChapters().size();
-			navigationButtons.get(0).setEnabled(chapter > 0);
-			navigationButtons.get(1).setEnabled(chapter > 0);
-			navigationButtons.get(2).setEnabled(chapter > 0);
+			navigationButtons.get(0).setEnabled(chapter > -1);
+			navigationButtons.get(1).setEnabled(chapter > -1);
+			navigationButtons.get(2).setEnabled(chapter > -1);
 			navigationButtons.get(3).setEnabled(chapter < max);
 			navigationButtons.get(4).setEnabled(chapter < max);
 
-			Chapter chap;
-			String name;
-			if (chapter == 0) {
-				chap = getStory().getMeta().getResume();
-				if (chap != null)
-					name = String.format(" %s", chap.getName());
-				else
-					name = "[No RESUME]";
-			} else {
-				chap = getStory().getChapters().get(chapter - 1);
-				name = String
-						.format(" %d/%d: %s", chapter, max, chap.getName());
-			}
-
-			while (name.length() < getWidth() - chapterName.getX()) {
-				name += " ";
-			}
-
-			chapterName.setLabel(name);
-
 			StringBuilder builder = new StringBuilder();
-			// TODO: i18n
-			String c = String.format("Chapter %d: %s", chapter,
-					chap == null ? "[No RESUME]" : chap.getName());
-			builder.append(c).append("\n");
-			for (int i = 0; i < c.length(); i++) {
-				builder.append("═");
+
+			if (chapter < 0) {
+				appendInfoPage(builder);
+			} else {
+				appendChapterPage(builder);
 			}
-			builder.append("\n\n");
-			if (chap != null) {
-				for (Paragraph para : chap) {
-					if (para.getType() == ParagraphType.BREAK) {
-						builder.append("\n");
-					}
-					builder.append(para.getContent()).append("\n");
-					if (para.getType() == ParagraphType.BREAK) {
-						builder.append("\n");
-					}
+
+			setText(builder.toString());
+		}
+
+		setCurrentChapterText();
+	}
+
+	/**
+	 * Append the info page about the current {@link Story}.
+	 * 
+	 * @param builder
+	 *            the builder to append to
+	 */
+	private StringBuilder appendInfoPage(StringBuilder builder) {
+		MetaData meta = getStory().getMeta();
+
+		// TODO: use a ttable?
+
+		appendTitle(builder, meta.getTitle(), 1).append("\n");
+
+		// i18n
+		builder.append("Author: ").append(meta.getAuthor()).append("\n");
+		builder.append("Publication date: ").append(meta.getDate())
+				.append("\n");
+		builder.append("Word count: ").append(meta.getWords()).append("\n");
+
+		return builder;
+	}
+
+	/**
+	 * Append the current chapter.
+	 * 
+	 * @param builder
+	 *            the builder to append to
+	 */
+	private void appendChapterPage(StringBuilder builder) {
+		Chapter chap = null;
+		if (chapter == 0) {
+			chap = getStory().getMeta().getResume();
+		} else if (chapter > 0) {
+			chap = getStory().getChapters().get(chapter - 1);
+		}
+
+		// TODO: i18n
+		String chapName = chap == null ? "[No RESUME]" : chap.getName();
+
+		appendTitle(builder,
+				String.format("Chapter %d: %s", chapter, chapName), 1);
+		builder.append("\n");
+
+		if (chap != null) {
+			for (Paragraph para : chap) {
+				if (para.getType() == ParagraphType.BREAK) {
+					builder.append("\n");
+				}
+				builder.append(para.getContent()).append("\n");
+				if (para.getType() == ParagraphType.BREAK) {
+					builder.append("\n");
 				}
 			}
-			textField.setText(builder.toString());
-			textField.reflowData();
-			textField.toTop();
 		}
 	}
 
@@ -185,7 +207,102 @@ class TuiReaderStoryWindow extends TWindow {
 		return story;
 	}
 
+	/**
+	 * Display the given text on the window.
+	 * 
+	 * @param text
+	 *            the text to display
+	 */
+	private void setText(String text) {
+		textField.setText(text);
+		textField.reflowData();
+		textField.toTop();
+	}
+
+	/**
+	 * Set the current chapter area to the correct value.
+	 */
+	private void setCurrentChapterText() {
+		String name;
+		if (chapter < 0) {
+			name = " " + getStory().getMeta().getTitle();
+		} else if (chapter == 0) {
+			Chapter resume = getStory().getMeta().getResume();
+			if (resume != null) {
+				name = String.format(" %s", resume.getName());
+			} else {
+				// TODO: i18n
+				name = "[No RESUME]";
+			}
+		} else {
+			int max = getStory().getChapters().size();
+			Chapter chap = getStory().getChapters().get(chapter - 1);
+			name = String.format(" %d/%d: %s", chapter, max, chap.getName());
+		}
+
+		int width = getWidth() - currentChapter.getX();
+		while (name.length() < width) {
+			name += " ";
+		}
+
+		if (name.length() > width) {
+			name = name.substring(0, width);
+		}
+
+		currentChapter.setLabel(name);
+
+	}
+
 	private static String desc(MetaData meta) {
 		return String.format("%s: %s", meta.getLuid(), meta.getTitle());
+	}
+
+	/**
+	 * Append a title (on its own 2 lines).
+	 * 
+	 * @param builder
+	 *            the {@link StringBuilder} to append to
+	 * @param title
+	 *            the title itself
+	 * @param level
+	 *            the title level, 1 being the highest level, 2 second level and
+	 *            so on
+	 */
+	private static StringBuilder appendTitle(StringBuilder builder,
+			String title, int level) {
+		String hr;
+		switch (level) {
+		case 1:
+			hr = "======";
+			break;
+		case 2:
+			hr = "=-=-=-";
+			break;
+		case 3:
+			hr = "______";
+			break;
+		case 4:
+			hr = "------";
+			break;
+		default:
+			hr = "";
+			break;
+		}
+
+		int fullPad = title.length() / hr.length();
+		int rest = title.length() - (fullPad * hr.length());
+
+		builder.append(title).append("\n");
+		for (int i = 0; i < title.length() / hr.length(); i++) {
+			builder.append(hr);
+		}
+
+		if (rest > 0) {
+			builder.append(hr.substring(0, rest));
+		}
+
+		builder.append("\n");
+
+		return builder;
 	}
 }

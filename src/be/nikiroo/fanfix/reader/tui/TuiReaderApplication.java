@@ -50,9 +50,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 		super(backend);
 		init(reader);
 
-		MetaData meta = getMeta();
-
-		showMain(meta, null, true);
+		showMain(getMeta(), null, true);
 	}
 
 	public TuiReaderApplication(Reader reader, String source,
@@ -61,31 +59,6 @@ class TuiReaderApplication extends TApplication implements Reader {
 		init(reader);
 
 		showMain(null, source, false);
-	}
-
-	private void showMain(MetaData meta, String source, boolean useMeta)
-			throws IOException {
-		// TODO: thread-safety
-		this.meta = meta;
-		this.source = source;
-		this.useMeta = useMeta;
-
-		if (main != null && main.isVisible()) {
-			main.activate();
-		} else {
-			if (main != null) {
-				main.close();
-			}
-			main = new TuiReaderMainWindow(this);
-			if (useMeta) {
-				main.setMeta(meta);
-				if (meta != null) {
-					read();
-				}
-			} else {
-				main.setSource(source);
-			}
-		}
 	}
 
 	@Override
@@ -161,6 +134,51 @@ class TuiReaderApplication extends TApplication implements Reader {
 		reader.setChapter(chapter);
 	}
 
+	/**
+	 * Set the default status bar when this window appear.
+	 * <p>
+	 * Some shortcuts are always visible, and will be put here.
+	 * <p>
+	 * Note that shortcuts placed this way on menu won't work unless the menu
+	 * also implement them.
+	 * 
+	 * @param window
+	 *            the new window or menu on screen
+	 * @param description
+	 *            the description to show on the status ba
+	 */
+	public TStatusBar setStatusBar(TWindow window, String description) {
+		TStatusBar statusBar = window.newStatusBar(description);
+		statusBar.addShortcutKeypress(TKeypress.kbF10, TCommand.cmExit, "Exit");
+		return statusBar;
+
+	}
+
+	private void showMain(MetaData meta, String source, boolean useMeta)
+			throws IOException {
+		// TODO: thread-safety
+		this.meta = meta;
+		this.source = source;
+		this.useMeta = useMeta;
+
+		if (main != null && main.isVisible()) {
+			main.activate();
+		} else {
+			if (main != null) {
+				main.close();
+			}
+			main = new TuiReaderMainWindow(this);
+			if (useMeta) {
+				main.setMeta(meta);
+				if (meta != null) {
+					read();
+				}
+			} else {
+				main.setSource(source);
+			}
+		}
+	}
+
 	private void init(Reader reader) {
 		this.reader = reader;
 
@@ -180,10 +198,8 @@ class TuiReaderApplication extends TApplication implements Reader {
 		fileMenu.addSeparator();
 		fileMenu.addItem(MENU_EXIT, "E&xit");
 
-		TStatusBar statusBar = fileMenu.newStatusBar("File-management "
+		setStatusBar(fileMenu, "File-management "
 				+ "commands (Open, Save, Print, etc.)");
-		// TODO: doesn't actually work:
-		statusBar.addShortcutKeypress(TKeypress.kbF10, TCommand.cmExit, "Exit");
 
 		// TODO: Edit: re-download, delete
 
