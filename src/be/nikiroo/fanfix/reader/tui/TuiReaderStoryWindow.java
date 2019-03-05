@@ -1,11 +1,13 @@
 package be.nikiroo.fanfix.reader.tui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import jexer.TAction;
 import jexer.TButton;
 import jexer.TLabel;
+import jexer.TTable;
 import jexer.TText;
 import jexer.TWindow;
 import jexer.event.TResizeEvent;
@@ -17,12 +19,20 @@ import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
 
+/**
+ * This window will contain the {@link Story} in a readable format, with a
+ * chapter browser.
+ * 
+ * @author niki
+ */
 class TuiReaderStoryWindow extends TWindow {
 	private BasicLibrary lib;
 	private MetaData meta;
 	private Story story;
+	private TLabel titleField;
 	private TText textField;
-	private int chapter = -1;
+	private TTable table;
+	private int chapter = -99; // invalid value
 	private List<TButton> navigationButtons;
 	private TLabel currentChapter;
 
@@ -36,21 +46,23 @@ class TuiReaderStoryWindow extends TWindow {
 
 		app.setStatusBar(this, desc(meta));
 
-		textField = new TText(this, "", 0, 0, getWidth() - 2, getHeight() - 2);
+		// last = use window background
+		titleField = new TLabel(this, "    Title", 0, 1, "tlabel", false);
+		textField = new TText(this, "", 0, 3, getWidth() - 2, getHeight() - 5);
+		table = new TTable(this, 0, 3, getWidth(), getHeight() - 4, null, null,
+				Arrays.asList("Key", "Value"), true);
 
 		navigationButtons = new ArrayList<TButton>(5);
 
 		// -3 because 0-based and 2 for borders
 		int row = getHeight() - 3;
 
-		navigationButtons.add(addButton(" ", 0, row, null)); // for bg colour
-																// when <<
-																// button is
-																// pressed
+		// for bg colour when << button is pressed
+		navigationButtons.add(addButton(" ", 0, row, null));
 		navigationButtons.add(addButton("<<  ", 0, row, new TAction() {
 			@Override
 			public void DO() {
-				setChapter(0);
+				setChapter(-1);
 			}
 		}));
 		navigationButtons.add(addButton("<  ", 4, row, new TAction() {
@@ -78,6 +90,7 @@ class TuiReaderStoryWindow extends TWindow {
 
 		currentChapter = addLabel("", 14, row);
 		currentChapter.setWidth(getWidth() - 10);
+
 		setChapter(chapter);
 	}
 
@@ -88,7 +101,11 @@ class TuiReaderStoryWindow extends TWindow {
 		// Resize the text field TODO: why setW/setH/reflow not enough for the
 		// scrollbars?
 		textField.onResize(new TResizeEvent(Type.WIDGET, resize.getWidth() - 2,
-				resize.getHeight() - 2));
+				resize.getHeight() - 5));
+
+		table.setWidth(getWidth());
+		table.setHeight(getHeight() - 4);
+		table.reflowData();
 
 		// -3 because 0-based and 2 for borders
 		int row = getHeight() - 3;
@@ -129,15 +146,11 @@ class TuiReaderStoryWindow extends TWindow {
 			navigationButtons.get(3).setEnabled(chapter < max);
 			navigationButtons.get(4).setEnabled(chapter < max);
 
-			StringBuilder builder = new StringBuilder();
-
 			if (chapter < 0) {
-				appendInfoPage(builder);
+				displayInfoPage();
 			} else {
-				appendChapterPage(builder);
+				displayChapterPage();
 			}
-
-			setText(builder.toString());
 		}
 
 		setCurrentChapterText();
@@ -149,20 +162,22 @@ class TuiReaderStoryWindow extends TWindow {
 	 * @param builder
 	 *            the builder to append to
 	 */
-	private StringBuilder appendInfoPage(StringBuilder builder) {
+	private void displayInfoPage() {
+		textField.setVisible(false);
+		table.setVisible(true);
+
 		MetaData meta = getStory().getMeta();
 
-		// TODO: use a ttable?
+		setCurrentTitle(meta.getTitle());
 
-		appendTitle(builder, meta.getTitle(), 1).append("\n");
-
-		// i18n
-		builder.append("Author: ").append(meta.getAuthor()).append("\n");
-		builder.append("Publication date: ").append(meta.getDate())
-				.append("\n");
-		builder.append("Word count: ").append(meta.getWords()).append("\n");
-
-		return builder;
+		table.setRowData(new String[][] { //
+				new String[] { "Author", meta.getAuthor() }, //
+				new String[] { "Publication date", meta.getDate() },
+				new String[] { "Word count", Long.toString(meta.getWords()) },
+				new String[] { "Source", meta.getSource() } //
+		});
+		table.setHeaders(Arrays.asList("key", "value"), false);
+		table.toTop();
 	}
 
 	/**
@@ -171,7 +186,12 @@ class TuiReaderStoryWindow extends TWindow {
 	 * @param builder
 	 *            the builder to append to
 	 */
-	private void appendChapterPage(StringBuilder builder) {
+	private void displayChapterPage() {
+		table.setVisible(false);
+		textField.setVisible(true);
+
+		StringBuilder builder = new StringBuilder();
+
 		Chapter chap = null;
 		if (chapter == 0) {
 			chap = getStory().getMeta().getResume();
@@ -181,10 +201,7 @@ class TuiReaderStoryWindow extends TWindow {
 
 		// TODO: i18n
 		String chapName = chap == null ? "[No RESUME]" : chap.getName();
-
-		appendTitle(builder,
-				String.format("Chapter %d: %s", chapter, chapName), 1);
-		builder.append("\n");
+		setCurrentTitle(String.format("Chapter %d: %s", chapter, chapName));
 
 		if (chap != null) {
 			for (Paragraph para : chap) {
@@ -197,6 +214,8 @@ class TuiReaderStoryWindow extends TWindow {
 				}
 			}
 		}
+
+		setText(builder.toString());
 	}
 
 	private Story getStory() {
@@ -250,59 +269,20 @@ class TuiReaderStoryWindow extends TWindow {
 		}
 
 		currentChapter.setLabel(name);
+	}
 
+	/**
+	 * Set the current title in-window.
+	 * 
+	 * @param title
+	 *            the new title
+	 */
+	private void setCurrentTitle(String title) {
+		titleField.setWidth(title.length());
+		titleField.setLabel(title);
 	}
 
 	private static String desc(MetaData meta) {
 		return String.format("%s: %s", meta.getLuid(), meta.getTitle());
-	}
-
-	/**
-	 * Append a title (on its own 2 lines).
-	 * 
-	 * @param builder
-	 *            the {@link StringBuilder} to append to
-	 * @param title
-	 *            the title itself
-	 * @param level
-	 *            the title level, 1 being the highest level, 2 second level and
-	 *            so on
-	 */
-	private static StringBuilder appendTitle(StringBuilder builder,
-			String title, int level) {
-		String hr;
-		switch (level) {
-		case 1:
-			hr = "======";
-			break;
-		case 2:
-			hr = "=-=-=-";
-			break;
-		case 3:
-			hr = "______";
-			break;
-		case 4:
-			hr = "------";
-			break;
-		default:
-			hr = "";
-			break;
-		}
-
-		int fullPad = title.length() / hr.length();
-		int rest = title.length() - (fullPad * hr.length());
-
-		builder.append(title).append("\n");
-		for (int i = 0; i < title.length() / hr.length(); i++) {
-			builder.append(hr);
-		}
-
-		if (rest > 0) {
-			builder.append(hr.substring(0, rest));
-		}
-
-		builder.append("\n");
-
-		return builder;
 	}
 }
