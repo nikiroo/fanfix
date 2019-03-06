@@ -1,7 +1,10 @@
 package be.nikiroo.fanfix.reader.tui;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import jexer.TAction;
@@ -18,6 +21,7 @@ import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
+import be.nikiroo.utils.StringUtils;
 
 /**
  * This window will contain the {@link Story} in a readable format, with a
@@ -48,9 +52,13 @@ class TuiReaderStoryWindow extends TWindow {
 
 		// last = use window background
 		titleField = new TLabel(this, "    Title", 0, 1, "tlabel", false);
-		textField = new TText(this, "", 0, 3, getWidth() - 2, getHeight() - 5);
+		textField = new TText(this, "", 1, 3, getWidth() - 4, getHeight() - 5);
 		table = new TTable(this, 0, 3, getWidth(), getHeight() - 4, null, null,
 				Arrays.asList("Key", "Value"), true);
+
+		titleField.setEnabled(false);
+		textField.getVerticalScroller().setX(
+				textField.getVerticalScroller().getX() + 1);
 
 		navigationButtons = new ArrayList<TButton>(5);
 
@@ -98,10 +106,12 @@ class TuiReaderStoryWindow extends TWindow {
 	public void onResize(TResizeEvent resize) {
 		super.onResize(resize);
 
-		// Resize the text field TODO: why setW/setH/reflow not enough for the
-		// scrollbars?
-		textField.onResize(new TResizeEvent(Type.WIDGET, resize.getWidth() - 2,
+		// Resize the text field
+		// TODO: why setW/setH/reflow not enough for the scrollbars?
+		textField.onResize(new TResizeEvent(Type.WIDGET, resize.getWidth() - 4,
 				resize.getHeight() - 5));
+		textField.getVerticalScroller().setX(
+				textField.getVerticalScroller().getX() + 1);
 
 		table.setWidth(getWidth());
 		table.setHeight(getHeight() - 4);
@@ -165,19 +175,61 @@ class TuiReaderStoryWindow extends TWindow {
 	private void displayInfoPage() {
 		textField.setVisible(false);
 		table.setVisible(true);
+		textField.setEnabled(false);
+		table.setEnabled(true);
 
 		MetaData meta = getStory().getMeta();
 
 		setCurrentTitle(meta.getTitle());
 
 		table.setRowData(new String[][] { //
-				new String[] { "Author", meta.getAuthor() }, //
-				new String[] { "Publication date", meta.getDate() },
-				new String[] { "Word count", Long.toString(meta.getWords()) },
-				new String[] { "Source", meta.getSource() } //
+				new String[] { " Author", meta.getAuthor() }, //
+				new String[] { " Publication date", formatDate(meta.getDate()) },
+				new String[] { " Word count", format(meta.getWords()) },
+				new String[] { " Source", meta.getSource() } //
 		});
 		table.setHeaders(Arrays.asList("key", "value"), false);
 		table.toTop();
+	}
+
+	private String format(long value) {
+		String display = "";
+
+		while (value > 0) {
+			if (!display.isEmpty()) {
+				display = "." + display;
+			}
+			display = (value % 1000) + display;
+			value = value / 1000;
+		}
+
+		return display;
+	}
+
+	private String formatDate(String date) {
+		long ms = 0;
+
+		try {
+			ms = StringUtils.toTime(date);
+		} catch (ParseException e) {
+		}
+
+		if (ms <= 0) {
+			SimpleDateFormat sdf = new SimpleDateFormat(
+					"yyyy-MM-dd'T'HH:mm:ssXXX");
+			try {
+				ms = sdf.parse(date).getTime();
+			} catch (ParseException e) {
+			}
+		}
+
+		if (ms > 0) {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			return sdf.format(new Date(ms));
+		}
+
+		// :(
+		return date;
 	}
 
 	/**
@@ -189,6 +241,8 @@ class TuiReaderStoryWindow extends TWindow {
 	private void displayChapterPage() {
 		table.setVisible(false);
 		textField.setVisible(true);
+		table.setEnabled(false);
+		textField.setEnabled(true);
 
 		StringBuilder builder = new StringBuilder();
 
@@ -278,6 +332,13 @@ class TuiReaderStoryWindow extends TWindow {
 	 *            the new title
 	 */
 	private void setCurrentTitle(String title) {
+		String pad = "";
+		if (title.length() < getWidth()) {
+			int padSize = (getWidth() - title.length()) / 2;
+			pad = String.format("%" + padSize + "s", "");
+		}
+
+		title = pad + title + pad;
 		titleField.setWidth(title.length());
 		titleField.setLabel(title);
 	}
