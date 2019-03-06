@@ -13,6 +13,7 @@ import jexer.TLabel;
 import jexer.TTable;
 import jexer.TText;
 import jexer.TWindow;
+import jexer.event.TCommandEvent;
 import jexer.event.TResizeEvent;
 import jexer.event.TResizeEvent.Type;
 import be.nikiroo.fanfix.data.Chapter;
@@ -345,5 +346,15 @@ class TuiReaderStoryWindow extends TWindow {
 
 	private static String desc(MetaData meta) {
 		return String.format("%s: %s", meta.getLuid(), meta.getTitle());
+	}
+
+	@Override
+	public void onCommand(TCommandEvent command) {
+		if (command.getCmd().equals(TuiReaderApplication.CMD_EXIT)) {
+			TuiReaderApplication.close(this);
+		} else {
+			// Handle our own event if needed here
+			super.onCommand(command);
+		}
 	}
 }

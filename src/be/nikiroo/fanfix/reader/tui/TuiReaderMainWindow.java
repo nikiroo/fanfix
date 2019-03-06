@@ -8,6 +8,7 @@ import jexer.TAction;
 import jexer.TFileOpenBox.Type;
 import jexer.TList;
 import jexer.TWindow;
+import jexer.event.TCommandEvent;
 import jexer.event.TMenuEvent;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
@@ -160,6 +161,16 @@ class TuiReaderMainWindow extends TWindow {
 
 	private String desc(MetaData meta) {
 		return String.format("%5s: %s", meta.getLuid(), meta.getTitle());
+	}
+
+	@Override
+	public void onCommand(TCommandEvent command) {
+		if (command.getCmd().equals(TuiReaderApplication.CMD_EXIT)) {
+			TuiReaderApplication.close(this);
+		} else {
+			// Handle our own event if needed here
+			super.onCommand(command);
+		}
 	}
 
 	@Override
