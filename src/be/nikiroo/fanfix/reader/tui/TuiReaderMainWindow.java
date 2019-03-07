@@ -58,9 +58,7 @@ class TuiReaderMainWindow extends TWindow {
 				null);
 
 		addLabel("Search: ", 5, 3);
-		addEditor("...", 15, 3, 12, 1); // TODO: cannot see where to type, ^H
-										// not working, TAB insert a TAB (cannot
-										// switch to next)
+		addField(15, 3, 12, true);
 
 		list = addList(listItems, 0, 5, getWidth(), getHeight(), new TAction() {
 			@Override
