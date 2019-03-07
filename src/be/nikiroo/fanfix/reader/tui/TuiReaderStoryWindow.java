@@ -21,7 +21,6 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
-import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.utils.StringUtils;
 
 /**
@@ -31,8 +30,6 @@ import be.nikiroo.utils.StringUtils;
  * @author niki
  */
 class TuiReaderStoryWindow extends TWindow {
-	private BasicLibrary lib;
-	private MetaData meta;
 	private Story story;
 	private TLabel titleField;
 	private TText textField;
@@ -42,14 +39,13 @@ class TuiReaderStoryWindow extends TWindow {
 	private TLabel currentChapter;
 
 	// chapter: -1 for "none" (0 is desc)
-	public TuiReaderStoryWindow(TuiReaderApplication app, BasicLibrary lib,
-			MetaData meta, int chapter) {
-		super(app, desc(meta), 0, 0, 60, 18, CENTERED | RESIZABLE);
+	public TuiReaderStoryWindow(TuiReaderApplication app, Story story,
+			int chapter) {
+		super(app, desc(story.getMeta()), 0, 0, 60, 18, CENTERED | RESIZABLE);
 
-		this.lib = lib;
-		this.meta = meta;
+		this.story = story;
 
-		app.setStatusBar(this, desc(meta));
+		app.setStatusBar(this, desc(story.getMeta()));
 
 		// last = use window background
 		titleField = new TLabel(this, "    Title", 0, 1, "tlabel", false);
@@ -274,10 +270,6 @@ class TuiReaderStoryWindow extends TWindow {
 	}
 
 	private Story getStory() {
-		if (story == null) {
-			// TODO: progress bar?
-			story = lib.getStory(meta.getLuid(), null);
-		}
 		return story;
 	}
 

@@ -91,18 +91,18 @@ public abstract class BasicReader implements Reader {
 	}
 
 	@Override
-	public synchronized void setMeta(URL source, Progress pg)
+	public synchronized void setMeta(URL url, Progress pg)
 			throws IOException {
-		BasicSupport support = BasicSupport.getSupport(source);
+		BasicSupport support = BasicSupport.getSupport(url);
 		if (support == null) {
-			throw new IOException("URL not supported: " + source.toString());
+			throw new IOException("URL not supported: " + url.toString());
 		}
 
 		story = support.process(pg);
 		if (story == null) {
 			throw new IOException(
 					"Cannot retrieve story from external source: "
-							+ source.toString());
+							+ url.toString());
 		}
 
 		meta = story.getMeta();

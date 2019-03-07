@@ -44,10 +44,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 
 	private Reader reader;
 	private TuiReaderMainWindow main;
-
-	private MetaData meta;
 	private String source;
-	private boolean useMeta;
 
 	// start reading if meta present
 	public TuiReaderApplication(Reader reader, BackendType backend)
@@ -55,7 +52,10 @@ class TuiReaderApplication extends TApplication implements Reader {
 		super(backend);
 		init(reader);
 
-		showMain(getMeta(), null, true);
+		MetaData meta = getMeta();
+		if (meta != null) {
+			read();
+		}
 	}
 
 	public TuiReaderApplication(Reader reader, String source,
@@ -63,30 +63,13 @@ class TuiReaderApplication extends TApplication implements Reader {
 		super(backend);
 		init(reader);
 
-		showMain(null, source, false);
+		showMain();
+		setSource(source);
 	}
 
 	@Override
 	public void read() throws IOException {
-		MetaData meta = getMeta();
-
-		if (meta == null) {
-			throw new IOException("No story to read");
-		}
-
-		// TODO: open in editor + external option
-		if (!meta.isImageDocument()) {
-			TWindow window = new TuiReaderStoryWindow(this, getLibrary(), meta,
-					getChapter());
-			window.maximize();
-		} else {
-			try {
-				openExternal(getLibrary(), meta.getLuid());
-			} catch (IOException e) {
-				messageBox("Error when trying to open the story",
-						e.getMessage(), TMessageBox.Type.OK);
-			}
-		}
+		read(getStory(null));
 	}
 
 	@Override
@@ -139,6 +122,25 @@ class TuiReaderApplication extends TApplication implements Reader {
 		reader.setChapter(chapter);
 	}
 
+	public void read(Story story) throws IOException {
+		if (story == null) {
+			throw new IOException("No story to read");
+		}
+
+		// TODO: open in editor + external option
+		if (!story.getMeta().isImageDocument()) {
+			TWindow window = new TuiReaderStoryWindow(this, story, getChapter());
+			window.maximize();
+		} else {
+			try {
+				openExternal(getLibrary(), story.getMeta().getLuid());
+			} catch (IOException e) {
+				messageBox("Error when trying to open the story",
+						e.getMessage(), TMessageBox.Type.OK);
+			}
+		}
+	}
+
 	/**
 	 * Set the default status bar when this window appear.
 	 * <p>
@@ -159,13 +161,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 
 	}
 
-	private void showMain(MetaData meta, String source, boolean useMeta)
-			throws IOException {
-		// TODO: thread-safety
-		this.meta = meta;
-		this.source = source;
-		this.useMeta = useMeta;
-
+	private void showMain() {
 		if (main != null && main.isVisible()) {
 			main.activate();
 		} else {
@@ -173,16 +169,14 @@ class TuiReaderApplication extends TApplication implements Reader {
 				main.close();
 			}
 			main = new TuiReaderMainWindow(this);
-			if (useMeta) {
-				main.setMeta(meta);
-				if (meta != null) {
-					read();
-				}
-			} else {
-				main.setSource(source);
-			}
 			main.maximize();
 		}
+	}
+
+	private void setSource(String source) {
+		this.source = source;
+		showMain();
+		main.setSource(source);
 	}
 
 	private void init(Reader reader) {
@@ -223,6 +217,20 @@ class TuiReaderApplication extends TApplication implements Reader {
 		case MENU_EXIT:
 			close(this);
 			return true;
+		case MENU_OPEN:
+			String openfile = null;
+			try {
+				openfile = fileOpenBox(".");
+				reader.setMeta(BasicReader.getUrl(openfile), null);
+				read();
+			} catch (IOException e) {
+				// TODO: i18n
+				error("Fail to open file"
+						+ (openfile == null ? "" : ": " + openfile),
+						"Import error", e);
+			}
+
+			return true;
 		case MENU_IMPORT_URL:
 			String clipboard = "";
 			try {
@@ -242,11 +250,11 @@ class TuiReaderApplication extends TApplication implements Reader {
 
 			try {
 				if (!imprt(url)) {
-					// TODO: i18n + error
+					// TODO: i18n
 					error("URK not supported: " + url, "Import error");
 				}
 			} catch (IOException e) {
-				// TODO: i18n + error
+				// TODO: i18n
 				error("Fail to import URL: " + url, "Import error", e);
 			}
 
@@ -256,24 +264,19 @@ class TuiReaderApplication extends TApplication implements Reader {
 			try {
 				filename = fileOpenBox(".");
 				if (!imprt(filename)) {
-					// TODO: i18n + error
+					// TODO: i18n
 					error("File not supported: " + filename, "Import error");
 				}
 			} catch (IOException e) {
-				// TODO: i18n + error
+				// TODO: i18n
 				error("Fail to import file"
 						+ (filename == null ? "" : ": " + filename),
 						"Import error", e);
 			}
 			return true;
 		case MENU_LIBRARY:
-			try {
-				showMain(meta, source, useMeta);
-			} catch (IOException e) {
-				// i18n
-				error("Cannot show the library", "ERROR", e);
-			}
-
+			showMain();
+			setSource(source);
 			return true;
 		}
 
