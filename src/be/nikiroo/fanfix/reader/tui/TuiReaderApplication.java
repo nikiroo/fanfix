@@ -4,6 +4,7 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.io.IOException;
 import java.net.URL;
+import java.net.UnknownHostException;
 
 import jexer.TApplication;
 import jexer.TCommand;
@@ -239,28 +240,38 @@ class TuiReaderApplication extends TApplication implements Reader {
 			String url = inputBox("Import story", "URL to import", clipboard)
 					.getText();
 
-			if (!imprt(url)) {
-				// TODO: bad import
+			try {
+				if (!imprt(url)) {
+					// TODO: i18n + error
+					error("URK not supported: " + url, "Import error");
+				}
+			} catch (IOException e) {
+				// TODO: i18n + error
+				error("Fail to import URL: " + url, "Import error", e);
 			}
 
 			return true;
 		case MENU_IMPORT_FILE:
+			String filename = null;
 			try {
-				String filename = fileOpenBox(".");
+				filename = fileOpenBox(".");
 				if (!imprt(filename)) {
-					// TODO: bad import
+					// TODO: i18n + error
+					error("File not supported: " + filename, "Import error");
 				}
 			} catch (IOException e) {
-				// TODO: bad file
-				e.printStackTrace();
+				// TODO: i18n + error
+				error("Fail to import file"
+						+ (filename == null ? "" : ": " + filename),
+						"Import error", e);
 			}
-
 			return true;
 		case MENU_LIBRARY:
 			try {
 				showMain(meta, source, useMeta);
 			} catch (IOException e) {
-				e.printStackTrace();
+				// i18n
+				error("Cannot show the library", "ERROR", e);
 			}
 
 			return true;
@@ -269,12 +280,24 @@ class TuiReaderApplication extends TApplication implements Reader {
 		return super.onMenu(menu);
 	}
 
-	private boolean imprt(String url) {
+	/**
+	 * Import the given url.
+	 * <p>
+	 * Can fail if the host is not supported.
+	 * 
+	 * @param url
+	 * 
+	 * @return TRUE in case of success, FALSE if the host is not supported
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	private boolean imprt(String url) throws IOException {
 		try {
 			reader.getLibrary().imprt(BasicReader.getUrl(url), null);
 			main.refreshStories();
 			return true;
-		} catch (IOException e) {
+		} catch (UnknownHostException e) {
 			return false;
 		}
 	}
@@ -282,6 +305,43 @@ class TuiReaderApplication extends TApplication implements Reader {
 	@Override
 	public void openExternal(BasicLibrary lib, String luid) throws IOException {
 		reader.openExternal(lib, luid);
+	}
+
+	/**
+	 * Display an error message and log it.
+	 * 
+	 * @param message
+	 *            the message
+	 * @param title
+	 *            the title of the error message
+	 */
+	private void error(String message, String title) {
+		error(message, title, null);
+	}
+
+	/**
+	 * Display an error message and log it, including the linked
+	 * {@link Exception}.
+	 * 
+	 * @param message
+	 *            the message
+	 * @param title
+	 *            the title of the error message
+	 * @param e
+	 *            the exception to log if any (can be NULL)
+	 */
+	private void error(String message, String title, Exception e) {
+		Instance.getTraceHandler().error(title + ": " + message);
+		if (e != null) {
+			Instance.getTraceHandler().error(e);
+		}
+
+		if (e != null) {
+			messageBox(title, message //
+					+ "\n" + e.getMessage());
+		} else {
+			messageBox(title, message);
+		}
 	}
 
 	/**
