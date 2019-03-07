@@ -2,6 +2,7 @@ package be.nikiroo.fanfix.reader.tui;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import jexer.TAction;
@@ -46,7 +47,22 @@ class TuiReaderMainWindow extends TWindow {
 
 		listKeys = new ArrayList<MetaData>();
 		listItems = new ArrayList<String>();
-		list = addList(listItems, 0, 0, getWidth(), getHeight(), new TAction() {
+
+		// TODO size + onResize
+
+		addLabel("Sort by: ", 5, 1);
+		// -1 = no default index (0 means first,...) 1=height when visible, null
+		// = action
+		addComboBox(15, 1, 12,
+				Arrays.asList("(show all)", "Source", "Name", "Author"), 0, 1,
+				null);
+
+		addLabel("Search: ", 5, 3);
+		addEditor("...", 15, 3, 12, 1); // TODO: cannot see where to type, ^H
+										// not working, TAB insert a TAB (cannot
+										// switch to next)
+
+		list = addList(listItems, 0, 5, getWidth(), getHeight(), new TAction() {
 			@Override
 			public void DO() {
 				MetaData meta = getSelectedMeta();
