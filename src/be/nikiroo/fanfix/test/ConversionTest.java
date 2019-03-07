@@ -182,7 +182,7 @@ class ConversionTest extends TestLauncher {
 			Arrays.sort(expectedArr);
 			expectedFiles = Arrays.asList(expectedArr);
 		}
-		
+
 		testCase.assertEquals(errMess, expectedFiles, resultFiles);
 
 		for (int i = 0; i < resultFiles.size(); i++) {
