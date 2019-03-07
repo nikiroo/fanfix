@@ -43,24 +43,28 @@ class TuiReaderMainWindow extends TWindow {
 
 		this.reader = reader;
 
-		maximize();
-
 		listKeys = new ArrayList<MetaData>();
 		listItems = new ArrayList<String>();
 
 		// TODO size + onResize
 
+		
+
+		addLabel("Search: ", 5, 3);
+		addField(15, 3, 5, true);
+		
 		addLabel("Sort by: ", 5, 1);
 		// -1 = no default index (0 means first,...) 1=height when visible, null
 		// = action
+		List<String> data = Arrays.asList("(show all)", "Source", "Name", "Author");
+		// must be last so to be able to draw over the rest
+		// TODO: make it so we cannot add manual entries
+		// TODO: how to select the item via keyboard? why double-click via mouse?
 		addComboBox(15, 1, 12,
-				Arrays.asList("(show all)", "Source", "Name", "Author"), 0, 1,
+				data, 0, Math.min(data.size()+1,getHeight()-1-1),
 				null);
 
-		addLabel("Search: ", 5, 3);
-		addField(15, 3, 12, true);
-
-		list = addList(listItems, 0, 5, getWidth(), getHeight(), new TAction() {
+		list = addList(listItems, 0, 7, getWidth(), getHeight(), new TAction() {
 			@Override
 			public void DO() {
 				MetaData meta = getSelectedMeta();

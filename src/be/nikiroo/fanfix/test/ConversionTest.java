@@ -172,11 +172,17 @@ class ConversionTest extends TestLauncher {
 			};
 		}
 
-		List<String> resultFiles = Arrays.asList(resultDir.list(filter));
-		resultFiles.sort(null);
-		List<String> expectedFiles = Arrays.asList(expectedDir.list(filter));
-		expectedFiles.sort(null);
-
+		List<String> resultFiles;
+		List<String> expectedFiles;
+		{
+			String[] resultArr = resultDir.list(filter);
+			Arrays.sort(resultArr);
+			resultFiles = Arrays.asList(resultArr);
+			String[] expectedArr = expectedDir.list(filter);
+			Arrays.sort(expectedArr);
+			expectedFiles = Arrays.asList(expectedArr);
+		}
+		
 		testCase.assertEquals(errMess, expectedFiles, resultFiles);
 
 		for (int i = 0; i < resultFiles.size(); i++) {

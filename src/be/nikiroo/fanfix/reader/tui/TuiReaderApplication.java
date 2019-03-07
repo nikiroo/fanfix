@@ -180,6 +180,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 			} else {
 				main.setSource(source);
 			}
+			main.maximize();
 		}
 	}
 
