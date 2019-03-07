@@ -6,10 +6,15 @@ import java.util.Arrays;
 import java.util.List;
 
 import jexer.TAction;
+import jexer.TCommand;
+import jexer.TField;
 import jexer.TFileOpenBox.Type;
+import jexer.TKeypress;
 import jexer.TList;
+import jexer.TStatusBar;
 import jexer.TWindow;
 import jexer.event.TCommandEvent;
+import jexer.event.TKeypressEvent;
 import jexer.event.TMenuEvent;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
@@ -24,11 +29,16 @@ import be.nikiroo.fanfix.reader.Reader;
  * @author niki
  */
 class TuiReaderMainWindow extends TWindow {
+	public static final int MENU_SEARCH = 1100;
+	public static final TCommand CMD_SEARCH = new TCommand(MENU_SEARCH) {
+	};
+
 	private TList list;
 	private List<MetaData> listKeys;
 	private List<String> listItems;
 	private Reader reader;
 	private String source;
+	private String filter = "";
 
 	/**
 	 * Create a new {@link TuiReaderMainWindow} without any stories in the list.
@@ -48,21 +58,31 @@ class TuiReaderMainWindow extends TWindow {
 
 		// TODO size + onResize
 
-		
-
 		addLabel("Search: ", 5, 3);
-		addField(15, 3, 5, true);
-		
+		@SuppressWarnings("unused")
+		TField field = new TField(this, 15, 3, 5, true) {
+			@Override
+			public void onKeypress(TKeypressEvent keypress) {
+				super.onKeypress(keypress);
+				TKeypress key = keypress.getKey();
+				if (key.isFnKey() && key.getKeyCode() == TKeypress.ENTER) {
+					TuiReaderMainWindow.this.filter = getText();
+					TuiReaderMainWindow.this.refreshStories();
+				}
+			}
+		};
+
 		addLabel("Sort by: ", 5, 1);
 		// -1 = no default index (0 means first,...) 1=height when visible, null
 		// = action
-		List<String> data = Arrays.asList("(show all)", "Source", "Name", "Author");
+		List<String> data = Arrays.asList("(show all)", "Source", "Name",
+				"Author");
 		// must be last so to be able to draw over the rest
 		// TODO: make it so we cannot add manual entries
-		// TODO: how to select the item via keyboard? why double-click via mouse?
-		addComboBox(15, 1, 12,
-				data, 0, Math.min(data.size()+1,getHeight()-1-1),
-				null);
+		// TODO: how to select the item via keyboard? why double-click via
+		// mouse?
+		addComboBox(15, 1, 12, data, 0,
+				Math.min(data.size() + 1, getHeight() - 1 - 1), null);
 
 		list = addList(listItems, 0, 7, getWidth(), getHeight(), new TAction() {
 			@Override
@@ -74,8 +94,8 @@ class TuiReaderMainWindow extends TWindow {
 			}
 		});
 
-		// TODO: add the current "source/type" or filter
-		reader.setStatusBar(this, "Library");
+		TStatusBar statusBar = reader.setStatusBar(this, "Library");
+		statusBar.addShortcutKeypress(TKeypress.kbCtrlF, CMD_SEARCH, "Search");
 
 		// TODO: remove when not used anymore
 
@@ -109,6 +129,16 @@ class TuiReaderMainWindow extends TWindow {
 	}
 
 	/**
+	 * Refresh the list of stories displayed in this library.
+	 * <p>
+	 * Will take the current settings into account (filter, source...).
+	 */
+	public void refreshStories() {
+		List<MetaData> metas = reader.getLibrary().getListBySource(source);
+		setMetas(metas);
+	}
+
+	/**
 	 * Change the source filter and display all stories matching this source.
 	 * 
 	 * @param source
@@ -119,28 +149,11 @@ class TuiReaderMainWindow extends TWindow {
 		refreshStories();
 	}
 
-	public void refreshStories() {
-		List<MetaData> metas = reader.getLibrary().getListBySource(source);
-		setMetas(metas);
-	}
-
 	/**
 	 * Update the list of stories displayed in this {@link TWindow}.
-	 * 
-	 * @param meta
-	 *            the new (unique) story to display
-	 */
-	public void setMeta(MetaData meta) {
-		List<MetaData> metas = new ArrayList<MetaData>();
-		if (meta != null) {
-			metas.add(meta);
-		}
-
-		setMetas(metas);
-	}
-
-	/**
-	 * Update the list of stories displayed in this {@link TWindow}.
+	 * <p>
+	 * If a filter is set, only the stories which pass the filter will be
+	 * displayed.
 	 * 
 	 * @param metas
 	 *            the new list of stories to display
@@ -151,8 +164,12 @@ class TuiReaderMainWindow extends TWindow {
 
 		if (metas != null) {
 			for (MetaData meta : metas) {
-				listKeys.add(meta);
-				listItems.add(desc(meta));
+				String desc = desc(meta);
+				if (filter.isEmpty()
+						|| desc.toLowerCase().contains(filter.toLowerCase())) {
+					listKeys.add(meta);
+					listItems.add(desc);
+				}
 			}
 		}
 
@@ -214,6 +231,7 @@ class TuiReaderMainWindow extends TWindow {
 				}
 
 				return;
+
 			case -1:
 				try {
 					reader.getLibrary().delete(meta.getLuid());

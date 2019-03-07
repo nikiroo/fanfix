@@ -13,6 +13,7 @@ import jexer.TMessageBox;
 import jexer.TStatusBar;
 import jexer.TWidget;
 import jexer.TWindow;
+import jexer.event.TCommandEvent;
 import jexer.event.TMenuEvent;
 import jexer.menu.TMenu;
 import be.nikiroo.fanfix.Instance;
@@ -208,6 +209,15 @@ class TuiReaderApplication extends TApplication implements Reader {
 		addWindowMenu();
 
 		getBackend().setTitle("Fanfix");
+	}
+
+	@Override
+	protected boolean onCommand(TCommandEvent command) {
+		if (command.getCmd().equals(TuiReaderMainWindow.CMD_SEARCH)) {
+			messageBox("title", "caption");
+			return true;
+		}
+		return super.onCommand(command);
 	}
 
 	@Override
