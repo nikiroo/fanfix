@@ -119,11 +119,7 @@ class TuiReaderStoryWindow extends TWindow {
 		textField.getVerticalScroller().setX(
 				textField.getVerticalScroller().getX() + 1);
 
-		String name = currentChapter.getLabel();
-		int size = Math.max(name.length(), currentChapter.getWidth());
-		name = String.format("%" + size + "s", name);
-
-		currentChapter.setLabel(name);
+		setCurrentChapterText();
 	}
 
 	/**
@@ -303,10 +299,7 @@ class TuiReaderStoryWindow extends TWindow {
 		}
 
 		int width = getWidth() - currentChapter.getX();
-		while (name.length() < width) {
-			name += " ";
-		}
-
+		name = String.format("%-" + width + "s", name);
 		if (name.length() > width) {
 			name = name.substring(0, width);
 		}

@@ -54,9 +54,9 @@ public class TSizeConstraint {
 	}
 
 	// coordinates < 0 = from the other side, x2 or y2 = 0 = max size
-	static void setSize(List<TSizeConstraint> list, TWidget child, Integer x1,
-			Integer y1, Integer x2, Integer y2) {
-		list.add(new TSizeConstraint(child, x1, y1, x2, y2));
+	static void setSize(List<TSizeConstraint> sizeConstraints, TWidget child,
+			Integer x1, Integer y1, Integer x2, Integer y2) {
+		sizeConstraints.add(new TSizeConstraint(child, x1, y1, x2, y2));
 	}
 
 	static void resize(List<TSizeConstraint> sizeConstraints) {
