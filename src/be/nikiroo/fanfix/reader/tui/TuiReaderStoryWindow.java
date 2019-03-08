@@ -15,7 +15,6 @@ import jexer.TText;
 import jexer.TWindow;
 import jexer.event.TCommandEvent;
 import jexer.event.TResizeEvent;
-import jexer.event.TResizeEvent.Type;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
@@ -37,6 +36,7 @@ class TuiReaderStoryWindow extends TWindow {
 	private int chapter = -99; // invalid value
 	private List<TButton> navigationButtons;
 	private TLabel currentChapter;
+	private List<TSizeConstraint> sizeConstraints = new ArrayList<TSizeConstraint>();
 
 	// chapter: -1 for "none" (0 is desc)
 	public TuiReaderStoryWindow(TuiReaderApplication app, Story story,
@@ -49,40 +49,35 @@ class TuiReaderStoryWindow extends TWindow {
 
 		// last = use window background
 		titleField = new TLabel(this, "    Title", 0, 1, "tlabel", false);
-		textField = new TText(this, "", 1, 3, getWidth() - 4, getHeight() - 5);
-		table = new TTable(this, 0, 3, getWidth(), getHeight() - 4, null, null,
-				Arrays.asList("Key", "Value"), true);
+		textField = new TText(this, "", 0, 0, 1, 1);
+		table = new TTable(this, 0, 0, 1, 1, null, null, Arrays.asList("Key",
+				"Value"), true);
 
 		titleField.setEnabled(false);
-		textField.getVerticalScroller().setX(
-				textField.getVerticalScroller().getX() + 1);
 
 		navigationButtons = new ArrayList<TButton>(5);
 
-		// -3 because 0-based and 2 for borders
-		int row = getHeight() - 3;
-
 		// for bg colour when << button is pressed
-		navigationButtons.add(addButton(" ", 0, row, null));
-		navigationButtons.add(addButton("<<  ", 0, row, new TAction() {
+		navigationButtons.add(addButton(" ", 0, 0, null));
+		navigationButtons.add(addButton("<<  ", 0, 0, new TAction() {
 			@Override
 			public void DO() {
 				setChapter(-1);
 			}
 		}));
-		navigationButtons.add(addButton("<  ", 4, row, new TAction() {
+		navigationButtons.add(addButton("<  ", 4, 0, new TAction() {
 			@Override
 			public void DO() {
 				setChapter(TuiReaderStoryWindow.this.chapter - 1);
 			}
 		}));
-		navigationButtons.add(addButton(">  ", 7, row, new TAction() {
+		navigationButtons.add(addButton(">  ", 7, 0, new TAction() {
 			@Override
 			public void DO() {
 				setChapter(TuiReaderStoryWindow.this.chapter + 1);
 			}
 		}));
-		navigationButtons.add(addButton(">>  ", 10, row, new TAction() {
+		navigationButtons.add(addButton(">>  ", 10, 0, new TAction() {
 			@Override
 			public void DO() {
 				setChapter(getStory().getChapters().size());
@@ -93,41 +88,42 @@ class TuiReaderStoryWindow extends TWindow {
 		navigationButtons.get(1).setEnabled(false);
 		navigationButtons.get(2).setEnabled(false);
 
-		currentChapter = addLabel("", 14, row);
-		currentChapter.setWidth(getWidth() - 10);
+		currentChapter = addLabel("", 0, 0);
+
+		TSizeConstraint.setSize(sizeConstraints, textField, 1, 3, -1, 0);
+		TSizeConstraint.setSize(sizeConstraints, table, 0, 3, 0, 0);
+		TSizeConstraint.setSize(sizeConstraints, currentChapter, 14, -3, -1,
+				null);
+
+		for (TButton navigationButton : navigationButtons) {
+			TSizeConstraint.setSize(sizeConstraints, navigationButton, null,
+					-3, null, null);
+		}
+
+		onResize(null);
 
 		setChapter(chapter);
 	}
 
 	@Override
 	public void onResize(TResizeEvent resize) {
-		super.onResize(resize);
+		if (resize != null) {
+			super.onResize(resize);
+		}
 
-		// Resize the text field
-		// TODO: why setW/setH/reflow not enough for the scrollbars?
-		textField.onResize(new TResizeEvent(Type.WIDGET, resize.getWidth() - 4,
-				resize.getHeight() - 5));
+		// TODO: find out why TText and TTable does not behave the same way
+		// (offset of 2 for height and width)
+
+		TSizeConstraint.resize(sizeConstraints);
+
 		textField.getVerticalScroller().setX(
 				textField.getVerticalScroller().getX() + 1);
 
-		table.setWidth(getWidth());
-		table.setHeight(getHeight() - 4);
-		table.reflowData();
-
-		// -3 because 0-based and 2 for borders
-		int row = getHeight() - 3;
-
 		String name = currentChapter.getLabel();
-		while (name.length() < resize.getWidth() - currentChapter.getX()) {
-			name += " ";
-		}
-		currentChapter.setLabel(name);
-		currentChapter.setWidth(resize.getWidth() - 10);
-		currentChapter.setY(row);
+		int size = Math.max(name.length(), currentChapter.getWidth());
+		name = String.format("%" + size + "s", name);
 
-		for (TButton button : navigationButtons) {
-			button.setY(row);
-		}
+		currentChapter.setLabel(name);
 	}
 
 	/**
