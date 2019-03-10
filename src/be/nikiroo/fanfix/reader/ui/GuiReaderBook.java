@@ -401,8 +401,6 @@ class GuiReaderBook extends JPanel {
 							.getSourceCover(meta.getSource());
 				}
 
-				BufferedImage coverb = ImageUtilsAwt.fromImage(cover);
-
 				resizedImage = new BufferedImage(SPINE_WIDTH + COVER_WIDTH,
 						SPINE_HEIGHT + COVER_HEIGHT + HOFFSET,
 						BufferedImage.TYPE_4BYTE_ABGR);
@@ -410,6 +408,7 @@ class GuiReaderBook extends JPanel {
 				g.setColor(Color.white);
 				g.fillRect(0, HOFFSET, COVER_WIDTH, COVER_HEIGHT);
 				if (cover != null) {
+					BufferedImage coverb = ImageUtilsAwt.fromImage(cover);
 					g.drawImage(coverb, 0, HOFFSET, COVER_WIDTH, COVER_HEIGHT,
 							null);
 				} else {

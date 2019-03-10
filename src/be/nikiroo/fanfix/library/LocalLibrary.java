@@ -224,18 +224,23 @@ public class LocalLibrary extends BasicLibrary {
 		File coverDir = new File(baseDir, source);
 		if (coverDir.isDirectory()) {
 			File cover = new File(coverDir, ".cover.png");
-			InputStream in;
-			try {
-				in = new FileInputStream(cover);
+			if (cover.exists()) {
+				InputStream in;
 				try {
-					sourceCovers.put(source, new Image(in));
-				} finally {
-					in.close();
+					in = new FileInputStream(cover);
+					try {
+						sourceCovers.put(source, new Image(in));
+					} finally {
+						in.close();
+					}
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					Instance.getTraceHandler().error(
+							new IOException(
+									"Cannot load the existing custom source cover: "
+											+ cover, e));
 				}
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 		}
 
