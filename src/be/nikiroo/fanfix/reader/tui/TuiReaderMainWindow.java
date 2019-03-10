@@ -35,16 +35,24 @@ class TuiReaderMainWindow extends TWindow {
 	public static final TCommand CMD_SEARCH = new TCommand(MENU_SEARCH) {
 	};
 
+	public enum Mode {
+		SOURCE, AUTHOR,
+	}
+
 	private TList list;
 	private List<MetaData> listKeys;
 	private List<String> listItems;
 	private Reader reader;
-	private String source;
+
+	private Mode mode = Mode.SOURCE;
+	private String target = null;
 	private String filter = "";
+
 	private List<TSizeConstraint> sizeConstraints = new ArrayList<TSizeConstraint>();
 
 	// TODO: because no way to find out the current index!!
 	private TComboBox select;
+	private TComboBox option;
 
 	/**
 	 * Create a new {@link TuiReaderMainWindow} without any stories in the list.
@@ -132,15 +140,15 @@ class TuiReaderMainWindow extends TWindow {
 	private void addSelect() {
 		// TODO: make a full list
 		final List<String> options = new ArrayList<String>();
-		options.add("(all opt)");
+		options.add("(show all)");
 		options.add("Sources");
 		options.add("Author");
 
 		// TODO
-		final List<String> sources = new ArrayList<String>();
-		sources.add("(show all)");
+		final List<String> selects = new ArrayList<String>();
+		selects.add("(show all)");
 		for (String source : reader.getLibrary().getSources()) {
-			sources.add(source);
+			selects.add(source);
 		}
 
 		TLabel lblSelect = addLabel("Select: ", 0, 0);
@@ -153,31 +161,60 @@ class TuiReaderMainWindow extends TWindow {
 		// TODO: setWidth() does not impact the display width, only the control
 		// and the down arrow on the right
 		// TODO: width 1 +resize + click on down arrow = bad format exception
-		select = addComboBox(0, 0, 10, sources, 0,
-				Math.min(sources.size() + 1, getHeight() - 1 - 1),
+		select = addComboBox(0, 0, 10, selects, 0,
+				Math.min(selects.size() + 1, getHeight() - 1 - 1),
 				new TAction() {
 					@Override
 					public void DO() {
-						// TODO: wut?
+						// TODO: detect (show all)
 						if (select.getText().equals("(show all)")) {
-							setSource(null);
+							setMode(mode, null);
 						} else {
-							setSource(select.getText());
+							setMode(mode, select.getText());
 						}
-						refreshStories();
 					}
 				});
 
-		final TComboBox option = addComboBox(0, 0, 10, options, 0,
-				Math.min(sources.size() + 1, getHeight() - 1 - 1),
+		option = addComboBox(0, 0, 10, options, 0,
+				Math.min(selects.size() + 1, getHeight() - 1 - 1),
 				new TAction() {
 					@Override
 					public void DO() {
-						// TODO Not working:
-						sources.clear();
-						sources.add("(show all)");
-						for (String source : reader.getLibrary().getSources()) {
-							sources.add(source);
+						// TODO clear not working!!
+
+						String smode = option.getText();
+						Mode mode;
+						if (smode == null || smode.equals("(show all)")) {
+							mode = null;
+							select.setVisible(false);
+							select.setEnabled(false);
+						} else if (smode.equals("Sources")) {
+							mode = Mode.SOURCE;
+							select.setVisible(true);
+							select.setEnabled(true);
+							selects.clear();
+							selects.add("(show all)");
+							for (String source : reader.getLibrary()
+									.getSources()) {
+								selects.add(source);
+							}
+						} else {
+							mode = Mode.AUTHOR;
+							select.setVisible(true);
+							select.setEnabled(true);
+							selects.clear();
+							selects.add("(show all)");
+							for (String author : reader.getLibrary()
+									.getAuthors()) {
+								selects.add(author);
+							}
+						}
+
+						// TODO: detect (show all)
+						if (select.getText().equals("(show all)")) {
+							setMode(mode, null);
+						} else {
+							setMode(mode, select.getText());
 						}
 					}
 				});
@@ -205,18 +242,30 @@ class TuiReaderMainWindow extends TWindow {
 	 * Will take the current settings into account (filter, source...).
 	 */
 	public void refreshStories() {
-		List<MetaData> metas = reader.getLibrary().getListBySource(source);
+		List<MetaData> metas;
+		if (mode == Mode.SOURCE) {
+			metas = reader.getLibrary().getListBySource(target);
+		} else if (mode == Mode.AUTHOR) {
+			metas = reader.getLibrary().getListByAuthor(target);
+		} else {
+			metas = reader.getLibrary().getList();
+		}
+
 		setMetas(metas);
 	}
 
 	/**
-	 * Change the source filter and display all stories matching this source.
+	 * Change the author/source filter and display all stories matching this
+	 * target.
 	 * 
-	 * @param source
-	 *            the new source or NULL for all sources
+	 * @param mode
+	 *            the new mode or NULL for no sorting
+	 * @param target
+	 *            the actual target for the given mode, or NULL for all of them
 	 */
-	public void setSource(String source) {
-		this.source = source;
+	public void setMode(Mode mode, String target) {
+		this.mode = mode;
+		this.target = target;
 		refreshStories();
 	}
 

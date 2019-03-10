@@ -22,6 +22,7 @@ import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.reader.Reader;
+import be.nikiroo.fanfix.reader.tui.TuiReaderMainWindow.Mode;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -45,7 +46,6 @@ class TuiReaderApplication extends TApplication implements Reader {
 
 	private Reader reader;
 	private TuiReaderMainWindow main;
-	private String source;
 
 	// start reading if meta present
 	public TuiReaderApplication(Reader reader, BackendType backend)
@@ -65,7 +65,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 		init(reader);
 
 		showMain();
-		setSource(source);
+		main.setMode(Mode.SOURCE, source);
 	}
 
 	@Override
@@ -174,12 +174,6 @@ class TuiReaderApplication extends TApplication implements Reader {
 		}
 	}
 
-	private void setSource(String source) {
-		this.source = source;
-		showMain();
-		main.setSource(source);
-	}
-
 	private void init(Reader reader) {
 		this.reader = reader;
 
@@ -286,7 +280,6 @@ class TuiReaderApplication extends TApplication implements Reader {
 			return true;
 		case MENU_LIBRARY:
 			showMain();
-			setSource(source);
 			return true;
 		}
 
