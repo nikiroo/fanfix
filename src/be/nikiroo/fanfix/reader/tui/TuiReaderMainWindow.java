@@ -51,8 +51,8 @@ class TuiReaderMainWindow extends TWindow {
 	private List<TSizeConstraint> sizeConstraints = new ArrayList<TSizeConstraint>();
 
 	// TODO: because no way to find out the current index!!
-	private TComboBox select;
-	private TComboBox option;
+	private TComboBox selectTargetBox;
+	private TComboBox selectBox;
 
 	/**
 	 * Create a new {@link TuiReaderMainWindow} without any stories in the list.
@@ -70,9 +70,9 @@ class TuiReaderMainWindow extends TWindow {
 		listKeys = new ArrayList<MetaData>();
 		listItems = new ArrayList<String>();
 
-		addSearch();
 		addList();
-		addSelect(); // TODO: last so it can draw over the rest
+		addSearch();
+		addSelect(); // last so we can see the drop down over the list
 
 		TStatusBar statusBar = reader.setStatusBar(this, "Library");
 		statusBar.addShortcutKeypress(TKeypress.kbCtrlF, CMD_SEARCH, "Search");
@@ -138,90 +138,80 @@ class TuiReaderMainWindow extends TWindow {
 	}
 
 	private void addSelect() {
-		// TODO: make a full list
-		final List<String> options = new ArrayList<String>();
-		options.add("(show all)");
-		options.add("Sources");
-		options.add("Author");
-
-		// TODO
+		// TODO: i18n
 		final List<String> selects = new ArrayList<String>();
 		selects.add("(show all)");
-		for (String source : reader.getLibrary().getSources()) {
-			selects.add(source);
-		}
+		selects.add("Sources");
+		selects.add("Author");
+
+		final List<String> selectTargets = new ArrayList<String>();
+		selectTargets.add("");
 
 		TLabel lblSelect = addLabel("Select: ", 0, 0);
 
-		// TODO: why must be last so to be able to draw over the rest
-		// TODO: make it so we cannot add manual entries
-		// TODO: how to select the item via keyboard? why double-click via
-		// mouse?
-		// TODO: how to change the values size on resize?
-		// TODO: setWidth() does not impact the display width, only the control
-		// and the down arrow on the right
-		// TODO: width 1 +resize + click on down arrow = bad format exception
-		select = addComboBox(0, 0, 10, selects, 0,
-				Math.min(selects.size() + 1, getHeight() - 1 - 1),
+		TAction onSelect = new TAction() {
+			@Override
+			public void DO() {
+				String smode = selectBox.getText();
+				Mode mode;
+				boolean showTarget;
+				if (smode == null || smode.equals("(show all)")) {
+					mode = null;
+					showTarget = false;
+				} else if (smode.equals("Sources")) {
+					mode = Mode.SOURCE;
+					selectTargets.clear();
+					selectTargets.add("(show all)");
+					for (String source : reader.getLibrary().getSources()) {
+						selectTargets.add(source);
+					}
+					showTarget = true;
+				} else {
+					mode = Mode.AUTHOR;
+					selectTargets.clear();
+					selectTargets.add("(show all)");
+					for (String author : reader.getLibrary().getAuthors()) {
+						selectTargets.add(author);
+					}
+
+					showTarget = true;
+				}
+
+				selectTargetBox.setVisible(showTarget);
+				selectTargetBox.setEnabled(showTarget);
+				if (showTarget) {
+					selectTargetBox.reflowData();
+				}
+
+				selectTargetBox.setText(selectTargets.get(0));
+				setMode(mode, null);
+			}
+		};
+
+		selectBox = addComboBox(0, 0, 10, selects, 0, -1, onSelect);
+		selectBox.setReadOnly(true);
+
+		selectTargetBox = addComboBox(0, 0, 0, selectTargets, 0, -1,
 				new TAction() {
 					@Override
 					public void DO() {
 						// TODO: detect (show all)
-						if (select.getText().equals("(show all)")) {
+						if (selectTargetBox.getText().equals("(show all)")) {
 							setMode(mode, null);
 						} else {
-							setMode(mode, select.getText());
+							setMode(mode, selectTargetBox.getText());
 						}
 					}
 				});
+		selectTargetBox.setReadOnly(true);
 
-		option = addComboBox(0, 0, 10, options, 0,
-				Math.min(selects.size() + 1, getHeight() - 1 - 1),
-				new TAction() {
-					@Override
-					public void DO() {
-						// TODO clear not working!!
-
-						String smode = option.getText();
-						Mode mode;
-						if (smode == null || smode.equals("(show all)")) {
-							mode = null;
-							select.setVisible(false);
-							select.setEnabled(false);
-						} else if (smode.equals("Sources")) {
-							mode = Mode.SOURCE;
-							select.setVisible(true);
-							select.setEnabled(true);
-							selects.clear();
-							selects.add("(show all)");
-							for (String source : reader.getLibrary()
-									.getSources()) {
-								selects.add(source);
-							}
-						} else {
-							mode = Mode.AUTHOR;
-							select.setVisible(true);
-							select.setEnabled(true);
-							selects.clear();
-							selects.add("(show all)");
-							for (String author : reader.getLibrary()
-									.getAuthors()) {
-								selects.add(author);
-							}
-						}
-
-						// TODO: detect (show all)
-						if (select.getText().equals("(show all)")) {
-							setMode(mode, null);
-						} else {
-							setMode(mode, select.getText());
-						}
-					}
-				});
+		// Set defaults
+		onSelect.DO();
 
 		TSizeConstraint.setSize(sizeConstraints, lblSelect, 5, 3, null, null);
-		TSizeConstraint.setSize(sizeConstraints, option, 15, 3, -5, null);
-		TSizeConstraint.setSize(sizeConstraints, select, 15, 4, -5, null);
+		TSizeConstraint.setSize(sizeConstraints, selectBox, 15, 3, -5, null);
+		TSizeConstraint.setSize(sizeConstraints, selectTargetBox, 15, 4, -5,
+				null);
 	}
 
 	@Override
