@@ -50,7 +50,7 @@ class TuiReaderMainWindow extends TWindow {
 
 	private List<TSizeConstraint> sizeConstraints = new ArrayList<TSizeConstraint>();
 
-	// TODO: because no way to find out the current index!!
+	// The 2 comboboxes used to select by source/author
 	private TComboBox selectTargetBox;
 	private TComboBox selectBox;
 
@@ -72,7 +72,7 @@ class TuiReaderMainWindow extends TWindow {
 
 		addList();
 		addSearch();
-		addSelect(); // last so we can see the drop down over the list
+		addSelect();
 
 		TStatusBar statusBar = reader.setStatusBar(this, "Library");
 		statusBar.addShortcutKeypress(TKeypress.kbCtrlF, CMD_SEARCH, "Search");
@@ -153,13 +153,10 @@ class TuiReaderMainWindow extends TWindow {
 			@Override
 			public void DO() {
 				String smode = selectBox.getText();
-				Mode mode;
 				boolean showTarget;
 				if (smode == null || smode.equals("(show all)")) {
-					mode = null;
 					showTarget = false;
 				} else if (smode.equals("Sources")) {
-					mode = Mode.SOURCE;
 					selectTargets.clear();
 					selectTargets.add("(show all)");
 					for (String source : reader.getLibrary().getSources()) {
@@ -167,7 +164,6 @@ class TuiReaderMainWindow extends TWindow {
 					}
 					showTarget = true;
 				} else {
-					mode = Mode.AUTHOR;
 					selectTargets.clear();
 					selectTargets.add("(show all)");
 					for (String author : reader.getLibrary().getAuthors()) {
@@ -184,7 +180,11 @@ class TuiReaderMainWindow extends TWindow {
 				}
 
 				selectTargetBox.setText(selectTargets.get(0));
-				setMode(mode, null);
+				if (showTarget) {
+					TuiReaderMainWindow.this.activate(selectTargetBox);
+				} else {
+					TuiReaderMainWindow.this.activate(list);
+				}
 			}
 		};
 
@@ -194,8 +194,8 @@ class TuiReaderMainWindow extends TWindow {
 				new TAction() {
 					@Override
 					public void DO() {
-						// TODO: detect (show all)
-						if (selectTargetBox.getText().equals("(show all)")) {
+						if (selectTargetBox.getText().equals(
+								selectTargets.get(0))) {
 							setMode(mode, null);
 						} else {
 							setMode(mode, selectTargetBox.getText());
@@ -282,6 +282,9 @@ class TuiReaderMainWindow extends TWindow {
 		}
 
 		list.setList(listItems);
+		if (listItems.size() > 0) {
+			list.setSelectedIndex(0);
+		}
 	}
 
 	public MetaData getSelectedMeta() {
