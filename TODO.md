@@ -26,10 +26,12 @@ My current planning for Fanfix (but not everything appears on this list):
   - [ ] Fix the UI layout
   - [x] Status bar
   - [ ] Real menus
+    - [ ] Store the long lists in [A-B], [BA-BB], ...
   - [x] Open a story in the reader and/or natively
   - [ ] Update the screenshots
   - [ ] Remember the current chapter and current read status of stories
-  - [ ] support progress events
+  - [ ] Support progress events
+  - [ ] Add a property pages
 - [x] Network support
   - [x] A server that can send the stories
   - [x] A network implementation of the Library
