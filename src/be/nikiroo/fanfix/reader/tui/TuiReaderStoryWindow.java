@@ -10,7 +10,6 @@ import java.util.List;
 import jexer.TAction;
 import jexer.TButton;
 import jexer.TLabel;
-import jexer.TTable;
 import jexer.TText;
 import jexer.TWindow;
 import jexer.event.TCommandEvent;
@@ -20,6 +19,7 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.jexer.TTable;
 import be.nikiroo.utils.StringUtils;
 
 /**
@@ -50,8 +50,7 @@ class TuiReaderStoryWindow extends TWindow {
 		// last = use window background
 		titleField = new TLabel(this, "    Title", 0, 1, "tlabel", false);
 		textField = new TText(this, "", 0, 0, 1, 1);
-		table = new TTable(this, 0, 0, 1, 1, null, null, Arrays.asList("Key",
-				"Value"), true);
+		table = new TTable(this, 0, 0, 1, 1, null, null, Arrays.asList("Key", "Value"), true);
 
 		titleField.setEnabled(false);
 

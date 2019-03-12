@@ -189,7 +189,6 @@ class TuiReaderMainWindow extends TWindow {
 		};
 
 		selectBox = addComboBox(0, 0, 10, selects, 0, -1, onSelect);
-		selectBox.setReadOnly(true);
 
 		selectTargetBox = addComboBox(0, 0, 0, selectTargets, 0, -1,
 				new TAction() {
@@ -203,7 +202,6 @@ class TuiReaderMainWindow extends TWindow {
 						}
 					}
 				});
-		selectTargetBox.setReadOnly(true);
 
 		// Set defaults
 		onSelect.DO();
