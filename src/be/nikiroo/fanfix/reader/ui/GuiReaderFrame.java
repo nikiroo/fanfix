@@ -184,7 +184,7 @@ class GuiReaderFrame extends JFrame {
 						break;
 
 					case UNAVAILABLE:
-						err += "Library currently unavilable";
+						err += "Library currently unavailable";
 						break;
 
 					default:
@@ -330,7 +330,6 @@ class GuiReaderFrame extends JFrame {
 
 	/**
 	 * Refresh the list of {@link GuiReaderBook}s from disk.
-	 * 
 	 */
 	private void refreshBooks() {
 		for (GuiReaderGroup group : booksByType.keySet()) {
@@ -720,7 +719,7 @@ class GuiReaderFrame extends JFrame {
 						outOfUi(null, new Runnable() {
 							@Override
 							public void run() {
-								reader.changeType(selectedBook.getMeta()
+								reader.changeSource(selectedBook.getMeta()
 										.getLuid(), ftype);
 
 								selectedBook = null;
@@ -760,7 +759,7 @@ class GuiReaderFrame extends JFrame {
 							GuiReaderFrame.this.selectedBook = null;
 							MetaData newMeta = story.getMeta();
 							if (!newMeta.getSource().equals(meta.getSource())) {
-								reader.changeType(newMeta.getLuid(),
+								reader.changeSource(newMeta.getLuid(),
 										meta.getSource());
 							}
 						}

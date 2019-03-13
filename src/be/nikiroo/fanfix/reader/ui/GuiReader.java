@@ -19,10 +19,22 @@ import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.library.CacheLibrary;
 import be.nikiroo.fanfix.reader.BasicReader;
+import be.nikiroo.fanfix.reader.Reader;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.ui.UIUtils;
 
+/**
+ * This class implements a graphical {@link Reader} using the Swing library from
+ * Java.
+ * <p>
+ * It can thus be themed to look native-like, or metal-like, or use any other
+ * theme you may want to try.
+ * <p>
+ * We actually try to enable native look-alike mode on start.
+ * 
+ * @author niki
+ */
 class GuiReader extends BasicReader {
 	static private boolean nativeLookLoaded;
 
@@ -30,7 +42,14 @@ class GuiReader extends BasicReader {
 
 	private File cacheDir;
 
+	/**
+	 * Create a new graphical {@link Reader}.
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
 	public GuiReader() throws IOException {
+		// TODO: allow different themes?
 		if (!nativeLookLoaded) {
 			UIUtils.setLookAndFeel();
 			nativeLookLoaded = true;
@@ -161,7 +180,16 @@ class GuiReader extends BasicReader {
 		}
 	}
 
-	// delete from local reader library
+	/**
+	 * Delete the {@link Story} from the cache if it is present, but <b>NOT</b>
+	 * from the main library.
+	 * <p>
+	 * The next time we try to retrieve the {@link Story}, it may be required to
+	 * cache it again.
+	 * 
+	 * @param luid
+	 *            the luid of the {@link Story}
+	 */
 	void clearLocalReaderCache(String luid) {
 		try {
 			cacheLib.clearFromCache(luid);
@@ -170,7 +198,15 @@ class GuiReader extends BasicReader {
 		}
 	}
 
-	// delete from main library
+	/**
+	 * Forward the delete operation to the main library.
+	 * <p>
+	 * The {@link Story} will be deleted from the main library as well as the
+	 * cache if present.
+	 * 
+	 * @param luid
+	 *            the {@link Story} to delete
+	 */
 	void delete(String luid) {
 		try {
 			cacheLib.delete(luid);
@@ -179,15 +215,42 @@ class GuiReader extends BasicReader {
 		}
 	}
 
-	// open the given book
+	/**
+	 * "Open" the given {@link Story}. It usually involves starting an external
+	 * program adapted to the given file type.
+	 * 
+	 * @param luid
+	 *            the luid of the {@link Story} to open
+	 * @param pg
+	 *            the optional progress (we may need to prepare the
+	 *            {@link Story} for reading
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
 	void read(String luid, Progress pg) throws IOException {
 		File file = cacheLib.getFile(luid, pg);
 
 		// TODO: show a special page for the chapter?
+		// We could also implement an internal viewer, both for image and
+		// non-image documents
 		openExternal(getLibrary().getInfo(luid), file);
 	}
 
-	void changeType(String luid, String newSource) {
+	/**
+	 * Change the source of the given {@link Story} (the source is the main
+	 * information used to group the stories together).
+	 * <p>
+	 * In other words, <b>move</b> the {@link Story} into other source.
+	 * <p>
+	 * The source can be a new one, it needs not exist before hand.
+	 * 
+	 * @param luid
+	 *            the luid of the {@link Story} to move
+	 * @param newSource
+	 *            the new source
+	 */
+	void changeSource(String luid, String newSource) {
 		try {
 			cacheLib.changeSource(luid, newSource, null);
 		} catch (IOException e) {

@@ -249,6 +249,9 @@ public class CacheLibrary extends BasicLibrary {
 
 	/**
 	 * Clear the {@link Story} from the cache.
+	 * <p>
+	 * The next time we try to retrieve the {@link Story}, it may be required to
+	 * cache it again.
 	 * 
 	 * @param luid
 	 *            the story to clear

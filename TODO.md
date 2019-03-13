@@ -23,15 +23,16 @@ My current planning for Fanfix (but not everything appears on this list):
   - [x] Choose an output (Jexer)
   - [x] Implement it from --set-reader to the actual window
   - [x] List the stories
-  - [ ] Fix the UI layout
+  - [x] Fix the UI layout
   - [x] Status bar
-  - [ ] Real menus
+  - [x] Real menus
     - [ ] Store the long lists in [A-B], [BA-BB], ...
   - [x] Open a story in the reader and/or natively
   - [ ] Update the screenshots
   - [ ] Remember the current chapter and current read status of stories
   - [ ] Support progress events
-  - [ ] Add a property pages
+  - [x] Add a properties pages
+  - [ ] Deal with comics (properties page + external launcher? jexer?)
 - [x] Network support
   - [x] A server that can send the stories
   - [x] A network implementation of the Library
@@ -54,7 +55,9 @@ My current planning for Fanfix (but not everything appears on this list):
   - [ ] support progress events
 - [ ] Translations
   - [x] i18n system in place
-  - [x] Make use of it
+  - [x] Make use of it in text
+  - [x] Make use of it in gui
+  - [ ] Make use of it in tui
   - [ ] Use it for all user output
   - [ ] French translation
   - [x] French manual/readme
