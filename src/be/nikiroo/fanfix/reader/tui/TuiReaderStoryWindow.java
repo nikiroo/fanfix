@@ -172,11 +172,24 @@ class TuiReaderStoryWindow extends TWindow {
 
 		setCurrentTitle(meta.getTitle());
 
+		StringBuilder tags = new StringBuilder();
+		for (String tag : meta.getTags()) {
+			if (tags.length() > 0) {
+				tags.append(", ");
+			}
+			tags.append(tag);
+		}
+
 		table.setRowData(new String[][] { //
 				new String[] { " Author", meta.getAuthor() }, //
 				new String[] { " Publication date", formatDate(meta.getDate()) },
+				new String[] { " Published on", meta.getPublisher() },
+				new String[] { " URL", meta.getUrl() },
 				new String[] { " Word count", format(meta.getWords()) },
-				new String[] { " Source", meta.getSource() } //
+				new String[] { " Source", meta.getSource() },
+				new String[] { " Subject", meta.getSubject() },
+				new String[] { " Language", meta.getLang() },
+				new String[] { " Tags", tags.toString() } //
 		});
 		table.setHeaders(Arrays.asList("key", "value"), false);
 		table.toTop();
