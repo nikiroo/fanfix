@@ -24,7 +24,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  * @author David ROULET [niki@nikiroo.be]
- * @version 1
+ * @version 2
  */
 package be.nikiroo.jexer;
 
@@ -403,14 +403,16 @@ abstract public class TBrowsableWidget extends TScrollableWidget {
 		hScroller.setY(y);
 		hScroller.setWidth(width);
 
+		// TODO why did we use to add 2?
+		// + 2 (for the border of the window)
+
 		// virtual_size
-		// - the other scroll bar size
-		// - 2 (for the border of the window)
+		// + the other scroll bar size
 		vScroller.setTopValue(0);
 		vScroller.setBottomValue(Math.max(0, getVirtualHeight() - getHeight()
-				- hScroller.getHeight() - 2));
+				+ hScroller.getHeight()));
 		hScroller.setLeftValue(0);
 		hScroller.setRightValue(Math.max(0, getVirtualWidth() - getWidth()
-				- vScroller.getWidth() - 2));
+				+ vScroller.getWidth()));
 	}
 }
