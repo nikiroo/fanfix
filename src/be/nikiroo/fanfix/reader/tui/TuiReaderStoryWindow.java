@@ -50,33 +50,32 @@ class TuiReaderStoryWindow extends TWindow {
 		// last = use window background
 		titleField = new TLabel(this, "    Title", 0, 1, "tlabel", false);
 		textField = new TText(this, "", 0, 0, 1, 1);
-		table = new TTable(this, 0, 0, 1, 1, null, null, Arrays.asList("Key", "Value"), true);
+		table = new TTable(this, 0, 0, 1, 1, null, null, Arrays.asList("Key",
+				"Value"), true);
 
 		titleField.setEnabled(false);
 
 		navigationButtons = new ArrayList<TButton>(5);
 
-		// for bg colour when << button is pressed
-		navigationButtons.add(addButton(" ", 0, 0, null));
-		navigationButtons.add(addButton("<<  ", 0, 0, new TAction() {
+		navigationButtons.add(addButton("<<", 0, 0, new TAction() {
 			@Override
 			public void DO() {
 				setChapter(-1);
 			}
 		}));
-		navigationButtons.add(addButton("<  ", 4, 0, new TAction() {
+		navigationButtons.add(addButton("< ", 4, 0, new TAction() {
 			@Override
 			public void DO() {
 				setChapter(TuiReaderStoryWindow.this.chapter - 1);
 			}
 		}));
-		navigationButtons.add(addButton(">  ", 7, 0, new TAction() {
+		navigationButtons.add(addButton("> ", 7, 0, new TAction() {
 			@Override
 			public void DO() {
 				setChapter(TuiReaderStoryWindow.this.chapter + 1);
 			}
 		}));
-		navigationButtons.add(addButton(">>  ", 10, 0, new TAction() {
+		navigationButtons.add(addButton(">>", 10, 0, new TAction() {
 			@Override
 			public void DO() {
 				setChapter(getStory().getChapters().size());
@@ -85,16 +84,17 @@ class TuiReaderStoryWindow extends TWindow {
 
 		navigationButtons.get(0).setEnabled(false);
 		navigationButtons.get(1).setEnabled(false);
-		navigationButtons.get(2).setEnabled(false);
 
 		currentChapter = addLabel("", 0, 0);
 
-		TSizeConstraint.setSize(sizeConstraints, textField, 1, 3, -1, 0);
-		TSizeConstraint.setSize(sizeConstraints, table, 0, 3, 0, 0);
+		TSizeConstraint.setSize(sizeConstraints, textField, 1, 3, -1, -1);
+		TSizeConstraint.setSize(sizeConstraints, table, 0, 3, 0, -1);
 		TSizeConstraint.setSize(sizeConstraints, currentChapter, 14, -3, -1,
 				null);
 
 		for (TButton navigationButton : navigationButtons) {
+			navigationButton.setShadowColor(null);
+			// navigationButton.setEmptyBorders(false);
 			TSizeConstraint.setSize(sizeConstraints, navigationButton, null,
 					-3, null, null);
 		}
@@ -115,8 +115,11 @@ class TuiReaderStoryWindow extends TWindow {
 
 		TSizeConstraint.resize(sizeConstraints);
 
-		textField.getVerticalScroller().setX(
-				textField.getVerticalScroller().getX() + 1);
+		// Improve the disposition of the scrollbars
+		textField.getVerticalScroller().setX(textField.getWidth());
+		textField.getVerticalScroller().setHeight(textField.getHeight());
+		textField.getHorizontalScroller().setX(-1);
+		textField.getHorizontalScroller().setWidth(textField.getWidth() + 1);
 
 		setCurrentChapterText();
 	}
@@ -140,9 +143,8 @@ class TuiReaderStoryWindow extends TWindow {
 			int max = getStory().getChapters().size();
 			navigationButtons.get(0).setEnabled(chapter > -1);
 			navigationButtons.get(1).setEnabled(chapter > -1);
-			navigationButtons.get(2).setEnabled(chapter > -1);
+			navigationButtons.get(2).setEnabled(chapter < max);
 			navigationButtons.get(3).setEnabled(chapter < max);
-			navigationButtons.get(4).setEnabled(chapter < max);
 
 			if (chapter < 0) {
 				displayInfoPage();
