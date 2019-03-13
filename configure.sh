@@ -6,11 +6,11 @@ PROGS="java javac jar make sed"
 
 IMG=be/nikiroo/utils/ui/ImageUtilsAwt
 CLI=be/nikiroo/fanfix/reader/cli/CliReader
-TUI=
+TUI=be/nikiroo/fanfix/reader/tui/TuiReader
 GUI=be/nikiroo/fanfix/reader/ui/GuiReader
 JIMG=
 JCLI=
-JTUI=
+JTUI="-C bin/ jexer"
 JGUI=
 
 valid=true
@@ -34,12 +34,8 @@ while [ "$*" != "" ]; do
 	--cli) #=no	Disable CLI support (System.out)
 		[ "$val" = no -o "$val" = false ] && CLI= && JCLI=
 	;;
-	--tui) #=yes	Enable TUI support (Jexer, experimental)
+	--tui) #=no	Enable TUI support (Jexer)
 		[ "$val" = no -o "$val" = false ] && TUI= && JTUI=
-		if [ "$val" = yes -o "$val" = true ]; then
-			TUI=be/nikiroo/fanfix/reader/tui/TuiReader
-			JTUI="-C bin/ jexer"
-		fi
 	;;
 	--gui) #=no	Disable GUI support (Swing)
 		[ "$val" = no -o "$val" = false ] && GUI= && JGUI=
