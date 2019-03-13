@@ -23,6 +23,7 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.Reader;
+import be.nikiroo.jexer.TSizeConstraint;
 
 /**
  * The library window, that will list all the (filtered) stories available in

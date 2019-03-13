@@ -19,6 +19,7 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.jexer.TSizeConstraint;
 import be.nikiroo.jexer.TTable;
 import be.nikiroo.utils.StringUtils;
 

@@ -1,4 +1,4 @@
-package be.nikiroo.fanfix.reader.tui;
+package be.nikiroo.jexer;
 
 import java.util.List;
 
@@ -54,12 +54,12 @@ public class TSizeConstraint {
 	}
 
 	// coordinates < 0 = from the other side, x2 or y2 = 0 = max size
-	static void setSize(List<TSizeConstraint> sizeConstraints, TWidget child,
+	static public void setSize(List<TSizeConstraint> sizeConstraints, TWidget child,
 			Integer x1, Integer y1, Integer x2, Integer y2) {
 		sizeConstraints.add(new TSizeConstraint(child, x1, y1, x2, y2));
 	}
 
-	static void resize(List<TSizeConstraint> sizeConstraints) {
+	static public void resize(List<TSizeConstraint> sizeConstraints) {
 		for (TSizeConstraint sizeConstraint : sizeConstraints) {
 			TWidget widget = sizeConstraint.getWidget();
 			Integer x1 = sizeConstraint.getX1();
