@@ -79,7 +79,7 @@ My current planning for Fanfix (but not everything appears on this list):
     - [ ] Fix eHentai "content warning" access
     - [ ] Fix the configuration system (for new or changed options, new or changed languages)
     - [ ] remote import also download the file in cache, why?
-    - [ ] import file in remote mode tries to import remote file!!
+    - [x] import file in remote mode tries to import remote file!!
     - [ ] import file does not find author in cbz with SUMMARY file
     - [ ] import file:// creates a tmp without auto-deletion in /tmp/fanfic-...
 

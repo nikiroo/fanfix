@@ -285,6 +285,13 @@ public class RemoteLibrary extends BasicLibrary {
 	@Override
 	// Could work (more slowly) without it
 	public Story imprt(final URL url, Progress pg) throws IOException {
+		// Import the file locally if it is actually a file
+		if (url == null || url.getProtocol().equalsIgnoreCase("file")) {
+			return super.imprt(url, pg);
+		}
+
+		// Import it remotely if it is an URL
+
 		if (pg == null) {
 			pg = new Progress();
 		}
