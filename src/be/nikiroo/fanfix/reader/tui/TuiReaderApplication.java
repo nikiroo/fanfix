@@ -10,6 +10,8 @@ import jexer.TApplication;
 import jexer.TCommand;
 import jexer.TKeypress;
 import jexer.TMessageBox;
+import jexer.TMessageBox.Result;
+import jexer.TMessageBox.Type;
 import jexer.TStatusBar;
 import jexer.TWidget;
 import jexer.TWindow;
@@ -38,8 +40,9 @@ class TuiReaderApplication extends TApplication implements Reader {
 	public static final int MENU_IMPORT_URL = 1026;
 	public static final int MENU_IMPORT_FILE = 1027;
 	public static final int MENU_EXPORT = 1028;
-	public static final int MENU_LIBRARY = 1029;
-	public static final int MENU_EXIT = 1030;
+	public static final int MENU_DELETE = 1029;
+	public static final int MENU_LIBRARY = 1030;
+	public static final int MENU_EXIT = 1031;
 
 	public static final TCommand CMD_EXIT = new TCommand(MENU_EXIT) {
 	};
@@ -182,8 +185,9 @@ class TuiReaderApplication extends TApplication implements Reader {
 
 		// Add the menus TODO: i18n
 		TMenu fileMenu = addMenu("&File");
-		fileMenu.addItem(MENU_OPEN, "&Open");
+		fileMenu.addItem(MENU_OPEN, "&Open...");
 		fileMenu.addItem(MENU_EXPORT, "&Save as...");
+		fileMenu.addItem(MENU_DELETE, "&Delete...");
 		// TODO: Move to...
 		fileMenu.addSeparator();
 		fileMenu.addItem(MENU_IMPORT_URL, "Import &URL...");
@@ -232,6 +236,35 @@ class TuiReaderApplication extends TApplication implements Reader {
 				error("Fail to open file"
 						+ (openfile == null ? "" : ": " + openfile),
 						"Import error", e);
+			}
+
+			return true;
+		case MENU_DELETE:
+			String luid = null;
+			String story = null;
+			MetaData meta = null;
+			if (main != null) {
+				meta = main.getSelectedMeta();
+			}
+			if (meta != null) {
+				luid = meta.getLuid();
+				story = luid + ": " + meta.getTitle();
+			}
+
+			// TODO: i18n
+			TMessageBox mbox = messageBox("Delete story", "Delete story \""
+					+ story + "\"", Type.OKCANCEL);
+			if (mbox.getResult() == Result.OK) {
+				try {
+					reader.getLibrary().delete(luid);
+					if (main != null) {
+						main.refreshStories();
+					}
+				} catch (IOException e) {
+					// TODO: i18n
+					error("Fail to delete the story: \"" + story + "\"",
+							"Error", e);
+				}
 			}
 
 			return true;
