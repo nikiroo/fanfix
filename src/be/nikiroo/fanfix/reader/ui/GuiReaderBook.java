@@ -1,36 +1,20 @@
 package be.nikiroo.fanfix.reader.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Polygon;
-import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EventListener;
 import java.util.List;
 
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.reader.Reader;
-import be.nikiroo.utils.Image;
-import be.nikiroo.utils.ui.ImageUtilsAwt;
-import be.nikiroo.utils.ui.UIUtils;
 
 /**
  * A book item presented in a {@link GuiReaderFrame}.
@@ -73,20 +57,8 @@ class GuiReaderBook extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 
-	// TODO: export some of the configuration options?
-	private static final int COVER_WIDTH = 100;
-	private static final int COVER_HEIGHT = 150;
-	private static final int SPINE_WIDTH = 5;
-	private static final int SPINE_HEIGHT = 5;
-	private static final int HOFFSET = 20;
-	private static final Color SPINE_COLOR_BOTTOM = new Color(180, 180, 180);
-	private static final Color SPINE_COLOR_RIGHT = new Color(100, 100, 100);
-	private static final int TEXT_WIDTH = COVER_WIDTH + 40;
-	private static final int TEXT_HEIGHT = 50;
 	private static final String AUTHOR_COLOR = "#888888";
-	private static final Color BORDER = Color.black;
 	private static final long doubleClickDelay = 200; // in ms
-	//
 
 	private JLabel icon;
 	private JLabel title;
@@ -95,7 +67,6 @@ class GuiReaderBook extends JPanel {
 	private Date lastClick;
 
 	private List<BookActionListener> listeners;
-	private Reader reader;
 	private MetaData meta;
 	private boolean cached;
 
@@ -113,7 +84,6 @@ class GuiReaderBook extends JPanel {
 	 */
 	public GuiReaderBook(Reader reader, MetaData meta, boolean cached,
 			boolean seeWordCount) {
-		this.reader = reader;
 		this.cached = cached;
 		this.meta = meta;
 
@@ -142,15 +112,17 @@ class GuiReaderBook extends JPanel {
 			optSecondary = "";
 		}
 
-		icon = new JLabel(generateCoverIcon());
+		icon = new JLabel(GuiReaderCoverImager.generateCoverIcon(
+				reader.getLibrary(), getMeta()));
 		title = new JLabel(
 				String.format(
 						"<html>"
 								+ "<body style='width: %d px; height: %d px; text-align: center'>"
 								+ "%s" + "<br>" + "<span style='color: %s;'>"
 								+ "%s" + "</span>" + "</body>" + "</html>",
-						TEXT_WIDTH, TEXT_HEIGHT, meta.getTitle(), AUTHOR_COLOR,
-						optSecondary));
+						GuiReaderCoverImager.TEXT_WIDTH,
+						GuiReaderCoverImager.TEXT_HEIGHT, meta.getTitle(),
+						AUTHOR_COLOR, optSecondary));
 
 		setLayout(new BorderLayout(10, 10));
 		add(icon, BorderLayout.CENTER);
@@ -179,6 +151,15 @@ class GuiReaderBook extends JPanel {
 			this.selected = selected;
 			repaint();
 		}
+	}
+
+	/**
+	 * The item mouse-hover state.
+	 * 
+	 * @return TRUE if it is mouse-hovered
+	 */
+	private boolean isHovered() {
+		return this.hovered;
 	}
 
 	/**
@@ -306,172 +287,7 @@ class GuiReaderBook extends JPanel {
 	@Override
 	public void paint(Graphics g) {
 		super.paint(g);
-		paintOverlay(g);
-	}
-
-	/**
-	 * Draw a partially transparent overlay if needed depending upon the
-	 * selection and mouse-hover states on top of the normal component, as well
-	 * as a possible "cached" icon if the item is cached.
-	 * 
-	 * @param g
-	 *            the {@link Graphics} to paint onto
-	 */
-	public void paintOverlay(Graphics g) {
-		Rectangle clip = g.getClipBounds();
-		if (clip.getWidth() <= 0 || clip.getHeight() <= 0) {
-			return;
-		}
-
-		int h = COVER_HEIGHT;
-		int w = COVER_WIDTH;
-		int xOffset = (TEXT_WIDTH - COVER_WIDTH) - 1;
-		int yOffset = HOFFSET;
-
-		if (BORDER != null) {
-			if (BORDER != null) {
-				g.setColor(BORDER);
-				g.drawRect(xOffset, yOffset, COVER_WIDTH, COVER_HEIGHT);
-			}
-
-			xOffset++;
-			yOffset++;
-		}
-
-		int[] xs = new int[] { xOffset, xOffset + SPINE_WIDTH,
-				xOffset + w + SPINE_WIDTH, xOffset + w };
-		int[] ys = new int[] { yOffset + h, yOffset + h + SPINE_HEIGHT,
-				yOffset + h + SPINE_HEIGHT, yOffset + h };
-		g.setColor(SPINE_COLOR_BOTTOM);
-		g.fillPolygon(new Polygon(xs, ys, xs.length));
-		xs = new int[] { xOffset + w, xOffset + w + SPINE_WIDTH,
-				xOffset + w + SPINE_WIDTH, xOffset + w };
-		ys = new int[] { yOffset, yOffset + SPINE_HEIGHT,
-				yOffset + h + SPINE_HEIGHT, yOffset + h };
-		g.setColor(SPINE_COLOR_RIGHT);
-		g.fillPolygon(new Polygon(xs, ys, xs.length));
-
-		Color color = new Color(255, 255, 255, 0);
-		if (!isEnabled()) {
-		} else if (selected && !hovered) {
-			color = new Color(80, 80, 100, 40);
-		} else if (!selected && hovered) {
-			color = new Color(230, 230, 255, 100);
-		} else if (selected && hovered) {
-			color = new Color(200, 200, 255, 100);
-		}
-
-		g.setColor(color);
-		g.fillRect(clip.x, clip.y, clip.width, clip.height);
-
-		if (cached) {
-			UIUtils.drawEllipse3D(g, Color.green.darker(), COVER_WIDTH
-					+ HOFFSET + 30, 10, 20, 20);
-		}
-	}
-
-	/**
-	 * Generate a cover icon based upon the given {@link MetaData}.
-	 * 
-	 * @return the icon
-	 */
-	private ImageIcon generateCoverIcon() {
-		BufferedImage resizedImage = null;
-		String id = getIconId(meta);
-
-		InputStream in = Instance.getCache().getFromCache(id);
-		if (in != null) {
-			try {
-				resizedImage = ImageUtilsAwt.fromImage(new Image(in));
-				in.close();
-				in = null;
-			} catch (IOException e) {
-				Instance.getTraceHandler().error(e);
-			}
-		}
-
-		if (resizedImage == null) {
-			try {
-				Image cover = null;
-				if (meta.getLuid() != null) {
-					cover = reader.getLibrary().getCover(meta.getLuid());
-				}
-				if (cover == null) {
-					cover = reader.getLibrary()
-							.getSourceCover(meta.getSource());
-				}
-
-				resizedImage = new BufferedImage(SPINE_WIDTH + COVER_WIDTH,
-						SPINE_HEIGHT + COVER_HEIGHT + HOFFSET,
-						BufferedImage.TYPE_4BYTE_ABGR);
-				Graphics2D g = resizedImage.createGraphics();
-				g.setColor(Color.white);
-				g.fillRect(0, HOFFSET, COVER_WIDTH, COVER_HEIGHT);
-				if (cover != null) {
-					BufferedImage coverb = ImageUtilsAwt.fromImage(cover);
-					g.drawImage(coverb, 0, HOFFSET, COVER_WIDTH, COVER_HEIGHT,
-							null);
-				} else {
-					g.setColor(Color.black);
-					g.drawLine(0, HOFFSET, COVER_WIDTH, HOFFSET + COVER_HEIGHT);
-					g.drawLine(COVER_WIDTH, HOFFSET, 0, HOFFSET + COVER_HEIGHT);
-				}
-				g.dispose();
-
-				if (id != null) {
-					ByteArrayOutputStream out = new ByteArrayOutputStream();
-					ImageIO.write(resizedImage, "png", out);
-					byte[] imageBytes = out.toByteArray();
-					in = new ByteArrayInputStream(imageBytes);
-					Instance.getCache().addToCache(in, id);
-					in.close();
-					in = null;
-				}
-			} catch (MalformedURLException e) {
-				Instance.getTraceHandler().error(e);
-			} catch (IOException e) {
-				Instance.getTraceHandler().error(e);
-			}
-		}
-
-		if (resizedImage != null) {
-			return new ImageIcon(resizedImage);
-		}
-
-		return null;
-	}
-
-	/**
-	 * Manually clear the icon set for this item.
-	 * 
-	 * @param meta
-	 *            the meta of the story or source (if luid is null)
-	 */
-	public static void clearIcon(MetaData meta) {
-		String id = getIconId(meta);
-		Instance.getCache().removeFromCache(id);
-	}
-
-	/**
-	 * Get a unique ID from this meta (note that if the luid is null, it is
-	 * considered a source and not a {@link Story}).
-	 * 
-	 * @param meta
-	 *            the meta
-	 * @return the unique ID
-	 */
-	private static String getIconId(MetaData meta) {
-		String id = null;
-
-		String key = meta.getUuid();
-		if (meta.getLuid() == null) {
-			// a fake meta (== a source)
-			key = "source_" + meta.getSource();
-		}
-
-		id = key + ".thumb_" + SPINE_WIDTH + "x" + COVER_WIDTH + "+"
-				+ SPINE_HEIGHT + "+" + COVER_HEIGHT + "@" + HOFFSET;
-
-		return id;
+		GuiReaderCoverImager.paintOverlay(g, isEnabled(), isSelected(),
+				isHovered(), isCached());
 	}
 }

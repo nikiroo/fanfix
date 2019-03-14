@@ -1,11 +1,9 @@
 package be.nikiroo.fanfix.reader.tui;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import jexer.TAction;
 import jexer.TButton;
@@ -19,9 +17,9 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.jexer.TSizeConstraint;
 import be.nikiroo.jexer.TTable;
-import be.nikiroo.utils.StringUtils;
 
 /**
  * This window will contain the {@link Story} in a readable format, with a
@@ -173,67 +171,19 @@ class TuiReaderStoryWindow extends TWindow {
 
 		setCurrentTitle(meta.getTitle());
 
-		StringBuilder tags = new StringBuilder();
-		for (String tag : meta.getTags()) {
-			if (tags.length() > 0) {
-				tags.append(", ");
-			}
-			tags.append(tag);
+		List<Map.Entry<String, String>> metaDesc = BasicReader
+				.getMetaDesc(meta);
+		String[][] metaDescObj = new String[metaDesc.size()][2];
+		int i = 0;
+		for (Map.Entry<String, String> entry : metaDesc) {
+			metaDescObj[i][0] = " " + entry.getKey();
+			metaDescObj[i][1] = entry.getValue();
+			i++;
 		}
 
-		table.setRowData(new String[][] { //
-				new String[] { " Author", meta.getAuthor() }, //
-				new String[] { " Publication date", formatDate(meta.getDate()) },
-				new String[] { " Published on", meta.getPublisher() },
-				new String[] { " URL", meta.getUrl() },
-				new String[] { " Word count", format(meta.getWords()) },
-				new String[] { " Source", meta.getSource() },
-				new String[] { " Subject", meta.getSubject() },
-				new String[] { " Language", meta.getLang() },
-				new String[] { " Tags", tags.toString() } //
-		});
+		table.setRowData(metaDescObj);
 		table.setHeaders(Arrays.asList("key", "value"), false);
 		table.toTop();
-	}
-
-	private String format(long value) {
-		String display = "";
-
-		while (value > 0) {
-			if (!display.isEmpty()) {
-				display = "." + display;
-			}
-			display = (value % 1000) + display;
-			value = value / 1000;
-		}
-
-		return display;
-	}
-
-	private String formatDate(String date) {
-		long ms = 0;
-
-		try {
-			ms = StringUtils.toTime(date);
-		} catch (ParseException e) {
-		}
-
-		if (ms <= 0) {
-			SimpleDateFormat sdf = new SimpleDateFormat(
-					"yyyy-MM-dd'T'HH:mm:ssXXX");
-			try {
-				ms = sdf.parse(date).getTime();
-			} catch (ParseException e) {
-			}
-		}
-
-		if (ms > 0) {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-			return sdf.format(new Date(ms));
-		}
-
-		// :(
-		return date;
 	}
 
 	/**

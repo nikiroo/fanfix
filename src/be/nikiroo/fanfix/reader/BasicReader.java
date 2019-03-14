@@ -4,6 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map.Entry;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
@@ -14,6 +21,7 @@ import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.utils.Progress;
+import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.serial.SerialUtils;
 
 /**
@@ -200,6 +208,45 @@ public abstract class BasicReader implements Reader {
 	}
 
 	/**
+	 * Describe a {@link Story} from its {@link MetaData} and return a list of
+	 * title/value that represent this {@link Story}.
+	 * 
+	 * @param meta
+	 *            the {@link MetaData} to represent
+	 * 
+	 * @return the information
+	 */
+	public static List<Entry<String, String>> getMetaDesc(MetaData meta) {
+		List<Entry<String, String>> metaDesc = new ArrayList<Entry<String, String>>();
+
+		// TODO: i18n
+
+		StringBuilder tags = new StringBuilder();
+		for (String tag : meta.getTags()) {
+			if (tags.length() > 0) {
+				tags.append(", ");
+			}
+			tags.append(tag);
+		}
+
+		metaDesc.add(new SimpleEntry<String, String>("Author", meta.getAuthor()));
+		metaDesc.add(new SimpleEntry<String, String>("Publication date",
+				formatDate(meta.getDate())));
+		metaDesc.add(new SimpleEntry<String, String>("Published on", meta
+				.getPublisher()));
+		metaDesc.add(new SimpleEntry<String, String>("URL", meta.getUrl()));
+		metaDesc.add(new SimpleEntry<String, String>("Word count", format(meta
+				.getWords())));
+		metaDesc.add(new SimpleEntry<String, String>("Source", meta.getSource()));
+		metaDesc.add(new SimpleEntry<String, String>("Subject", meta
+				.getSubject()));
+		metaDesc.add(new SimpleEntry<String, String>("Language", meta.getLang()));
+		metaDesc.add(new SimpleEntry<String, String>("Tags", tags.toString()));
+
+		return metaDesc;
+	}
+
+	/**
 	 * Open the {@link Story} with an external reader (the program will be
 	 * passed the main file associated with this {@link Story}).
 	 * 
@@ -306,5 +353,45 @@ public abstract class BasicReader implements Reader {
 				}
 			}
 		}
+	}
+
+	static private String format(long value) {
+		String display = "";
+
+		while (value > 0) {
+			if (!display.isEmpty()) {
+				display = "." + display;
+			}
+			display = (value % 1000) + display;
+			value = value / 1000;
+		}
+
+		return display;
+	}
+
+	static private String formatDate(String date) {
+		long ms = 0;
+
+		try {
+			ms = StringUtils.toTime(date);
+		} catch (ParseException e) {
+		}
+
+		if (ms <= 0) {
+			SimpleDateFormat sdf = new SimpleDateFormat(
+					"yyyy-MM-dd'T'HH:mm:ssXXX");
+			try {
+				ms = sdf.parse(date).getTime();
+			} catch (ParseException e) {
+			}
+		}
+
+		if (ms > 0) {
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			return sdf.format(new Date(ms));
+		}
+
+		// :(
+		return date;
 	}
 }
