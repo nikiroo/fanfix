@@ -20,7 +20,7 @@ import be.nikiroo.fanfix.reader.BasicReader;
  */
 class CliReader extends BasicReader {
 	@Override
-	public void read() throws IOException {
+	public void read(boolean sync) throws IOException {
 		MetaData meta = getMeta();
 
 		if (meta == null) {

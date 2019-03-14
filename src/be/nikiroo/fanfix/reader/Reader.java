@@ -130,11 +130,15 @@ public interface Reader {
 	/**
 	 * Start the {@link Story} Reading.
 	 * 
+	 * @param sync
+	 *            execute the process synchronously (wait until it is terminated
+	 *            before returning)
+	 * 
 	 * @throws IOException
 	 *             in case of I/O error or if the {@link Story} was not
 	 *             previously set
 	 */
-	public void read() throws IOException;
+	public void read(boolean sync) throws IOException;
 
 	/**
 	 * The selected chapter to start reading at (starting at 1, 0 = description,
@@ -156,6 +160,8 @@ public interface Reader {
 	/**
 	 * Start the reader in browse mode for the given source (or pass NULL for
 	 * all sources).
+	 * <p>
+	 * Note that this must be a <b>synchronous</b> action.
 	 * 
 	 * @param source
 	 *            the type of {@link Story} to take into account, or NULL for
@@ -164,16 +170,20 @@ public interface Reader {
 	public void browse(String source);
 
 	/**
-	 * Open the {@link Story} with an external reader (the program will be
+	 * Open the {@link Story} with an external reader (the program should be
 	 * passed the main file associated with this {@link Story}).
 	 * 
 	 * @param lib
 	 *            the {@link BasicLibrary} to select the {@link Story} from
 	 * @param luid
 	 *            the {@link Story} LUID
+	 * @param sync
+	 *            execute the process synchronously (wait until it is terminated
+	 *            before returning)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public void openExternal(BasicLibrary lib, String luid) throws IOException;
+	public void openExternal(BasicLibrary lib, String luid, boolean sync)
+			throws IOException;
 }

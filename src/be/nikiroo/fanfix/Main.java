@@ -354,18 +354,12 @@ public class Main {
 			}
 		}
 
-		// We cannot do it when in GUI mode, because it is async...
-		// So if we close the temp files before it is actually used,
-		// we have a problem...
-		// TODO: close it at the correct time (for now, finalize try to do it)
-		if (false) {
-			try {
-				Instance.getTempFiles().close();
-			} catch (IOException e) {
-				Instance.getTraceHandler().error(
-						new IOException(
-								"Cannot dispose of the temporary files", e));
-			}
+		try {
+			Instance.getTempFiles().close();
+		} catch (IOException e) {
+			Instance.getTraceHandler()
+					.error(new IOException(
+							"Cannot dispose of the temporary files", e));
 		}
 
 		if (exitCode == 255) {
@@ -462,7 +456,7 @@ public class Main {
 	}
 
 	/**
-	 * Start the CLI reader for this {@link Story}.
+	 * Start the current reader for this {@link Story}.
 	 * 
 	 * @param story
 	 *            the LUID of the {@link Story} in the {@link LocalLibrary}
@@ -488,7 +482,7 @@ public class Main {
 			if (chapString != null) {
 				try {
 					reader.setChapter(Integer.parseInt(chapString));
-					reader.read();
+					reader.read(true);
 				} catch (NumberFormatException e) {
 					Instance.getTraceHandler().error(
 							new IOException("Chapter number cannot be parsed: "
@@ -496,7 +490,7 @@ public class Main {
 					return 2;
 				}
 			} else {
-				reader.read();
+				reader.read(true);
 			}
 		} catch (IOException e) {
 			Instance.getTraceHandler().error(e);
@@ -548,7 +542,8 @@ public class Main {
 					BasicSupport support = BasicSupport.getSupport(source);
 
 					if (support != null) {
-						Instance.getTraceHandler().trace("Support found: " + support.getClass());
+						Instance.getTraceHandler().trace(
+								"Support found: " + support.getClass());
 						Progress pgIn = new Progress();
 						Progress pgOut = new Progress();
 						if (pg != null) {

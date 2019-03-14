@@ -50,7 +50,7 @@ class TuiReader extends BasicReader {
 	}
 
 	@Override
-	public void read() throws IOException {
+	public void read(boolean sync) throws IOException {
 		try {
 			TuiReaderApplication app = new TuiReaderApplication(this,
 					guessBackendType());

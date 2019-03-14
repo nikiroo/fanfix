@@ -22,7 +22,6 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
-import be.nikiroo.fanfix.reader.Reader;
 import be.nikiroo.jexer.TSizeConstraint;
 
 /**
@@ -43,7 +42,7 @@ class TuiReaderMainWindow extends TWindow {
 	private TList list;
 	private List<MetaData> listKeys;
 	private List<String> listItems;
-	private Reader reader;
+	private TuiReaderApplication reader;
 
 	private Mode mode = Mode.SOURCE;
 	private String target = null;
@@ -300,7 +299,7 @@ class TuiReaderMainWindow extends TWindow {
 		try {
 			reader.setChapter(-1);
 			reader.setMeta(meta);
-			reader.read();
+			reader.read(false);
 		} catch (IOException e) {
 			Instance.getTraceHandler().error(e);
 		}

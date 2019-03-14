@@ -858,7 +858,7 @@ class GuiReaderFrame extends JFrame {
 			@Override
 			public void run() {
 				try {
-					reader.read(book.getMeta().getLuid(), pg);
+					reader.read(book.getMeta().getLuid(), false, pg);
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {

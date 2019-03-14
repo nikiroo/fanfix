@@ -56,9 +56,8 @@ class TuiReaderApplication extends TApplication implements Reader {
 		super(backend);
 		init(reader);
 
-		MetaData meta = getMeta();
-		if (meta != null) {
-			read();
+		if (getMeta() != null) {
+			read(false);
 		}
 	}
 
@@ -72,8 +71,8 @@ class TuiReaderApplication extends TApplication implements Reader {
 	}
 
 	@Override
-	public void read() throws IOException {
-		read(getStory(null));
+	public void read(boolean sync) throws IOException {
+		read(getStory(null), sync);
 	}
 
 	@Override
@@ -126,7 +125,20 @@ class TuiReaderApplication extends TApplication implements Reader {
 		reader.setChapter(chapter);
 	}
 
-	public void read(Story story) throws IOException {
+	/**
+	 * Open the given {@link Story} for reading. This may or may not start an
+	 * external program to read said {@link Story}.
+	 * 
+	 * @param story
+	 *            the {@link Story} to read
+	 * @param sync
+	 *            execute the process synchronously (wait until it is terminated
+	 *            before returning)
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
+	public void read(Story story, boolean sync) throws IOException {
 		if (story == null) {
 			throw new IOException("No story to read");
 		}
@@ -137,7 +149,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 			window.maximize();
 		} else {
 			try {
-				openExternal(getLibrary(), story.getMeta().getLuid());
+				openExternal(getLibrary(), story.getMeta().getLuid(), sync);
 			} catch (IOException e) {
 				messageBox("Error when trying to open the story",
 						e.getMessage(), TMessageBox.Type.OK);
@@ -230,7 +242,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 			try {
 				openfile = fileOpenBox(".");
 				reader.setMeta(BasicReader.getUrl(openfile), null);
-				read();
+				read(false);
 			} catch (IOException e) {
 				// TODO: i18n
 				error("Fail to open file"
@@ -342,8 +354,9 @@ class TuiReaderApplication extends TApplication implements Reader {
 	}
 
 	@Override
-	public void openExternal(BasicLibrary lib, String luid) throws IOException {
-		reader.openExternal(lib, luid);
+	public void openExternal(BasicLibrary lib, String luid, boolean sync)
+			throws IOException {
+		reader.openExternal(lib, luid, sync);
 	}
 
 	/**

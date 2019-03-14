@@ -2,6 +2,8 @@ package be.nikiroo.fanfix.reader.ui;
 
 import java.awt.Desktop;
 import java.awt.EventQueue;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -79,14 +81,14 @@ class GuiReader extends BasicReader {
 	}
 
 	@Override
-	public void read() throws IOException {
+	public void read(boolean sync) throws IOException {
 		MetaData meta = getMeta();
 
 		if (meta == null) {
 			throw new IOException("No story to read");
 		}
 
-		read(meta.getLuid(), null);
+		read(meta.getLuid(), sync, null);
 	}
 
 	/**
@@ -107,6 +109,7 @@ class GuiReader extends BasicReader {
 		// TODO: improve presentation of update message
 		final VersionCheck updates = VersionCheck.check();
 		StringBuilder builder = new StringBuilder();
+		final Boolean[] done = new Boolean[] { false };
 
 		final JEditorPane updateMessage = new JEditorPane("text/html", "");
 		if (updates.isNewVersionAvailable()) {
@@ -162,21 +165,48 @@ class GuiReader extends BasicReader {
 					}
 				}
 
-				new GuiReaderFrame(GuiReader.this, typeFinal).setVisible(true);
+				try {
+					GuiReaderFrame gui = new GuiReaderFrame(GuiReader.this,
+							typeFinal);
+					gui.setVisible(true);
+					gui.addWindowListener(new WindowAdapter() {
+						@Override
+						public void windowClosed(WindowEvent e) {
+							super.windowClosed(e);
+							done[0] = true;
+						}
+					});
+				} catch (Exception e) {
+					Instance.getTraceHandler().error(e);
+					done[0] = true;
+				}
 			}
 		});
+
+		// This action must be synchronous, so wait until the frame is closed
+		while (!done[0]) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+			}
+		}
 	}
 
 	@Override
-	public void start(File target, String program) throws IOException {
-		if (program == null) {
+	public void start(File target, String program, boolean sync)
+			throws IOException {
+
+		boolean handled = false;
+		if (program == null && !sync) {
 			try {
 				Desktop.getDesktop().browse(target.toURI());
+				handled = true;
 			} catch (UnsupportedOperationException e) {
-				super.start(target, program);
 			}
-		} else {
-			super.start(target, program);
+		}
+
+		if (!handled) {
+			super.start(target, program, sync);
 		}
 	}
 
@@ -218,9 +248,14 @@ class GuiReader extends BasicReader {
 	/**
 	 * "Open" the given {@link Story}. It usually involves starting an external
 	 * program adapted to the given file type.
+	 * <p>
+	 * Asynchronous method.
 	 * 
 	 * @param luid
 	 *            the luid of the {@link Story} to open
+	 * @param sync
+	 *            execute the process synchronously (wait until it is terminated
+	 *            before returning)
 	 * @param pg
 	 *            the optional progress (we may need to prepare the
 	 *            {@link Story} for reading
@@ -228,13 +263,13 @@ class GuiReader extends BasicReader {
 	 * @throws IOException
 	 *             in case of I/O errors
 	 */
-	void read(String luid, Progress pg) throws IOException {
+	void read(String luid, boolean sync, Progress pg) throws IOException {
 		File file = cacheLib.getFile(luid, pg);
 
 		// TODO: show a special page for the chapter?
 		// We could also implement an internal viewer, both for image and
 		// non-image documents
-		openExternal(getLibrary().getInfo(luid), file);
+		openExternal(getLibrary().getInfo(luid), file, sync);
 	}
 
 	/**

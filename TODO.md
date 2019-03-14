@@ -6,8 +6,9 @@ My current planning for Fanfix (but not everything appears on this list):
   - [x] New API on FimFiction.net (faster)
   - [ ] Others? Any ideas? I'm open for requests
     - [x] [e-Hentai](https://e-hentai.org/) requested
-    - [ ] Find some FR comics/manga websites
-- [x] A GUI library
+    - [x] Find some FR comics/manga websites
+    - [ ] Find more FR thingies
+- [ ] A GUI library
   - [x] Make one
   - [x] Make it run when no args passed
   - [x] Fix the UI, it is ugly
@@ -19,6 +20,8 @@ My current planning for Fanfix (but not everything appears on this list):
     - [x] ..as a screen view
   - [x] options screen
   - [x] support progress events
+  - [x] Real menus
+    - [ ] Store the long lists in [A-B], [BA-BB], ...
 - [ ] A TUI library
   - [x] Choose an output (Jexer)
   - [x] Implement it from --set-reader to the actual window

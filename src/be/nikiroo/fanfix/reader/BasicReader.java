@@ -91,8 +91,7 @@ public abstract class BasicReader implements Reader {
 	}
 
 	@Override
-	public synchronized void setMeta(URL url, Progress pg)
-			throws IOException {
+	public synchronized void setMeta(URL url, Progress pg) throws IOException {
 		BasicSupport support = BasicSupport.getSupport(url);
 		if (support == null) {
 			throw new IOException("URL not supported: " + url.toString());
@@ -208,16 +207,20 @@ public abstract class BasicReader implements Reader {
 	 *            the {@link BasicLibrary} to select the {@link Story} from
 	 * @param luid
 	 *            the {@link Story} LUID
+	 * @param sync
+	 *            execute the process synchronously (wait until it is terminated
+	 *            before returning)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
 	@Override
-	public void openExternal(BasicLibrary lib, String luid) throws IOException {
+	public void openExternal(BasicLibrary lib, String luid, boolean sync)
+			throws IOException {
 		MetaData meta = lib.getInfo(luid);
 		File target = lib.getFile(luid, null);
 
-		openExternal(meta, target);
+		openExternal(meta, target, sync);
 	}
 
 	/**
@@ -228,11 +231,15 @@ public abstract class BasicReader implements Reader {
 	 *            the {@link Story} to load
 	 * @param target
 	 *            the target {@link File}
+	 * @param sync
+	 *            execute the process synchronously (wait until it is terminated
+	 *            before returning)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	protected void openExternal(MetaData meta, File target) throws IOException {
+	protected void openExternal(MetaData meta, File target, boolean sync)
+			throws IOException {
 		String program = null;
 		if (meta.isImageDocument()) {
 			program = Instance.getUiConfig().getString(
@@ -246,7 +253,7 @@ public abstract class BasicReader implements Reader {
 			program = null;
 		}
 
-		start(target, program);
+		start(target, program, sync);
 	}
 
 	/**
@@ -257,11 +264,17 @@ public abstract class BasicReader implements Reader {
 	 *            the target to open
 	 * @param program
 	 *            the program to use or NULL for the default system starter
+	 * @param sync
+	 *            execute the process synchronously (wait until it is terminated
+	 *            before returning)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	protected void start(File target, String program) throws IOException {
+	protected void start(File target, String program, boolean sync)
+			throws IOException {
+
+		Process proc = null;
 		if (program == null) {
 			boolean ok = false;
 			for (String starter : new String[] { "xdg-open", "open", "see",
@@ -269,7 +282,7 @@ public abstract class BasicReader implements Reader {
 				try {
 					Instance.getTraceHandler().trace(
 							"starting external program");
-					Runtime.getRuntime().exec(
+					proc = Runtime.getRuntime().exec(
 							new String[] { starter, target.getAbsolutePath() });
 					ok = true;
 					break;
@@ -281,8 +294,17 @@ public abstract class BasicReader implements Reader {
 			}
 		} else {
 			Instance.getTraceHandler().trace("starting external program");
-			Runtime.getRuntime().exec(
+			proc = Runtime.getRuntime().exec(
 					new String[] { program, target.getAbsolutePath() });
+		}
+
+		if (proc != null && sync) {
+			while (proc.isAlive()) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+				}
+			}
 		}
 	}
 }

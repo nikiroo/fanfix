@@ -24,7 +24,7 @@ public class AndroidReader extends BasicReader {
 	}
 
 	@Override
-	public void read() throws IOException {
+	public void read(boolean sync) throws IOException {
 	}
 
 	@Override
@@ -32,7 +32,7 @@ public class AndroidReader extends BasicReader {
 	}
 
 	@Override
-	protected void start(File target, String program) throws IOException {
+	protected void start(File target, String program, boolean sync) throws IOException {
 		if (program == null) {
 			try {
 				Intent[] intents = new Intent[] { //
@@ -53,10 +53,10 @@ public class AndroidReader extends BasicReader {
 
 				app.startActivity(chooserIntent);
 			} catch (UnsupportedOperationException e) {
-				super.start(target, program);
+				super.start(target, program, sync);
 			}
 		} else {
-			super.start(target, program);
+			super.start(target, program, sync);
 		}
 	}
 }
