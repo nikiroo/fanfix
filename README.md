@@ -11,7 +11,7 @@ Fanfix is a small Java program that can download stories from some supported web
 - ```fanfix``` --read [*id*] ([*chapter number*])
 - ```fanfix``` --read-url [*URL*] ([*chapter number*])
 - ```fanfix``` --list
-- ```fanfix``` --set-reader [*reader type*]
+- ```fanfix``` --set-reader [*GUI* | *TUI* | *CLI*]
 - ```fanfix``` --server [*key*] [*port*]
 - ```fanfix``` --stop-server [*key*] [*port*]
 - ```fanfix``` --remote [*key*] [*host*] [*port*]
@@ -23,9 +23,9 @@ Fanfix is a small Java program that can download stories from some supported web
 
 (A [TODO list](TODO.md) is also available to know what is expected to come in the future.)
 
-TODO: new screenshots + TUI screenshots
-
 ![Main GUI](screenshots/fanfix-1.3.2.png?raw=true "Main GUI")
+
+A screenshots cgallery an be found [here](screenshots/README.md).
 
 It will convert from a (supported) URL to an .epub file for stories or a .cbz file for comics (a few other output types are also available, like Plain Text, LaTeX, HTML...).
 

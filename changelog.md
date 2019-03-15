@@ -2,8 +2,13 @@
 
 # Version WIP
 
+- gui: nouvelle page pour voir les propriétés d'une histoire
+- tui: fonctionne maintenant assez bien que pour être déclaré stable
 - remote: fix de setSourceCover (ce n'était pas vu par le client)
+- remote: on peut maintenant importer un fichier local
+- remote: meilleures perfs
 - fix: deadlock dans certains cas rares (nikiroo-utils)
+- fix: le résumé n'était pas visibe dans certains cas
 
 # Version 1.8.1
 

@@ -11,7 +11,7 @@ Fanfix est un petit programme Java qui peut télécharger des histoires sur inte
 - ```fanfix``` --read [*id*] ([*chapter number*])
 - ```fanfix``` --read-url [*URL*] ([*chapter number*])
 - ```fanfix``` --list
-- ```fanfix``` --set-reader [*reader type*]
+- ```fanfix``` --set-reader [*GUI* | *TUI* | *CLI*]
 - ```fanfix``` --server [*key*] [*port*]
 - ```fanfix``` --stop-server [*key*] [*port*]
 - ```fanfix``` --remote [*key*] [*host*] [*port*]
@@ -23,9 +23,9 @@ Fanfix est un petit programme Java qui peut télécharger des histoires sur inte
 
 (Il y a aussi une [TODO list](TODO.md) sur le site parlant du futur du programme.)
 
-TODO: screenshots TUI + Android (+ FR quand traduit)
-
 ![Main GUI](screenshots/fanfix-1.3.2.png?raw=true "Main GUI")
+
+Une gallerie de screenshots est disponible [ici](screenshots/README-fr.md).
 
 Le fonctionnement du programme est assez simple : il converti une URL venant d'un site supporté en un fichier .epub pour les histoires ou .cbz pour les comics (d'autres options d'enregistrement sont disponibles, comme du texte simple, du HTML...)
 

@@ -2,8 +2,13 @@
 
 # Version WIP
 
+- gui: new Properties page for stories
+- tui: now working well enough to be considered stable
 - remote: fix setSourceCover (was not seen by client)
+- remote: can now import local files into a remote library
+- remote: better perfs
 - fix: deadlock in some rare cases (nikiroo-utils)
+- fix: the resume was not visible in some cases
 
 # Version 1.8.1
 
