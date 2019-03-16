@@ -123,6 +123,10 @@ public class LocalLibrary extends BasicLibrary {
 	public Image getCover(String luid) {
 		MetaData meta = getInfo(luid);
 		if (meta != null) {
+			if (meta.getCover() != null) {
+				return meta.getCover();
+			}
+
 			File[] files = getStories(null).get(meta);
 			if (files != null) {
 				File infoFile = files[0];
