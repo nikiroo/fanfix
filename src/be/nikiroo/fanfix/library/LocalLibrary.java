@@ -265,7 +265,9 @@ public class LocalLibrary extends BasicLibrary {
 	 *            the cover image
 	 */
 	synchronized void setSourceCover(String source, Image coverImage) {
-		File cover = new File(getExpectedDir(source), ".cover");
+		File dir = getExpectedDir(source);
+		dir.mkdirs();
+		File cover = new File(dir, ".cover");
 		try {
 			Instance.getCache().saveAsImage(coverImage, cover, true);
 			if (sourceCovers != null) {

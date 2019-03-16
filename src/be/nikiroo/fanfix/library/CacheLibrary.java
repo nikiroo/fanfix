@@ -117,7 +117,12 @@ public class CacheLibrary extends BasicLibrary {
 			return custom;
 		}
 
-		return cacheLib.getSourceCover(source);
+		Image cached = cacheLib.getSourceCover(source);
+		if (cached != null) {
+			return cached;
+		}
+
+		return lib.getSourceCover(source);
 	}
 
 	@Override
