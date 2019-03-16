@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -467,27 +468,29 @@ class GuiReaderFrame extends JFrame {
 		JMenu authors = new JMenu("Authors");
 		authors.setMnemonic(KeyEvent.VK_A);
 
-		List<String> aa = new ArrayList<String>();
-		if (libOk) {
-			aa.addAll(reader.getLibrary().getAuthors());
-		}
-		aa.add(0, null);
-		for (final String author : aa) {
-			JMenuItem item = new JMenuItem(author == null ? "All"
-					: author.isEmpty() ? "[unknown]" : author);
-			item.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					removeBookPanes();
-					addBookPane(author, false);
-					refreshBooks();
-				}
-			});
-			authors.add(item);
+		List<Entry<String, List<String>>> authorGroups = reader.getLibrary()
+				.getAuthorsGrouped();
+		if (authorGroups.size() > 1) {
+			// Multiple groups
 
-			if (author == null || author.isEmpty()) {
-				authors.addSeparator();
+			// null -> "All" authors special item
+			populateMenuAuthorList(authors, Arrays.asList((String) null));
+
+			for (Entry<String, List<String>> group : authorGroups) {
+				JMenu thisGroup = new JMenu(group.getKey());
+				populateMenuAuthorList(thisGroup, group.getValue());
+				authors.add(thisGroup);
 			}
+		} else {
+			// Only one group
+
+			// null -> "All" authors special item
+			List<String> authorNames = new ArrayList<String>();
+			authorNames.add(null);
+			if (authorGroups.size() > 0) {
+				authorNames.addAll(authorGroups.get(0).getValue());
+			}
+			populateMenuAuthorList(authors, authorNames);
 		}
 
 		bar.add(authors);
@@ -499,6 +502,37 @@ class GuiReaderFrame extends JFrame {
 		bar.add(options);
 
 		return bar;
+	}
+
+	/**
+	 * Populate a list of authors as {@link JMenuItem}s into the given
+	 * {@link JMenu}.
+	 * <p>
+	 * Each item will select the author when clicked.
+	 * 
+	 * @param authors
+	 *            the parent {@link JMenuItem}
+	 * @param names
+	 *            the authors' names
+	 */
+	private void populateMenuAuthorList(JMenu authors, List<String> names) {
+		for (final String name : names) {
+			JMenuItem item = new JMenuItem(name == null ? "All"
+					: name.isEmpty() ? "[unknown]" : name);
+			item.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					removeBookPanes();
+					addBookPane(name, false);
+					refreshBooks();
+				}
+			});
+			authors.add(item);
+
+			if (name == null || name.isEmpty()) {
+				authors.addSeparator();
+			}
+		}
 	}
 
 	/**

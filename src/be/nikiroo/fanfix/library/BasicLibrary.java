@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map.Entry;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
@@ -17,6 +19,7 @@ import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
+import be.nikiroo.utils.StringUtils;
 
 /**
  * Manage a library of Stories: import, export, list, modify.
@@ -259,6 +262,114 @@ abstract public class BasicLibrary {
 
 		Collections.sort(list);
 		return list;
+	}
+
+	/**
+	 * Return the list of authors, grouped by starting letter(s) if needed.
+	 * <p>
+	 * If the number of author is not too high, only one group with an empty
+	 * name and all the authors will be returned.
+	 * <p>
+	 * If not, the authors will be separated into groups:
+	 * <ul>
+	 * <li><tt>*</tt>: any author whose name doesn't contain letters nor numbers
+	 * </li>
+	 * <li><tt>0-9</tt>: any authors whose name starts with a number</li>
+	 * <li><tt>A-C</tt> (for instance): any author whose name starts with
+	 * <tt>A</tt>, <tt>B</tt> or <tt>C</tt></li>
+	 * </ul>
+	 * Note that the letters used in the groups can vary (except <tt>*</tt> and
+	 * <tt>0-9</tt>, which may only be present or not).
+	 * 
+	 * @return the authors' names, grouped by letter(s)
+	 */
+	public List<Entry<String, List<String>>> getAuthorsGrouped() {
+		int MAX = 20;
+
+		List<Entry<String, List<String>>> groups = new ArrayList<Entry<String, List<String>>>();
+		List<String> authors = getAuthors();
+
+		if (authors.size() <= MAX) {
+			groups.add(new SimpleEntry<String, List<String>>("", authors));
+			return groups;
+		}
+
+		groups.add(new SimpleEntry<String, List<String>>("*", getAuthorsGroup(
+				authors, '*')));
+		groups.add(new SimpleEntry<String, List<String>>("0-9",
+				getAuthorsGroup(authors, '0')));
+
+		for (char car = 'A'; car <= 'Z'; car++) {
+			groups.add(new SimpleEntry<String, List<String>>(Character
+					.toString(car), getAuthorsGroup(authors, car)));
+		}
+
+		// do NOT collapse * and [0-9] with the rest
+		for (int i = 2; i + 1 < groups.size(); i++) {
+			Entry<String, List<String>> now = groups.get(i);
+			Entry<String, List<String>> next = groups.get(i + 1);
+			int currentTotal = now.getValue().size() + next.getValue().size();
+			if (currentTotal <= MAX) {
+				String key = now.getKey().charAt(0) + "-"
+						+ next.getKey().charAt(next.getKey().length() - 1);
+				List<String> all = new ArrayList<String>();
+				all.addAll(now.getValue());
+				all.addAll(next.getValue());
+				groups.set(i, new SimpleEntry<String, List<String>>(key, all));
+				groups.remove(i + 1);
+				i--;
+			}
+		}
+
+		for (int i = 0; i < groups.size(); i++) {
+			if (groups.get(i).getValue().size() == 0) {
+				groups.remove(i);
+				i--;
+			}
+		}
+
+		return groups;
+	}
+
+	/**
+	 * Get all the authors that start with the given character:
+	 * <ul>
+	 * <li><tt>*</tt>: any author whose name doesn't contain letters nor numbers
+	 * </li>
+	 * <li><tt>0</tt>: any authors whose name starts with a number</li>
+	 * <li><tt>A</tt> (any capital latin letter): any author whose name starts
+	 * with <tt>A</tt></li>
+	 * </ul>
+	 * 
+	 * @param authors
+	 *            the full list of authors
+	 * @param car
+	 *            the starting character, <tt>*</tt>, <tt>0</tt> or a capital
+	 *            letter
+	 * @return the authors that fulfill the starting letter
+	 */
+	private List<String> getAuthorsGroup(List<String> authors, char car) {
+		List<String> accepted = new ArrayList<String>();
+		for (String author : authors) {
+			char first = '*';
+			for (int i = 0; first == '*' && i < author.length(); i++) {
+				String san = StringUtils.sanitize(author, true, true);
+				char c = san.charAt(i);
+				if (c >= '0' && c <= '9') {
+					first = '0';
+				} else if (c >= 'a' && c <= 'z') {
+					first = (char) (c - 'a' + 'A');
+				} else if (c >= 'A' && c <= 'Z') {
+					first = c;
+				}
+			}
+
+			if (first == car) {
+				accepted.add(author);
+			}
+		}
+
+		return accepted;
 	}
 
 	/**

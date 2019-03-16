@@ -9,7 +9,7 @@ My current planning for Fanfix (but not everything appears on this list):
     - [x] [e-Hentai](https://e-hentai.org/) requested
     - [x] Find some FR comics/manga websites
     - [ ] Find more FR thingies
-- [ ] A GUI library
+- [x] A GUI library
   - [x] Make one
   - [x] Make it run when no args passed
   - [x] Fix the UI, it is ugly
@@ -22,7 +22,7 @@ My current planning for Fanfix (but not everything appears on this list):
   - [x] options screen
   - [x] support progress events
   - [x] Real menus
-    - [ ] Store the long lists in [A-B], [BA-BB], ...
+    - [x] Store the long lists in [A-B], [BA-BB], ...
 - [ ] A TUI library
   - [x] Choose an output (Jexer)
   - [x] Implement it from --set-reader to the actual window
