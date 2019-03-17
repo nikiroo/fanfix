@@ -22,18 +22,14 @@ public class Test extends TestLauncher {
 	public Test(String[] args) {
 		super("Nikiroo-utils", args);
 
-		/*
 		addSeries(new ProgressTest(args));
 		addSeries(new BundleTest(args));
 		addSeries(new IOUtilsTest(args));
 		addSeries(new VersionTest(args));
-		*/
 		addSeries(new SerialTest(args));
-		/*
 		addSeries(new SerialServerTest(args));
 		addSeries(new StringUtilsTest(args));
 		addSeries(new TempFilesTest(args));
-		*/
 		
 		// TODO: test cache and downloader
 		Cache cache = null;
