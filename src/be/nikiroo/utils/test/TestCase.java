@@ -509,7 +509,7 @@ abstract public class TestCase {
 		return String.format("" //
 				+ "Assertion failed!%n" //
 				+ "Expected value: [%s]%n" //
-				+ "Actual value: [%s]", expected, actual);
+				+ "Actual value:   [%s]", expected, actual);
 	}
 
 	private static String list(List<?> items) {

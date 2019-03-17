@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version WIP
+
+- Serial: fix b64/not b64 error
+
 ## Version 4.5.1
 
 - Progress: fix deadlock in rare cases

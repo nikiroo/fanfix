@@ -20,10 +20,11 @@ class SerialTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				Data data = new Data(42);
-				String encoded = new Exporter().append(data).toString(false);
+				String encoded = new Exporter().append(data).toString(false,
+						false);
 				Object redata = new Importer().read(encoded).getValue();
-				String reencoded = new Exporter().append(redata)
-						.toString(false);
+				String reencoded = new Exporter().append(redata).toString(
+						false, false);
 
 				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
 						reencoded.replaceAll("@[0-9]*", "@REF"));
@@ -37,13 +38,15 @@ class SerialTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				Data data = new Data() {
+					@SuppressWarnings("unused")
 					int value = 42;
 				};
 
-				String encoded = new Exporter().append(data).toString(false);
+				String encoded = new Exporter().append(data).toString(false,
+						false);
 				Object redata = new Importer().read(encoded).getValue();
-				String reencoded = new Exporter().append(redata)
-						.toString(false);
+				String reencoded = new Exporter().append(redata).toString(
+						false, false);
 
 				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
 						reencoded.replaceAll("@[0-9]*", "@REF"));
@@ -57,20 +60,22 @@ class SerialTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				Data[] data = new Data[] { new Data() {
+					@SuppressWarnings("unused")
 					int value = 42;
 				} };
 
-				String encoded = new Exporter().append(data).toString(false);
+				String encoded = new Exporter().append(data).toString(false,
+						false);
 				Object redata = new Importer().read(encoded).getValue();
-				String reencoded = new Exporter().append(redata)
-						.toString(false);
+				String reencoded = new Exporter().append(redata).toString(
+						false, false);
 
 				// Comparing the 2 strings won't be useful, because the @REFs
 				// will be ZIP-encoded; so we parse and re-encode the object
-				encoded = new Exporter().append(data[0]).toString(false);
+				encoded = new Exporter().append(data[0]).toString(false, false);
 				try {
 					reencoded = new Exporter().append(((Data[]) redata)[0])
-							.toString(false);
+							.toString(false, false);
 				} catch (Exception e) {
 					fail("Cannot cast the returned data into its original object",
 							e);
@@ -85,10 +90,11 @@ class SerialTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				URL data = new URL("https://fanfan.be/");
-				String encoded = new Exporter().append(data).toString(false);
+				String encoded = new Exporter().append(data).toString(false,
+						false);
 				Object redata = new Importer().read(encoded).getValue();
-				String reencoded = new Exporter().append(redata)
-						.toString(false);
+				String reencoded = new Exporter().append(redata).toString(
+						false, false);
 
 				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
 						reencoded.replaceAll("@[0-9]*", "@REF"));
@@ -99,10 +105,11 @@ class SerialTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				String data = new URL("https://fanfan.be/").toString();
-				String encoded = new Exporter().append(data).toString(false);
+				String encoded = new Exporter().append(data).toString(false,
+						false);
 				Object redata = new Importer().read(encoded).getValue();
-				String reencoded = new Exporter().append(redata)
-						.toString(false);
+				String reencoded = new Exporter().append(redata).toString(
+						false, false);
 
 				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
 						reencoded.replaceAll("@[0-9]*", "@REF"));
@@ -116,10 +123,11 @@ class SerialTest extends TestLauncher {
 				final String url = "https://fanfan.be/";
 
 				Object[] data = new Object[] { new URL(url), url };
-				String encoded = new Exporter().append(data).toString(false);
+				String encoded = new Exporter().append(data).toString(false,
+						false);
 				Object redata = new Importer().read(encoded).getValue();
-				String reencoded = new Exporter().append(redata)
-						.toString(false);
+				String reencoded = new Exporter().append(redata).toString(
+						false, false);
 
 				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
 						reencoded.replaceAll("@[0-9]*", "@REF"));
@@ -132,10 +140,11 @@ class SerialTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				Data data = new DataObject(new Data(21));
-				String encoded = new Exporter().append(data).toString(false);
+				String encoded = new Exporter().append(data).toString(false,
+						false);
 				Object redata = new Importer().read(encoded).getValue();
-				String reencoded = new Exporter().append(redata)
-						.toString(false);
+				String reencoded = new Exporter().append(redata).toString(
+						false, false);
 
 				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
 						reencoded.replaceAll("@[0-9]*", "@REF"));
@@ -149,10 +158,11 @@ class SerialTest extends TestLauncher {
 				data.next = new DataLoop("level 2");
 				data.next.next = data;
 
-				String encoded = new Exporter().append(data).toString(false);
+				String encoded = new Exporter().append(data).toString(false,
+						false);
 				Object redata = new Importer().read(encoded).getValue();
-				String reencoded = new Exporter().append(redata)
-						.toString(false);
+				String reencoded = new Exporter().append(redata).toString(
+						false, false);
 
 				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
 						reencoded.replaceAll("@[0-9]*", "@REF"));
@@ -163,10 +173,11 @@ class SerialTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				Object data = new DataArray();// new String[] { "un", "deux" };
-				String encoded = new Exporter().append(data).toString(false);
+				String encoded = new Exporter().append(data).toString(false,
+						false);
 				Object redata = new Importer().read(encoded).getValue();
-				String reencoded = new Exporter().append(redata)
-						.toString(false);
+				String reencoded = new Exporter().append(redata).toString(
+						false, false);
 
 				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
 						reencoded.replaceAll("@[0-9]*", "@REF"));
@@ -177,10 +188,11 @@ class SerialTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				Object data = new String[] { "un", "deux" };
-				String encoded = new Exporter().append(data).toString(false);
+				String encoded = new Exporter().append(data).toString(false,
+						false);
 				Object redata = new Importer().read(encoded).getValue();
-				String reencoded = new Exporter().append(redata)
-						.toString(false);
+				String reencoded = new Exporter().append(redata).toString(
+						false, false);
 
 				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
 						reencoded.replaceAll("@[0-9]*", "@REF"));
@@ -191,13 +203,72 @@ class SerialTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				Object data = EnumToSend.FANFAN;
-				String encoded = new Exporter().append(data).toString(false);
+				String encoded = new Exporter().append(data).toString(false,
+						false);
 				Object redata = new Importer().read(encoded).getValue();
-				String reencoded = new Exporter().append(redata)
-						.toString(false);
+				String reencoded = new Exporter().append(redata).toString(
+						false, false);
 
 				assertEquals(encoded.replaceAll("@[0-9]*", "@REF"),
 						reencoded.replaceAll("@[0-9]*", "@REF"));
+			}
+		});
+
+		addTest(new TestCase("B64 and ZIP String test") {
+			@Override
+			public void test() throws Exception {
+				Object data = "Fanfan la tulipe";
+				String encoded = new Exporter().append(data).toString(true,
+						false);
+				String redata = (String) new Importer().read(encoded)
+						.getValue();
+
+				assertEquals("Items not identical after B64", data, redata);
+
+				encoded = new Exporter().append(data).toString(true, true);
+				redata = (String) new Importer().read(encoded).getValue();
+
+				assertEquals("Items not identical after ZIP", data, redata);
+			}
+		});
+
+		addTest(new TestCase("B64 and ZIP Data test") {
+			@Override
+			public void test() throws Exception {
+				Object data = new Data(55);
+				String encoded = new Exporter().append(data).toString(true,
+						false);
+				Data redata = (Data) new Importer().read(encoded).getValue();
+
+				assertEquals("Items not identical after B64", data, redata);
+
+				encoded = new Exporter().append(data).toString(true, true);
+				redata = (Data) new Importer().read(encoded).getValue();
+
+				assertEquals("Items not identical after ZIP", data, redata);
+			}
+		});
+
+		addTest(new TestCase("B64 and ZIP 70000 chars test") {
+			@Override
+			public void test() throws Exception {
+				StringBuilder builder = new StringBuilder();
+				for (int i = 0; i < 7000; i++) {
+					builder.append("0123456789");
+				}
+
+				Object data = builder.toString();
+				String encoded = new Exporter().append(data).toString(true,
+						false);
+				String redata = (String) new Importer().read(encoded)
+						.getValue();
+
+				assertEquals("Items not identical after B64", data, redata);
+
+				encoded = new Exporter().append(data).toString(true, true);
+				redata = (String) new Importer().read(encoded).getValue();
+
+				assertEquals("Items not identical after ZIP", data, redata);
 			}
 		});
 	}
@@ -206,7 +277,6 @@ class SerialTest extends TestLauncher {
 		public String[] data = new String[] { "un", "deux" };
 	}
 
-	@SuppressWarnings("unused")
 	class Data {
 		private int value;
 
@@ -215,6 +285,21 @@ class SerialTest extends TestLauncher {
 
 		public Data(int value) {
 			this.value = value;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof Data) {
+				Data other = (Data) obj;
+				return other.value == this.value;
+			}
+
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return Integer.hashCode(value);
 		}
 	}
 

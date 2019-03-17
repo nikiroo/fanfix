@@ -74,7 +74,7 @@ public class Exporter {
 			b64 = false;
 		}
 
-		if (b64 != null || b64) {
+		if (b64 == null || b64) {
 			try {
 				String zipped = StringUtils.base64(builder.toString(), zip);
 				if (b64 != null || zipped.length() < builder.length() - 4) {
