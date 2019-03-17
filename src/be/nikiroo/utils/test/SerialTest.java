@@ -299,7 +299,7 @@ class SerialTest extends TestLauncher {
 
 		@Override
 		public int hashCode() {
-			return Integer.hashCode(value);
+			return new Integer(value).hashCode();
 		}
 	}
 
