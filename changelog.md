@@ -7,6 +7,7 @@
 - remote: fix de setSourceCover (ce n'était pas vu par le client)
 - remote: on peut maintenant importer un fichier local
 - remote: meilleures perfs
+- remote: incompatible avec 1.x
 - fix: deadlock dans certains cas rares (nikiroo-utils)
 - fix: le résumé n'était pas visibe dans certains cas
 

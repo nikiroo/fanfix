@@ -10,31 +10,31 @@ Fanfix can use different interfaces:
 
 This screenshots gallery shows screenshots of different versions of Fanfix, but shows the more recent ones on top.
 
-### Version 1.9.0
+### Version 2.0.0
 
 #### GUI
 
-![Main window](fanfix-1.9.0-gui-library.png)
+![Main window](fanfix-2.0.0-gui-library.png)
 
-![Properties page](fanfix-1.9.0-gui-properties.png)
+![Properties page](fanfix-2.0.0-gui-properties.png)
 
-![Menu](fanfix-1.9.0-gui-menu.png)
+![Menu](fanfix-2.0.0-gui-menu.png)
 
 #### TUI
 
-![Main window](fanfix-1.9.0-tui-library.png)
+![Main window](fanfix-2.0.0-tui-library.png)
 
-![Properties page](fanfix-1.9.0-tui-properties.png)
+![Properties page](fanfix-2.0.0-tui-properties.png)
 
-![Menu](fanfix-1.9.0-tui-menu.png)
+![Menu](fanfix-2.0.0-tui-menu.png)
 
 #### CLI
 
-![Main window](fanfix-1.9.0-cli-library.png)
+![Main window](fanfix-2.0.0-cli-library.png)
 
-![Properties page](fanfix-1.9.0-cli-properties.png)
+![Properties page](fanfix-2.0.0-cli-properties.png)
 
-![Menu](fanfix-1.9.0-cli-menu.png)
+![Menu](fanfix-2.0.0-cli-menu.png)
 
 ### Version 1.3.2
 
