@@ -1,6 +1,6 @@
 # nikiroo-utils
 
-## Version WIP
+## Version 4.5.2
 
 - Serial: fix b64/not b64 error
 - Serial: perf improvement
