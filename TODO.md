@@ -80,7 +80,7 @@ My current planning for Fanfix (but not everything appears on this list):
 - [ ] Bugs
     - [x] Fix "Redownload also reset the source"
     - [ ] Fix "Redownload remote does not show the new item before restart of client app"
-    - [ ] Fix eHentai "content warning" access
+    - [ ] Fix eHentai "content warning" access (see 455)
     - [ ] Fix the configuration system (for new or changed options, new or changed languages)
     - [ ] remote import also download the file in cache, why?
     - [x] import file in remote mode tries to import remote file!!
