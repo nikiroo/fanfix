@@ -10,6 +10,7 @@
 - remote: incompatible avec 1.x
 - fix: deadlock dans certains cas rares (nikiroo-utils)
 - fix: le résumé n'était pas visibe dans certains cas
+- fix: update de nikiroo-utils, meilleures perfs pour le remote
 
 # Version 1.8.1
 

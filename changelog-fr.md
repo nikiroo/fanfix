@@ -10,6 +10,7 @@
 - remote: not compatible with 1.x
 - fix: deadlock in some rare cases (nikiroo-utils)
 - fix: the resume was not visible in some cases
+- fix: update nikiroo-utils, better remote perfs
 
 # Version 1.8.1
 
