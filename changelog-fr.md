@@ -3,6 +3,7 @@
 # Version WIP
 
 - gui: new Properties page for stories
+- gui: rename stories, change author
 - tui: now working well enough to be considered stable
 - remote: fix setSourceCover (was not seen by client)
 - remote: can now import local files into a remote library

@@ -292,4 +292,38 @@ class GuiReader extends BasicReader {
 			Instance.getTraceHandler().error(e);
 		}
 	}
+
+	/**
+	 * Change the title of the given {@link Story}.
+	 * 
+	 * @param luid
+	 *            the luid of the {@link Story} to change
+	 * @param newTitle
+	 *            the new title
+	 */
+	void changeTitle(String luid, String newTitle) {
+		try {
+			cacheLib.changeTitle(luid, newTitle, null);
+		} catch (IOException e) {
+			Instance.getTraceHandler().error(e);
+		}
+	}
+
+	/**
+	 * Change the author of the given {@link Story}.
+	 * <p>
+	 * The author can be a new one, it needs not exist before hand.
+	 * 
+	 * @param luid
+	 *            the luid of the {@link Story} to change
+	 * @param newAuthor
+	 *            the new author
+	 */
+	void changeAuthor(String luid, String newAuthor) {
+		try {
+			cacheLib.changeAuthor(luid, newAuthor, null);
+		} catch (IOException e) {
+			Instance.getTraceHandler().error(e);
+		}
+	}
 }

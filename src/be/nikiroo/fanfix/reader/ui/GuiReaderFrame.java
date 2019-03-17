@@ -307,10 +307,13 @@ class GuiReaderFrame extends JFrame {
 				popup.add(createMenuItemOpenBook());
 				popup.addSeparator();
 				popup.add(createMenuItemExport());
-				popup.add(createMenuItemMove(true));
+				popup.add(createMenuItemMoveTo(true));
 				popup.add(createMenuItemSetCover());
 				popup.add(createMenuItemClearCache());
 				popup.add(createMenuItemRedownload());
+				popup.addSeparator();
+				popup.add(createMenuItemRename(true));
+				popup.add(createMenuItemSetAuthor(true));
 				popup.addSeparator();
 				popup.add(createMenuItemDelete());
 				popup.addSeparator();
@@ -394,10 +397,13 @@ class GuiReaderFrame extends JFrame {
 
 		file.add(createMenuItemOpenBook());
 		file.add(createMenuItemExport());
-		file.add(createMenuItemMove(libOk));
+		file.add(createMenuItemMoveTo(libOk));
 		file.addSeparator();
 		file.add(imprt);
 		file.add(imprtF);
+		file.addSeparator();
+		file.add(createMenuItemRename(libOk));
+		file.add(createMenuItemSetAuthor(libOk));
 		file.addSeparator();
 		file.add(exit);
 
@@ -711,74 +717,155 @@ class GuiReaderFrame extends JFrame {
 	}
 
 	/**
-	 * Create the delete menu item.
+	 * Create the "move to" menu item.
 	 * 
 	 * @param libOk
 	 *            the library can be queried
 	 * 
 	 * @return the item
 	 */
-	private JMenuItem createMenuItemMove(boolean libOk) {
-		JMenu moveTo = new JMenu("Move to...");
-		moveTo.setMnemonic(KeyEvent.VK_M);
+	private JMenuItem createMenuItemMoveTo(boolean libOk) {
+		JMenuItem changeTo = new JMenu("Move to");
+		changeTo.setMnemonic(KeyEvent.VK_M);
 
-		List<String> types = new ArrayList<String>();
-		types.add(null);
+		List<String> values = new ArrayList<String>();
+		values.add(null);
 		if (libOk) {
-			types.addAll(reader.getLibrary().getSources());
+			values.addAll(reader.getLibrary().getSources());
 		}
 
-		for (String type : types) {
-			JMenuItem item = new JMenuItem(type == null ? "New type..." : type);
+		for (String value : values) {
+			JMenuItem item = new JMenuItem(value == null ? "New type..."
+					: value);
 
-			moveTo.add(item);
-			if (type == null) {
-				moveTo.addSeparator();
+			item.addActionListener(createMoveAction("SOURCE", value));
+
+			changeTo.add(item);
+			if (value == null) {
+				((JMenu) changeTo).addSeparator();
 			}
+		}
 
-			final String ftype = type;
-			item.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if (selectedBook != null) {
-						String type = ftype;
-						if (type == null) {
-							Object rep = JOptionPane.showInputDialog(
-									GuiReaderFrame.this, "Move to:",
-									"Moving story",
-									JOptionPane.QUESTION_MESSAGE, null, null,
-									selectedBook.getMeta().getSource());
+		return changeTo;
+	}
 
-							if (rep == null) {
-								return;
-							}
+	/**
+	 * Create the "set author" menu item.
+	 * 
+	 * @param libOk
+	 *            the library can be queried
+	 * 
+	 * @return the item
+	 */
+	private JMenuItem createMenuItemSetAuthor(boolean libOk) {
+		JMenu changeTo = new JMenu("Set author");
+		changeTo.setMnemonic(KeyEvent.VK_A);
 
-							type = rep.toString();
+		// New author
+		JMenuItem newItem = new JMenuItem("New author...");
+		changeTo.add(newItem);
+		changeTo.addSeparator();
+		newItem.addActionListener(createMoveAction("AUTHOR", null));
+
+		// Existing authors
+		if (libOk) {
+			List<Entry<String, List<String>>> authorGroups = reader
+					.getLibrary().getAuthorsGrouped();
+
+			if (authorGroups.size() > 1) {
+				for (Entry<String, List<String>> entry : authorGroups) {
+					JMenu group = new JMenu(entry.getKey());
+					for (String value : entry.getValue()) {
+						JMenuItem item = new JMenuItem(value);
+						item.addActionListener(createMoveAction("AUTHOR", value));
+						group.add(item);
+					}
+					changeTo.add(group);
+				}
+			} else if (authorGroups.size() == 1) {
+				for (String value : authorGroups.get(0).getValue()) {
+					JMenuItem item = new JMenuItem(value);
+					item.addActionListener(createMoveAction("AUTHOR", value));
+					changeTo.add(item);
+				}
+			}
+		}
+
+		return changeTo;
+	}
+
+	/**
+	 * Create the "rename" menu item.
+	 * 
+	 * @param libOk
+	 *            the library can be queried
+	 * 
+	 * @return the item
+	 */
+	private JMenuItem createMenuItemRename(
+			@SuppressWarnings("unused") boolean libOk) {
+		JMenuItem changeTo = new JMenuItem("Rename...");
+		changeTo.setMnemonic(KeyEvent.VK_R);
+		changeTo.addActionListener(createMoveAction("TITLE", null));
+		return changeTo;
+	}
+
+	private ActionListener createMoveAction(final String what, final String type) {
+		return new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (selectedBook != null) {
+					String changeTo = type;
+					if (type == null) {
+						String init = "";
+						if (what.equals("SOURCE")) {
+							init = selectedBook.getMeta().getSource();
+						} else if (what.equals("TITLE")) {
+							init = selectedBook.getMeta().getTitle();
+						} else if (what.equals("AUTHOR")) {
+							init = selectedBook.getMeta().getAuthor();
 						}
 
-						final String ftype = type;
-						outOfUi(null, new Runnable() {
-							@Override
-							public void run() {
-								reader.changeSource(selectedBook.getMeta()
-										.getLuid(), ftype);
+						Object rep = JOptionPane.showInputDialog(
+								GuiReaderFrame.this, "Move to:",
+								"Moving story", JOptionPane.QUESTION_MESSAGE,
+								null, null, init);
 
-								selectedBook = null;
+						if (rep == null) {
+							return;
+						}
 
-								SwingUtilities.invokeLater(new Runnable() {
-									@Override
-									public void run() {
-										setJMenuBar(createMenu(true));
-									}
-								});
-							}
-						});
+						changeTo = rep.toString();
 					}
-				}
-			});
-		}
 
-		return moveTo;
+					final String fChangeTo = changeTo;
+					outOfUi(null, new Runnable() {
+						@Override
+						public void run() {
+							if (what.equals("SOURCE")) {
+								reader.changeSource(selectedBook.getMeta()
+										.getLuid(), fChangeTo);
+							} else if (what.equals("TITLE")) {
+								reader.changeTitle(selectedBook.getMeta()
+										.getLuid(), fChangeTo);
+							} else if (what.equals("AUTHOR")) {
+								reader.changeAuthor(selectedBook.getMeta()
+										.getLuid(), fChangeTo);
+							}
+
+							selectedBook = null;
+
+							SwingUtilities.invokeLater(new Runnable() {
+								@Override
+								public void run() {
+									setJMenuBar(createMenu(true));
+								}
+							});
+						}
+					});
+				}
+			}
+		};
 	}
 
 	/**

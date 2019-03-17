@@ -159,7 +159,7 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected void deleteInfo(String luid) {
+	protected void invalidateInfo(String luid) {
 		if (luid == null) {
 			metas = null;
 		} else if (metas != null) {
@@ -170,8 +170,8 @@ public class CacheLibrary extends BasicLibrary {
 			}
 		}
 
-		cacheLib.deleteInfo(luid);
-		lib.deleteInfo(luid);
+		cacheLib.invalidateInfo(luid);
+		lib.invalidateInfo(luid);
 	}
 
 	@Override
@@ -210,8 +210,8 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public synchronized void changeSource(String luid, String newSource,
-			Progress pg) throws IOException {
+	protected synchronized void changeSTA(String luid, String newSource,
+			String newTitle, String newAuthor, Progress pg) throws IOException {
 		if (pg == null) {
 			pg = new Progress();
 		}
@@ -228,14 +228,16 @@ public class CacheLibrary extends BasicLibrary {
 		}
 
 		if (isCached(luid)) {
-			cacheLib.changeSource(luid, newSource, pgCache);
+			cacheLib.changeSTA(luid, newSource, newTitle, newAuthor, pgCache);
 		}
 		pgCache.done();
 
-		lib.changeSource(luid, newSource, pgOrig);
+		lib.changeSTA(luid, newSource, newTitle, newAuthor, pgOrig);
 		pgOrig.done();
 
 		meta.setSource(newSource);
+		meta.setTitle(newTitle);
+		meta.setAuthor(newAuthor);
 		pg.done();
 	}
 

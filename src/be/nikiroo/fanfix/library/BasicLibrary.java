@@ -158,8 +158,8 @@ abstract public class BasicLibrary {
 	 * Invalidate the {@link Story} cache (when the content should be re-read
 	 * because it was changed).
 	 */
-	protected void deleteInfo() {
-		deleteInfo(null);
+	protected void invalidateInfo() {
+		invalidateInfo(null);
 	}
 
 	/**
@@ -171,7 +171,7 @@ abstract public class BasicLibrary {
 	 *            the LUID of the {@link Story} to clear from the cache, or NULL
 	 *            for all stories
 	 */
-	protected abstract void deleteInfo(String luid);
+	protected abstract void invalidateInfo(String luid);
 
 	/**
 	 * Invalidate the {@link Story} cache (when the content has changed, but we
@@ -705,7 +705,7 @@ abstract public class BasicLibrary {
 				this.getClass().getSimpleName() + ": deleting story " + luid);
 
 		doDelete(luid);
-		deleteInfo(luid);
+		invalidateInfo(luid);
 
 		Instance.getTraceHandler().trace(
 				this.getClass().getSimpleName() + ": story deleted (" + luid
@@ -732,7 +732,83 @@ abstract public class BasicLibrary {
 			throw new IOException("Story not found: " + luid);
 		}
 
+		changeSTA(luid, newSource, meta.getTitle(), meta.getAuthor(), pg);
+	}
+
+	/**
+	 * Change the title (name) of the given {@link Story}.
+	 * 
+	 * @param luid
+	 *            the {@link Story} LUID
+	 * @param newTitle
+	 *            the new title
+	 * @param pg
+	 *            the optional progress reporter
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error or if the {@link Story} was not found
+	 */
+	public synchronized void changeTitle(String luid, String newTitle,
+			Progress pg) throws IOException {
+		MetaData meta = getInfo(luid);
+		if (meta == null) {
+			throw new IOException("Story not found: " + luid);
+		}
+
+		changeSTA(luid, meta.getSource(), newTitle, meta.getAuthor(), pg);
+	}
+
+	/**
+	 * Change the author of the given {@link Story}.
+	 * 
+	 * @param luid
+	 *            the {@link Story} LUID
+	 * @param newAuthor
+	 *            the new author
+	 * @param pg
+	 *            the optional progress reporter
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error or if the {@link Story} was not found
+	 */
+	public synchronized void changeAuthor(String luid, String newAuthor,
+			Progress pg) throws IOException {
+		MetaData meta = getInfo(luid);
+		if (meta == null) {
+			throw new IOException("Story not found: " + luid);
+		}
+
+		changeSTA(luid, meta.getSource(), meta.getTitle(), newAuthor, pg);
+	}
+
+	/**
+	 * Change the Source, Title and Author of the {@link Story} in one single
+	 * go.
+	 * 
+	 * @param luid
+	 *            the {@link Story} LUID
+	 * @param newSource
+	 *            the new source
+	 * @param newTitle
+	 *            the new title
+	 * @param newAuthor
+	 *            the new author
+	 * @param pg
+	 *            the optional progress reporter
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error or if the {@link Story} was not found
+	 */
+	protected synchronized void changeSTA(String luid, String newSource,
+			String newTitle, String newAuthor, Progress pg) throws IOException {
+		MetaData meta = getInfo(luid);
+		if (meta == null) {
+			throw new IOException("Story not found: " + luid);
+		}
+
 		meta.setSource(newSource);
+		meta.setTitle(newTitle);
+		meta.setAuthor(newAuthor);
 		saveMeta(meta, pg);
 	}
 
@@ -743,7 +819,7 @@ abstract public class BasicLibrary {
 	 * By default, delete the old {@link Story} then recreate a new
 	 * {@link Story}.
 	 * <p>
-	 * Note that this behaviour can lead to data loss.
+	 * Note that this behaviour can lead to data loss in case of problems!
 	 * 
 	 * @param meta
 	 *            the new {@link MetaData} (LUID <b>MUST NOT</b> change)
@@ -769,8 +845,8 @@ abstract public class BasicLibrary {
 			throw new IOException("Story not found: " + meta.getLuid());
 		}
 
+		// TODO: this is not safe!
 		delete(meta.getLuid());
-
 		story.setMeta(meta);
 		save(story, meta.getLuid(), pgSet);
 

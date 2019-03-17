@@ -185,10 +185,10 @@ public class RemoteLibraryServer extends ServerObject {
 		} else if ("SET_SOURCE_COVER".equals(command)) {
 			Instance.getLibrary().setSourceCover((String) args[0],
 					(String) args[1]);
-		} else if ("CHANGE_SOURCE".equals(command)) {
+		} else if ("CHANGE_STA".equals(command)) {
 			Progress pg = createPgForwarder(action);
-			Instance.getLibrary().changeSource((String) args[0],
-					(String) args[1], pg);
+			Instance.getLibrary().changeSTA((String) args[0], (String) args[1],
+					(String) args[2], (String) args[3], pg);
 			forcePgDoneSent(pg);
 		} else if ("EXIT".equals(command)) {
 			stop(0, false);

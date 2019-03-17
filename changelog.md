@@ -3,6 +3,7 @@
 # Version WIP
 
 - gui: nouvelle page pour voir les propriétés d'une histoire
+- gui: renommer les histoires, changer l'auteur
 - tui: fonctionne maintenant assez bien que pour être déclaré stable
 - remote: fix de setSourceCover (ce n'était pas vu par le client)
 - remote: on peut maintenant importer un fichier local

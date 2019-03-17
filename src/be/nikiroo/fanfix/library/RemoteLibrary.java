@@ -348,8 +348,9 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	// Could work (more slowly) without it
-	public synchronized void changeSource(final String luid,
-			final String newSource, Progress pg) throws IOException {
+	protected synchronized void changeSTA(final String luid,
+			final String newSource, final String newTitle,
+			final String newAuthor, Progress pg) throws IOException {
 		final Progress pgF = pg == null ? new Progress() : pg;
 
 		try {
@@ -358,8 +359,8 @@ public class RemoteLibrary extends BasicLibrary {
 				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
 
-					Object rep = send(new Object[] { md5, "CHANGE_SOURCE",
-							luid, newSource });
+					Object rep = send(new Object[] { md5, "CHANGE_STA", luid,
+							newSource, newTitle, newAuthor });
 					while (true) {
 						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
 							break;
@@ -427,7 +428,7 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected void deleteInfo(String luid) {
+	protected void invalidateInfo(String luid) {
 		// Will be taken care of directly server side
 	}
 

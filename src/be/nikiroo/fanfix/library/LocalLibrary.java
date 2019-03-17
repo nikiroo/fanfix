@@ -145,11 +145,11 @@ public class LocalLibrary extends BasicLibrary {
 
 	@Override
 	protected synchronized void updateInfo(MetaData meta) {
-		deleteInfo();
+		invalidateInfo();
 	}
 
 	@Override
-	protected void deleteInfo(String luid) {
+	protected void invalidateInfo(String luid) {
 		stories = null;
 		sourceCovers = null;
 	}
@@ -199,8 +199,8 @@ public class LocalLibrary extends BasicLibrary {
 				try {
 					String name = relatedFile.getName().replaceFirst(
 							"\\.info$", "");
-					InfoCover.writeInfo(newDir, name, meta);
 					relatedFile.delete();
+					InfoCover.writeInfo(newDir, name, meta);
 					relatedFile.getParentFile().delete();
 				} catch (IOException e) {
 					Instance.getTraceHandler().error(e);
@@ -211,7 +211,7 @@ public class LocalLibrary extends BasicLibrary {
 			}
 		}
 
-		deleteInfo();
+		invalidateInfo();
 	}
 
 	@Override
@@ -325,7 +325,7 @@ public class LocalLibrary extends BasicLibrary {
 					pg.add(1);
 				}
 
-				deleteInfo();
+				invalidateInfo();
 				pg.done();
 				return;
 			}
@@ -466,7 +466,7 @@ public class LocalLibrary extends BasicLibrary {
 	 * {@link LocalLibrary#baseDir}.
 	 * <p>
 	 * Will use a cached list when possible (see
-	 * {@link BasicLibrary#deleteInfo()}).
+	 * {@link BasicLibrary#invalidateInfo()}).
 	 * 
 	 * @param pg
 	 *            the optional {@link Progress}
