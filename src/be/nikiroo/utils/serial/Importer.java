@@ -1,10 +1,10 @@
 package be.nikiroo.utils.serial;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 
 import be.nikiroo.utils.StringUtils;
 
@@ -19,12 +19,24 @@ import be.nikiroo.utils.StringUtils;
  * @author niki
  */
 public class Importer {
+	static private Integer SIZE_ID = null;
+	static private byte[] NEWLINE = null;
+
 	private Boolean link;
 	private Object me;
 	private Importer child;
 	private Map<String, Object> map;
 
 	private String currentFieldName;
+
+	static {
+		try {
+			SIZE_ID = "EXT:".getBytes("UTF-8").length;
+			NEWLINE = "\n".getBytes("UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// UTF-8 is mandated to exist on confirming jre's
+		}
+	}
 
 	/**
 	 * Create a new {@link Importer}.
@@ -61,37 +73,74 @@ public class Importer {
 	 */
 	public Importer read(String data) throws NoSuchFieldException,
 			NoSuchMethodException, ClassNotFoundException, IOException {
+		return read(data.getBytes("UTF-8"), 0);
+	}
 
-		Scanner scan = new Scanner(data);
-		try {
-			scan.useDelimiter("\n");
-			while (scan.hasNext()) {
-				String line = scan.next();
+	/**
+	 * Read some data into this {@link Importer}: it can be the full serialised
+	 * content, or a number of lines of it (any given line <b>MUST</b> be
+	 * complete though) and accumulate it with the already present data.
+	 * 
+	 * @param data
+	 *            the data to parse
+	 * @param offset
+	 *            the offset at which to start reading the data (we ignore
+	 *            anything that goes before that offset)
+	 * 
+	 * @return itself so it can be chained
+	 * 
+	 * @throws NoSuchFieldException
+	 *             if the serialised data contains information about a field
+	 *             which does actually not exist in the class we know of
+	 * @throws NoSuchMethodException
+	 *             if a class described in the serialised data cannot be created
+	 *             because it is not compatible with this code
+	 * @throws ClassNotFoundException
+	 *             if a class described in the serialised data cannot be found
+	 * @throws IOException
+	 *             if the content cannot be read (for instance, corrupt data)
+	 */
+	private Importer read(byte[] data, int offset) throws NoSuchFieldException,
+			NoSuchMethodException, ClassNotFoundException, IOException {
 
-				if (line.startsWith("ZIP:")) {
-					try {
-						line = StringUtils.unbase64s(
-								line.substring("ZIP:".length()), true);
-					} catch (IOException e) {
-						throw new IOException(
-								"Internal error when decoding ZIP content: input may be corrupt");
-					}
-					read(line);
-				} else if (line.startsWith("B64:")) {
-					try {
-						line = StringUtils.unbase64s(
-								line.substring("B64:".length()), false);
-					} catch (IOException e) {
-						throw new IOException(
-								"Internal error when decoding B64 content: input may be corrupt");
-					}
-					read(line);
-				} else {
-					processLine(line);
-				}
+		int dataStart = offset;
+		while (dataStart < data.length) {
+			String id = "";
+			if (data.length - dataStart >= SIZE_ID) {
+				id = new String(data, dataStart, SIZE_ID);
 			}
-		} finally {
-			scan.close();
+
+			boolean zip = id.equals("ZIP:");
+			boolean b64 = id.equals("B64:");
+			if (zip || b64) {
+				dataStart += SIZE_ID;
+			}
+
+			int count = find(data, dataStart, NEWLINE);
+			count -= dataStart;
+			if (count < 0) {
+				count = data.length - dataStart;
+			}
+
+			if (zip || b64) {
+				boolean unpacked = false;
+				try {
+					byte[] line = StringUtils.unbase64(data, dataStart, count,
+							zip);
+					unpacked = true;
+					read(line, 0);
+				} catch (IOException e) {
+					throw new IOException("Internal error when decoding "
+							+ (unpacked ? "unpacked " : "")
+							+ (zip ? "ZIP" : "B64")
+							+ " content: input may be corrupt");
+				}
+			} else {
+				String line = new String(data, dataStart, count, "UTF-8");
+				processLine(line);
+			}
+
+			dataStart += count + NEWLINE.length;
 		}
 
 		return this;
@@ -204,6 +253,37 @@ public class Importer {
 					"Internal error when setting \"%s.%s\": %s", me.getClass()
 							.getCanonicalName(), name, e.getMessage()));
 		}
+	}
+
+	/**
+	 * Find the given needle in the data and return its position (or -1 if not
+	 * found).
+	 * 
+	 * @param data
+	 *            the data to look through
+	 * @param offset
+	 *            the offset at wich to start searching
+	 * @param needle
+	 *            the needle to find
+	 * 
+	 * @return the position of the needle if found, -1 if not found
+	 */
+	private int find(byte[] data, int offset, byte[] needle) {
+		for (int i = offset; i + needle.length - 1 < data.length; i++) {
+			boolean same = true;
+			for (int j = 0; j < needle.length; j++) {
+				if (data[i + j] != needle[j]) {
+					same = false;
+					break;
+				}
+			}
+
+			if (same) {
+				return i;
+			}
+		}
+
+		return -1;
 	}
 
 	/**
