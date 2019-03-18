@@ -4,12 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import be.nikiroo.fanfix.Instance;
@@ -326,48 +324,60 @@ abstract public class BasicLibrary {
 	 * 
 	 * @return the authors' names, grouped by letter(s)
 	 */
-	public List<Entry<String, List<String>>> getAuthorsGrouped() {
+	public Map<String, List<String>> getAuthorsGrouped() {
 		int MAX = 20;
 
-		List<Entry<String, List<String>>> groups = new ArrayList<Entry<String, List<String>>>();
+		Map<String, List<String>> groups = new TreeMap<String, List<String>>();
 		List<String> authors = getAuthors();
 
+		// If all authors fit the max, just report them as is
 		if (authors.size() <= MAX) {
-			groups.add(new SimpleEntry<String, List<String>>("", authors));
+			groups.put("", authors);
 			return groups;
 		}
 
-		groups.add(new SimpleEntry<String, List<String>>("*", getAuthorsGroup(
-				authors, '*')));
-		groups.add(new SimpleEntry<String, List<String>>("0-9",
-				getAuthorsGroup(authors, '0')));
-
+		// Create groups A to Z, which can be empty here
 		for (char car = 'A'; car <= 'Z'; car++) {
-			groups.add(new SimpleEntry<String, List<String>>(Character
-					.toString(car), getAuthorsGroup(authors, car)));
+			groups.put(Character.toString(car), getAuthorsGroup(authors, car));
 		}
 
-		// do NOT collapse * and [0-9] with the rest
-		for (int i = 2; i + 1 < groups.size(); i++) {
-			Entry<String, List<String>> now = groups.get(i);
-			Entry<String, List<String>> next = groups.get(i + 1);
-			int currentTotal = now.getValue().size() + next.getValue().size();
+		// Collapse them
+		List<String> keys = new ArrayList<String>(groups.keySet());
+		for (int i = 0; i + 1 < keys.size(); i++) {
+			String keyNow = keys.get(i);
+			String keyNext = keys.get(i + 1);
+
+			List<String> now = groups.get(keyNow);
+			List<String> next = groups.get(keyNext);
+
+			int currentTotal = now.size() + next.size();
 			if (currentTotal <= MAX) {
-				String key = now.getKey().charAt(0) + "-"
-						+ next.getKey().charAt(next.getKey().length() - 1);
+				String key = keyNow.charAt(0) + "-"
+						+ keyNext.charAt(keyNext.length() - 1);
+
 				List<String> all = new ArrayList<String>();
-				all.addAll(now.getValue());
-				all.addAll(next.getValue());
-				groups.set(i, new SimpleEntry<String, List<String>>(key, all));
-				groups.remove(i + 1);
-				i--;
+				all.addAll(now);
+				all.addAll(next);
+
+				groups.remove(keyNow);
+				groups.remove(keyNext);
+				groups.put(key, all);
+
+				keys.set(i, key); // set the new key instead of key(i)
+				keys.remove(i + 1); // remove the next, consumed key
+				i--; // restart at key(i)
 			}
 		}
 
-		for (int i = 0; i < groups.size(); i++) {
-			if (groups.get(i).getValue().size() == 0) {
-				groups.remove(i);
-				i--;
+		// Add "special" groups
+		groups.put("*", getAuthorsGroup(authors, '*'));
+		groups.put("0-9", getAuthorsGroup(authors, '0'));
+
+		// Prune empty groups
+		keys = new ArrayList<String>(groups.keySet());
+		for (String key : keys) {
+			if (groups.get(key).isEmpty()) {
+				groups.remove(key);
 			}
 		}
 

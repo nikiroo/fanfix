@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -169,7 +168,11 @@ class GuiReaderFrame extends JFrame {
 					lib.refresh(pg);
 					invalidate();
 					setJMenuBar(createMenu(true));
-					addBookPane(typeF, true);
+					if (typeF == null) {
+						addBookPane(true, false);
+					} else {
+						addBookPane(typeF, true);
+					}
 					refreshBooks();
 					validate();
 					pane.setVisible(true);
@@ -205,20 +208,21 @@ class GuiReaderFrame extends JFrame {
 		setVisible(true);
 	}
 
-	private void addSourcePanes() {
+	private void addListPane(String name, List<String> values,
+			final boolean type) {
 		// Sources -> i18n
-		GuiReaderGroup bookPane = new GuiReaderGroup(reader, "Sources", color);
+		GuiReaderGroup bookPane = new GuiReaderGroup(reader, name, color);
 
-		List<MetaData> sources = new ArrayList<MetaData>();
-		for (String source : reader.getLibrary().getSources()) {
+		List<MetaData> metas = new ArrayList<MetaData>();
+		for (String source : values) {
 			MetaData mSource = new MetaData();
 			mSource.setLuid(null);
 			mSource.setTitle(source);
 			mSource.setSource(source);
-			sources.add(mSource);
+			metas.add(mSource);
 		}
 
-		bookPane.refreshBooks(sources, false);
+		bookPane.refreshBooks(metas, false);
 
 		this.invalidate();
 		pane.invalidate();
@@ -242,10 +246,51 @@ class GuiReaderFrame extends JFrame {
 			@Override
 			public void action(final GuiReaderBook book) {
 				removeBookPanes();
-				addBookPane(book.getMeta().getSource(), true);
+				addBookPane(book.getMeta().getSource(), type);
 				refreshBooks();
 			}
 		});
+	}
+
+	/**
+	 * Add a new {@link GuiReaderGroup} on the frame to display all the
+	 * sources/types or all the authors, or a listing of all the books sorted
+	 * either by source or author.
+	 * <p>
+	 * A display of all the sources/types or all the authors will show one icon
+	 * per source/type or author.
+	 * <p>
+	 * A listing of all the books sorted by source/type or author will display
+	 * all the books.
+	 * 
+	 * @param type
+	 *            TRUE for type/source, FALSE for author
+	 * @param listMode
+	 *            TRUE to get a listing of all the sources or authors, FALSE to
+	 *            get one icon per source or author
+	 */
+	private void addBookPane(boolean type, boolean listMode) {
+		if (type) {
+			if (!listMode) {
+				addListPane("Sources", reader.getLibrary().getSources(), type);
+			} else {
+				for (String tt : reader.getLibrary().getSources()) {
+					if (tt != null) {
+						addBookPane(tt, type);
+					}
+				}
+			}
+		} else {
+			if (!listMode) {
+				addListPane("Authors", reader.getLibrary().getAuthors(), type);
+			} else {
+				for (String tt : reader.getLibrary().getAuthors()) {
+					if (tt != null) {
+						addBookPane(tt, type);
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -256,32 +301,10 @@ class GuiReaderFrame extends JFrame {
 	 *            the author or the type, or NULL to get all the
 	 *            authors-or-types
 	 * @param type
-	 *            TRUE for type, FALSE for author
+	 *            TRUE for type/source, FALSE for author
+	 * 
 	 */
 	private void addBookPane(String value, boolean type) {
-		if (value == null) {
-			if (type) {
-				if (Instance.getUiConfig().getBoolean(UiConfig.SOURCE_PAGE,
-						false)) {
-					addSourcePanes();
-				} else {
-					for (String tt : reader.getLibrary().getSources()) {
-						if (tt != null) {
-							addBookPane(tt, type);
-						}
-					}
-				}
-			} else {
-				for (String tt : reader.getLibrary().getAuthors()) {
-					if (tt != null) {
-						addBookPane(tt, type);
-					}
-				}
-			}
-
-			return;
-		}
-
 		GuiReaderGroup bookPane = new GuiReaderGroup(reader, value, color);
 		if (type) {
 			booksByType.put(bookPane, value);
@@ -328,6 +351,10 @@ class GuiReaderFrame extends JFrame {
 		});
 	}
 
+	/**
+	 * Clear the pane from any book that may be present, usually prior to adding
+	 * new ones.
+	 */
 	private void removeBookPanes() {
 		booksByType.clear();
 		booksByAuthor.clear();
@@ -443,73 +470,22 @@ class GuiReaderFrame extends JFrame {
 		view.add(vwords);
 		bar.add(view);
 
-		JMenu sources = new JMenu("Sources");
-		sources.setMnemonic(KeyEvent.VK_S);
-
 		Map<String, List<String>> groupedSources = new HashMap<String, List<String>>();
 		if (libOk) {
 			groupedSources = reader.getLibrary().getSourcesGrouped();
 		}
-
-		JMenuItem item = new JMenuItem("All");
-		item.addActionListener(getActionOpenSource(null));
-		sources.add(item);
-		sources.addSeparator();
-
-		for (final String type : groupedSources.keySet()) {
-			List<String> list = groupedSources.get(type);
-			if (list.size() == 1 && list.get(0).isEmpty()) {
-				item = new JMenuItem(type);
-				item.addActionListener(getActionOpenSource(type));
-				sources.add(item);
-			} else {
-				JMenu dir = new JMenu(type);
-				for (String sub : list) {
-					// " " instead of "" for the visual height
-					String itemName = sub.isEmpty() ? " " : sub;
-					String actualType = type;
-					if (!sub.isEmpty()) {
-						actualType += "/" + sub;
-					}
-
-					item = new JMenuItem(itemName);
-					item.addActionListener(getActionOpenSource(actualType));
-					dir.add(item);
-				}
-				sources.add(dir);
-			}
-		}
-
+		JMenu sources = new JMenu("Sources");
+		sources.setMnemonic(KeyEvent.VK_S);
+		populateMenuSA(sources, groupedSources, true);
 		bar.add(sources);
 
+		Map<String, List<String>> goupedAuthors = new HashMap<String, List<String>>();
+		if (libOk) {
+			goupedAuthors = reader.getLibrary().getAuthorsGrouped();
+		}
 		JMenu authors = new JMenu("Authors");
 		authors.setMnemonic(KeyEvent.VK_A);
-
-		List<Entry<String, List<String>>> authorGroups = reader.getLibrary()
-				.getAuthorsGrouped();
-		if (authorGroups.size() > 1) {
-			// Multiple groups
-
-			// null -> "All" authors special item
-			populateMenuAuthorList(authors, Arrays.asList((String) null));
-
-			for (Entry<String, List<String>> group : authorGroups) {
-				JMenu thisGroup = new JMenu(group.getKey());
-				populateMenuAuthorList(thisGroup, group.getValue());
-				authors.add(thisGroup);
-			}
-		} else {
-			// Only one group
-
-			// null -> "All" authors special item
-			List<String> authorNames = new ArrayList<String>();
-			authorNames.add(null);
-			if (authorGroups.size() > 0) {
-				authorNames.addAll(authorGroups.get(0).getValue());
-			}
-			populateMenuAuthorList(authors, authorNames);
-		}
-
+		populateMenuSA(authors, goupedAuthors, false);
 		bar.add(authors);
 
 		JMenu options = new JMenu("Options");
@@ -521,55 +497,90 @@ class GuiReaderFrame extends JFrame {
 		return bar;
 	}
 
+	// "" = [unknown]
+	private void populateMenuSA(JMenu menu,
+			Map<String, List<String>> groupedValues, boolean type) {
+
+		// "All" and "Listing" special items
+		JMenuItem item = new JMenuItem("All");
+		item.addActionListener(getActionOpenList(type, false));
+		menu.add(item);
+		item = new JMenuItem("Listing");
+		item.addActionListener(getActionOpenList(type, true));
+		menu.add(item);
+		menu.addSeparator();
+
+		for (final String value : groupedValues.keySet()) {
+			List<String> list = groupedValues.get(value);
+			if (type && list.size() == 1 && list.get(0).isEmpty()) {
+				// leaf item source/type
+				item = new JMenuItem(value.isEmpty() ? "[unknown]" : value);
+				item.addActionListener(getActionOpen(value, type));
+				menu.add(item);
+			} else {
+				JMenu dir;
+				if (!type && groupedValues.size() == 1) {
+					// only one group of authors
+					dir = menu;
+				} else {
+					dir = new JMenu(value.isEmpty() ? "[unknown]" : value);
+				}
+
+				for (String sub : list) {
+					// " " instead of "" for the visual height
+					String itemName = sub.isEmpty() ? " " : sub;
+					String actualValue = value;
+
+					if (type) {
+						if (!sub.isEmpty()) {
+							actualValue += "/" + sub;
+						}
+					} else {
+						actualValue = sub;
+					}
+
+					item = new JMenuItem(itemName);
+					item.addActionListener(getActionOpen(actualValue, type));
+					dir.add(item);
+				}
+
+				if (menu != dir) {
+					menu.add(dir);
+				}
+			}
+		}
+	}
+
 	/**
 	 * Return an {@link ActionListener} that will set the given source (type) as
 	 * the selected/displayed one.
 	 * 
 	 * @param type
-	 *            the type (source) to select
+	 *            the type (source) to select, cannot be NULL
 	 * 
 	 * @return the {@link ActionListener}
 	 */
-	private ActionListener getActionOpenSource(final String type) {
+	private ActionListener getActionOpen(final String source, final boolean type) {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				removeBookPanes();
-				addBookPane(type, true);
+				addBookPane(source, type);
 				refreshBooks();
 			}
 		};
 	}
 
-	/**
-	 * Populate a list of authors as {@link JMenuItem}s into the given
-	 * {@link JMenu}.
-	 * <p>
-	 * Each item will select the author when clicked.
-	 * 
-	 * @param authors
-	 *            the parent {@link JMenuItem}
-	 * @param names
-	 *            the authors' names
-	 */
-	private void populateMenuAuthorList(JMenu authors, List<String> names) {
-		for (final String name : names) {
-			JMenuItem item = new JMenuItem(name == null ? "All"
-					: name.isEmpty() ? "[unknown]" : name);
-			item.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					removeBookPanes();
-					addBookPane(name, false);
-					refreshBooks();
-				}
-			});
-			authors.add(item);
-
-			if (name == null || name.isEmpty()) {
-				authors.addSeparator();
+	private ActionListener getActionOpenList(final boolean type,
+			final boolean listMode) {
+		return new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				removeBookPanes();
+				addBookPane(type, listMode);
+				refreshBooks();
 			}
-		}
+		};
 	}
 
 	/**
@@ -817,21 +828,21 @@ class GuiReaderFrame extends JFrame {
 
 		// Existing authors
 		if (libOk) {
-			List<Entry<String, List<String>>> authorGroups = reader
-					.getLibrary().getAuthorsGrouped();
+			Map<String, List<String>> groupedAuthors = reader.getLibrary()
+					.getAuthorsGrouped();
 
-			if (authorGroups.size() > 1) {
-				for (Entry<String, List<String>> entry : authorGroups) {
-					JMenu group = new JMenu(entry.getKey());
-					for (String value : entry.getValue()) {
+			if (groupedAuthors.size() > 1) {
+				for (String key : groupedAuthors.keySet()) {
+					JMenu group = new JMenu(key);
+					for (String value : groupedAuthors.get(key)) {
 						JMenuItem item = new JMenuItem(value);
 						item.addActionListener(createMoveAction("AUTHOR", value));
 						group.add(item);
 					}
 					changeTo.add(group);
 				}
-			} else if (authorGroups.size() == 1) {
-				for (String value : authorGroups.get(0).getValue()) {
+			} else if (groupedAuthors.size() == 1) {
+				for (String value : groupedAuthors.values().iterator().next()) {
 					JMenuItem item = new JMenuItem(value);
 					item.addActionListener(createMoveAction("AUTHOR", value));
 					changeTo.add(item);

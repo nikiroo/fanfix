@@ -5,6 +5,7 @@
 - new: les sources peuvent contenir "/" (et utiliseront des sous-répertoires en fonction)
 - gui: nouvelle page pour voir les propriétés d'une histoire
 - gui: renommer les histoires, changer l'auteur
+- gui: permet de lister les auteurs ou les sources en mode "tout" ou "listing"
 - tui: fonctionne maintenant assez bien que pour être déclaré stable
 - remote: fix de setSourceCover (ce n'était pas vu par le client)
 - remote: on peut maintenant importer un fichier local
