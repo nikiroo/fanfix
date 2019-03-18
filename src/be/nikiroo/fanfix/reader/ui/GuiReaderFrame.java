@@ -446,26 +446,37 @@ class GuiReaderFrame extends JFrame {
 		JMenu sources = new JMenu("Sources");
 		sources.setMnemonic(KeyEvent.VK_S);
 
-		List<String> tt = new ArrayList<String>();
+		Map<String, List<String>> groupedSources = new HashMap<String, List<String>>();
 		if (libOk) {
-			tt.addAll(reader.getLibrary().getSources());
+			groupedSources = reader.getLibrary().getSourcesGrouped();
 		}
-		tt.add(0, null);
 
-		for (final String type : tt) {
-			JMenuItem item = new JMenuItem(type == null ? "All" : type);
-			item.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					removeBookPanes();
-					addBookPane(type, true);
-					refreshBooks();
+		JMenuItem item = new JMenuItem("All");
+		item.addActionListener(getActionOpenSource(null));
+		sources.add(item);
+		sources.addSeparator();
+
+		for (final String type : groupedSources.keySet()) {
+			List<String> list = groupedSources.get(type);
+			if (list.size() == 1 && list.get(0).isEmpty()) {
+				item = new JMenuItem(type);
+				item.addActionListener(getActionOpenSource(type));
+				sources.add(item);
+			} else {
+				JMenu dir = new JMenu(type);
+				for (String sub : list) {
+					// " " instead of "" for the visual height
+					String itemName = sub.isEmpty() ? " " : sub;
+					String actualType = type;
+					if (!sub.isEmpty()) {
+						actualType += "/" + sub;
+					}
+
+					item = new JMenuItem(itemName);
+					item.addActionListener(getActionOpenSource(actualType));
+					dir.add(item);
 				}
-			});
-			sources.add(item);
-
-			if (type == null) {
-				sources.addSeparator();
+				sources.add(dir);
 			}
 		}
 
@@ -508,6 +519,26 @@ class GuiReaderFrame extends JFrame {
 		bar.add(options);
 
 		return bar;
+	}
+
+	/**
+	 * Return an {@link ActionListener} that will set the given source (type) as
+	 * the selected/displayed one.
+	 * 
+	 * @param type
+	 *            the type (source) to select
+	 * 
+	 * @return the {@link ActionListener}
+	 */
+	private ActionListener getActionOpenSource(final String type) {
+		return new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				removeBookPanes();
+				addBookPane(type, true);
+				refreshBooks();
+			}
+		};
 	}
 
 	/**
@@ -725,24 +756,41 @@ class GuiReaderFrame extends JFrame {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemMoveTo(boolean libOk) {
-		JMenuItem changeTo = new JMenu("Move to");
+		JMenu changeTo = new JMenu("Move to");
 		changeTo.setMnemonic(KeyEvent.VK_M);
 
-		List<String> values = new ArrayList<String>();
-		values.add(null);
+		Map<String, List<String>> groupedSources = new HashMap<String, List<String>>();
 		if (libOk) {
-			values.addAll(reader.getLibrary().getSources());
+			groupedSources = reader.getLibrary().getSourcesGrouped();
 		}
 
-		for (String value : values) {
-			JMenuItem item = new JMenuItem(value == null ? "New type..."
-					: value);
+		JMenuItem item = new JMenuItem("New type...");
+		item.addActionListener(createMoveAction("SOURCE", null));
+		changeTo.add(item);
+		changeTo.addSeparator();
 
-			item.addActionListener(createMoveAction("SOURCE", value));
+		for (final String type : groupedSources.keySet()) {
+			List<String> list = groupedSources.get(type);
+			if (list.size() == 1 && list.get(0).isEmpty()) {
+				item = new JMenuItem(type);
+				item.addActionListener(createMoveAction("SOURCE", type));
+				changeTo.add(item);
+			} else {
+				JMenu dir = new JMenu(type);
+				for (String sub : list) {
+					// " " instead of "" for the visual height
+					String itemName = sub.isEmpty() ? " " : sub;
+					String actualType = type;
+					if (!sub.isEmpty()) {
+						actualType += "/" + sub;
+					}
 
-			changeTo.add(item);
-			if (value == null) {
-				((JMenu) changeTo).addSeparator();
+					item = new JMenuItem(itemName);
+					item.addActionListener(createMoveAction("SOURCE",
+							actualType));
+					dir.add(item);
+				}
+				changeTo.add(dir);
 			}
 		}
 

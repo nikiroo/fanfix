@@ -8,7 +8,9 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
@@ -244,6 +246,47 @@ abstract public class BasicLibrary {
 
 		Collections.sort(list);
 		return list;
+	}
+
+	/**
+	 * List all the known types (sources) of stories, grouped by directory
+	 * ("Source_1/a" and "Source_1/b" will be grouped into "Source_1").
+	 * <p>
+	 * Note that an empty item in the list means a non-grouped source (type) --
+	 * e.g., you could have for Source_1:
+	 * <ul>
+	 * <li><tt></tt>: empty, so source is "Source_1"</li>
+	 * <li><tt>a</tt>: empty, so source is "Source_1/a"</li>
+	 * <li><tt>b</tt>: empty, so source is "Source_1/b"</li>
+	 * </ul>
+	 * 
+	 * @return the grouped list
+	 */
+	public synchronized Map<String, List<String>> getSourcesGrouped() {
+		Map<String, List<String>> map = new TreeMap<String, List<String>>();
+		for (String source : getSources()) {
+			String name;
+			String subname;
+
+			int pos = source.indexOf('/');
+			if (pos > 0 && pos < source.length() - 1) {
+				name = source.substring(0, pos);
+				subname = source.substring(pos + 1);
+
+			} else {
+				name = source;
+				subname = "";
+			}
+
+			List<String> list = map.get(name);
+			if (list == null) {
+				list = new ArrayList<String>();
+				map.put(name, list);
+			}
+			list.add(subname);
+		}
+
+		return map;
 	}
 
 	/**
