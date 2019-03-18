@@ -75,8 +75,9 @@ My current planning for Fanfix (but not everything appears on this list):
   - [x] A check-update feature
     - [x] ..translated
 - [ ] Improve GUI library
-    - [x] Allow lauching a custom application instead of Desktop.start
+    - [x] Allow launching a custom application instead of Desktop.start
     - [ ] Add the resume next to the cover icon if available (as an option)
+    - [ ] Add the resume in the Properties page (maybe a second tab?)
 - [ ] Bugs
     - [x] Fix "Redownload also reset the source"
     - [ ] Fix "Redownload remote does not show the new item before restart of client app"
@@ -85,5 +86,5 @@ My current planning for Fanfix (but not everything appears on this list):
     - [ ] remote import also download the file in cache, why?
     - [x] import file in remote mode tries to import remote file!!
     - [ ] import file does not find author in cbz with SUMMARY file
-    - [ ] import file:// creates a tmp without auto-deletion in /tmp/fanfic-...
+    - [x] import file:// creates a tmp without auto-deletion in /tmp/fanfic-...
 
