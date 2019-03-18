@@ -2,17 +2,17 @@
 
 # Version WIP
 
-- new: sources can contain "/" (and will use subdirectories)
-- gui: new Properties page for stories
-- gui: rename stories, change author
-- tui: now working well enough to be considered stable
-- remote: fix setSourceCover (was not seen by client)
-- remote: can now import local files into a remote library
-- remote: better perfs
-- remote: not compatible with 1.x
-- fix: deadlock in some rare cases (nikiroo-utils)
-- fix: the resume was not visible in some cases
-- fix: update nikiroo-utils, better remote perfs
+- new: les sources peuvent contenir "/" (et utiliseront des sous-répertoires en fonction)
+- gui: nouvelle page pour voir les propriétés d'une histoire
+- gui: renommer les histoires, changer l'auteur
+- tui: fonctionne maintenant assez bien que pour être déclaré stable
+- remote: fix de setSourceCover (ce n'était pas vu par le client)
+- remote: on peut maintenant importer un fichier local
+- remote: meilleures perfs
+- remote: incompatible avec 1.x
+- fix: deadlock dans certains cas rares (nikiroo-utils)
+- fix: le résumé n'était pas visibe dans certains cas
+- fix: update de nikiroo-utils, meilleures perfs pour le remote
 
 # Version 1.8.1
 
