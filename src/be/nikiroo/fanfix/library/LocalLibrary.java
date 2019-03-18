@@ -187,7 +187,7 @@ public class LocalLibrary extends BasicLibrary {
 			throws IOException {
 		File newDir = getExpectedDir(meta.getSource());
 		if (!newDir.exists()) {
-			newDir.mkdir();
+			newDir.mkdirs();
 		}
 
 		List<File> relatedFiles = getRelatedFiles(meta.getLuid());
@@ -225,7 +225,7 @@ public class LocalLibrary extends BasicLibrary {
 			return img;
 		}
 
-		File coverDir = new File(baseDir, source);
+		File coverDir = getExpectedDir(source);
 		if (coverDir.isDirectory()) {
 			File cover = new File(coverDir, ".cover.png");
 			if (cover.exists()) {
@@ -295,19 +295,21 @@ public class LocalLibrary extends BasicLibrary {
 			if (meta != null && meta.getType().equals(expectedType)) {
 				File from = otherLocalLibrary.getExpectedDir(meta.getSource());
 				File to = this.getExpectedDir(meta.getSource());
-				List<File> sources = otherLocalLibrary.getRelatedFiles(luid);
-				if (!sources.isEmpty()) {
-					pg.setMinMax(0, sources.size());
+				List<File> relatedFiles = otherLocalLibrary
+						.getRelatedFiles(luid);
+				if (!relatedFiles.isEmpty()) {
+					pg.setMinMax(0, relatedFiles.size());
 				}
 
-				for (File source : sources) {
-					File target = new File(source.getAbsolutePath().replace(
-							from.getAbsolutePath(), to.getAbsolutePath()));
-					if (!source.equals(target)) {
+				for (File relatedFile : relatedFiles) {
+					File target = new File(relatedFile.getAbsolutePath()
+							.replace(from.getAbsolutePath(),
+									to.getAbsolutePath()));
+					if (!relatedFile.equals(target)) {
 						target.getParentFile().mkdirs();
 						InputStream in = null;
 						try {
-							in = new FileInputStream(source);
+							in = new FileInputStream(relatedFile);
 							IOUtils.write(in, target);
 						} catch (IOException e) {
 							if (in != null) {
@@ -399,7 +401,22 @@ public class LocalLibrary extends BasicLibrary {
 	 * @return the target directory
 	 */
 	private File getExpectedDir(String source) {
-		String sanitizedSource = source.replaceAll("[^a-zA-Z0-9._+-]", "_");
+		String sanitizedSource = source.replaceAll("[^a-zA-Z0-9._+/-]", "_");
+
+		while (sanitizedSource.startsWith("/")) {
+			if (sanitizedSource.length() > 1) {
+				sanitizedSource = sanitizedSource.substring(1);
+			} else {
+				sanitizedSource = "";
+			}
+		}
+
+		sanitizedSource = sanitizedSource.replace("/", File.separator);
+
+		if (sanitizedSource.isEmpty()) {
+			sanitizedSource = "EMPTY";
+		}
+
 		return new File(baseDir, sanitizedSource);
 	}
 
@@ -498,49 +515,11 @@ public class LocalLibrary extends BasicLibrary {
 				pg.addProgress(pgDirs, 100);
 
 				for (File dir : dirs) {
-					File[] infoFiles = dir.listFiles(new FileFilter() {
-						@Override
-						public boolean accept(File file) {
-							return file != null
-									&& file.getPath().toLowerCase()
-											.endsWith(".info");
-						}
-					});
-
-					Progress pgFiles = new Progress(0, infoFiles.length);
+					Progress pgFiles = new Progress();
 					pgDirs.addProgress(pgFiles, 100);
 					pgDirs.setName("Loading from: " + dir.getName());
 
-					for (File infoFile : infoFiles) {
-						pgFiles.setName(infoFile.getName());
-						try {
-							MetaData meta = InfoReader
-									.readMeta(infoFile, false);
-							try {
-								int id = Integer.parseInt(meta.getLuid());
-								if (id > lastId) {
-									lastId = id;
-								}
-
-								stories.put(meta, new File[] { infoFile,
-										getTargetFile(meta, infoFile) });
-							} catch (Exception e) {
-								// not normal!!
-								throw new IOException(
-										"Cannot understand the LUID of "
-												+ infoFile + ": "
-												+ meta.getLuid(), e);
-							}
-						} catch (IOException e) {
-							// We should not have not-supported files in the
-							// library
-							Instance.getTraceHandler().error(
-									new IOException(
-											"Cannot load file from library: "
-													+ infoFile, e));
-						}
-						pgFiles.add(1);
-					}
+					addToStories(pgFiles, dir);
 
 					pgFiles.setName(null);
 				}
@@ -551,5 +530,59 @@ public class LocalLibrary extends BasicLibrary {
 
 		pg.done();
 		return stories;
+	}
+
+	private void addToStories(Progress pgFiles, File dir) {
+		File[] infoFilesAndSubdirs = dir.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File file) {
+				boolean info = file != null && file.isFile()
+						&& file.getPath().toLowerCase().endsWith(".info");
+				boolean dir = file != null && file.isDirectory();
+				return info || dir;
+			}
+		});
+
+		if (pgFiles != null) {
+			pgFiles.setMinMax(0, infoFilesAndSubdirs.length);
+		}
+
+		for (File infoFileOrSubdir : infoFilesAndSubdirs) {
+			if (pgFiles != null) {
+				pgFiles.setName(infoFileOrSubdir.getName());
+			}
+
+			if (infoFileOrSubdir.isDirectory()) {
+				addToStories(null, infoFileOrSubdir);
+			} else {
+				try {
+					MetaData meta = InfoReader
+							.readMeta(infoFileOrSubdir, false);
+					try {
+						int id = Integer.parseInt(meta.getLuid());
+						if (id > lastId) {
+							lastId = id;
+						}
+
+						stories.put(meta, new File[] { infoFileOrSubdir,
+								getTargetFile(meta, infoFileOrSubdir) });
+					} catch (Exception e) {
+						// not normal!!
+						throw new IOException("Cannot understand the LUID of "
+								+ infoFileOrSubdir + ": " + meta.getLuid(), e);
+					}
+				} catch (IOException e) {
+					// We should not have not-supported files in the
+					// library
+					Instance.getTraceHandler().error(
+							new IOException("Cannot load file from library: "
+									+ infoFileOrSubdir, e));
+				}
+			}
+
+			if (pgFiles != null) {
+				pgFiles.add(1);
+			}
+		}
 	}
 }

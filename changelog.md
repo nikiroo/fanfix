@@ -2,6 +2,7 @@
 
 # Version WIP
 
+- new: les sources peuvent contenir "/" (et utiliseront des sous-répertoires en fonction)
 - gui: nouvelle page pour voir les propriétés d'une histoire
 - gui: renommer les histoires, changer l'auteur
 - tui: fonctionne maintenant assez bien que pour être déclaré stable

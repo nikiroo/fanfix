@@ -2,6 +2,7 @@
 
 # Version WIP
 
+- new: sources can contain "/" (and will use subdirectories)
 - gui: new Properties page for stories
 - gui: rename stories, change author
 - tui: now working well enough to be considered stable

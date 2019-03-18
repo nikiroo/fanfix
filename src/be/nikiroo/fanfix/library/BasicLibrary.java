@@ -375,7 +375,7 @@ abstract public class BasicLibrary {
 	/**
 	 * List all the stories in the {@link BasicLibrary}.
 	 * <p>
-	 * Cover images not included.
+	 * Cover images <b>MAYBE</b> not included.
 	 * 
 	 * @return the stories
 	 */
