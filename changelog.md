@@ -14,6 +14,7 @@
 - fix: deadlock in some rare cases (nikiroo-utils)
 - fix: the resume was not visible in some cases
 - fix: update nikiroo-utils, better remote perfs
+- fix: eHentai content warning
 
 # Version 1.8.1
 

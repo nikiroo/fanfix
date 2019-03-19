@@ -7,6 +7,7 @@ import java.net.URL;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 
@@ -77,6 +78,14 @@ class EHentai extends BasicSupport_Deprecated {
 	@Override
 	protected boolean isHtml() {
 		return true;
+	}
+
+	@Override
+	public Map<String, String> getCookies() {
+		// TODO Auto-generated method stub
+		Map<String, String> cookies = super.getCookies();
+		cookies.put("nw", "1");
+		return cookies;
 	}
 
 	private Image getCover(URL source, InputStream in) {
