@@ -239,9 +239,12 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 
 				for (String sub : list) {
 					// " " instead of "" for the visual height
-					String itemName = sub.isEmpty() ? " " : sub;
-					String actualValue = value;
+					String itemName = sub;
+					if (itemName.isEmpty()) {
+						itemName = type ? " " : "[unknown]";
+					}
 
+					String actualValue = value;
 					if (type) {
 						if (!sub.isEmpty()) {
 							actualValue += "/" + sub;
@@ -548,7 +551,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 				for (String key : groupedAuthors.keySet()) {
 					JMenu group = new JMenu(key);
 					for (String value : groupedAuthors.get(key)) {
-						JMenuItem item = new JMenuItem(value);
+						JMenuItem item = new JMenuItem(
+								value.isEmpty() ? "[unknown]" : value);
 						item.addActionListener(createMoveAction(
 								MoveAction.AUTHOR, value));
 						group.add(item);
@@ -557,7 +561,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 				}
 			} else if (groupedAuthors.size() == 1) {
 				for (String value : groupedAuthors.values().iterator().next()) {
-					JMenuItem item = new JMenuItem(value);
+					JMenuItem item = new JMenuItem(
+							value.isEmpty() ? "[unknown]" : value);
 					item.addActionListener(createMoveAction(MoveAction.AUTHOR,
 							value));
 					changeTo.add(item);
@@ -618,13 +623,13 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					mainPanel.outOfUi(null, new Runnable() {
 						@Override
 						public void run() {
-							if (what.equals("SOURCE")) {
+							if (what == MoveAction.SOURCE) {
 								reader.changeSource(selectedBook.getMeta()
 										.getLuid(), fChangeTo);
-							} else if (what.equals("TITLE")) {
+							} else if (what == MoveAction.TITLE) {
 								reader.changeTitle(selectedBook.getMeta()
 										.getLuid(), fChangeTo);
-							} else if (what.equals("AUTHOR")) {
+							} else if (what == MoveAction.AUTHOR) {
 								reader.changeAuthor(selectedBook.getMeta()
 										.getLuid(), fChangeTo);
 							}
