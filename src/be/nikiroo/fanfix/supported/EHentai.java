@@ -82,7 +82,6 @@ class EHentai extends BasicSupport_Deprecated {
 
 	@Override
 	public Map<String, String> getCookies() {
-		// TODO Auto-generated method stub
 		Map<String, String> cookies = super.getCookies();
 		cookies.put("nw", "1");
 		return cookies;
