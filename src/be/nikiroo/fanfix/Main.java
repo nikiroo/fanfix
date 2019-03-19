@@ -33,7 +33,7 @@ import be.nikiroo.utils.serial.server.ServerObject;
  */
 public class Main {
 	private enum MainAction {
-		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER, START, VERSION, SERVER, STOP_SERVER, REMOTE,
+		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER, START, VERSION, SERVER, STOP_SERVER, REMOTE, SET_SOURCE, SET_TITLE, SET_AUTHOR
 	}
 
 	/**
@@ -60,6 +60,9 @@ public class Main {
 	 * <li>--read-url [URL] ([chapter number]): convert on the fly and read the
 	 * story, without saving it</li>
 	 * <li>--list ([type]): list the stories present in the library</li>
+	 * <li>--set-source [id] [new source]: change the source of the given story</li>
+	 * <li>--set-title [id] [new title]: change the title of the given story</li>
+	 * <li>--set-author [id] [new author]: change the author of the given story</li>
 	 * <li>--set-reader [reader type]: set the reader type to CLI, TUI or LOCAL
 	 * for this command</li>
 	 * <li>--version: get the version of the program</li>
@@ -76,6 +79,8 @@ public class Main {
 		String urlString = null;
 		String luid = null;
 		String sourceString = null;
+		String titleString = null;
+		String authorString = null;
 		String chapString = null;
 		String target = null;
 		String key = null;
@@ -146,6 +151,33 @@ public class Main {
 			case LIST:
 				if (sourceString == null) {
 					sourceString = args[i];
+				} else {
+					exitCode = 255;
+				}
+				break;
+			case SET_SOURCE:
+				if (luid == null) {
+					luid = args[i];
+				} else if (sourceString == null) {
+					sourceString = args[i];
+				} else {
+					exitCode = 255;
+				}
+				break;
+			case SET_TITLE:
+				if (luid == null) {
+					luid = args[i];
+				} else if (sourceString == null) {
+					titleString = args[i];
+				} else {
+					exitCode = 255;
+				}
+				break;
+			case SET_AUTHOR:
+				if (luid == null) {
+					luid = args[i];
+				} else if (sourceString == null) {
+					authorString = args[i];
 				} else {
 					exitCode = 255;
 				}
@@ -281,6 +313,30 @@ public class Main {
 					break;
 				}
 				exitCode = list(sourceString);
+				break;
+			case SET_SOURCE:
+				try {
+					Instance.getLibrary().changeSource(luid, sourceString, pg);
+				} catch (IOException e1) {
+					Instance.getTraceHandler().error(e1);
+					exitCode = 21;
+				}
+				break;
+			case SET_TITLE:
+				try {
+					Instance.getLibrary().changeTitle(luid, titleString, pg);
+				} catch (IOException e1) {
+					Instance.getTraceHandler().error(e1);
+					exitCode = 22;
+				}
+				break;
+			case SET_AUTHOR:
+				try {
+					Instance.getLibrary().changeAuthor(luid, authorString, pg);
+				} catch (IOException e1) {
+					Instance.getTraceHandler().error(e1);
+					exitCode = 23;
+				}
 				break;
 			case READ:
 				if (BasicReader.getReader() == null) {
