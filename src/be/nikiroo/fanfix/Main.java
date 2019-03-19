@@ -366,9 +366,7 @@ public class Main {
 			syntax(false);
 		}
 
-		if (exitCode != 0) {
-			System.exit(exitCode);
-		}
+		System.exit(exitCode);
 	}
 
 	/**

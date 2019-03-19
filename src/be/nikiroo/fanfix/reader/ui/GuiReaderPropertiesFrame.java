@@ -15,12 +15,26 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.reader.Reader;
 
+/**
+ * A frame displaying properties and other information of a {@link Story}.
+ * 
+ * @author niki
+ */
 public class GuiReaderPropertiesFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * Create a new {@link GuiReaderPropertiesFrame}.
+	 * 
+	 * @param reader
+	 *            the linked reader
+	 * @param meta
+	 *            the meta to describe
+	 */
 	public GuiReaderPropertiesFrame(Reader reader, MetaData meta) {
 		// Borders
 		int top = 20;

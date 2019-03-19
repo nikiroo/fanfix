@@ -168,14 +168,15 @@ class GuiReader extends BasicReader {
 				try {
 					GuiReaderFrame gui = new GuiReaderFrame(GuiReader.this,
 							typeFinal);
-					gui.setVisible(true);
 					gui.addWindowListener(new WindowAdapter() {
 						@Override
-						public void windowClosed(WindowEvent e) {
-							super.windowClosed(e);
+						public void windowClosing(WindowEvent e) {
+							super.windowClosing(e);
 							done[0] = true;
 						}
 					});
+
+					gui.setVisible(true);
 				} catch (Exception e) {
 					Instance.getTraceHandler().error(e);
 					done[0] = true;

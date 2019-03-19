@@ -49,7 +49,7 @@ import be.nikiroo.utils.ui.ConfigEditor;
 class GuiReaderFrame extends JFrame implements FrameHelper {
 	private static final long serialVersionUID = 1L;
 	private GuiReader reader;
-	private GuiReaderMainPanel helpee;
+	private GuiReaderMainPanel mainPanel;
 
 	private enum MoveAction {
 		SOURCE, TITLE, AUTHOR
@@ -69,16 +69,11 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 
 		this.reader = reader;
 
-		// TODO: should we still have that??
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		helpee = new GuiReaderMainPanel(this, type);
+		mainPanel = new GuiReaderMainPanel(this, type);
 
 		setSize(800, 600);
 		setLayout(new BorderLayout());
-		add(helpee);
-
-		setVisible(true);
+		add(mainPanel);
 	}
 
 	@Override
@@ -119,14 +114,14 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		imprt.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				helpee.imprt(true);
+				mainPanel.imprt(true);
 			}
 		});
 		JMenuItem imprtF = new JMenuItem("Import File...", KeyEvent.VK_F);
 		imprtF.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				helpee.imprt(false);
+				mainPanel.imprt(false);
 			}
 		});
 		JMenuItem exit = new JMenuItem("Exit", KeyEvent.VK_X);
@@ -169,8 +164,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		vauthors.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				helpee.setWords(false);
-				helpee.refreshBooks();
+				mainPanel.setWords(false);
+				mainPanel.refreshBooks();
 			}
 		});
 		view.add(vauthors);
@@ -179,8 +174,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		vwords.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				helpee.setWords(true);
-				helpee.refreshBooks();
+				mainPanel.setWords(true);
+				mainPanel.refreshBooks();
 			}
 		});
 		view.add(vwords);
@@ -280,9 +275,9 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				helpee.removeBookPanes();
-				helpee.addBookPane(source, type);
-				helpee.refreshBooks();
+				mainPanel.removeBookPanes();
+				mainPanel.addBookPane(source, type);
+				mainPanel.refreshBooks();
 			}
 		};
 	}
@@ -292,9 +287,9 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				helpee.removeBookPanes();
-				helpee.addBookPane(type, listMode);
-				helpee.refreshBooks();
+				mainPanel.removeBookPanes();
+				mainPanel.addBookPane(type, listMode);
+				mainPanel.refreshBooks();
 			}
 		};
 	}
@@ -389,7 +384,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		export.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				final GuiReaderBook selectedBook = helpee.getSelectedBook();
+				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
 					fc.showDialog(GuiReaderFrame.this, "Save");
 					if (fc.getSelectedFile() != null) {
@@ -398,7 +393,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 								.getAbsolutePath()
 								+ type.getDefaultExtension(false);
 						final Progress pg = new Progress();
-						helpee.outOfUi(pg, new Runnable() {
+						mainPanel.outOfUi(pg, new Runnable() {
 							@Override
 							public void run() {
 								try {
@@ -451,9 +446,9 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		refresh.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				final GuiReaderBook selectedBook = helpee.getSelectedBook();
+				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
-					helpee.outOfUi(null, new Runnable() {
+					mainPanel.outOfUi(null, new Runnable() {
 						@Override
 						public void run() {
 							reader.clearLocalReaderCache(selectedBook.getMeta()
@@ -594,7 +589,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				final GuiReaderBook selectedBook = helpee.getSelectedBook();
+				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
 					String changeTo = type;
 					if (type == null) {
@@ -620,7 +615,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					}
 
 					final String fChangeTo = changeTo;
-					helpee.outOfUi(null, new Runnable() {
+					mainPanel.outOfUi(null, new Runnable() {
 						@Override
 						public void run() {
 							if (what.equals("SOURCE")) {
@@ -634,7 +629,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 										.getLuid(), fChangeTo);
 							}
 
-							helpee.unsetSelectedBook();
+							mainPanel.unsetSelectedBook();
 
 							SwingUtilities.invokeLater(new Runnable() {
 								@Override
@@ -659,14 +654,14 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		refresh.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				final GuiReaderBook selectedBook = helpee.getSelectedBook();
+				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
 					final MetaData meta = selectedBook.getMeta();
-					helpee.imprt(meta.getUrl(), new StoryRunnable() {
+					mainPanel.imprt(meta.getUrl(), new StoryRunnable() {
 						@Override
 						public void run(Story story) {
 							reader.delete(meta.getLuid());
-							helpee.unsetSelectedBook();
+							mainPanel.unsetSelectedBook();
 							MetaData newMeta = story.getMeta();
 							if (!newMeta.getSource().equals(meta.getSource())) {
 								reader.changeSource(newMeta.getLuid(),
@@ -691,13 +686,13 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		delete.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				final GuiReaderBook selectedBook = helpee.getSelectedBook();
+				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
-					helpee.outOfUi(null, new Runnable() {
+					mainPanel.outOfUi(null, new Runnable() {
 						@Override
 						public void run() {
 							reader.delete(selectedBook.getMeta().getLuid());
-							helpee.unsetSelectedBook();
+							mainPanel.unsetSelectedBook();
 						}
 					});
 				}
@@ -717,9 +712,9 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		delete.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				final GuiReaderBook selectedBook = helpee.getSelectedBook();
+				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
-					helpee.outOfUi(null, new Runnable() {
+					mainPanel.outOfUi(null, new Runnable() {
 						@Override
 						public void run() {
 							new GuiReaderPropertiesFrame(reader, selectedBook
@@ -743,15 +738,15 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		open.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				final GuiReaderBook selectedBook = helpee.getSelectedBook();
+				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
 					if (selectedBook.getMeta().getLuid() == null) {
-						helpee.removeBookPanes();
-						helpee.addBookPane(selectedBook.getMeta().getSource(),
-								true);
-						helpee.refreshBooks();
+						mainPanel.removeBookPanes();
+						mainPanel.addBookPane(selectedBook.getMeta()
+								.getSource(), true);
+						mainPanel.refreshBooks();
 					} else {
-						helpee.openBook(selectedBook);
+						mainPanel.openBook(selectedBook);
 					}
 				}
 			}
@@ -771,7 +766,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		open.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				final GuiReaderBook selectedBook = helpee.getSelectedBook();
+				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
 					reader.getLibrary().setSourceCover(
 							selectedBook.getMeta().getSource(),
