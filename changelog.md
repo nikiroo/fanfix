@@ -7,6 +7,7 @@
 - gui: rename stories, change author
 - gui: allow "all" and "listing" modes for sources and authors
 - tui: now working well enough to be considered stable
+- cli: now allow changing the source, title and author
 - remote: fix setSourceCover (was not seen by client)
 - remote: can now import local files into a remote library
 - remote: better perfs
