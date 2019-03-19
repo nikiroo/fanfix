@@ -1,0 +1,84 @@
+package be.nikiroo.fanfix.reader.ui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.util.List;
+import java.util.Map.Entry;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+
+import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.fanfix.reader.BasicReader;
+import be.nikiroo.fanfix.reader.Reader;
+
+public class GuiReaderPropertiesFrame extends JFrame {
+	private static final long serialVersionUID = 1L;
+
+	public GuiReaderPropertiesFrame(Reader reader, MetaData meta) {
+		// Borders
+		int top = 20;
+		int space = 10;
+
+		// Image
+		ImageIcon img = GuiReaderCoverImager.generateCoverIcon(
+				reader.getLibrary(), meta);
+
+		// frame
+		setTitle(meta.getLuid() + ": " + meta.getTitle());
+
+		setSize(800, img.getIconHeight() + 2 * top);
+		setLayout(new BorderLayout());
+
+		// Main panel
+		JPanel mainPanel = new JPanel(new BorderLayout());
+		JPanel mainPanelKeys = new JPanel();
+		mainPanelKeys.setLayout(new BoxLayout(mainPanelKeys, BoxLayout.Y_AXIS));
+		JPanel mainPanelValues = new JPanel();
+		mainPanelValues.setLayout(new BoxLayout(mainPanelValues,
+				BoxLayout.Y_AXIS));
+
+		mainPanel.add(mainPanelKeys, BorderLayout.WEST);
+		mainPanel.add(mainPanelValues, BorderLayout.CENTER);
+
+		List<Entry<String, String>> infos = BasicReader.getMetaDesc(meta);
+
+		Color trans = new Color(0, 0, 0, 1);
+		for (Entry<String, String> info : infos) {
+			JTextArea key = new JTextArea(info.getKey());
+			key.setFont(new Font(key.getFont().getFontName(), Font.BOLD, key
+					.getFont().getSize()));
+			key.setEditable(false);
+			key.setLineWrap(false);
+			key.setBackground(trans);
+			mainPanelKeys.add(key);
+
+			JTextArea value = new JTextArea(info.getValue());
+			value.setEditable(false);
+			value.setLineWrap(false);
+			value.setBackground(trans);
+			mainPanelValues.add(value);
+		}
+
+		// Image
+		JLabel imgLabel = new JLabel(img);
+		imgLabel.setVerticalAlignment(JLabel.TOP);
+
+		// Borders
+		mainPanelKeys.setBorder(BorderFactory.createEmptyBorder(top, space, 0,
+				0));
+		mainPanelValues.setBorder(BorderFactory.createEmptyBorder(top, space,
+				0, 0));
+		imgLabel.setBorder(BorderFactory.createEmptyBorder(0, space, 0, 0));
+
+		// Add all
+		add(imgLabel, BorderLayout.WEST);
+		add(mainPanel, BorderLayout.CENTER);
+	}
+}
