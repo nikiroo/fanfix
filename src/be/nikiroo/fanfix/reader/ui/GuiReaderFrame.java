@@ -109,7 +109,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	}
 
 	@Override
-	public JPopupMenu createSourcePopup() {
+	public JPopupMenu createSourceAuthorPopup() {
 		JPopupMenu popup = new JPopupMenu();
 		popup.add(createMenuItemOpenBook());
 		return popup;
@@ -759,10 +759,10 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			public void actionPerformed(ActionEvent e) {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
-					if (selectedBook.getInfo().getMeta().getLuid() == null) {
+					if (selectedBook.getInfo().getMeta() == null) {
 						mainPanel.removeBookPanes();
 						mainPanel.addBookPane(selectedBook.getInfo().getMeta()
-								.getSource(), true);
+								.getSource(), mainPanel.getCurrentType());
 						mainPanel.refreshBooks();
 					} else {
 						mainPanel.openBook(selectedBook);

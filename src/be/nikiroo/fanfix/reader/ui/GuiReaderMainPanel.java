@@ -13,9 +13,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
@@ -51,14 +51,15 @@ import be.nikiroo.utils.ui.ProgressBar;
 class GuiReaderMainPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private FrameHelper helper;
-	private Map<GuiReaderGroup, String> booksByType;
-	private Map<GuiReaderGroup, String> booksByAuthor;
+	private Map<String, GuiReaderGroup> books;
+	private GuiReaderGroup bookPane; // for more "All"
 	private JPanel pane;
 	private Color color;
 	private ProgressBar pgBar;
 	private JMenuBar bar;
 	private GuiReaderBook selectedBook;
 	private boolean words; // words or authors (secondary info on books)
+	private boolean currentType; // type/source or author mode (All and Listing)
 
 	/**
 	 * An object that offers some helper methods to access the frame that host
@@ -94,11 +95,11 @@ class GuiReaderMainPanel extends JPanel {
 
 		/**
 		 * Create a popup menu for a {@link GuiReaderBook} that represents a
-		 * source/type (no LUID).
+		 * source/type or an author.
 		 * 
 		 * @return the popup menu to display
 		 */
-		public JPopupMenu createSourcePopup();
+		public JPopupMenu createSourceAuthorPopup();
 	}
 
 	/**
@@ -173,8 +174,7 @@ class GuiReaderMainPanel extends JPanel {
 			}
 		});
 
-		booksByType = new HashMap<GuiReaderGroup, String>();
-		booksByAuthor = new HashMap<GuiReaderGroup, String>();
+		books = new TreeMap<String, GuiReaderGroup>();
 
 		pane.setVisible(false);
 		final Progress pg = new Progress();
@@ -227,6 +227,10 @@ class GuiReaderMainPanel extends JPanel {
 		});
 	}
 
+	public boolean getCurrentType() {
+		return currentType;
+	}
+
 	/**
 	 * Add a new {@link GuiReaderGroup} on the frame to display all the
 	 * sources/types or all the authors, or a listing of all the books sorted
@@ -245,6 +249,7 @@ class GuiReaderMainPanel extends JPanel {
 	 *            get one icon per source or author
 	 */
 	public void addBookPane(boolean type, boolean listMode) {
+		this.currentType = type;
 		BasicLibrary lib = helper.getReader().getLibrary();
 		if (type) {
 			if (!listMode) {
@@ -273,21 +278,20 @@ class GuiReaderMainPanel extends JPanel {
 	 * Add a new {@link GuiReaderGroup} on the frame to display the books of the
 	 * selected type or author.
 	 * 
+	 * 
 	 * @param value
 	 *            the author or the type, or NULL to get all the
 	 *            authors-or-types
 	 * @param type
 	 *            TRUE for type/source, FALSE for author
-	 * 
 	 */
 	public void addBookPane(String value, boolean type) {
+		this.currentType = type;
+
 		GuiReaderGroup bookPane = new GuiReaderGroup(helper.getReader(), value,
 				color);
-		if (type) {
-			booksByType.put(bookPane, value);
-		} else {
-			booksByAuthor.put(bookPane, value);
-		}
+
+		books.put(value, bookPane);
 
 		this.invalidate();
 		pane.invalidate();
@@ -319,8 +323,7 @@ class GuiReaderMainPanel extends JPanel {
 	 * new ones.
 	 */
 	public void removeBookPanes() {
-		booksByType.clear();
-		booksByAuthor.clear();
+		books.clear();
 		pane.invalidate();
 		this.invalidate();
 		pane.removeAll();
@@ -333,20 +336,24 @@ class GuiReaderMainPanel extends JPanel {
 	 */
 	public void refreshBooks() {
 		BasicLibrary lib = helper.getReader().getLibrary();
-		for (GuiReaderGroup group : booksByType.keySet()) {
+		for (String value : books.keySet()) {
 			List<GuiReaderBookInfo> infos = new ArrayList<GuiReaderBookInfo>();
-			for (MetaData meta : lib.getListBySource(booksByType.get(group))) {
+
+			List<MetaData> metas;
+			if (currentType) {
+				metas = lib.getListBySource(value);
+			} else {
+				metas = lib.getListByAuthor(value);
+			}
+			for (MetaData meta : metas) {
 				infos.add(GuiReaderBookInfo.fromMeta(meta));
 			}
-			group.refreshBooks(infos, words);
+
+			books.get(value).refreshBooks(infos, words);
 		}
 
-		for (GuiReaderGroup group : booksByAuthor.keySet()) {
-			List<GuiReaderBookInfo> infos = new ArrayList<GuiReaderBookInfo>();
-			for (MetaData meta : lib.getListByAuthor(booksByAuthor.get(group))) {
-				infos.add(GuiReaderBookInfo.fromMeta(meta));
-			}
-			group.refreshBooks(infos, words);
+		if (bookPane != null) {
+			bookPane.refreshBooks(words);
 		}
 
 		pane.repaint();
@@ -536,10 +543,7 @@ class GuiReaderMainPanel extends JPanel {
 			bar.setEnabled(b);
 		}
 
-		for (GuiReaderGroup group : booksByType.keySet()) {
-			group.setEnabled(b);
-		}
-		for (GuiReaderGroup group : booksByAuthor.keySet()) {
+		for (GuiReaderGroup group : books.values()) {
 			group.setEnabled(b);
 		}
 		super.setEnabled(b);
@@ -563,7 +567,7 @@ class GuiReaderMainPanel extends JPanel {
 		GuiReader reader = helper.getReader();
 		BasicLibrary lib = reader.getLibrary();
 
-		GuiReaderGroup bookPane = new GuiReaderGroup(reader, name, color);
+		bookPane = new GuiReaderGroup(reader, name, color);
 
 		List<GuiReaderBookInfo> infos = new ArrayList<GuiReaderBookInfo>();
 		for (String value : values) {
@@ -590,7 +594,7 @@ class GuiReaderMainPanel extends JPanel {
 
 			@Override
 			public void popupRequested(GuiReaderBook book, MouseEvent e) {
-				JPopupMenu popup = helper.createSourcePopup();
+				JPopupMenu popup = helper.createSourceAuthorPopup();
 				popup.show(e.getComponent(), e.getX(), e.getY());
 			}
 

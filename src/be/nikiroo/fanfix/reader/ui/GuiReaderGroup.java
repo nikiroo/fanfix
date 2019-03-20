@@ -84,12 +84,24 @@ public class GuiReaderGroup extends JPanel {
 	 * Refresh the list of {@link GuiReaderBook}s displayed in the control.
 	 * 
 	 * @param stories
-	 *            the stories
+	 *            the new list of stories
 	 * @param seeWordcount
 	 *            TRUE to see word counts, FALSE to see authors
 	 */
 	public void refreshBooks(List<GuiReaderBookInfo> infos, boolean seeWordcount) {
 		this.infos = infos;
+		refreshBooks(seeWordcount);
+	}
+
+	/**
+	 * Refresh the list of {@link GuiReaderBook}s displayed in the control.
+	 * <p>
+	 * Will not change the current stories.
+	 * 
+	 * @param seeWordcount
+	 *            TRUE to see word counts, FALSE to see authors
+	 */
+	public void refreshBooks(boolean seeWordcount) {
 		this.words = seeWordcount;
 
 		books = new ArrayList<GuiReaderBook>();
