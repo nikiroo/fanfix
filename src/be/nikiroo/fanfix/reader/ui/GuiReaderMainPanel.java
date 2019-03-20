@@ -334,15 +334,19 @@ class GuiReaderMainPanel extends JPanel {
 	public void refreshBooks() {
 		BasicLibrary lib = helper.getReader().getLibrary();
 		for (GuiReaderGroup group : booksByType.keySet()) {
-			List<MetaData> stories = lib
-					.getListBySource(booksByType.get(group));
-			group.refreshBooks(stories, words);
+			List<GuiReaderBookInfo> infos = new ArrayList<GuiReaderBookInfo>();
+			for (MetaData meta : lib.getListBySource(booksByType.get(group))) {
+				infos.add(GuiReaderBookInfo.fromMeta(meta));
+			}
+			group.refreshBooks(infos, words);
 		}
 
 		for (GuiReaderGroup group : booksByAuthor.keySet()) {
-			List<MetaData> stories = lib.getListByAuthor(booksByAuthor
-					.get(group));
-			group.refreshBooks(stories, words);
+			List<GuiReaderBookInfo> infos = new ArrayList<GuiReaderBookInfo>();
+			for (MetaData meta : lib.getListByAuthor(booksByAuthor.get(group))) {
+				infos.add(GuiReaderBookInfo.fromMeta(meta));
+			}
+			group.refreshBooks(infos, words);
 		}
 
 		pane.repaint();
@@ -361,8 +365,8 @@ class GuiReaderMainPanel extends JPanel {
 			@Override
 			public void run() {
 				try {
-					helper.getReader()
-							.read(book.getMeta().getLuid(), false, pg);
+					helper.getReader().read(book.getInfo().getMeta().getLuid(),
+							false, pg);
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
@@ -556,20 +560,21 @@ class GuiReaderMainPanel extends JPanel {
 
 	private void addListPane(String name, List<String> values,
 			final boolean type) {
-		// Sources -> i18n
-		GuiReaderGroup bookPane = new GuiReaderGroup(helper.getReader(), name,
-				color);
+		GuiReader reader = helper.getReader();
+		BasicLibrary lib = reader.getLibrary();
 
-		List<MetaData> metas = new ArrayList<MetaData>();
-		for (String source : values) {
-			MetaData mSource = new MetaData();
-			mSource.setLuid(null);
-			mSource.setTitle(source);
-			mSource.setSource(source);
-			metas.add(mSource);
+		GuiReaderGroup bookPane = new GuiReaderGroup(reader, name, color);
+
+		List<GuiReaderBookInfo> infos = new ArrayList<GuiReaderBookInfo>();
+		for (String value : values) {
+			if (type) {
+				infos.add(GuiReaderBookInfo.fromSource(lib, value));
+			} else {
+				infos.add(GuiReaderBookInfo.fromAuthor(lib, value));
+			}
 		}
 
-		bookPane.refreshBooks(metas, false);
+		bookPane.refreshBooks(infos, false);
 
 		this.invalidate();
 		pane.invalidate();
@@ -592,7 +597,7 @@ class GuiReaderMainPanel extends JPanel {
 			@Override
 			public void action(final GuiReaderBook book) {
 				removeBookPanes();
-				addBookPane(book.getMeta().getSource(), type);
+				addBookPane(book.getInfo().getMainInfo(), type);
 				refreshBooks();
 			}
 		});

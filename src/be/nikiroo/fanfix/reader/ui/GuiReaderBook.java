@@ -12,7 +12,6 @@ import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.reader.Reader;
 
@@ -67,7 +66,7 @@ class GuiReaderBook extends JPanel {
 	private Date lastClick;
 
 	private List<BookActionListener> listeners;
-	private MetaData meta;
+	private GuiReaderBookInfo info;
 	private boolean cached;
 
 	/**
@@ -75,45 +74,22 @@ class GuiReaderBook extends JPanel {
 	 * 
 	 * @param reader
 	 *            the associated reader
-	 * @param meta
-	 *            the story {@link MetaData} or source (if no LUID)
+	 * @param info
+	 *            the information about the story to represent
 	 * @param cached
 	 *            TRUE if it is locally cached
 	 * @param seeWordCount
 	 *            TRUE to see word counts, FALSE to see authors
 	 */
-	public GuiReaderBook(Reader reader, MetaData meta, boolean cached,
+	public GuiReaderBook(Reader reader, GuiReaderBookInfo info, boolean cached,
 			boolean seeWordCount) {
 		this.cached = cached;
-		this.meta = meta;
+		this.info = info;
 
-		String optSecondary = meta.getAuthor();
-		if (seeWordCount) {
-			if (meta.getWords() >= 4000) {
-				optSecondary = "" + (meta.getWords() / 1000) + "k";
-			} else if (meta.getWords() > 0) {
-				optSecondary = "" + meta.getWords();
-			} else {
-				optSecondary = "";
-			}
-
-			if (!optSecondary.isEmpty()) {
-				if (meta.isImageDocument()) {
-					optSecondary += " images";
-				} else {
-					optSecondary += " words";
-				}
-			}
-		}
-
-		if (optSecondary != null && !optSecondary.isEmpty()) {
-			optSecondary = "(" + optSecondary + ")";
-		} else {
-			optSecondary = "";
-		}
+		String optSecondary = info.getSecondaryInfo(seeWordCount);
 
 		icon = new JLabel(GuiReaderCoverImager.generateCoverIcon(
-				reader.getLibrary(), getMeta()));
+				reader.getLibrary(), info));
 		title = new JLabel(
 				String.format(
 						"<html>"
@@ -121,7 +97,7 @@ class GuiReaderBook extends JPanel {
 								+ "%s" + "<br>" + "<span style='color: %s;'>"
 								+ "%s" + "</span>" + "</body>" + "</html>",
 						GuiReaderCoverImager.TEXT_WIDTH,
-						GuiReaderCoverImager.TEXT_HEIGHT, meta.getTitle(),
+						GuiReaderCoverImager.TEXT_HEIGHT, info.getMainInfo(),
 						AUTHOR_COLOR, optSecondary));
 
 		setLayout(new BorderLayout(10, 10));
@@ -251,12 +227,12 @@ class GuiReaderBook extends JPanel {
 	}
 
 	/**
-	 * The Library {@link MetaData} of the book represented by this item.
+	 * The information about the book represented by this item.
 	 * 
 	 * @return the meta
 	 */
-	public MetaData getMeta() {
-		return meta;
+	public GuiReaderBookInfo getInfo() {
+		return info;
 	}
 
 	/**

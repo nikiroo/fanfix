@@ -29,6 +29,7 @@ import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.BasicReader;
@@ -51,8 +52,18 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	private GuiReader reader;
 	private GuiReaderMainPanel mainPanel;
 
-	private enum MoveAction {
-		SOURCE, TITLE, AUTHOR
+	/**
+	 * The different modification actions you can use on {@link Story} items.
+	 * 
+	 * @author niki
+	 */
+	private enum ChangeAction {
+		/** Change the source/type, that is, move it to another source. */
+		SOURCE,
+		/** Change its name. */
+		TITLE,
+		/** Change its author. */
+		AUTHOR
 	}
 
 	/**
@@ -83,7 +94,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		popup.addSeparator();
 		popup.add(createMenuItemExport());
 		popup.add(createMenuItemMoveTo(true));
-		popup.add(createMenuItemSetCover());
+		popup.add(createMenuItemSetCoverForSource());
+		popup.add(createMenuItemSetCoverForAuthor());
 		popup.add(createMenuItemClearCache());
 		popup.add(createMenuItemRedownload());
 		popup.addSeparator();
@@ -401,8 +413,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 							public void run() {
 								try {
 									reader.getLibrary().export(
-											selectedBook.getMeta().getLuid(),
-											type, path, pg);
+											selectedBook.getInfo().getMeta()
+													.getLuid(), type, path, pg);
 								} catch (IOException e) {
 									Instance.getTraceHandler().error(e);
 								}
@@ -454,11 +466,11 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					mainPanel.outOfUi(null, new Runnable() {
 						@Override
 						public void run() {
-							reader.clearLocalReaderCache(selectedBook.getMeta()
-									.getLuid());
+							reader.clearLocalReaderCache(selectedBook.getInfo()
+									.getMeta().getLuid());
 							selectedBook.setCached(false);
 							GuiReaderCoverImager.clearIcon(selectedBook
-									.getMeta());
+									.getInfo());
 							SwingUtilities.invokeLater(new Runnable() {
 								@Override
 								public void run() {
@@ -492,7 +504,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		}
 
 		JMenuItem item = new JMenuItem("New type...");
-		item.addActionListener(createMoveAction(MoveAction.SOURCE, null));
+		item.addActionListener(createMoveAction(ChangeAction.SOURCE, null));
 		changeTo.add(item);
 		changeTo.addSeparator();
 
@@ -500,7 +512,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			List<String> list = groupedSources.get(type);
 			if (list.size() == 1 && list.get(0).isEmpty()) {
 				item = new JMenuItem(type);
-				item.addActionListener(createMoveAction(MoveAction.SOURCE, type));
+				item.addActionListener(createMoveAction(ChangeAction.SOURCE,
+						type));
 				changeTo.add(item);
 			} else {
 				JMenu dir = new JMenu(type);
@@ -513,8 +526,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					}
 
 					item = new JMenuItem(itemName);
-					item.addActionListener(createMoveAction(MoveAction.SOURCE,
-							actualType));
+					item.addActionListener(createMoveAction(
+							ChangeAction.SOURCE, actualType));
 					dir.add(item);
 				}
 				changeTo.add(dir);
@@ -540,7 +553,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		JMenuItem newItem = new JMenuItem("New author...");
 		changeTo.add(newItem);
 		changeTo.addSeparator();
-		newItem.addActionListener(createMoveAction(MoveAction.AUTHOR, null));
+		newItem.addActionListener(createMoveAction(ChangeAction.AUTHOR, null));
 
 		// Existing authors
 		if (libOk) {
@@ -554,7 +567,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 						JMenuItem item = new JMenuItem(
 								value.isEmpty() ? "[unknown]" : value);
 						item.addActionListener(createMoveAction(
-								MoveAction.AUTHOR, value));
+								ChangeAction.AUTHOR, value));
 						group.add(item);
 					}
 					changeTo.add(group);
@@ -563,8 +576,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 				for (String value : groupedAuthors.values().iterator().next()) {
 					JMenuItem item = new JMenuItem(
 							value.isEmpty() ? "[unknown]" : value);
-					item.addActionListener(createMoveAction(MoveAction.AUTHOR,
-							value));
+					item.addActionListener(createMoveAction(
+							ChangeAction.AUTHOR, value));
 					changeTo.add(item);
 				}
 			}
@@ -585,11 +598,11 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			@SuppressWarnings("unused") boolean libOk) {
 		JMenuItem changeTo = new JMenuItem("Rename...");
 		changeTo.setMnemonic(KeyEvent.VK_R);
-		changeTo.addActionListener(createMoveAction(MoveAction.TITLE, null));
+		changeTo.addActionListener(createMoveAction(ChangeAction.TITLE, null));
 		return changeTo;
 	}
 
-	private ActionListener createMoveAction(final MoveAction what,
+	private ActionListener createMoveAction(final ChangeAction what,
 			final String type) {
 		return new ActionListener() {
 			@Override
@@ -598,13 +611,14 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 				if (selectedBook != null) {
 					String changeTo = type;
 					if (type == null) {
+						MetaData meta = selectedBook.getInfo().getMeta();
 						String init = "";
-						if (what == MoveAction.SOURCE) {
-							init = selectedBook.getMeta().getSource();
-						} else if (what == MoveAction.TITLE) {
-							init = selectedBook.getMeta().getTitle();
-						} else if (what == MoveAction.AUTHOR) {
-							init = selectedBook.getMeta().getAuthor();
+						if (what == ChangeAction.SOURCE) {
+							init = meta.getSource();
+						} else if (what == ChangeAction.TITLE) {
+							init = meta.getTitle();
+						} else if (what == ChangeAction.AUTHOR) {
+							init = meta.getAuthor();
 						}
 
 						Object rep = JOptionPane.showInputDialog(
@@ -623,15 +637,14 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					mainPanel.outOfUi(null, new Runnable() {
 						@Override
 						public void run() {
-							if (what == MoveAction.SOURCE) {
-								reader.changeSource(selectedBook.getMeta()
-										.getLuid(), fChangeTo);
-							} else if (what == MoveAction.TITLE) {
-								reader.changeTitle(selectedBook.getMeta()
-										.getLuid(), fChangeTo);
-							} else if (what == MoveAction.AUTHOR) {
-								reader.changeAuthor(selectedBook.getMeta()
-										.getLuid(), fChangeTo);
+							String luid = selectedBook.getInfo().getMeta()
+									.getLuid();
+							if (what == ChangeAction.SOURCE) {
+								reader.changeSource(luid, fChangeTo);
+							} else if (what == ChangeAction.TITLE) {
+								reader.changeTitle(luid, fChangeTo);
+							} else if (what == ChangeAction.AUTHOR) {
+								reader.changeAuthor(luid, fChangeTo);
 							}
 
 							mainPanel.unsetSelectedBook();
@@ -650,7 +663,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	}
 
 	/**
-	 * Create the redownload (then delete original) menu item.
+	 * Create the re-download (then delete original) menu item.
 	 * 
 	 * @return the item
 	 */
@@ -661,7 +674,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			public void actionPerformed(ActionEvent e) {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
-					final MetaData meta = selectedBook.getMeta();
+					final MetaData meta = selectedBook.getInfo().getMeta();
 					mainPanel.imprt(meta.getUrl(), new StoryRunnable() {
 						@Override
 						public void run(Story story) {
@@ -696,7 +709,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					mainPanel.outOfUi(null, new Runnable() {
 						@Override
 						public void run() {
-							reader.delete(selectedBook.getMeta().getLuid());
+							reader.delete(selectedBook.getInfo().getMeta()
+									.getLuid());
 							mainPanel.unsetSelectedBook();
 						}
 					});
@@ -723,7 +737,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 						@Override
 						public void run() {
 							new GuiReaderPropertiesFrame(reader, selectedBook
-									.getMeta()).setVisible(true);
+									.getInfo()).setVisible(true);
 						}
 					});
 				}
@@ -745,9 +759,9 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			public void actionPerformed(ActionEvent e) {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
-					if (selectedBook.getMeta().getLuid() == null) {
+					if (selectedBook.getInfo().getMeta().getLuid() == null) {
 						mainPanel.removeBookPanes();
-						mainPanel.addBookPane(selectedBook.getMeta()
+						mainPanel.addBookPane(selectedBook.getInfo().getMeta()
 								.getSource(), true);
 						mainPanel.refreshBooks();
 					} else {
@@ -766,19 +780,53 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 * 
 	 * @return the item
 	 */
-	private JMenuItem createMenuItemSetCover() {
+	private JMenuItem createMenuItemSetCoverForSource() {
 		JMenuItem open = new JMenuItem("Set as cover for source", KeyEvent.VK_C);
 		open.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
-					reader.getLibrary().setSourceCover(
-							selectedBook.getMeta().getSource(),
-							selectedBook.getMeta().getLuid());
-					MetaData source = selectedBook.getMeta().clone();
-					source.setLuid(null);
-					GuiReaderCoverImager.clearIcon(source);
+					BasicLibrary lib = reader.getLibrary();
+					String luid = selectedBook.getInfo().getMeta().getLuid();
+					String source = selectedBook.getInfo().getMeta()
+							.getSource();
+
+					lib.setSourceCover(source, luid);
+
+					GuiReaderBookInfo sourceInfo = GuiReaderBookInfo
+							.fromSource(lib, source);
+					GuiReaderCoverImager.clearIcon(sourceInfo);
+				}
+			}
+		});
+
+		return open;
+	}
+
+	/**
+	 * Create the SetCover menu item for a book to change the linked source
+	 * cover.
+	 * 
+	 * @return the item
+	 */
+	private JMenuItem createMenuItemSetCoverForAuthor() {
+		JMenuItem open = new JMenuItem("Set as cover for author", KeyEvent.VK_A);
+		open.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
+				if (selectedBook != null) {
+					BasicLibrary lib = reader.getLibrary();
+					String luid = selectedBook.getInfo().getMeta().getLuid();
+					String author = selectedBook.getInfo().getMeta()
+							.getAuthor();
+
+					lib.setAuthorCover(author, luid);
+
+					GuiReaderBookInfo authorInfo = GuiReaderBookInfo
+							.fromAuthor(lib, author);
+					GuiReaderCoverImager.clearIcon(authorInfo);
 				}
 			}
 		});

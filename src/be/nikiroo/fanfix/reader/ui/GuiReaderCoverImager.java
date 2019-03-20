@@ -17,7 +17,6 @@ import javax.swing.ImageIcon;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
-import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.ui.ImageUtilsAwt;
@@ -121,14 +120,15 @@ class GuiReaderCoverImager {
 	 * 
 	 * @param lib
 	 *            the library the meta comes from
-	 * @param meta
+	 * @param info
 	 *            the {@link MetaData}
 	 * 
 	 * @return the icon
 	 */
-	static public ImageIcon generateCoverIcon(BasicLibrary lib, MetaData meta) {
+	static public ImageIcon generateCoverIcon(BasicLibrary lib,
+			GuiReaderBookInfo info) {
 		BufferedImage resizedImage = null;
-		String id = getIconId(meta);
+		String id = getIconId(info);
 
 		InputStream in = Instance.getCache().getFromCache(id);
 		if (in != null) {
@@ -143,30 +143,30 @@ class GuiReaderCoverImager {
 
 		if (resizedImage == null) {
 			try {
-				Image cover = null;
-				if (meta.getLuid() != null) {
-					cover = lib.getCover(meta.getLuid());
-				}
-				if (cover == null) {
-					cover = lib.getSourceCover(meta.getSource());
-				}
-
+				Image cover = info.getBaseImage(lib);
 				resizedImage = new BufferedImage(SPINE_WIDTH + COVER_WIDTH,
 						SPINE_HEIGHT + COVER_HEIGHT + HOFFSET,
 						BufferedImage.TYPE_4BYTE_ABGR);
+
 				Graphics2D g = resizedImage.createGraphics();
-				g.setColor(Color.white);
-				g.fillRect(0, HOFFSET, COVER_WIDTH, COVER_HEIGHT);
-				if (cover != null) {
-					BufferedImage coverb = ImageUtilsAwt.fromImage(cover);
-					g.drawImage(coverb, 0, HOFFSET, COVER_WIDTH, COVER_HEIGHT,
-							null);
-				} else {
-					g.setColor(Color.black);
-					g.drawLine(0, HOFFSET, COVER_WIDTH, HOFFSET + COVER_HEIGHT);
-					g.drawLine(COVER_WIDTH, HOFFSET, 0, HOFFSET + COVER_HEIGHT);
+				try {
+					g.setColor(Color.white);
+					g.fillRect(0, HOFFSET, COVER_WIDTH, COVER_HEIGHT);
+
+					if (cover != null) {
+						BufferedImage coverb = ImageUtilsAwt.fromImage(cover);
+						g.drawImage(coverb, 0, HOFFSET, COVER_WIDTH,
+								COVER_HEIGHT, null);
+					} else {
+						g.setColor(Color.black);
+						g.drawLine(0, HOFFSET, COVER_WIDTH, HOFFSET
+								+ COVER_HEIGHT);
+						g.drawLine(COVER_WIDTH, HOFFSET, 0, HOFFSET
+								+ COVER_HEIGHT);
+					}
+				} finally {
+					g.dispose();
 				}
-				g.dispose();
 
 				if (id != null) {
 					ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -190,34 +190,24 @@ class GuiReaderCoverImager {
 	/**
 	 * Manually clear the icon set for this item.
 	 * 
-	 * @param meta
-	 *            the meta of the story or source (if luid is null)
+	 * @param info
+	 *            the info about the story or source/type or author
 	 */
-	static public void clearIcon(MetaData meta) {
-		String id = getIconId(meta);
+	static public void clearIcon(GuiReaderBookInfo info) {
+		String id = getIconId(info);
 		Instance.getCache().removeFromCache(id);
 	}
 
 	/**
-	 * Get a unique ID from this meta (note that if the luid is null, it is
-	 * considered a source and not a {@link Story}).
+	 * Get a unique ID from this {@link GuiReaderBookInfo} (note that it can be
+	 * a story, a fake item for a source/type or a fake item for an author).
 	 * 
-	 * @param meta
-	 *            the meta
+	 * @param info
+	 *            the info
 	 * @return the unique ID
 	 */
-	static private String getIconId(MetaData meta) {
-		String id = null;
-
-		String key = meta.getUuid();
-		if (meta.getLuid() == null) {
-			// a fake meta (== a source)
-			key = "source_" + meta.getSource();
-		}
-
-		id = key + ".thumb_" + SPINE_WIDTH + "x" + COVER_WIDTH + "+"
+	static private String getIconId(GuiReaderBookInfo info) {
+		return info.getId() + ".thumb_" + SPINE_WIDTH + "x" + COVER_WIDTH + "+"
 				+ SPINE_HEIGHT + "+" + COVER_HEIGHT + "@" + HOFFSET;
-
-		return id;
 	}
 }

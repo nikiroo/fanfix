@@ -7,11 +7,9 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.management.RuntimeErrorException;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.reader.ui.GuiReaderBook.BookActionListener;
 import be.nikiroo.utils.ui.WrapLayout;
 
@@ -25,7 +23,7 @@ public class GuiReaderGroup extends JPanel {
 	private BookActionListener action;
 	private Color backgroundColor;
 	private GuiReader reader;
-	private List<MetaData> stories;
+	private List<GuiReaderBookInfo> infos;
 	private List<GuiReaderBook> books;
 	private JPanel pane;
 	private boolean words; // words or authors (secondary info on books)
@@ -79,7 +77,7 @@ public class GuiReaderGroup extends JPanel {
 	 */
 	public void setActionListener(BookActionListener action) {
 		this.action = action;
-		refreshBooks(stories, words);
+		refreshBooks(infos, words);
 	}
 
 	/**
@@ -90,8 +88,9 @@ public class GuiReaderGroup extends JPanel {
 	 * @param seeWordcount
 	 *            TRUE to see word counts, FALSE to see authors
 	 */
-	public void refreshBooks(List<MetaData> stories, boolean seeWordcount) {
-		this.stories = stories;
+	public void refreshBooks(List<GuiReaderBookInfo> stories,
+			boolean seeWordcount) {
+		this.infos = stories;
 		this.words = seeWordcount;
 
 		books = new ArrayList<GuiReaderBook>();
@@ -100,9 +99,14 @@ public class GuiReaderGroup extends JPanel {
 		pane.removeAll();
 
 		if (stories != null) {
-			for (MetaData meta : stories) {
-				GuiReaderBook book = new GuiReaderBook(reader, meta,
-						reader.isCached(meta.getLuid()), seeWordcount);
+			for (GuiReaderBookInfo info : stories) {
+				boolean isCached = false;
+				if (info.getMeta() != null) {
+					isCached = reader.isCached(info.getMeta().getLuid());
+				}
+
+				GuiReaderBook book = new GuiReaderBook(reader, info, isCached,
+						seeWordcount);
 				if (backgroundColor != null) {
 					book.setBackground(backgroundColor);
 				}

@@ -35,14 +35,16 @@ public class GuiReaderPropertiesFrame extends JFrame {
 	 * @param meta
 	 *            the meta to describe
 	 */
-	public GuiReaderPropertiesFrame(Reader reader, MetaData meta) {
+	public GuiReaderPropertiesFrame(Reader reader, GuiReaderBookInfo info) {
+		MetaData meta = info.getMeta();
+
 		// Borders
 		int top = 20;
 		int space = 10;
 
 		// Image
 		ImageIcon img = GuiReaderCoverImager.generateCoverIcon(
-				reader.getLibrary(), meta);
+				reader.getLibrary(), info);
 
 		// frame
 		setTitle(meta.getLuid() + ": " + meta.getTitle());
@@ -61,11 +63,11 @@ public class GuiReaderPropertiesFrame extends JFrame {
 		mainPanel.add(mainPanelKeys, BorderLayout.WEST);
 		mainPanel.add(mainPanelValues, BorderLayout.CENTER);
 
-		List<Entry<String, String>> infos = BasicReader.getMetaDesc(meta);
+		List<Entry<String, String>> desc = BasicReader.getMetaDesc(meta);
 
 		Color trans = new Color(0, 0, 0, 1);
-		for (Entry<String, String> info : infos) {
-			JTextArea key = new JTextArea(info.getKey());
+		for (Entry<String, String> descLine : desc) {
+			JTextArea key = new JTextArea(descLine.getKey());
 			key.setFont(new Font(key.getFont().getFontName(), Font.BOLD, key
 					.getFont().getSize()));
 			key.setEditable(false);
@@ -73,7 +75,7 @@ public class GuiReaderPropertiesFrame extends JFrame {
 			key.setBackground(trans);
 			mainPanelKeys.add(key);
 
-			JTextArea value = new JTextArea(info.getValue());
+			JTextArea value = new JTextArea(descLine.getValue());
 			value.setEditable(false);
 			value.setLineWrap(false);
 			value.setBackground(trans);
