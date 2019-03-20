@@ -255,6 +255,15 @@ public class LocalLibrary extends BasicLibrary {
 
 	@Override
 	public synchronized Image getCustomAuthorCover(String author) {
+		if (authorCovers == null) {
+			authorCovers = new HashMap<String, Image>();
+		}
+
+		Image img = authorCovers.get(author);
+		if (img != null) {
+			return img;
+		}
+
 		File cover = getAuthorCoverFile(author);
 		if (cover.exists()) {
 			InputStream in;
