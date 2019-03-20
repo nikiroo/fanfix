@@ -88,9 +88,8 @@ public class GuiReaderGroup extends JPanel {
 	 * @param seeWordcount
 	 *            TRUE to see word counts, FALSE to see authors
 	 */
-	public void refreshBooks(List<GuiReaderBookInfo> stories,
-			boolean seeWordcount) {
-		this.infos = stories;
+	public void refreshBooks(List<GuiReaderBookInfo> infos, boolean seeWordcount) {
+		this.infos = infos;
 		this.words = seeWordcount;
 
 		books = new ArrayList<GuiReaderBook>();
@@ -98,15 +97,15 @@ public class GuiReaderGroup extends JPanel {
 		pane.invalidate();
 		pane.removeAll();
 
-		if (stories != null) {
-			for (GuiReaderBookInfo info : stories) {
+		if (infos != null) {
+			for (GuiReaderBookInfo info : infos) {
 				boolean isCached = false;
 				if (info.getMeta() != null) {
 					isCached = reader.isCached(info.getMeta().getLuid());
 				}
 
 				GuiReaderBook book = new GuiReaderBook(reader, info, isCached,
-						seeWordcount);
+						words);
 				if (backgroundColor != null) {
 					book.setBackground(backgroundColor);
 				}

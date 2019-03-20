@@ -574,7 +574,7 @@ class GuiReaderMainPanel extends JPanel {
 			}
 		}
 
-		bookPane.refreshBooks(infos, false);
+		bookPane.refreshBooks(infos, words);
 
 		this.invalidate();
 		pane.invalidate();
