@@ -22,6 +22,7 @@ import be.nikiroo.fanfix.supported.InfoReader;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
+import be.nikiroo.utils.StringUtils;
 
 /**
  * This {@link BasicLibrary} will store the stories locally on disk.
@@ -32,6 +33,7 @@ public class LocalLibrary extends BasicLibrary {
 	private int lastId;
 	private Map<MetaData, File[]> stories; // Files: [ infoFile, TargetFile ]
 	private Map<String, Image> sourceCovers;
+	private Map<String, Image> authorCovers;
 
 	private File baseDir;
 	private OutputType text;
@@ -252,12 +254,42 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
+	public synchronized Image getCustomAuthorCover(String author) {
+		File cover = getAuthorCoverFile(author);
+		if (cover.exists()) {
+			InputStream in;
+			try {
+				in = new FileInputStream(cover);
+				try {
+					authorCovers.put(author, new Image(in));
+				} finally {
+					in.close();
+				}
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				Instance.getTraceHandler().error(
+						new IOException(
+								"Cannot load the existing custom author cover: "
+										+ cover, e));
+			}
+		}
+
+		return authorCovers.get(author);
+	}
+
+	@Override
 	public void setSourceCover(String source, String luid) {
 		setSourceCover(source, getCover(luid));
 	}
 
+	@Override
+	public void setAuthorCover(String author, String luid) {
+		setAuthorCover(author, getCover(luid));
+	}
+
 	/**
-	 * Fix the source cover to the given story cover.
+	 * Set the source cover to the given story cover.
 	 * 
 	 * @param source
 	 *            the source to change
@@ -272,6 +304,27 @@ public class LocalLibrary extends BasicLibrary {
 			Instance.getCache().saveAsImage(coverImage, cover, true);
 			if (sourceCovers != null) {
 				sourceCovers.put(source, coverImage);
+			}
+		} catch (IOException e) {
+			Instance.getTraceHandler().error(e);
+		}
+	}
+
+	/**
+	 * Set the author cover to the given story cover.
+	 * 
+	 * @param author
+	 *            the author to change
+	 * @param coverImage
+	 *            the cover image
+	 */
+	synchronized void setAuthorCover(String author, Image coverImage) {
+		File cover = getAuthorCoverFile(author);
+		cover.getParentFile().mkdirs();
+		try {
+			Instance.getCache().saveAsImage(coverImage, cover, true);
+			if (authorCovers != null) {
+				authorCovers.put(author, coverImage);
 			}
 		} catch (IOException e) {
 			Instance.getTraceHandler().error(e);
@@ -387,6 +440,9 @@ public class LocalLibrary extends BasicLibrary {
 			title = "";
 		}
 		title = title.replaceAll("[^a-zA-Z0-9._+-]", "_");
+		if (title.length() > 40) {
+			title = title.substring(0, 40);
+		}
 		return new File(getExpectedDir(key.getSource()), key.getLuid() + "_"
 				+ title);
 	}
@@ -403,7 +459,8 @@ public class LocalLibrary extends BasicLibrary {
 	private File getExpectedDir(String source) {
 		String sanitizedSource = source.replaceAll("[^a-zA-Z0-9._+/-]", "_");
 
-		while (sanitizedSource.startsWith("/")) {
+		while (sanitizedSource.startsWith("/")
+				|| sanitizedSource.startsWith("_")) {
 			if (sanitizedSource.length() > 1) {
 				sanitizedSource = sanitizedSource.substring(1);
 			} else {
@@ -414,10 +471,28 @@ public class LocalLibrary extends BasicLibrary {
 		sanitizedSource = sanitizedSource.replace("/", File.separator);
 
 		if (sanitizedSource.isEmpty()) {
-			sanitizedSource = "EMPTY";
+			sanitizedSource = "_EMPTY";
 		}
 
 		return new File(baseDir, sanitizedSource);
+	}
+
+	/**
+	 * Return the full path to the file to use for the custom cover of this
+	 * author.
+	 * <p>
+	 * One or more of the parent directories <b>MAY</b> not exist.
+	 * 
+	 * @param author
+	 *            the author
+	 * 
+	 * @return the custom cover file
+	 */
+	private File getAuthorCoverFile(String author) {
+		File aDir = new File(baseDir, "_AUTHORS");
+		String hash = StringUtils.getMd5Hash(author);
+		String ext = Instance.getConfig().getString(Config.IMAGE_FORMAT_COVER);
+		return new File(aDir, hash + "." + ext.toLowerCase());
 	}
 
 	/**

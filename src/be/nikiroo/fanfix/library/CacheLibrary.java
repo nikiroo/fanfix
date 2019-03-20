@@ -126,6 +126,22 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
+	public Image getAuthorCover(String author) {
+		Image custom = getCustomSourceCover(author);
+		if (custom != null) {
+			return custom;
+		}
+
+		Image cached = cacheLib.getSourceCover(author);
+		if (cached != null) {
+			return cached;
+		}
+
+		return lib.getSourceCover(author);
+
+	}
+
+	@Override
 	public Image getCustomSourceCover(String source) {
 		Image custom = cacheLib.getCustomSourceCover(source);
 		if (custom == null) {
@@ -137,11 +153,30 @@ public class CacheLibrary extends BasicLibrary {
 
 		return custom;
 	}
+	
+	@Override
+	public Image getCustomAuthorCover(String author) {
+		Image custom = cacheLib.getCustomAuthorCover(author);
+		if (custom == null) {
+			custom = lib.getCustomAuthorCover(author);
+			if (custom != null) {
+				cacheLib.setAuthorCover(author, custom);
+			}
+		}
+
+		return custom;
+	}
 
 	@Override
 	public void setSourceCover(String source, String luid) {
 		lib.setSourceCover(source, luid);
 		cacheLib.setSourceCover(source, getCover(luid));
+	}
+
+	@Override
+	public void setAuthorCover(String author, String luid) {
+		lib.setAuthorCover(author, luid);
+		cacheLib.setAuthorCover(author, getCover(luid));
 	}
 
 	@Override

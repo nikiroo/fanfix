@@ -120,6 +120,31 @@ abstract public class BasicLibrary {
 	}
 
 	/**
+	 * Return the cover image associated to this author.
+	 * <p>
+	 * By default, return the custom cover if any, and if not, return the cover
+	 * of the first story with this author.
+	 * 
+	 * @param author
+	 *            the author
+	 * 
+	 * @return the cover image or NULL
+	 */
+	public Image getAuthorCover(String author) {
+		Image custom = getCustomAuthorCover(author);
+		if (custom != null) {
+			return custom;
+		}
+
+		List<MetaData> metas = getListByAuthor(author);
+		if (metas.size() > 0) {
+			return getCover(metas.get(0).getLuid());
+		}
+
+		return null;
+	}
+
+	/**
 	 * Return the custom cover image associated to this source.
 	 * <p>
 	 * By default, return NULL.
@@ -134,7 +159,21 @@ abstract public class BasicLibrary {
 	}
 
 	/**
-	 * Fix the source cover to the given story cover.
+	 * Return the custom cover image associated to this author.
+	 * <p>
+	 * By default, return NULL.
+	 * 
+	 * @param author
+	 *            the author to look for
+	 * 
+	 * @return the custom cover or NULL if none
+	 */
+	public Image getCustomAuthorCover(@SuppressWarnings("unused") String author) {
+		return null;
+	}
+
+	/**
+	 * Set the source cover to the given story cover.
 	 * 
 	 * @param source
 	 *            the source to change
@@ -142,6 +181,16 @@ abstract public class BasicLibrary {
 	 *            the story LUID
 	 */
 	public abstract void setSourceCover(String source, String luid);
+
+	/**
+	 * Set the author cover to the given story cover.
+	 * 
+	 * @param source
+	 *            the author to change
+	 * @param luid
+	 *            the story LUID
+	 */
+	public abstract void setAuthorCover(String author, String luid);
 
 	/**
 	 * Return the list of stories (represented by their {@link MetaData}, which

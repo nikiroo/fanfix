@@ -120,14 +120,24 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public Image getCustomSourceCover(final String source) {
+		return getCustomCover(source, "SOURCE");
+	}
+
+	@Override
+	public Image getCustomAuthorCover(final String author) {
+		return getCustomCover(author, "AUTHOR");
+	}
+
+	// type: "SOURCE" or "AUTHOR"
+	private Image getCustomCover(final String source, final String type) {
 		final Image[] result = new Image[1];
 
 		try {
 			new ConnectActionClientObject(host, port, true) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					Object rep = send(new Object[] { md5,
-							"GET_CUSTOM_SOURCE_COVER", source });
+					Object rep = send(new Object[] { md5, "GET_CUSTOM_COVER",
+							type, source });
 					result[0] = (Image) rep;
 				}
 
@@ -265,11 +275,22 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public void setSourceCover(final String source, final String luid) {
+		setCover(source, luid, "SOURCE");
+	}
+
+	@Override
+	public void setAuthorCover(final String author, final String luid) {
+		setCover(author, luid, "AUTHOR");
+	}
+
+	// type = "SOURCE" | "AUTHOR"
+	private void setCover(final String value, final String luid,
+			final String type) {
 		try {
 			new ConnectActionClientObject(host, port, true) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					send(new Object[] { md5, "SET_SOURCE_COVER", source, luid });
+					send(new Object[] { md5, "SET_COVER", type, value, luid });
 				}
 
 				@Override
