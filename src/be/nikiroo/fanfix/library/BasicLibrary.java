@@ -565,6 +565,42 @@ abstract public class BasicLibrary {
 	 * @return the corresponding {@link Story} or NULL if not found
 	 */
 	public synchronized Story getStory(String luid, Progress pg) {
+		Progress pgMetas = new Progress();
+		Progress pgStory = new Progress();
+		if (pg != null) {
+			pg.setMinMax(0, 100);
+			pg.addProgress(pgMetas, 10);
+			pg.addProgress(pgStory, 90);
+		}
+
+		MetaData meta = null;
+		for (MetaData oneMeta : getMetas(pgMetas)) {
+			if (oneMeta.getLuid().equals(luid)) {
+				meta = oneMeta;
+				break;
+			}
+		}
+
+		pgMetas.done();
+
+		Story story = getStory(luid, meta, pgStory);
+		pgStory.done();
+
+		return story;
+	}
+
+	/**
+	 * Retrieve a specific {@link Story}.
+	 * 
+	 * @param luid
+	 *            the meta of the story
+	 * @param pg
+	 *            the optional progress reporter
+	 * 
+	 * @return the corresponding {@link Story} or NULL if not found
+	 */
+	public synchronized Story getStory(String luid, MetaData meta, Progress pg) {
+
 		if (pg == null) {
 			pg = new Progress();
 		}
@@ -577,39 +613,32 @@ abstract public class BasicLibrary {
 		pg.addProgress(pgProcess, 1);
 
 		Story story = null;
-		for (MetaData meta : getMetas(null)) {
-			if (meta.getLuid().equals(luid)) {
-				File file = getFile(luid, pgGet);
-				pgGet.done();
-				try {
-					SupportType type = SupportType.valueOfAllOkUC(meta
-							.getType());
-					URL url = file.toURI().toURL();
-					if (type != null) {
-						story = BasicSupport.getSupport(type, url) //
-								.process(pgProcess);
+		File file = getFile(luid, pgGet);
+		pgGet.done();
+		try {
+			SupportType type = SupportType.valueOfAllOkUC(meta.getType());
+			URL url = file.toURI().toURL();
+			if (type != null) {
+				story = BasicSupport.getSupport(type, url) //
+						.process(pgProcess);
 
-						// Because we do not want to clear the meta cache:
-						meta.setCover(story.getMeta().getCover());
-						meta.setResume(story.getMeta().getResume());
-						story.setMeta(meta);
-						//
-					} else {
-						throw new IOException("Unknown type: " + meta.getType());
-					}
-				} catch (IOException e) {
-					// We should not have not-supported files in the
-					// library
-					Instance.getTraceHandler().error(
-							new IOException("Cannot load file from library: "
-									+ file, e));
-				} finally {
-					pgProcess.done();
-					pg.done();
-				}
-
-				break;
+				// Because we do not want to clear the meta cache:
+				meta.setCover(story.getMeta().getCover());
+				meta.setResume(story.getMeta().getResume());
+				story.setMeta(meta);
+				//
+			} else {
+				throw new IOException("Unknown type: " + meta.getType());
 			}
+		} catch (IOException e) {
+			// We should not have not-supported files in the
+			// library
+			Instance.getTraceHandler()
+					.error(new IOException("Cannot load file from library: "
+							+ file, e));
+		} finally {
+			pgProcess.done();
+			pg.done();
 		}
 
 		return story;

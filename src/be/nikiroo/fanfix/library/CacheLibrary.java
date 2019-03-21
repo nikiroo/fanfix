@@ -66,6 +66,20 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
+	public synchronized Story getStory(String luid, MetaData meta, Progress pg) {
+		String normal = Instance.getUiConfig().getString(
+				UiConfig.GUI_NON_IMAGES_DOCUMENT_TYPE);
+		String images = Instance.getUiConfig().getString(
+				UiConfig.GUI_IMAGES_DOCUMENT_TYPE);
+		String type = meta.isImageDocument() ? images : normal;
+
+		MetaData cachedMeta = meta.clone();
+		cachedMeta.setType(type);
+
+		return super.getStory(luid, cachedMeta, pg);
+	}
+
+	@Override
 	public synchronized File getFile(final String luid, Progress pg) {
 		if (pg == null) {
 			pg = new Progress();

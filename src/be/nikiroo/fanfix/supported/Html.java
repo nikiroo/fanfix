@@ -33,6 +33,23 @@ class Html extends InfoText {
 	}
 
 	@Override
+	protected File getInfoFile() {
+		File source = getSourceFile();
+		if ("index.html".equals(source.getName())) {
+			source = source.getParentFile();
+		}
+
+		String src = source.getPath();
+		File infoFile = new File(src + ".info");
+		if (!infoFile.exists() && src.endsWith(".txt")) {
+			infoFile = new File(
+					src.substring(0, src.length() - ".txt".length()) + ".info");
+		}
+
+		return infoFile;
+	}
+
+	@Override
 	public URL getCanonicalUrl(URL source) {
 		File txt = getTxt(source);
 		if (txt != null) {
