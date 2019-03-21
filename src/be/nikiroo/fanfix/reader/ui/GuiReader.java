@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 import javax.swing.JEditorPane;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.event.HyperlinkEvent;
@@ -109,7 +110,6 @@ class GuiReader extends BasicReader {
 		// TODO: improve presentation of update message
 		final VersionCheck updates = VersionCheck.check();
 		StringBuilder builder = new StringBuilder();
-		final Boolean[] done = new Boolean[] { false };
 
 		final JEditorPane updateMessage = new JEditorPane("text/html", "");
 		if (updates.isNewVersionAvailable()) {
@@ -168,29 +168,12 @@ class GuiReader extends BasicReader {
 				try {
 					GuiReaderFrame gui = new GuiReaderFrame(GuiReader.this,
 							typeFinal);
-					gui.addWindowListener(new WindowAdapter() {
-						@Override
-						public void windowClosing(WindowEvent e) {
-							super.windowClosing(e);
-							done[0] = true;
-						}
-					});
-
-					gui.setVisible(true);
+					sync(gui);
 				} catch (Exception e) {
 					Instance.getTraceHandler().error(e);
-					done[0] = true;
 				}
 			}
 		});
-
-		// This action must be synchronous, so wait until the frame is closed
-		while (!done[0]) {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-			}
-		}
 	}
 
 	@Override
@@ -325,6 +308,49 @@ class GuiReader extends BasicReader {
 			cacheLib.changeAuthor(luid, newAuthor, null);
 		} catch (IOException e) {
 			Instance.getTraceHandler().error(e);
+		}
+	}
+
+	/**
+	 * Start a frame and wait until it is closed before returning.
+	 * 
+	 * @param frame
+	 *            the frame to start
+	 */
+	static private void sync(final JFrame frame) {
+		final Boolean[] done = new Boolean[1];
+		done[0] = false;
+
+		try {
+			EventQueue.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						frame.addWindowListener(new WindowAdapter() {
+							@Override
+							public void windowClosing(WindowEvent e) {
+								super.windowClosing(e);
+								done[0] = true;
+							}
+						});
+
+						frame.setVisible(true);
+					} catch (Exception e) {
+						done[0] = true;
+					}
+				}
+			});
+		} catch (Exception e) {
+			Instance.getTraceHandler().error(e);
+			done[0] = true;
+		}
+
+		// This action must be synchronous, so wait until the frame is closed
+		while (!done[0]) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+			}
 		}
 	}
 }
