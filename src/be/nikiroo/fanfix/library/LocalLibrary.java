@@ -623,7 +623,8 @@ public class LocalLibrary extends BasicLibrary {
 				boolean info = file != null && file.isFile()
 						&& file.getPath().toLowerCase().endsWith(".info");
 				boolean dir = file != null && file.isDirectory();
-				return info || dir;
+				boolean isExpandedHtml = new File(file, "index.html").isFile();
+				return info || (dir && !isExpandedHtml);
 			}
 		});
 
