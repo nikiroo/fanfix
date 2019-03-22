@@ -410,8 +410,24 @@ public class LocalLibrary extends BasicLibrary {
 		if (meta != null && meta.isImageDocument()) {
 			return image;
 		}
-
+		
 		return text;
+	}
+	
+	/**
+	 * Return the default {@link OutputType} for this kind of {@link Story}.
+	 * 
+	 * @param imageDocument
+	 *           TRUE for images document, FALSE for text documents			  
+	 * 
+	 * @return the type
+	 */
+	public String getOutputType(boolean imageDocument) {
+		if (imageDocument) {
+			return image.toString();
+		}
+
+		return text.toString();
 	}
 
 	/**
