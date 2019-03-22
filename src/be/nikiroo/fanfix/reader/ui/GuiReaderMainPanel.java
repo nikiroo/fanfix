@@ -2,6 +2,7 @@ package be.nikiroo.fanfix.reader.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
@@ -10,6 +11,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -77,6 +79,8 @@ class GuiReaderMainPanel extends JPanel {
 
 		/**
 		 * Create the main menu bar.
+		 * <p>
+		 * Wil invalidate the layout.
 		 * 
 		 * @param libOk
 		 *            the library can be queried
@@ -158,17 +162,17 @@ class GuiReaderMainPanel extends JPanel {
 		pgBar.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				invalidate();
+				pgBar.invalidate();
 				pgBar.setProgress(null);
-				validate();
 				setEnabled(true);
+				validate();
 			}
 		});
 
 		pgBar.addUpdateListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				invalidate();
+				pgBar.invalidate();
 				validate();
 				repaint();
 			}
@@ -182,47 +186,52 @@ class GuiReaderMainPanel extends JPanel {
 		outOfUi(pg, new Runnable() {
 			@Override
 			public void run() {
-				BasicLibrary lib = helper.getReader().getLibrary();
-				Status status = lib.getStatus();
+				final BasicLibrary lib = helper.getReader().getLibrary();
+				final Status status = lib.getStatus();
 
 				if (status == Status.READY) {
 					lib.refresh(pg);
-					invalidate();
-					helper.createMenu(true);
-					if (typeF == null) {
-						addBookPane(true, false);
-					} else {
-						addBookPane(typeF, true);
-					}
-					refreshBooks();
-					validate();
-					pane.setVisible(true);
-				} else {
-					invalidate();
-					helper.createMenu(false);
-					validate();
-
-					String err = lib.getLibraryName() + "\n";
-					switch (status) {
-					case INVALID:
-						err += "Library not valid";
-						break;
-
-					case UNAUTORIZED:
-						err += "You are not allowed to access this library";
-						break;
-
-					case UNAVAILABLE:
-						err += "Library currently unavailable";
-						break;
-
-					default:
-						err += "An error occured when contacting the library";
-						break;
-					}
-
-					error(err, "Library error", null);
 				}
+
+				inUi(new Runnable() {
+					@Override
+					public void run() {
+						if (status == Status.READY) {
+							helper.createMenu(true);
+							if (typeF == null) {
+								addBookPane(true, false);
+							} else {
+								addBookPane(typeF, true);
+							}
+							pane.setVisible(true);
+							refreshBooks();
+						} else {
+							helper.createMenu(false);
+							validate();
+
+							String err = lib.getLibraryName() + "\n";
+							switch (status) {
+							case INVALID:
+								err += "Library not valid";
+								break;
+
+							case UNAUTORIZED:
+								err += "You are not allowed to access this library";
+								break;
+
+							case UNAVAILABLE:
+								err += "Library currently unavailable";
+								break;
+
+							default:
+								err += "An error occured when contacting the library";
+								break;
+							}
+
+							error(err, "Library error", null);
+						}
+					}
+				});
 			}
 		});
 	}
@@ -277,7 +286,8 @@ class GuiReaderMainPanel extends JPanel {
 	/**
 	 * Add a new {@link GuiReaderGroup} on the frame to display the books of the
 	 * selected type or author.
-	 * 
+	 * <p>
+	 * Will invalidate the layout.
 	 * 
 	 * @param value
 	 *            the author or the type, or NULL to get all the
@@ -293,11 +303,8 @@ class GuiReaderMainPanel extends JPanel {
 
 		books.put(value, bookPane);
 
-		this.invalidate();
 		pane.invalidate();
 		pane.add(bookPane);
-		pane.validate();
-		this.validate();
 
 		bookPane.setActionListener(new BookActionListener() {
 			@Override
@@ -321,18 +328,19 @@ class GuiReaderMainPanel extends JPanel {
 	/**
 	 * Clear the pane from any book that may be present, usually prior to adding
 	 * new ones.
+	 * <p>
+	 * Will invalidate the layout.
 	 */
 	public void removeBookPanes() {
 		books.clear();
 		pane.invalidate();
-		this.invalidate();
 		pane.removeAll();
-		pane.validate();
-		this.validate();
 	}
 
 	/**
 	 * Refresh the list of {@link GuiReaderBook}s from disk.
+	 * <p>
+	 * Will validate the layout, as it is a "refresh" operation.
 	 */
 	public void refreshBooks() {
 		BasicLibrary lib = helper.getReader().getLibrary();
@@ -356,8 +364,7 @@ class GuiReaderMainPanel extends JPanel {
 			bookPane.refreshBooks(words);
 		}
 
-		pane.repaint();
-		this.repaint();
+		this.validate();
 	}
 
 	/**
@@ -430,6 +437,31 @@ class GuiReaderMainPanel extends JPanel {
 				}
 			}
 		}, "outOfUi thread").start();
+	}
+
+	/**
+	 * Process the given action in the main Swing UI thread.
+	 * <p>
+	 * The code will make sure the current thread is the main UI thread and, if
+	 * not, will switch to it before executing the runnable.
+	 * <p>
+	 * Synchronous operation.
+	 * 
+	 * @param run
+	 *            the action to run
+	 */
+	public void inUi(final Runnable run) {
+		if (EventQueue.isDispatchThread()) {
+			run.run();
+		} else {
+			try {
+				EventQueue.invokeAndWait(run);
+			} catch (InterruptedException e) {
+				Instance.getTraceHandler().error(e);
+			} catch (InvocationTargetException e) {
+				Instance.getTraceHandler().error(e);
+			}
+		}
 	}
 
 	/**

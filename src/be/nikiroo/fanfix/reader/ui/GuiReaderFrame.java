@@ -117,6 +117,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 
 	@Override
 	public void createMenu(boolean libOk) {
+		invalidate();
+
 		JMenuBar bar = new JMenuBar();
 
 		JMenu file = new JMenu("File");
@@ -748,7 +750,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	}
 
 	/**
-	 * Create the open menu item for a book or a source/type (no LUID).
+	 * Create the open menu item for a book, a source/type or an author.
 	 * 
 	 * @return the item
 	 */
