@@ -107,6 +107,8 @@ class GuiReader extends BasicReader {
 
 	@Override
 	public void browse(String type) {
+		final Boolean[] done = new Boolean[] { false };
+
 		// TODO: improve presentation of update message
 		final VersionCheck updates = VersionCheck.check();
 		StringBuilder builder = new StringBuilder();
@@ -165,15 +167,31 @@ class GuiReader extends BasicReader {
 					}
 				}
 
-				try {
-					GuiReaderFrame gui = new GuiReaderFrame(GuiReader.this,
-							typeFinal);
-					sync(gui);
-				} catch (Exception e) {
-					Instance.getTraceHandler().error(e);
-				}
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							GuiReaderFrame gui = new GuiReaderFrame(
+									GuiReader.this, typeFinal);
+							sync(gui);
+						} catch (Exception e) {
+							Instance.getTraceHandler().error(e);
+						} finally {
+							done[0] = true;
+						}
+
+					}
+				}).start();
 			}
 		});
+
+		// This action must be synchronous, so wait until the frame is closed
+		while (!done[0]) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+			}
+		}
 	}
 
 	@Override
@@ -318,11 +336,14 @@ class GuiReader extends BasicReader {
 	 *            the frame to start
 	 */
 	static private void sync(final JFrame frame) {
-		final Boolean[] done = new Boolean[1];
-		done[0] = false;
+		if (EventQueue.isDispatchThread()) {
+			throw new IllegalStateException(
+					"Cannot call a sync method in the dispatch thread");
+		}
 
+		final Boolean[] done = new Boolean[] { false };
 		try {
-			EventQueue.invokeLater(new Runnable() {
+			Runnable run = new Runnable() {
 				@Override
 				public void run() {
 					try {
@@ -339,7 +360,13 @@ class GuiReader extends BasicReader {
 						done[0] = true;
 					}
 				}
-			});
+			};
+
+			if (EventQueue.isDispatchThread()) {
+				run.run();
+			} else {
+				EventQueue.invokeLater(run);
+			}
 		} catch (Exception e) {
 			Instance.getTraceHandler().error(e);
 			done[0] = true;
