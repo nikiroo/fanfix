@@ -2,6 +2,9 @@
 
 ## Version WIP
 
+- Serial: fix b64/not b64 error
+- Serial: perf improvement
+- Base64: perf improvement
 - new: Proxy selector
 
 ## Version 4.5.1

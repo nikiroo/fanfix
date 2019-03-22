@@ -208,7 +208,7 @@ class Base64
     
     
     /** Preferred encoding. */
-    private final static String PREFERRED_ENCODING = "US-ASCII";
+    private final static String PREFERRED_ENCODING = "UTF-8";
     
 	
     private final static byte WHITE_SPACE_ENC = -5; // Indicates white space in encoding
@@ -1249,8 +1249,24 @@ class Base64
         }   // end catch
 		//</change>
         
+        return niki_decode(bytes, 0, bytes.length, options);
+    }
+     
+    /**
+     * Decodes data from Base64 notation, automatically
+     * detecting gzip-compressed data and decompressing it.
+     *
+     * @param s the string to decode
+     * @param options encode options such as URL_SAFE
+     * @return the decoded data
+     * @throws java.io.IOException if there is an error
+     * @throws NullPointerException if <tt>s</tt> is null
+     * @since niki
+     */
+    public static byte[] niki_decode( byte[] bytes, int offset, int count, int options ) throws java.io.IOException {
+        
         // Decode
-        bytes = decode( bytes, 0, bytes.length, options );
+        bytes = decode( bytes, offset, count, options );
         
         // Check to see if it's gzip-compressed
         // GZIP Magic Two-Byte Number: 0x8b1f (35615)
