@@ -120,8 +120,22 @@ class GuiReaderCoverImager {
 	 * 
 	 * @param lib
 	 *            the library the meta comes from
-	 * @param info
+	 * @param meta
 	 *            the {@link MetaData}
+	 * 
+	 * @return the icon
+	 */
+	static public ImageIcon generateCoverIcon(BasicLibrary lib, MetaData meta) {
+		return generateCoverIcon(lib, GuiReaderBookInfo.fromMeta(meta));
+	}
+
+	/**
+	 * Generate a cover icon based upon the given {@link GuiReaderBookInfo}.
+	 * 
+	 * @param lib
+	 *            the library the meta comes from
+	 * @param info
+	 *            the {@link GuiReaderBookInfo}
 	 * 
 	 * @return the icon
 	 */
