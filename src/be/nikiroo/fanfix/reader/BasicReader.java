@@ -340,11 +340,9 @@ public abstract class BasicReader implements Reader {
 		}
 
 		if (proc != null && sync) {
-			while (proc.isAlive()) {
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-				}
+			try {
+				proc.waitFor();
+			} catch (InterruptedException e) {
 			}
 		}
 	}
