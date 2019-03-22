@@ -761,8 +761,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 				if (selectedBook != null) {
 					if (selectedBook.getInfo().getMeta() == null) {
 						mainPanel.removeBookPanes();
-						mainPanel.addBookPane(selectedBook.getInfo().getMeta()
-								.getSource(), mainPanel.getCurrentType());
+						mainPanel.addBookPane(selectedBook.getInfo().getMainInfo(),
+								mainPanel.getCurrentType());
 						mainPanel.refreshBooks();
 					} else {
 						mainPanel.openBook(selectedBook);
