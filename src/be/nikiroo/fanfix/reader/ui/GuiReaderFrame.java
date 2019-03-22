@@ -84,7 +84,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 
 		setSize(800, 600);
 		setLayout(new BorderLayout());
-		add(mainPanel);
+		add(mainPanel, BorderLayout.CENTER);
 	}
 
 	@Override
@@ -738,8 +738,9 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					mainPanel.outOfUi(null, new Runnable() {
 						@Override
 						public void run() {
-							new GuiReaderPropertiesFrame(reader, selectedBook
-									.getInfo()).setVisible(true);
+							new GuiReaderPropertiesFrame(reader.getLibrary(),
+									selectedBook.getInfo().getMeta())
+									.setVisible(true);
 						}
 					});
 				}
@@ -763,8 +764,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 				if (selectedBook != null) {
 					if (selectedBook.getInfo().getMeta() == null) {
 						mainPanel.removeBookPanes();
-						mainPanel.addBookPane(selectedBook.getInfo().getMainInfo(),
-								mainPanel.getCurrentType());
+						mainPanel.addBookPane(selectedBook.getInfo()
+								.getMainInfo(), mainPanel.getCurrentType());
 						mainPanel.refreshBooks();
 					} else {
 						mainPanel.openBook(selectedBook);
