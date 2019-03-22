@@ -268,9 +268,18 @@ class GuiReader extends BasicReader {
 	void read(String luid, boolean sync, Progress pg) throws IOException {
 		File file = cacheLib.getFile(luid, pg);
 
-		// TODO: show a special page for the chapter?
-		// We could also implement an internal viewer, both for image and
-		// non-image documents
+		GuiReaderTextViewer viewer = new GuiReaderTextViewer(cacheLib,
+				cacheLib.getStory(luid, null));
+
+		// TODO: testing text viewer:
+		if (false) {
+			if (sync) {
+				sync(viewer);
+			} else {
+				viewer.setVisible(true);
+			}
+		}
+
 		openExternal(getLibrary().getInfo(luid), file, sync);
 	}
 
