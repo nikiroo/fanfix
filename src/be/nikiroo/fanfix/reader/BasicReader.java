@@ -6,11 +6,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
+import java.util.TreeMap;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
@@ -216,8 +214,8 @@ public abstract class BasicReader implements Reader {
 	 * 
 	 * @return the information
 	 */
-	public static List<Entry<String, String>> getMetaDesc(MetaData meta) {
-		List<Entry<String, String>> metaDesc = new ArrayList<Entry<String, String>>();
+	public static Map<String, String> getMetaDesc(MetaData meta) {
+		Map<String, String> metaDesc = new TreeMap<String, String>();
 
 		// TODO: i18n
 
@@ -229,19 +227,15 @@ public abstract class BasicReader implements Reader {
 			tags.append(tag);
 		}
 
-		metaDesc.add(new SimpleEntry<String, String>("Author", meta.getAuthor()));
-		metaDesc.add(new SimpleEntry<String, String>("Publication date",
-				formatDate(meta.getDate())));
-		metaDesc.add(new SimpleEntry<String, String>("Published on", meta
-				.getPublisher()));
-		metaDesc.add(new SimpleEntry<String, String>("URL", meta.getUrl()));
-		metaDesc.add(new SimpleEntry<String, String>("Word count", format(meta
-				.getWords())));
-		metaDesc.add(new SimpleEntry<String, String>("Source", meta.getSource()));
-		metaDesc.add(new SimpleEntry<String, String>("Subject", meta
-				.getSubject()));
-		metaDesc.add(new SimpleEntry<String, String>("Language", meta.getLang()));
-		metaDesc.add(new SimpleEntry<String, String>("Tags", tags.toString()));
+		metaDesc.put("Author", meta.getAuthor());
+		metaDesc.put("Publication date", formatDate(meta.getDate()));
+		metaDesc.put("Published on", meta.getPublisher());
+		metaDesc.put("URL", meta.getUrl());
+		metaDesc.put("Word count", format(meta.getWords()));
+		metaDesc.put("Source", meta.getSource());
+		metaDesc.put("Subject", meta.getSubject());
+		metaDesc.put("Language", meta.getLang());
+		metaDesc.put("Tags", tags.toString());
 
 		return metaDesc;
 	}

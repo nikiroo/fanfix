@@ -171,13 +171,12 @@ class TuiReaderStoryWindow extends TWindow {
 
 		setCurrentTitle(meta.getTitle());
 
-		List<Map.Entry<String, String>> metaDesc = BasicReader
-				.getMetaDesc(meta);
+		Map<String, String> metaDesc = BasicReader.getMetaDesc(meta);
 		String[][] metaDescObj = new String[metaDesc.size()][2];
 		int i = 0;
-		for (Map.Entry<String, String> entry : metaDesc) {
-			metaDescObj[i][0] = " " + entry.getKey();
-			metaDescObj[i][1] = entry.getValue();
+		for (String key : metaDesc.keySet()) {
+			metaDescObj[i][0] = " " + key;
+			metaDescObj[i][1] = metaDesc.get(key);
 			i++;
 		}
 

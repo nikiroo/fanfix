@@ -3,8 +3,7 @@ package be.nikiroo.fanfix.reader.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
-import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -63,23 +62,23 @@ public class GuiReaderPropertiesFrame extends JFrame {
 		mainPanel.add(mainPanelKeys, BorderLayout.WEST);
 		mainPanel.add(mainPanelValues, BorderLayout.CENTER);
 
-		List<Entry<String, String>> desc = BasicReader.getMetaDesc(meta);
+		Map<String, String> desc = BasicReader.getMetaDesc(meta);
 
 		Color trans = new Color(0, 0, 0, 1);
-		for (Entry<String, String> descLine : desc) {
-			JTextArea key = new JTextArea(descLine.getKey());
-			key.setFont(new Font(key.getFont().getFontName(), Font.BOLD, key
+		for (String key : desc.keySet()) {
+			JTextArea jKey = new JTextArea(key);
+			jKey.setFont(new Font(jKey.getFont().getFontName(), Font.BOLD, jKey
 					.getFont().getSize()));
-			key.setEditable(false);
-			key.setLineWrap(false);
-			key.setBackground(trans);
-			mainPanelKeys.add(key);
+			jKey.setEditable(false);
+			jKey.setLineWrap(false);
+			jKey.setBackground(trans);
+			mainPanelKeys.add(jKey);
 
-			JTextArea value = new JTextArea(descLine.getValue());
-			value.setEditable(false);
-			value.setLineWrap(false);
-			value.setBackground(trans);
-			mainPanelValues.add(value);
+			JTextArea jValue = new JTextArea(desc.get(key));
+			jValue.setEditable(false);
+			jValue.setLineWrap(false);
+			jValue.setBackground(trans);
+			mainPanelValues.add(jValue);
 		}
 
 		// Image
