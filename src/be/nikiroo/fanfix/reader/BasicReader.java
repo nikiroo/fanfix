@@ -371,7 +371,7 @@ public abstract class BasicReader implements Reader {
 
 		if (ms <= 0) {
 			SimpleDateFormat sdf = new SimpleDateFormat(
-					"yyyy-MM-dd'T'HH:mm:ssXXX");
+					"yyyy-MM-dd'T'HH:mm:ssSSS");
 			try {
 				ms = sdf.parse(date).getTime();
 			} catch (ParseException e) {
