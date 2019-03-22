@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version WIP
+
+- new: Proxy selector
+
 ## Version 4.5.1
 
 - Progress: fix deadlock in rare cases
