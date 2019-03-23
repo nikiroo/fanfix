@@ -18,7 +18,6 @@ import javax.swing.SwingConstants;
 
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
-import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
 
@@ -32,6 +31,7 @@ public class GuiReaderTextViewer extends JFrame {
 	private JLabel chapterLabel;
 	private GuiReaderPropertiesPane descPane;
 	private int currentChapter = -42; // cover = -1
+	private GuiReaderTextViewerOutput htmlOutput = new GuiReaderTextViewerOutput();
 
 	public GuiReaderTextViewer(BasicLibrary lib, Story story) {
 		super(story.getMeta().getLuid() + ": " + story.getMeta().getTitle());
@@ -135,71 +135,11 @@ public class GuiReaderTextViewer extends JFrame {
 			chapterLabel.setText("<HTML>&nbsp;&nbsp;<B>Chapter "
 					+ chap.getNumber() + "</B>: " + chap.getName() + "</HTML>");
 
-			StringBuilder builder = new StringBuilder();
-			addChapter(builder, chap);
-			text.setText(builder.toString());
+			text.setText(htmlOutput.convert(chap));
 		}
 	}
 
 	private void setCoverPage() {
 		descPane.setVisible(true);
-	}
-
-	// htmlInsert = no need to add HTML tags
-	private void addChapter(StringBuilder builder, Chapter chap) {
-		builder.append("<HTML>");
-
-		builder.append("<H1>");
-		builder.append("Chapter ");
-		builder.append(chap.getNumber());
-		builder.append(": ");
-		builder.append(chap.getName());
-		builder.append("</H1>");
-
-		builder.append("<JUSTIFY>");
-		for (Paragraph para : chap) {
-			addPara(builder, para);
-		}
-
-		if (paraInQuote) {
-			builder.append("</DIV>");
-		}
-		paraInQuote = false;
-
-		builder.append("</JUSTIFY>");
-
-		builder.append("</HTML>");
-	}
-
-	private boolean paraInQuote;
-
-	private void addPara(StringBuilder builder, Paragraph para) {
-		switch (para.getType()) {
-		case NORMAL:
-			builder.append(para.getContent());
-			builder.append("<BR>");
-			break;
-		case BLANK:
-			builder.append("<BR>");
-			break;
-		case BREAK:
-			builder.append("<BR>* * *<BR><BR>");
-			break;
-		case QUOTE:
-			if (!paraInQuote) {
-				builder.append("<DIV>");
-			} else {
-				builder.append("</DIV>");
-			}
-			paraInQuote = !paraInQuote;
-
-			builder.append("<DIV>");
-			builder.append("&ndash;&nbsp;&nbsp;");
-			builder.append(para.getContent());
-			builder.append("</DIV>");
-
-			break;
-		case IMAGE:
-		}
 	}
 }

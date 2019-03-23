@@ -278,9 +278,9 @@ class GuiReader extends BasicReader {
 			} else {
 				viewer.setVisible(true);
 			}
+		} else {
+			openExternal(getLibrary().getInfo(luid), file, sync);
 		}
-
-		openExternal(getLibrary().getInfo(luid), file, sync);
 	}
 
 	/**
