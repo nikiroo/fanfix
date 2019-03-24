@@ -36,7 +36,10 @@ My current planning for Fanfix (but not everything appears on this list):
   - [ ] Remember the current chapter and current read status of stories
   - [ ] Support progress events
   - [x] Add a properties pages
-  - [ ] Deal with comics (properties page + external launcher? jexer?)
+  - [ ] Deal with comics
+    - [x] properties page
+    - [x] external launcher
+    - [ ] jexer sixels?
 - [x] Network support
   - [x] A server that can send the stories
   - [x] A network implementation of the Library
