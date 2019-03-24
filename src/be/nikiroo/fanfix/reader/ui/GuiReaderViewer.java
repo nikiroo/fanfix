@@ -182,7 +182,6 @@ public class GuiReaderViewer extends JFrame {
 			chapterLabel.setText("<HTML>&nbsp;&nbsp;<B>Chapter "
 					+ chap.getNumber() + "</B>: " + chap.getName() + "</HTML>");
 
-			System.out.println(chap);
 			mainPanel.setChapter(chap);
 		}
 	}

@@ -41,10 +41,7 @@ public class GuiReaderViewerTextOutput {
 				builder.append(chap.getName());
 				builder.append("</H1>");
 
-				builder.append("<JUSTIFY>");
-				for (Paragraph para : chap) {
-					writeParagraph(para);
-				}
+				builder.append("<DIV align='justify'>");
 			}
 
 			@Override
@@ -54,7 +51,7 @@ public class GuiReaderViewerTextOutput {
 				}
 				paraInQuote = false;
 
-				builder.append("</JUSTIFY>");
+				builder.append("</DIV>");
 				builder.append("</HTML>");
 			}
 
