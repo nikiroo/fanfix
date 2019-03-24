@@ -410,7 +410,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 								.getAbsolutePath()
 								+ type.getDefaultExtension(false);
 						final Progress pg = new Progress();
-						mainPanel.outOfUi(pg, new Runnable() {
+						mainPanel.outOfUi(pg, false, new Runnable() {
 							@Override
 							public void run() {
 								try {
@@ -465,7 +465,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			public void actionPerformed(ActionEvent e) {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
-					mainPanel.outOfUi(null, new Runnable() {
+					mainPanel.outOfUi(null, false, new Runnable() {
 						@Override
 						public void run() {
 							reader.clearLocalReaderCache(selectedBook.getInfo()
@@ -636,7 +636,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					}
 
 					final String fChangeTo = changeTo;
-					mainPanel.outOfUi(null, new Runnable() {
+					mainPanel.outOfUi(null, true, new Runnable() {
 						@Override
 						public void run() {
 							String luid = selectedBook.getInfo().getMeta()
@@ -708,7 +708,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			public void actionPerformed(ActionEvent e) {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
-					mainPanel.outOfUi(null, new Runnable() {
+					mainPanel.outOfUi(null, true, new Runnable() {
 						@Override
 						public void run() {
 							reader.delete(selectedBook.getInfo().getMeta()
@@ -735,7 +735,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			public void actionPerformed(ActionEvent e) {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
-					mainPanel.outOfUi(null, new Runnable() {
+					mainPanel.outOfUi(null, false, new Runnable() {
 						@Override
 						public void run() {
 							new GuiReaderPropertiesFrame(reader.getLibrary(),

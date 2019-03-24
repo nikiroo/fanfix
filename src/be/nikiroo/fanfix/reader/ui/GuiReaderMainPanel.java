@@ -80,14 +80,12 @@ class GuiReaderMainPanel extends JPanel {
 		/**
 		 * Create the main menu bar.
 		 * <p>
-		 * Wil invalidate the layout.
+		 * Will invalidate the layout.
 		 * 
 		 * @param libOk
 		 *            the library can be queried
-		 * 
-		 * @return the bar
 		 */
-		public void createMenu(boolean b);
+		public void createMenu(boolean libOk);
 
 		/**
 		 * Create a popup menu for a {@link GuiReaderBook} that represents a
@@ -124,9 +122,9 @@ class GuiReaderMainPanel extends JPanel {
 	/**
 	 * Create a new {@link GuiReaderMainPanel}.
 	 * 
-	 * @param reader
-	 *            the associated {@link GuiReader} to forward some commands and
-	 *            access its {@link LocalLibrary}
+	 * @param parent
+	 *            the associated {@link FrameHelper} to forward some commands
+	 *            and access its {@link LocalLibrary}
 	 * @param type
 	 *            the type of {@link Story} to load, or NULL for all types
 	 */
@@ -183,7 +181,7 @@ class GuiReaderMainPanel extends JPanel {
 		pane.setVisible(false);
 		final Progress pg = new Progress();
 		final String typeF = type;
-		outOfUi(pg, new Runnable() {
+		outOfUi(pg, true, new Runnable() {
 			@Override
 			public void run() {
 				final BasicLibrary lib = helper.getReader().getLibrary();
@@ -204,7 +202,6 @@ class GuiReaderMainPanel extends JPanel {
 								addBookPane(typeF, true);
 							}
 							pane.setVisible(true);
-							refreshBooks();
 						} else {
 							helper.createMenu(false);
 							validate();
@@ -375,7 +372,7 @@ class GuiReaderMainPanel extends JPanel {
 	 */
 	public void openBook(final GuiReaderBook book) {
 		final Progress pg = new Progress();
-		outOfUi(pg, new Runnable() {
+		outOfUi(pg, false, new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -404,18 +401,26 @@ class GuiReaderMainPanel extends JPanel {
 	 * 
 	 * @param progress
 	 *            the {@link ProgressBar} or NULL
+	 * @param refreshBooks
+	 *            TRUE to refresh the books after
 	 * @param run
 	 *            the action to run
 	 */
-	public void outOfUi(Progress progress, final Runnable run) {
+	public void outOfUi(Progress progress, final boolean refreshBooks,
+			final Runnable run) {
 		final Progress pg = new Progress();
 		final Progress reload = new Progress("Reload books");
+
 		if (progress == null) {
 			progress = new Progress();
 		}
 
-		pg.addProgress(progress, 90);
-		pg.addProgress(reload, 10);
+		if (refreshBooks) {
+			pg.addProgress(progress, 100);
+		} else {
+			pg.addProgress(progress, 90);
+			pg.addProgress(reload, 10);
+		}
 
 		invalidate();
 		pgBar.setProgress(pg);
@@ -427,7 +432,9 @@ class GuiReaderMainPanel extends JPanel {
 			public void run() {
 				try {
 					run.run();
-					refreshBooks();
+					if (refreshBooks) {
+						refreshBooks();
+					}
 				} finally {
 					reload.done();
 					if (!pg.isDone()) {
@@ -513,6 +520,8 @@ class GuiReaderMainPanel extends JPanel {
 	 *            the {@link Story} to import by {@link URL}
 	 * @param onSuccess
 	 *            Action to execute on success
+	 * @param onSuccessPgName
+	 *            the name to use for the onSuccess progress bar
 	 */
 	public void imprt(final String url, final StoryRunnable onSuccess,
 			String onSuccessPgName) {
@@ -522,7 +531,7 @@ class GuiReaderMainPanel extends JPanel {
 		pg.addProgress(pgImprt, 95);
 		pg.addProgress(pgOnSuccess, 5);
 
-		outOfUi(pg, new Runnable() {
+		outOfUi(pg, true, new Runnable() {
 			@Override
 			public void run() {
 				Exception ex = null;
