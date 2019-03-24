@@ -231,7 +231,11 @@ public abstract class BasicReader implements Reader {
 		metaDesc.put("Publication date", formatDate(meta.getDate()));
 		metaDesc.put("Published on", meta.getPublisher());
 		metaDesc.put("URL", meta.getUrl());
-		metaDesc.put("Word count", format(meta.getWords()));
+		if (meta.isImageDocument()) {
+			metaDesc.put("Number of images", format(meta.getWords()));
+		} else {
+			metaDesc.put("Number of words", format(meta.getWords()));
+		}
 		metaDesc.put("Source", meta.getSource());
 		metaDesc.put("Subject", meta.getSubject());
 		metaDesc.put("Language", meta.getLang());
@@ -349,6 +353,12 @@ public abstract class BasicReader implements Reader {
 
 	static private String format(long value) {
 		String display = "";
+		String suffix = "";
+
+		if (value > 4000) {
+			value = value / 1000;
+			suffix = "k";
+		}
 
 		while (value > 0) {
 			if (!display.isEmpty()) {
@@ -358,7 +368,7 @@ public abstract class BasicReader implements Reader {
 			value = value / 1000;
 		}
 
-		return display;
+		return display + suffix;
 	}
 
 	static private String formatDate(String date) {
