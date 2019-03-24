@@ -34,7 +34,7 @@ Pour vous aider à organiser vos histoires, il peut aussi servir de bibliothèqu
 - d'importer une histoire depuis son URL (ou depuis un fichier)
 - d'exporter une histoire dans un des formats supportés vers un fichier
 - d'afficher une histoire en mode texte
-- d'afficher une histoire en mode GUI **en appelant un programme natif pour lire le fichier** (mais Fanfix peut convertir le fichier en HTML avant, pour que n'importe quel navigateur web puisse l'afficher)
+- d'afficher une histoire en mode GUI **nativement** ou **en appelant un programme natif pour lire le fichier** (potentiellement converti en HTML avant, pour que n'importe quel navigateur web puisse l'afficher)
 
 ### Sites supportés
 

@@ -34,7 +34,7 @@ To help organize your stories, it can also work as a local library so you can:
 - Import a story from its URL (or just from a file)
 - Export a story to a file (in any of the supported output types)
 - Display a story from the local library in text format in the console
-- Display a story from the local library graphically **by calling a native program to handle it** (though Fanfix can automatically process it into HTML so any browser can open it)
+- Display a story from the local library graphically **natively** or **by calling a native program to handle it** (potentially converted into HTML before hand, so any browser can open it)
 
 ### Supported websites
 
