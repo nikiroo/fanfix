@@ -17,8 +17,12 @@ public enum UiConfig {
 	GUI_NON_IMAGES_DOCUMENT_TYPE, //
 	@Meta(format = Format.COMBO_LIST, list = { "CBZ", "HTML" }, description = "The type of output for the GUI Reader for images documents")
 	GUI_IMAGES_DOCUMENT_TYPE, //
+	@Meta(format = Format.BOOLEAN, description = "Use the internal reader for images documents -- this is TRUE by default")
+	IMAGES_DOCUMENT_USE_INTERNAL_READER, //
 	@Meta(info = "A command to start", description = "The command launched for images documents -- default to the system default for the current file type")
 	IMAGES_DOCUMENT_READER, //
+	@Meta(format = Format.BOOLEAN, description = "Use the internal reader for non images documents -- this is TRUE by default")
+	NON_IMAGES_DOCUMENT_USE_INTERNAL_READER, //
 	@Meta(info = "A command to start", description = "The command launched for non images documents -- default to the system default for the current file type")
 	NON_IMAGES_DOCUMENT_READER, //
 	@Meta(format = Format.COLOR, description = "The background colour if you don't want the default system one")

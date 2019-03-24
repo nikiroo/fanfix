@@ -17,6 +17,7 @@ import javax.swing.event.HyperlinkListener;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.VersionCheck;
+import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
@@ -266,20 +267,32 @@ class GuiReader extends BasicReader {
 	 *             in case of I/O errors
 	 */
 	void read(String luid, boolean sync, Progress pg) throws IOException {
-		File file = cacheLib.getFile(luid, pg);
+		MetaData meta = cacheLib.getInfo(luid);
 
-		GuiReaderViewer viewer = new GuiReaderViewer(cacheLib,
-				cacheLib.getStory(luid, null));
+		boolean textInternal = Instance.getUiConfig().getBoolean(
+				UiConfig.NON_IMAGES_DOCUMENT_USE_INTERNAL_READER, true);
+		boolean imageInternal = Instance.getUiConfig().getBoolean(
+				UiConfig.IMAGES_DOCUMENT_USE_INTERNAL_READER, true);
 
-		// TODO: testing internal story viewer:
-		if (false) {
+		boolean useInternalViewer = true;
+		if (meta.isImageDocument() && !imageInternal) {
+			useInternalViewer = false;
+		}
+		if (!meta.isImageDocument() && !textInternal) {
+			useInternalViewer = false;
+		}
+
+		if (useInternalViewer) {
+			GuiReaderViewer viewer = new GuiReaderViewer(cacheLib,
+					cacheLib.getStory(luid, null));
 			if (sync) {
 				sync(viewer);
 			} else {
 				viewer.setVisible(true);
 			}
 		} else {
-			openExternal(getLibrary().getInfo(luid), file, sync);
+			File file = cacheLib.getFile(luid, pg);
+			openExternal(meta, file, sync);
 		}
 	}
 
