@@ -68,6 +68,7 @@ class GuiReaderBook extends JPanel {
 	private List<BookActionListener> listeners;
 	private GuiReaderBookInfo info;
 	private boolean cached;
+	private boolean seeWordCount;
 
 	/**
 	 * Create a new {@link GuiReaderBook} item for the given {@link Story}.
@@ -83,22 +84,15 @@ class GuiReaderBook extends JPanel {
 	 */
 	public GuiReaderBook(Reader reader, GuiReaderBookInfo info, boolean cached,
 			boolean seeWordCount) {
-		this.cached = cached;
 		this.info = info;
-
-		String optSecondary = info.getSecondaryInfo(seeWordCount);
+		this.cached = cached;
+		this.seeWordCount = seeWordCount;
 
 		icon = new JLabel(GuiReaderCoverImager.generateCoverIcon(
 				reader.getLibrary(), info));
-		title = new JLabel(
-				String.format(
-						"<html>"
-								+ "<body style='width: %d px; height: %d px; text-align: center'>"
-								+ "%s" + "<br>" + "<span style='color: %s;'>"
-								+ "%s" + "</span>" + "</body>" + "</html>",
-						GuiReaderCoverImager.TEXT_WIDTH,
-						GuiReaderCoverImager.TEXT_HEIGHT, info.getMainInfo(),
-						AUTHOR_COLOR, optSecondary));
+
+		title = new JLabel();
+		updateTitle();
 
 		setLayout(new BorderLayout(10, 10));
 		add(icon, BorderLayout.CENTER);
@@ -258,12 +252,30 @@ class GuiReaderBook extends JPanel {
 	}
 
 	/**
-	 * Paint the item, then call {@link GuiReaderBook#paintOverlay(Graphics)}.
+	 * Update the title, paint the item, then call
+	 * {@link GuiReaderCoverImager#paintOverlay(Graphics, boolean, boolean, boolean, boolean)}
+	 * .
 	 */
 	@Override
 	public void paint(Graphics g) {
+		updateTitle();
 		super.paint(g);
 		GuiReaderCoverImager.paintOverlay(g, isEnabled(), isSelected(),
 				isHovered(), isCached());
+	}
+
+	/**
+	 * Update the title with the currently registered information.
+	 */
+	private void updateTitle() {
+		String optSecondary = info.getSecondaryInfo(seeWordCount);
+		title.setText(String
+				.format("<html>"
+						+ "<body style='width: %d px; height: %d px; text-align: center'>"
+						+ "%s" + "<br>" + "<span style='color: %s;'>" + "%s"
+						+ "</span>" + "</body>" + "</html>",
+						GuiReaderCoverImager.TEXT_WIDTH,
+						GuiReaderCoverImager.TEXT_HEIGHT, info.getMainInfo(),
+						AUTHOR_COLOR, optSecondary));
 	}
 }

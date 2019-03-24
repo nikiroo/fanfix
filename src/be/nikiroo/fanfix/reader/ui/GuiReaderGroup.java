@@ -83,8 +83,8 @@ public class GuiReaderGroup extends JPanel {
 	/**
 	 * Refresh the list of {@link GuiReaderBook}s displayed in the control.
 	 * 
-	 * @param stories
-	 *            the new list of stories
+	 * @param infos
+	 *            the new list of infos
 	 * @param seeWordcount
 	 *            TRUE to see word counts, FALSE to see authors
 	 */

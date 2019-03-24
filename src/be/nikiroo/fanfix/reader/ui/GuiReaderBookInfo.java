@@ -32,6 +32,10 @@ public class GuiReaderBookInfo {
 	}
 
 	public String getMainInfo() {
+		if (meta != null) {
+			return meta.getTitle();
+		}
+
 		return value;
 	}
 

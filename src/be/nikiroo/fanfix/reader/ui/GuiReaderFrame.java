@@ -611,6 +611,16 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			public void actionPerformed(ActionEvent e) {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
+					boolean refreshRequired = false;
+
+					if (what == ChangeAction.SOURCE) {
+						refreshRequired = mainPanel.getCurrentType();
+					} else if (what == ChangeAction.TITLE) {
+						refreshRequired = false;
+					} else if (what == ChangeAction.AUTHOR) {
+						refreshRequired = !mainPanel.getCurrentType();
+					}
+
 					String changeTo = type;
 					if (type == null) {
 						MetaData meta = selectedBook.getInfo().getMeta();
@@ -636,7 +646,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					}
 
 					final String fChangeTo = changeTo;
-					mainPanel.outOfUi(null, true, new Runnable() {
+					mainPanel.outOfUi(null, refreshRequired, new Runnable() {
 						@Override
 						public void run() {
 							String luid = selectedBook.getInfo().getMeta()
@@ -649,6 +659,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 								reader.changeAuthor(luid, fChangeTo);
 							}
 
+							mainPanel.getSelectedBook().repaint();
 							mainPanel.unsetSelectedBook();
 
 							SwingUtilities.invokeLater(new Runnable() {
@@ -707,15 +718,25 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
-				if (selectedBook != null) {
-					mainPanel.outOfUi(null, true, new Runnable() {
-						@Override
-						public void run() {
-							reader.delete(selectedBook.getInfo().getMeta()
-									.getLuid());
-							mainPanel.unsetSelectedBook();
-						}
-					});
+				if (selectedBook != null
+						&& selectedBook.getInfo().getMeta() != null) {
+
+					final MetaData meta = selectedBook.getInfo().getMeta();
+					int rep = JOptionPane.showConfirmDialog(
+							GuiReaderFrame.this,
+							String.format("Delete %s: %s", meta.getLuid(),
+									meta.getTitle()), "Delete story",
+							JOptionPane.OK_CANCEL_OPTION);
+
+					if (rep == JOptionPane.OK_OPTION) {
+						mainPanel.outOfUi(null, true, new Runnable() {
+							@Override
+							public void run() {
+								reader.delete(meta.getLuid());
+								mainPanel.unsetSelectedBook();
+							}
+						});
+					}
 				}
 			}
 		});
