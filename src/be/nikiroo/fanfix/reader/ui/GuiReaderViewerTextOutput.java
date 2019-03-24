@@ -14,16 +14,16 @@ import be.nikiroo.fanfix.output.BasicOutput;
  * 
  * @author niki
  */
-public class GuiReaderTextViewerOutput {
+public class GuiReaderViewerTextOutput {
 	private StringBuilder builder;
 	private BasicOutput output;
 	private Story fakeStory;
 
 	/**
-	 * Create a new {@link GuiReaderTextViewerOutput} that will convert a
+	 * Create a new {@link GuiReaderViewerTextOutput} that will convert a
 	 * {@link Chapter} into HTML3 suited for Java Swing.
 	 */
-	public GuiReaderTextViewerOutput() {
+	public GuiReaderViewerTextOutput() {
 		builder = new StringBuilder();
 		fakeStory = new Story();
 

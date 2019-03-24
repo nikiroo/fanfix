@@ -13,7 +13,6 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 
 import be.nikiroo.fanfix.data.Chapter;
@@ -21,19 +20,35 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
 
-public class GuiReaderTextViewer extends JFrame {
+/**
+ * An internal, Swing-based {@link Story} viewer.
+ * <p>
+ * Works on both text and image document (see {@link MetaData#isImageDocument()}
+ * ).
+ * 
+ * @author niki
+ */
+public class GuiReaderViewer extends JFrame {
 	private static final long serialVersionUID = 1L;
 
 	private Story story;
 	private MetaData meta;
 	private JLabel title;
-	private JLabel text;
 	private JLabel chapterLabel;
 	private GuiReaderPropertiesPane descPane;
 	private int currentChapter = -42; // cover = -1
-	private GuiReaderTextViewerOutput htmlOutput = new GuiReaderTextViewerOutput();
+	private GuiReaderViewerPanel mainPanel;
+	private JButton[] navButtons;
 
-	public GuiReaderTextViewer(BasicLibrary lib, Story story) {
+	/**
+	 * Create a new {@link Story} viewer.
+	 * 
+	 * @param lib
+	 *            the {@link BasicLibrary} to load the cover from
+	 * @param story
+	 *            the {@link Story} to display
+	 */
+	public GuiReaderViewer(BasicLibrary lib, Story story) {
 		super(story.getMeta().getLuid() + ": " + story.getMeta().getTitle());
 
 		setSize(800, 600);
@@ -47,6 +62,13 @@ public class GuiReaderTextViewer extends JFrame {
 		setChapter(-1);
 	}
 
+	/**
+	 * Initialise the base panel with everything but the navigation buttons.
+	 * 
+	 * @param lib
+	 *            the {@link BasicLibrary} to use to retrieve the cover image in
+	 *            the description panel
+	 */
 	private void initGuiBase(BasicLibrary lib) {
 		setLayout(new BorderLayout());
 
@@ -64,53 +86,65 @@ public class GuiReaderTextViewer extends JFrame {
 		descPane = new GuiReaderPropertiesPane(lib, meta);
 		contentPane.add(descPane, BorderLayout.NORTH);
 
-		text = new JLabel();
-		text.setAlignmentY(TOP_ALIGNMENT);
-
-		// TODO: why is it broken?
-		// text.setPreferredSize(new Dimension(500, 500));
-
-		JScrollPane scroll = new JScrollPane(text);
-		scroll.getVerticalScrollBar().setUnitIncrement(16);
-		contentPane.add(scroll, BorderLayout.CENTER);
+		mainPanel = new GuiReaderViewerPanel(story);
+		contentPane.add(mainPanel, BorderLayout.CENTER);
 	}
 
+	/**
+	 * Create the 4 navigation buttons in {@link GuiReaderViewer#navButtons} and
+	 * initialise them.
+	 */
 	private void initGuiNavButtons() {
-		JPanel navButtons = new JPanel();
-		LayoutManager layout = new BoxLayout(navButtons, BoxLayout.X_AXIS);
-		navButtons.setLayout(layout);
+		JPanel navButtonsPane = new JPanel();
+		LayoutManager layout = new BoxLayout(navButtonsPane, BoxLayout.X_AXIS);
+		navButtonsPane.setLayout(layout);
 
-		navButtons.add(createNavButton("<<", new ActionListener() {
+		navButtons = new JButton[4];
+
+		navButtons[0] = createNavButton("<<", new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setChapter(-1);
 			}
-		}));
-		navButtons.add(createNavButton(" < ", new ActionListener() {
+		});
+		navButtons[1] = createNavButton(" < ", new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setChapter(currentChapter - 1);
 			}
-		}));
-		navButtons.add(createNavButton(" > ", new ActionListener() {
+		});
+		navButtons[2] = createNavButton(" > ", new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setChapter(currentChapter + 1);
 			}
-		}));
-		navButtons.add(createNavButton(">>", new ActionListener() {
+		});
+		navButtons[3] = createNavButton(">>", new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setChapter(story.getChapters().size() - 1);
 			}
-		}));
+		});
 
-		add(navButtons, BorderLayout.SOUTH);
+		for (JButton navButton : navButtons) {
+			navButtonsPane.add(navButton);
+		}
+
+		add(navButtonsPane, BorderLayout.SOUTH);
 
 		chapterLabel = new JLabel("");
-		navButtons.add(chapterLabel);
+		navButtonsPane.add(chapterLabel);
 	}
 
+	/**
+	 * Create a single navigation button.
+	 * 
+	 * @param text
+	 *            the text to display
+	 * @param action
+	 *            the action to take on click
+	 * @return the button
+	 */
 	private JButton createNavButton(String text, ActionListener action) {
 		JButton navButton = new JButton(text);
 		navButton.addActionListener(action);
@@ -118,7 +152,20 @@ public class GuiReaderTextViewer extends JFrame {
 		return navButton;
 	}
 
+	/**
+	 * Set the current chapter, 0-based.
+	 * <p>
+	 * Chapter -1 is reserved for the description page.
+	 * 
+	 * @param chapter
+	 *            the chapter number to set
+	 */
 	private void setChapter(int chapter) {
+		navButtons[0].setEnabled(chapter >= 0);
+		navButtons[1].setEnabled(chapter >= 0);
+		navButtons[2].setEnabled(chapter + 1 < story.getChapters().size());
+		navButtons[3].setEnabled(chapter + 1 < story.getChapters().size());
+
 		if (chapter >= -1 && chapter < story.getChapters().size()
 				&& chapter != currentChapter) {
 			currentChapter = chapter;
@@ -126,7 +173,7 @@ public class GuiReaderTextViewer extends JFrame {
 			Chapter chap;
 			if (chapter == -1) {
 				chap = meta.getResume();
-				setCoverPage();
+				descPane.setVisible(true);
 			} else {
 				chap = story.getChapters().get(chapter);
 				descPane.setVisible(false);
@@ -135,11 +182,8 @@ public class GuiReaderTextViewer extends JFrame {
 			chapterLabel.setText("<HTML>&nbsp;&nbsp;<B>Chapter "
 					+ chap.getNumber() + "</B>: " + chap.getName() + "</HTML>");
 
-			text.setText(htmlOutput.convert(chap));
+			System.out.println(chap);
+			mainPanel.setChapter(chap);
 		}
-	}
-
-	private void setCoverPage() {
-		descPane.setVisible(true);
 	}
 }

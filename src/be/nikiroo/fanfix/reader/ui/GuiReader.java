@@ -268,10 +268,10 @@ class GuiReader extends BasicReader {
 	void read(String luid, boolean sync, Progress pg) throws IOException {
 		File file = cacheLib.getFile(luid, pg);
 
-		GuiReaderTextViewer viewer = new GuiReaderTextViewer(cacheLib,
+		GuiReaderViewer viewer = new GuiReaderViewer(cacheLib,
 				cacheLib.getStory(luid, null));
 
-		// TODO: testing text viewer:
+		// TODO: testing internal story viewer:
 		if (false) {
 			if (sync) {
 				sync(viewer);
