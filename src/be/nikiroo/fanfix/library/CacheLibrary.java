@@ -67,27 +67,16 @@ public class CacheLibrary extends BasicLibrary {
 
 	@Override
 	public synchronized Story getStory(String luid, MetaData meta, Progress pg) {
-		String type = cacheLib.getOutputType(meta.isImageDocument());
-		MetaData cachedMeta = meta.clone();
-		cachedMeta.setType(type);
-
-		return super.getStory(luid, cachedMeta, pg);
-	}
-
-	@Override
-	public synchronized File getFile(final String luid, Progress pg) {
 		if (pg == null) {
 			pg = new Progress();
 		}
 
 		Progress pgImport = new Progress();
 		Progress pgGet = new Progress();
-		Progress pgRecall = new Progress();
 
-		pg.setMinMax(0, 5);
+		pg.setMinMax(0, 4);
 		pg.addProgress(pgImport, 3);
 		pg.addProgress(pgGet, 1);
-		pg.addProgress(pgRecall, 1);
 
 		if (!isCached(luid)) {
 			try {
@@ -99,6 +88,31 @@ public class CacheLibrary extends BasicLibrary {
 			}
 
 			pgImport.done();
+			pgGet.done();
+		}
+
+		String type = cacheLib.getOutputType(meta.isImageDocument());
+		MetaData cachedMeta = meta.clone();
+		cachedMeta.setType(type);
+
+		return cacheLib.getStory(luid, cachedMeta, pg);
+	}
+
+	@Override
+	public synchronized File getFile(final String luid, Progress pg) {
+		if (pg == null) {
+			pg = new Progress();
+		}
+
+		Progress pgGet = new Progress();
+		Progress pgRecall = new Progress();
+
+		pg.setMinMax(0, 5);
+		pg.addProgress(pgGet, 4);
+		pg.addProgress(pgRecall, 1);
+
+		if (!isCached(luid)) {
+			getStory(luid, pgGet);
 			pgGet.done();
 		}
 

@@ -185,7 +185,7 @@ abstract public class BasicLibrary {
 	/**
 	 * Set the author cover to the given story cover.
 	 * 
-	 * @param source
+	 * @param author
 	 *            the author to change
 	 * @param luid
 	 *            the story LUID
@@ -599,7 +599,8 @@ abstract public class BasicLibrary {
 	 * 
 	 * @return the corresponding {@link Story} or NULL if not found
 	 */
-	public synchronized Story getStory(String luid, MetaData meta, Progress pg) {
+	public synchronized Story getStory(String luid,
+			@SuppressWarnings("javadoc") MetaData meta, Progress pg) {
 
 		if (pg == null) {
 			pg = new Progress();
@@ -633,9 +634,10 @@ abstract public class BasicLibrary {
 		} catch (IOException e) {
 			// We should not have not-supported files in the
 			// library
-			Instance.getTraceHandler()
-					.error(new IOException("Cannot load file from library: "
-							+ file, e));
+			Instance.getTraceHandler().error(
+					new IOException(String.format(
+							"Cannot load file of type '%s' from library: %s",
+							meta.getType(), file), e));
 		} finally {
 			pgProcess.done();
 			pg.done();
