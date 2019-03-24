@@ -51,7 +51,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 		String tooltip = null;
 		if (bundle.getDescriptionBundle() != null) {
 			tooltip = bundle.getDescriptionBundle().getString(id);
-			if (tooltip.trim().isEmpty()) {
+			if (tooltip != null && tooltip.trim().isEmpty()) {
 				tooltip = null;
 			}
 		}
