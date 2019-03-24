@@ -66,6 +66,16 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
+	public synchronized MetaData getInfo(String luid) {
+		MetaData info = cacheLib.getInfo(luid);
+		if (info == null) {
+			info = lib.getInfo(luid);
+		}
+
+		return info;
+	}
+
+	@Override
 	public synchronized Story getStory(String luid, MetaData meta, Progress pg) {
 		if (pg == null) {
 			pg = new Progress();
@@ -260,10 +270,7 @@ public class CacheLibrary extends BasicLibrary {
 		}
 		lib.delete(luid);
 
-		MetaData meta = getInfo(luid);
-		if (meta != null) {
-			metas.remove(meta);
-		}
+		invalidateInfo(luid);
 	}
 
 	@Override
@@ -296,6 +303,8 @@ public class CacheLibrary extends BasicLibrary {
 		meta.setTitle(newTitle);
 		meta.setAuthor(newAuthor);
 		pg.done();
+
+		invalidateInfo(luid);
 	}
 
 	/**

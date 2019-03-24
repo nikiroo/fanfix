@@ -943,6 +943,8 @@ abstract public class BasicLibrary {
 		meta.setTitle(newTitle);
 		meta.setAuthor(newAuthor);
 		saveMeta(meta, pg);
+
+		invalidateInfo(luid);
 	}
 
 	/**
