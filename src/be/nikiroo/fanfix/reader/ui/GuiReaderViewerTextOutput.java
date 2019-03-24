@@ -6,6 +6,7 @@ import java.util.Arrays;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.Paragraph;
+import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput;
 
@@ -57,27 +58,35 @@ public class GuiReaderViewerTextOutput {
 
 			@Override
 			protected void writeParagraph(Paragraph para) throws IOException {
+				if ((para.getType() == ParagraphType.QUOTE) == !paraInQuote) {
+					paraInQuote = !paraInQuote;
+					if (paraInQuote) {
+						builder.append("<BR>");
+						builder.append("<DIV>");
+					} else {
+						builder.append("</DIV>");
+						builder.append("<BR>");
+					}
+				}
+
 				switch (para.getType()) {
 				case NORMAL:
+					builder.append("&nbsp;&nbsp;&nbsp;&nbsp;");
 					builder.append(decorateText(para.getContent()));
 					builder.append("<BR>");
 					break;
 				case BLANK:
-					builder.append("<BR>");
+					builder.append("<BR><BR>");
 					break;
 				case BREAK:
-					builder.append("<BR>* * *<BR><BR>");
+					builder.append("<BR><P COLOR='#7777DD' ALIGN='CENTER'><B>");
+					builder.append("* * *");
+					builder.append("</B></P><BR><BR>");
 					break;
 				case QUOTE:
-					if (!paraInQuote) {
-						builder.append("<DIV>");
-					} else {
-						builder.append("</DIV>");
-					}
-					paraInQuote = !paraInQuote;
-
 					builder.append("<DIV>");
-					builder.append("&ndash;&nbsp;&nbsp;");
+					builder.append("&nbsp;&nbsp;&nbsp;&nbsp;");
+					builder.append("&mdash;&nbsp;");
 					builder.append(decorateText(para.getContent()));
 					builder.append("</DIV>");
 
@@ -88,7 +97,7 @@ public class GuiReaderViewerTextOutput {
 
 			@Override
 			protected String enbold(String word) {
-				return "<B COLOR='BLUE'>" + word + "</B>";
+				return "<B COLOR='#7777DD'>" + word + "</B>";
 			}
 
 			@Override
