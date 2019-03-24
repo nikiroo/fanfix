@@ -201,6 +201,10 @@ public class GuiReaderViewerPanel extends JPanel {
 
 		final Image img = chap.getParagraphs().get(i).getContentImage();
 
+		// prepare the viewport to get the right sizes later on
+		image.setIcon(null);
+		scroll.setViewportView(image);
+
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
