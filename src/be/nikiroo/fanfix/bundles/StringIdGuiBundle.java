@@ -6,11 +6,11 @@ import java.io.IOException;
 import be.nikiroo.utils.resources.TransBundle;
 
 /**
- * This class manages the translation resources of the application (Core).
+ * This class manages the translation resources of the application (GUI).
  * 
  * @author niki
  */
-public class StringIdBundle extends TransBundle<StringId> {
+public class StringIdGuiBundle extends TransBundle<StringIdGui> {
 	/**
 	 * Create a translation service for the given language (will fall back to
 	 * the default one if not found).
@@ -18,8 +18,8 @@ public class StringIdBundle extends TransBundle<StringId> {
 	 * @param lang
 	 *            the language to use
 	 */
-	public StringIdBundle(String lang) {
-		super(StringId.class, Target.resources_core, lang);
+	public StringIdGuiBundle(String lang) {
+		super(StringIdGui.class, Target.resources_gui, lang);
 	}
 
 	/**
@@ -34,7 +34,7 @@ public class StringIdBundle extends TransBundle<StringId> {
 	public static void main(String[] args) throws IOException {
 		String path = new File(".").getAbsolutePath()
 				+ "/src/be/nikiroo/fanfix/bundles/";
-		new StringIdBundle(null).updateFile(path);
+		new StringIdGuiBundle(null).updateFile(path);
 		System.out.println("Path updated: " + path);
 	}
 }

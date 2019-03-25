@@ -10,6 +10,7 @@ import java.util.List;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import be.nikiroo.fanfix.bundles.StringIdGui;
 import be.nikiroo.fanfix.reader.ui.GuiReaderBook.BookActionListener;
 import be.nikiroo.utils.ui.WrapLayout;
 
@@ -56,7 +57,7 @@ public class GuiReaderGroup extends JPanel {
 
 		if (title != null) {
 			if (title.isEmpty()) {
-				title = "[unknown]";
+				title = GuiReader.trans(StringIdGui.MENU_AUTHORS_UNKNOWN);
 			}
 
 			JLabel label = new JLabel();

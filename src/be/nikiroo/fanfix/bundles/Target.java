@@ -14,8 +14,10 @@ public enum Target {
 	 * <tt>.properties</tt> file
 	 */
 	config,
-	/** Translation resources */
-	resources,
+	/** Translation resources (Core) */
+	resources_core,
+	/** Translation resources (GUI) */
+	resources_gui,
 	/** UI resources (from colours to behaviour) */
 	ui,
 	/** Description of UI resources. */

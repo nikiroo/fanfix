@@ -18,6 +18,7 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.bundles.StringIdGui;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.Image;
@@ -194,8 +195,8 @@ public class GuiReaderViewerPanel extends JPanel {
 		}
 
 		imageProgress.setValue(i);
-		imageProgress.setString(String.format("Image %d / %d", i + 1, chap
-				.getParagraphs().size()));
+		imageProgress.setString(GuiReader.trans(StringIdGui.IMAGE_PROGRESSION,
+				i + 1, chap.getParagraphs().size()));
 
 		currentImage = i;
 

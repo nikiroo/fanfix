@@ -17,6 +17,7 @@ import javax.swing.event.HyperlinkListener;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.VersionCheck;
+import be.nikiroo.fanfix.bundles.StringIdGui;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
@@ -116,11 +117,14 @@ class GuiReader extends BasicReader {
 
 		final JEditorPane updateMessage = new JEditorPane("text/html", "");
 		if (updates.isNewVersionAvailable()) {
-			builder.append("A new version of the program is available at <span style='color: blue;'>https://github.com/nikiroo/fanfix/releases</span>");
+			builder.append(trans(StringIdGui.NEW_VERSION_AVAILABLE,
+					"<span style='color: blue;'>https://github.com/nikiroo/fanfix/releases</span>"));
 			builder.append("<br>");
 			builder.append("<br>");
 			for (Version v : updates.getNewer()) {
-				builder.append("\t<b>Version " + v + "</b>");
+				builder.append("\t<b>"
+						+ trans(StringIdGui.NEW_VERSION_VERSION, v.toString())
+						+ "</b>");
 				builder.append("<br>");
 				builder.append("<ul>");
 				for (String item : updates.getChanges().get(v)) {
@@ -159,7 +163,8 @@ class GuiReader extends BasicReader {
 			public void run() {
 				if (updates.isNewVersionAvailable()) {
 					int rep = JOptionPane.showConfirmDialog(null,
-							updateMessage, "Updates available",
+							updateMessage,
+							trans(StringIdGui.NEW_VERSION_TITLE),
 							JOptionPane.OK_CANCEL_OPTION);
 					if (rep == JOptionPane.OK_OPTION) {
 						updates.ok();
@@ -349,6 +354,18 @@ class GuiReader extends BasicReader {
 		} catch (IOException e) {
 			Instance.getTraceHandler().error(e);
 		}
+	}
+
+	/**
+	 * Simple shortcut method to call {link Instance#getTransGui()#getString()}.
+	 * 
+	 * @param id
+	 *            the ID to translate
+	 * 
+	 * @return the translated result
+	 */
+	static String trans(StringIdGui id, Object... params) {
+		return Instance.getTransGui().getString(id, params);
 	}
 
 	/**

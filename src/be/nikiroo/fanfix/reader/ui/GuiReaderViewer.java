@@ -15,6 +15,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import be.nikiroo.fanfix.bundles.StringIdGui;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
@@ -49,7 +50,8 @@ public class GuiReaderViewer extends JFrame {
 	 *            the {@link Story} to display
 	 */
 	public GuiReaderViewer(BasicLibrary lib, Story story) {
-		super(story.getMeta().getLuid() + ": " + story.getMeta().getTitle());
+		setTitle(GuiReader.trans(StringIdGui.TITLE_STORY, story.getMeta()
+				.getLuid(), story.getMeta().getTitle()));
 
 		setSize(800, 600);
 
@@ -179,8 +181,16 @@ public class GuiReaderViewer extends JFrame {
 				descPane.setVisible(false);
 			}
 
-			chapterLabel.setText("<HTML>&nbsp;&nbsp;<B>Chapter "
-					+ chap.getNumber() + "</B>: " + chap.getName() + "</HTML>");
+			String chapterDisplay = GuiReader.trans(
+					StringIdGui.CHAPTER_HTML_UNNAMED, chap.getNumber(), story
+							.getChapters().size());
+			if (chap.getName() != null && !chap.getName().trim().isEmpty()) {
+				chapterDisplay = GuiReader.trans(
+						StringIdGui.CHAPTER_HTML_NAMED, chap.getNumber(), story
+								.getChapters().size(), chap.getName());
+			}
+
+			chapterLabel.setText("<HTML>" + chapterDisplay + "</HTML>");
 
 			mainPanel.setChapter(chap);
 		}

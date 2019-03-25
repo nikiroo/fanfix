@@ -26,6 +26,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
+import be.nikiroo.fanfix.bundles.StringIdGui;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
@@ -76,7 +77,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 *            the type of {@link Story} to load, or NULL for all types
 	 */
 	public GuiReaderFrame(GuiReader reader, String type) {
-		super(String.format("Fanfix %s Library", Version.getCurrentVersion()));
+		super(getAppTitle(reader.getLibrary().getLibraryName()));
 
 		this.reader = reader;
 
@@ -121,24 +122,29 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 
 		JMenuBar bar = new JMenuBar();
 
-		JMenu file = new JMenu("File");
+		JMenu file = new JMenu(GuiReader.trans(StringIdGui.MENU_FILE));
 		file.setMnemonic(KeyEvent.VK_F);
 
-		JMenuItem imprt = new JMenuItem("Import URL...", KeyEvent.VK_U);
+		JMenuItem imprt = new JMenuItem(
+				GuiReader.trans(StringIdGui.MENU_FILE_IMPORT_URL),
+				KeyEvent.VK_U);
 		imprt.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				mainPanel.imprt(true);
 			}
 		});
-		JMenuItem imprtF = new JMenuItem("Import File...", KeyEvent.VK_F);
+		JMenuItem imprtF = new JMenuItem(
+				GuiReader.trans(StringIdGui.MENU_FILE_IMPORT_FILE),
+				KeyEvent.VK_F);
 		imprtF.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				mainPanel.imprt(false);
 			}
 		});
-		JMenuItem exit = new JMenuItem("Exit", KeyEvent.VK_X);
+		JMenuItem exit = new JMenuItem(
+				GuiReader.trans(StringIdGui.MENU_FILE_EXIT), KeyEvent.VK_X);
 		exit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -157,13 +163,17 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		file.add(createMenuItemRename(libOk));
 		file.add(createMenuItemSetAuthor(libOk));
 		file.addSeparator();
+		file.add(createMenuItemProperties());
+		file.addSeparator();
 		file.add(exit);
 
 		bar.add(file);
 
-		JMenu edit = new JMenu("Edit");
+		JMenu edit = new JMenu(GuiReader.trans(StringIdGui.MENU_EDIT));
 		edit.setMnemonic(KeyEvent.VK_E);
 
+		edit.add(createMenuItemSetCoverForSource());
+		edit.add(createMenuItemSetCoverForAuthor());
 		edit.add(createMenuItemClearCache());
 		edit.add(createMenuItemRedownload());
 		edit.addSeparator();
@@ -171,9 +181,10 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 
 		bar.add(edit);
 
-		JMenu view = new JMenu("View");
+		JMenu view = new JMenu(GuiReader.trans(StringIdGui.MENU_VIEW));
 		view.setMnemonic(KeyEvent.VK_V);
-		JMenuItem vauthors = new JMenuItem("Author");
+		JMenuItem vauthors = new JMenuItem(
+				GuiReader.trans(StringIdGui.MENU_VIEW_AUTHOR));
 		vauthors.setMnemonic(KeyEvent.VK_A);
 		vauthors.addActionListener(new ActionListener() {
 			@Override
@@ -183,7 +194,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			}
 		});
 		view.add(vauthors);
-		JMenuItem vwords = new JMenuItem("Word count");
+		JMenuItem vwords = new JMenuItem(
+				GuiReader.trans(StringIdGui.MENU_VIEW_WCOUNT));
 		vwords.setMnemonic(KeyEvent.VK_W);
 		vwords.addActionListener(new ActionListener() {
 			@Override
@@ -199,7 +211,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		if (libOk) {
 			groupedSources = reader.getLibrary().getSourcesGrouped();
 		}
-		JMenu sources = new JMenu("Sources");
+		JMenu sources = new JMenu(GuiReader.trans(StringIdGui.MENU_SOURCES));
 		sources.setMnemonic(KeyEvent.VK_S);
 		populateMenuSA(sources, groupedSources, true);
 		bar.add(sources);
@@ -208,12 +220,12 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		if (libOk) {
 			goupedAuthors = reader.getLibrary().getAuthorsGrouped();
 		}
-		JMenu authors = new JMenu("Authors");
+		JMenu authors = new JMenu(GuiReader.trans(StringIdGui.MENU_AUTHORS));
 		authors.setMnemonic(KeyEvent.VK_A);
 		populateMenuSA(authors, goupedAuthors, false);
 		bar.add(authors);
 
-		JMenu options = new JMenu("Options");
+		JMenu options = new JMenu(GuiReader.trans(StringIdGui.MENU_OPTIONS));
 		options.setMnemonic(KeyEvent.VK_O);
 		options.add(createMenuItemConfig());
 		options.add(createMenuItemUiConfig());
@@ -226,20 +238,21 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	private void populateMenuSA(JMenu menu,
 			Map<String, List<String>> groupedValues, boolean type) {
 
-		// "All" and "Listing" special items
-		JMenuItem item = new JMenuItem("All");
+		// "All" and "Listing" special items first
+		JMenuItem item = new JMenuItem(GuiReader.trans(StringIdGui.MENU_XXX_ALL_GROUPED));
 		item.addActionListener(getActionOpenList(type, false));
 		menu.add(item);
-		item = new JMenuItem("Listing");
+		item = new JMenuItem(GuiReader.trans(StringIdGui.MENU_XXX_ALL_LISTING));
 		item.addActionListener(getActionOpenList(type, true));
 		menu.add(item);
+		
 		menu.addSeparator();
 
 		for (final String value : groupedValues.keySet()) {
 			List<String> list = groupedValues.get(value);
 			if (type && list.size() == 1 && list.get(0).isEmpty()) {
 				// leaf item source/type
-				item = new JMenuItem(value.isEmpty() ? "[unknown]" : value);
+				item = new JMenuItem(value.isEmpty() ? GuiReader.trans(StringIdGui.MENU_AUTHORS_UNKNOWN) : value);
 				item.addActionListener(getActionOpen(value, type));
 				menu.add(item);
 			} else {
@@ -248,14 +261,14 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					// only one group of authors
 					dir = menu;
 				} else {
-					dir = new JMenu(value.isEmpty() ? "[unknown]" : value);
+					dir = new JMenu(value.isEmpty() ? GuiReader.trans(StringIdGui.MENU_AUTHORS_UNKNOWN) : value);
 				}
 
 				for (String sub : list) {
 					// " " instead of "" for the visual height
 					String itemName = sub;
 					if (itemName.isEmpty()) {
-						itemName = type ? " " : "[unknown]";
+						itemName = type ? " " : GuiReader.trans(StringIdGui.MENU_AUTHORS_UNKNOWN);
 					}
 
 					String actualValue = value;
@@ -317,7 +330,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemConfig() {
-		final String title = "Fanfix Configuration";
+		final String title = GuiReader.trans(StringIdGui.TITLE_CONFIG);
 		JMenuItem item = new JMenuItem(title);
 		item.setMnemonic(KeyEvent.VK_F);
 
@@ -326,7 +339,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			public void actionPerformed(ActionEvent e) {
 				ConfigEditor<Config> ed = new ConfigEditor<Config>(
 						Config.class, Instance.getConfig(),
-						"This is where you configure the options of the program.");
+						GuiReader.trans(StringIdGui.SUBTITLE_CONFIG));
 				JFrame frame = new JFrame(title);
 				frame.add(ed);
 				frame.setSize(800, 600);
@@ -343,7 +356,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemUiConfig() {
-		final String title = "UI Configuration";
+		final String title = GuiReader.trans(StringIdGui.TITLE_CONFIG_UI);
 		JMenuItem item = new JMenuItem(title);
 		item.setMnemonic(KeyEvent.VK_U);
 
@@ -352,7 +365,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			public void actionPerformed(ActionEvent e) {
 				ConfigEditor<UiConfig> ed = new ConfigEditor<UiConfig>(
 						UiConfig.class, Instance.getUiConfig(),
-						"This is where you configure the graphical appearence of the program.");
+						GuiReader.trans(StringIdGui.SUBTITLE_CONFIG_UI));
 				JFrame frame = new JFrame(title);
 				frame.add(ed);
 				frame.setSize(800, 600);
@@ -397,13 +410,13 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		}
 		//
 
-		JMenuItem export = new JMenuItem("Save as...", KeyEvent.VK_S);
+		JMenuItem export = new JMenuItem(GuiReader.trans(StringIdGui.MENU_FILE_EXPORT), KeyEvent.VK_S);
 		export.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
-					fc.showDialog(GuiReaderFrame.this, "Save");
+					fc.showDialog(GuiReaderFrame.this, GuiReader.trans(StringIdGui.TITLE_SAVE));
 					if (fc.getSelectedFile() != null) {
 						final OutputType type = filters.get(fc.getFileFilter());
 						final String path = fc.getSelectedFile()
@@ -459,7 +472,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemClearCache() {
-		JMenuItem refresh = new JMenuItem("Clear cache", KeyEvent.VK_C);
+		JMenuItem refresh = new JMenuItem(GuiReader.trans(StringIdGui.MENU_EDIT_CLEAR_CACHE), KeyEvent.VK_C);
 		refresh.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -497,7 +510,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemMoveTo(boolean libOk) {
-		JMenu changeTo = new JMenu("Move to");
+		JMenu changeTo = new JMenu(GuiReader.trans(StringIdGui.MENU_FILE_MOVE_TO));
 		changeTo.setMnemonic(KeyEvent.VK_M);
 
 		Map<String, List<String>> groupedSources = new HashMap<String, List<String>>();
@@ -505,7 +518,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			groupedSources = reader.getLibrary().getSourcesGrouped();
 		}
 
-		JMenuItem item = new JMenuItem("New type...");
+		JMenuItem item = new JMenuItem(GuiReader.trans(StringIdGui.MENU_FILE_MOVE_TO_NEW_TYPE));
 		item.addActionListener(createMoveAction(ChangeAction.SOURCE, null));
 		changeTo.add(item);
 		changeTo.addSeparator();
@@ -548,11 +561,11 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemSetAuthor(boolean libOk) {
-		JMenu changeTo = new JMenu("Set author");
+		JMenu changeTo = new JMenu(GuiReader.trans(StringIdGui.MENU_FILE_SET_AUTHOR));
 		changeTo.setMnemonic(KeyEvent.VK_A);
 
 		// New author
-		JMenuItem newItem = new JMenuItem("New author...");
+		JMenuItem newItem = new JMenuItem(GuiReader.trans(StringIdGui.MENU_FILE_MOVE_TO_NEW_AUTHOR));
 		changeTo.add(newItem);
 		changeTo.addSeparator();
 		newItem.addActionListener(createMoveAction(ChangeAction.AUTHOR, null));
@@ -567,7 +580,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					JMenu group = new JMenu(key);
 					for (String value : groupedAuthors.get(key)) {
 						JMenuItem item = new JMenuItem(
-								value.isEmpty() ? "[unknown]" : value);
+								value.isEmpty() ? GuiReader.trans(StringIdGui.MENU_AUTHORS_UNKNOWN) : value);
 						item.addActionListener(createMoveAction(
 								ChangeAction.AUTHOR, value));
 						group.add(item);
@@ -577,7 +590,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			} else if (groupedAuthors.size() == 1) {
 				for (String value : groupedAuthors.values().iterator().next()) {
 					JMenuItem item = new JMenuItem(
-							value.isEmpty() ? "[unknown]" : value);
+							value.isEmpty() ? GuiReader.trans(StringIdGui.MENU_AUTHORS_UNKNOWN) : value);
 					item.addActionListener(createMoveAction(
 							ChangeAction.AUTHOR, value));
 					changeTo.add(item);
@@ -598,7 +611,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 */
 	private JMenuItem createMenuItemRename(
 			@SuppressWarnings("unused") boolean libOk) {
-		JMenuItem changeTo = new JMenuItem("Rename...");
+		JMenuItem changeTo = new JMenuItem(GuiReader.trans(StringIdGui.MENU_FILE_RENAME));
 		changeTo.setMnemonic(KeyEvent.VK_R);
 		changeTo.addActionListener(createMoveAction(ChangeAction.TITLE, null));
 		return changeTo;
@@ -634,8 +647,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 						}
 
 						Object rep = JOptionPane.showInputDialog(
-								GuiReaderFrame.this, "Move to:",
-								"Moving story", JOptionPane.QUESTION_MESSAGE,
+								GuiReaderFrame.this, GuiReader.trans(StringIdGui.SUBTITLE_MOVE_TO),
+								GuiReader.trans(StringIdGui.TITLE_MOVE_TO), JOptionPane.QUESTION_MESSAGE,
 								null, null, init);
 
 						if (rep == null) {
@@ -681,7 +694,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemRedownload() {
-		JMenuItem refresh = new JMenuItem("Redownload", KeyEvent.VK_R);
+		JMenuItem refresh = new JMenuItem(GuiReader.trans(StringIdGui.MENU_EDIT_REDOWNLOAD), KeyEvent.VK_R);
 		refresh.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -699,7 +712,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 										meta.getSource());
 							}
 						}
-					}, "Removing old copy");
+					}, GuiReader.trans(StringIdGui.PROGRESS_REDOWNLOAD_REMOVE_OLD_COPY));
 				}
 			}
 		});
@@ -713,7 +726,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemDelete() {
-		JMenuItem delete = new JMenuItem("Delete", KeyEvent.VK_D);
+		JMenuItem delete = new JMenuItem(GuiReader.trans(StringIdGui.MENU_EDIT_DELETE), KeyEvent.VK_D);
 		delete.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -724,8 +737,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					final MetaData meta = selectedBook.getInfo().getMeta();
 					int rep = JOptionPane.showConfirmDialog(
 							GuiReaderFrame.this,
-							String.format("Delete %s: %s", meta.getLuid(),
-									meta.getTitle()), "Delete story",
+							GuiReader.trans(StringIdGui.SUBTITLE_DELETE, meta.getLuid(),
+									meta.getTitle()), GuiReader.trans(StringIdGui.TITLE_DELETE),
 							JOptionPane.OK_CANCEL_OPTION);
 
 					if (rep == JOptionPane.OK_OPTION) {
@@ -750,7 +763,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemProperties() {
-		JMenuItem delete = new JMenuItem("Properties", KeyEvent.VK_P);
+		JMenuItem delete = new JMenuItem(GuiReader.trans(StringIdGui.MENU_FILE_PROPERTIES), KeyEvent.VK_P);
 		delete.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -777,7 +790,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 * @return the item
 	 */
 	public JMenuItem createMenuItemOpenBook() {
-		JMenuItem open = new JMenuItem("Open", KeyEvent.VK_O);
+		JMenuItem open = new JMenuItem(GuiReader.trans(StringIdGui.MENU_FILE_OPEN), KeyEvent.VK_O);
 		open.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -805,7 +818,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemSetCoverForSource() {
-		JMenuItem open = new JMenuItem("Set as cover for source", KeyEvent.VK_C);
+		JMenuItem open = new JMenuItem(GuiReader.trans(StringIdGui.MENU_EDIT_SET_COVER_FOR_SOURCE), KeyEvent.VK_C);
 		open.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -835,7 +848,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemSetCoverForAuthor() {
-		JMenuItem open = new JMenuItem("Set as cover for author", KeyEvent.VK_A);
+		JMenuItem open = new JMenuItem(GuiReader.trans(StringIdGui.MENU_EDIT_SET_COVER_FOR_AUTHOR), KeyEvent.VK_A);
 		open.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -886,5 +899,24 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	@Override
 	public GuiReader getReader() {
 		return reader;
+	}
+
+	/**
+	 * Return the title of the application.
+	 * 
+	 * @param libraryName
+	 *            the name of the associated {@link BasicLibrary}, which can be
+	 *            EMPTY
+	 * 
+	 * @return the title
+	 */
+	static private String getAppTitle(String libraryName) {
+		if (!libraryName.isEmpty()) {
+			return GuiReader.trans(StringIdGui.TITLE_LIBRARY_WITH_NAME, Version
+					.getCurrentVersion().toString(), libraryName);
+		}
+
+		return GuiReader.trans(StringIdGui.TITLE_LIBRARY, Version.getCurrentVersion()
+				.toString());
 	}
 }

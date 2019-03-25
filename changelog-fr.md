@@ -1,5 +1,9 @@
 # Fanfix
 
+# Version WIP
+
+- gui: traduction en français
+
 # Version 2.0.1
 
 - lib: un changement de titre/source/author n'était pas toujours visible en runtime

@@ -8,6 +8,7 @@ import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.ConfigBundle;
 import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.bundles.StringIdBundle;
+import be.nikiroo.fanfix.bundles.StringIdGuiBundle;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.bundles.UiConfigBundle;
 import be.nikiroo.fanfix.library.BasicLibrary;
@@ -30,6 +31,7 @@ public class Instance {
 	private static UiConfigBundle uiconfig;
 	private static StringIdBundle trans;
 	private static DataLoader cache;
+	private static StringIdGuiBundle transGui;
 	private static BasicLibrary lib;
 	private static File coverDir;
 	private static File readerTmp;
@@ -200,11 +202,24 @@ public class Instance {
 
 	/**
 	 * Get the (unique) {link StringIdBundle} for the program.
+	 * <p>
+	 * This is used for the translations of the core parts of Fanfix.
 	 * 
 	 * @return the {link StringIdBundle}
 	 */
 	public static StringIdBundle getTrans() {
 		return trans;
+	}
+
+	/**
+	 * Get the (unique) {link StringIdGuiBundle} for the program.
+	 * <p>
+	 * This is used for the translations of the GUI parts of Fanfix.
+	 * 
+	 * @return the {link StringIdGuiBundle}
+	 */
+	public static StringIdGuiBundle getTransGui() {
+		return transGui;
 	}
 
 	/**
@@ -350,7 +365,8 @@ public class Instance {
 
 	/**
 	 * Create the config variables ({@link Instance#config},
-	 * {@link Instance#uiconfig} and {@link Instance#trans}).
+	 * {@link Instance#uiconfig}, {@link Instance#trans} and
+	 * {@link Instance#transGui}).
 	 * 
 	 * @param configDir
 	 *            the directory where to find the configuration files
@@ -380,6 +396,7 @@ public class Instance {
 		// No updateFile for this one! (we do not want the user to have custom
 		// translations that won't accept updates from newer versions)
 		trans = new StringIdBundle(getLang());
+		transGui = new StringIdGuiBundle(getLang());
 
 		// Fix an old bug (we used to store custom translation files by
 		// default):
@@ -389,6 +406,7 @@ public class Instance {
 
 		if (checkEnv("NOUTF")) {
 			trans.setUnicode(false);
+			transGui.setUnicode(false);
 		}
 
 		Bundles.setDirectory(configDir);

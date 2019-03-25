@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 
 import javax.swing.JFrame;
 
+import be.nikiroo.fanfix.bundles.StringIdGui;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
@@ -25,7 +26,8 @@ public class GuiReaderPropertiesFrame extends JFrame {
 	 *            the meta to describe
 	 */
 	public GuiReaderPropertiesFrame(BasicLibrary lib, MetaData meta) {
-		setTitle(meta.getLuid() + ": " + meta.getTitle());
+		setTitle(GuiReader.trans(StringIdGui.TITLE_STORY, meta.getLuid(),
+				meta.getTitle()));
 
 		GuiReaderPropertiesPane desc = new GuiReaderPropertiesPane(lib, meta);
 		setSize(800,

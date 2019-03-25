@@ -31,6 +31,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.bundles.StringIdGui;
 import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
@@ -206,26 +207,18 @@ class GuiReaderMainPanel extends JPanel {
 							helper.createMenu(false);
 							validate();
 
-							String err = lib.getLibraryName() + "\n";
-							switch (status) {
-							case INVALID:
-								err += "Library not valid";
-								break;
-
-							case UNAUTORIZED:
-								err += "You are not allowed to access this library";
-								break;
-
-							case UNAVAILABLE:
-								err += "Library currently unavailable";
-								break;
-
-							default:
-								err += "An error occured when contacting the library";
-								break;
+							String desc = Instance.getTransGui().getStringX(
+									StringIdGui.ERROR_LIB_STATUS,
+									status.toString());
+							if (desc == null) {
+								desc = GuiReader
+										.trans(StringIdGui.ERROR_LIB_STATUS);
 							}
 
-							error(err, "Library error", null);
+							String err = lib.getLibraryName() + "\n" + desc;
+							error(err, GuiReader
+									.trans(StringIdGui.TITLE_ERROR_LIBRARY),
+									null);
 						}
 					}
 				});
@@ -259,7 +252,8 @@ class GuiReaderMainPanel extends JPanel {
 		BasicLibrary lib = helper.getReader().getLibrary();
 		if (type) {
 			if (!listMode) {
-				addListPane("Sources", lib.getSources(), type);
+				addListPane(GuiReader.trans(StringIdGui.MENU_SOURCES),
+						lib.getSources(), type);
 			} else {
 				for (String tt : lib.getSources()) {
 					if (tt != null) {
@@ -269,7 +263,8 @@ class GuiReaderMainPanel extends JPanel {
 			}
 		} else {
 			if (!listMode) {
-				addListPane("Authors", lib.getAuthors(), type);
+				addListPane(GuiReader.trans(StringIdGui.MENU_AUTHORS),
+						lib.getAuthors(), type);
 			} else {
 				for (String tt : lib.getAuthors()) {
 					if (tt != null) {
@@ -386,7 +381,8 @@ class GuiReaderMainPanel extends JPanel {
 					});
 				} catch (IOException e) {
 					Instance.getTraceHandler().error(e);
-					error("Cannot open the selected book", "Error", e);
+					error(GuiReader.trans(StringIdGui.ERROR_CANNOT_OPEN),
+							GuiReader.trans(StringIdGui.TITLE_ERROR), e);
 				}
 			}
 		});
@@ -409,7 +405,8 @@ class GuiReaderMainPanel extends JPanel {
 	public void outOfUi(Progress progress, final boolean refreshBooks,
 			final Runnable run) {
 		final Progress pg = new Progress();
-		final Progress reload = new Progress("Reload books");
+		final Progress reload = new Progress(
+				GuiReader.trans(StringIdGui.PROGRESS_OUT_OF_UI_RELOAD_BOOKS));
 
 		if (progress == null) {
 			progress = new Progress();
@@ -498,7 +495,8 @@ class GuiReaderMainPanel extends JPanel {
 			}
 
 			url = JOptionPane.showInputDialog(GuiReaderMainPanel.this,
-					"url of the story to import?", "Importing from URL",
+					GuiReader.trans(StringIdGui.SUBTITLE_IMPORT_URL),
+					GuiReader.trans(StringIdGui.TITLE_IMPORT_URL),
 					JOptionPane.QUESTION_MESSAGE, null, null, clipboard);
 		} else if (fc.showOpenDialog(this) != JFileChooser.CANCEL_OPTION) {
 			url = fc.getSelectedFile().getAbsolutePath();
@@ -550,11 +548,14 @@ class GuiReaderMainPanel extends JPanel {
 				pgOnSuccess.setProgress(0);
 				if (!ok) {
 					if (e instanceof UnknownHostException) {
-						error("URL not supported: " + url, "Cannot import URL",
-								null);
+						error(GuiReader.trans(
+								StringIdGui.ERROR_URL_NOT_SUPPORTED, url),
+								GuiReader.trans(StringIdGui.TITLE_ERROR), null);
 					} else {
-						error("Failed to import " + url + ": \n"
-								+ e.getMessage(), "Cannot import URL", e);
+						error(GuiReader.trans(
+								StringIdGui.ERROR_URL_IMPORT_FAILED, url,
+								e.getMessage()), GuiReader
+								.trans(StringIdGui.TITLE_ERROR), e);
 					}
 				} else {
 					if (onSuccess != null) {

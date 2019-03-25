@@ -66,7 +66,7 @@ My current planning for Fanfix (but not everything appears on this list):
   - [x] Make use of it in gui
   - [ ] Make use of it in tui
   - [ ] Use it for all user output
-  - [ ] French translation
+  - [x] French translation
   - [x] French manual/readme
 - [x] Install a mechanism to handle stories import/export progress update
   - [x] Progress system
