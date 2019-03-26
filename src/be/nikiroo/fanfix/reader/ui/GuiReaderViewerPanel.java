@@ -59,6 +59,7 @@ public class GuiReaderViewerPanel extends JPanel {
 		this.imageDocument = story.getMeta().isImageDocument();
 
 		this.text = new JEditorPane("text/html", "");
+		text.setEditable(false);
 		text.setAlignmentY(TOP_ALIGNMENT);
 		htmlOutput = new GuiReaderViewerTextOutput();
 
