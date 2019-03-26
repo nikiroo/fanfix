@@ -112,6 +112,9 @@ class GuiReaderBook extends JPanel {
 
 	/**
 	 * The book current selection state.
+	 * <p>
+	 * Setting this value to true can cause a "select" action to occur if the
+	 * previous state was "unselected".
 	 * 
 	 * @param selected
 	 *            TRUE if it is selected
@@ -120,6 +123,10 @@ class GuiReaderBook extends JPanel {
 		if (this.selected != selected) {
 			this.selected = selected;
 			repaint();
+
+			if (selected) {
+				select();
+			}
 		}
 	}
 
@@ -193,12 +200,10 @@ class GuiReaderBook extends JPanel {
 			}
 
 			private void click(boolean doubleClick) {
-				for (BookActionListener listener : listeners) {
-					if (doubleClick) {
-						listener.action(GuiReaderBook.this);
-					} else {
-						listener.select(GuiReaderBook.this);
-					}
+				if (doubleClick) {
+					action();
+				} else {
+					select();
 				}
 			}
 
@@ -221,6 +226,24 @@ class GuiReaderBook extends JPanel {
 	 */
 	public void addActionListener(BookActionListener listener) {
 		listeners.add(listener);
+	}
+
+	/**
+	 * Cause an action to occur on this {@link GuiReaderBook}.
+	 */
+	public void action() {
+		for (BookActionListener listener : listeners) {
+			listener.action(GuiReaderBook.this);
+		}
+	}
+
+	/**
+	 * Cause a select event on this {@link GuiReaderBook}.
+	 */
+	private void select() {
+		for (BookActionListener listener : listeners) {
+			listener.select(GuiReaderBook.this);
+		}
 	}
 
 	/**

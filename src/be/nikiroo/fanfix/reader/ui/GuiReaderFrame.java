@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -78,7 +79,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 */
 	public GuiReaderFrame(GuiReader reader, String type) {
 		super(getAppTitle(reader.getLibrary().getLibraryName()));
-
+		
 		this.reader = reader;
 
 		mainPanel = new GuiReaderMainPanel(this, type);
