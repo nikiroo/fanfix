@@ -32,10 +32,10 @@ public enum StringIdGui {
 	 * Use it when you need a real translation but still don't have a key.
 	 */
 	DUMMY, //
-	@Meta(def = "Fanfix %s local library", format = Format.STRING, description = "the title of the main window of Fanfix, the library", info = "%s = current Fanfix version")
+	@Meta(def = "Fanfix %s", format = Format.STRING, description = "the title of the main window of Fanfix, the library", info = "%s = current Fanfix version")
 	// The titles/subtitles:
 	TITLE_LIBRARY, //
-	@Meta(def = "Fanfix %s on %s", format = Format.STRING, description = "the title of the main window of Fanfix, the library, when the library has a name (i.e., is not local)", info = "%s = current Fanfix version, %s = library name")
+	@Meta(def = "Fanfix %s", format = Format.STRING, description = "the title of the main window of Fanfix, the library, when the library has a name (i.e., is not local)", info = "%s = current Fanfix version, %s = library name")
 	TITLE_LIBRARY_WITH_NAME, //
 	@Meta(def = "Fanfix Configuration", format = Format.STRING, description = "the title of the configuration window of Fanfix, also the name of the menu button")
 	TITLE_CONFIG, //
@@ -161,11 +161,11 @@ public enum StringIdGui {
 	ERROR_URL_IMPORT_FAILED,
 
 	// Others
-	@Meta(def = "&nbsp;&nbsp;<B>Chapter <P COLOR='#7777DD'>%d</P>/%d</B>", format = Format.STRING, description = "(html) the chapter progression value used on the viewers", info = "%d = chapter number, %d = total chapters")
+	@Meta(def = "&nbsp;&nbsp;<B>Chapitre <SPAN COLOR='#444466'>%d</SPAN>&nbsp;/&nbsp;%d</B>", format = Format.STRING, description = "(html) the chapter progression value used on the viewers", info = "%d = chapter number, %d = total chapters")
 	CHAPTER_HTML_UNNAMED, //
-	@Meta(def = "&nbsp;&nbsp;<B>Chapter <P COLOR='#7777DD'>%d</P>/%d</B>: %s", format = Format.STRING, description = "(html) the chapter progression value used on the viewers", info = "%d = chapter number, %d = total chapters, %s = chapter name")
+	@Meta(def = "&nbsp;&nbsp;<B>Chapitre <SPAN COLOR='#444466'>%d</SPAN>&nbsp;/&nbsp;%d</B>: %s", format = Format.STRING, description = "(html) the chapter progression value used on the viewers", info = "%d = chapter number, %d = total chapters, %s = chapter name")
 	CHAPTER_HTML_NAMED, //
-	@Meta(def = "Image <P COLOR='#7777DD'>%d</P>/%d", format = Format.STRING, description = "(html) the chapter progression value used on the viewers", info = "%d = currnt image number, %d = total images")
+	@Meta(def = "Image %d / %d", format = Format.STRING, description = "(NO html) the chapter progression value used on the viewers", info = "%d = current image number, %d = total images")
 	IMAGE_PROGRESSION, //
 	
 	;
