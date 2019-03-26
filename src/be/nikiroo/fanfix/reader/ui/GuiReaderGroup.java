@@ -3,6 +3,10 @@ package be.nikiroo.fanfix.reader.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +32,7 @@ public class GuiReaderGroup extends JPanel {
 	private List<GuiReaderBook> books;
 	private JPanel pane;
 	private boolean words; // words or authors (secondary info on books)
+	private int itemsPerLine;
 
 	/**
 	 * Create a new {@link GuiReaderGroup}.
@@ -67,6 +72,32 @@ public class GuiReaderGroup extends JPanel {
 			label.setHorizontalAlignment(JLabel.CENTER);
 			add(label, BorderLayout.NORTH);
 		}
+
+		// Compute the number of items per line at each resize
+		addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentResized(ComponentEvent e) {
+				super.componentResized(e);
+				computeItemsPerLine();
+			}
+		});
+		computeItemsPerLine();
+
+		addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+				onKeyTyped(e);
+			}
+		});
+	}
+
+	/**
+	 * Compute how many items can fit in a line so UP and DOWN can be used to go
+	 * up/down one line at a time.
+	 */
+	private void computeItemsPerLine() {
+		// TODO
+		itemsPerLine = 5;
 	}
 
 	/**
@@ -179,5 +210,65 @@ public class GuiReaderGroup extends JPanel {
 		pane.setEnabled(b);
 		super.setEnabled(b);
 		repaint();
+	}
+
+	/**
+	 * The action to execute when a key is typed.
+	 * 
+	 * @param e
+	 *            the key event
+	 */
+	private void onKeyTyped(KeyEvent e) {
+		boolean consumed = false;
+		System.out.println(e);
+		if (e.isActionKey()) {
+			int offset = 0;
+			switch (e.getKeyCode()) {
+			case KeyEvent.VK_LEFT:
+				offset = -1;
+				break;
+			case KeyEvent.VK_RIGHT:
+				offset = 1;
+				break;
+			case KeyEvent.VK_UP:
+				offset = itemsPerLine;
+				break;
+			case KeyEvent.VK_DOWN:
+				offset = -itemsPerLine;
+				break;
+			}
+
+			if (offset != 0) {
+				consumed = true;
+
+				int selected = -1;
+				for (int i = 0; i < books.size(); i++) {
+					if (books.get(i).isSelected()) {
+						selected = i;
+						break;
+					}
+				}
+
+				if (selected >= 0) {
+					int newSelect = selected + offset;
+					if (newSelect >= books.size()) {
+						newSelect = books.size() - 1;
+					}
+
+					if (selected != newSelect && newSelect >= 0) {
+						if (selected >= 0) {
+							books.get(selected).setSelected(false);
+							books.get(newSelect).setSelected(true);
+						}
+					}
+				}
+			}
+		}
+
+		if (consumed) {
+			e.consume();
+		} else {
+			super.processKeyEvent(e);
+		}
 	}
 }
