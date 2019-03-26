@@ -65,10 +65,10 @@ public abstract class BasicOutput {
 			String desc = Instance.getTrans().getStringX(id, this.name());
 
 			if (desc == null) {
-				desc = Instance.getTrans().getString(id, this);
+				desc = Instance.getTrans().getString(id, this.toString());
 			}
 
-			if (desc == null) {
+			if (desc == null || desc.isEmpty()) {
 				desc = this.toString();
 			}
 
