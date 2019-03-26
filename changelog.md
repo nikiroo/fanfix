@@ -2,7 +2,11 @@
 
 # Version WIP
 
+- i18n: setting the language in the option panel now works even with $LANG set
 - gui: translated into French
+- gui: ReDownload does not delete the original book anymore
+- gui: internal viewer fixes 
+- gui: some translation fixes
 
 # Version 2.0.1
 

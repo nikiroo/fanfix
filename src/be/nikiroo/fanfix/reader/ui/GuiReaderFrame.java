@@ -723,8 +723,6 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 							new StoryRunnable() {
 								@Override
 								public void run(Story story) {
-									reader.delete(meta.getLuid());
-									mainPanel.unsetSelectedBook();
 									MetaData newMeta = story.getMeta();
 									if (!newMeta.getSource().equals(
 											meta.getSource())) {
@@ -734,7 +732,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 								}
 							},
 							GuiReader
-									.trans(StringIdGui.PROGRESS_REDOWNLOAD_REMOVE_OLD_COPY));
+									.trans(StringIdGui.PROGRESS_CHANGE_SOURCE));
 				}
 			}
 		});

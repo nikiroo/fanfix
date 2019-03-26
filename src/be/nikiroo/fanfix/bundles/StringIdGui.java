@@ -139,10 +139,10 @@ public enum StringIdGui {
 	MENU_AUTHORS_UNKNOWN, //
 
 	// Progress names
-	@Meta(def = "Removing old copy", format = Format.STRING, description = "progress bar caption for the 'removing old copy' step of 'redownload'")
-	PROGRESS_REDOWNLOAD_REMOVE_OLD_COPY, //
 	@Meta(def = "Reload books", format = Format.STRING, description = "progress bar caption for the 'reload books' step of all outOfUi operations")
 	PROGRESS_OUT_OF_UI_RELOAD_BOOKS, //
+	@Meta(def = "Change the source of the book to %s", format = Format.STRING, description = "progress bar caption for the 'change source' step of the ReDownload operation", info = "%s = new source name")
+	PROGRESS_CHANGE_SOURCE, //
 
 	// Error messages
 	@Meta(def = "An error occured when contacting the library", format = Format.STRING, description = "default description if the error is not known")

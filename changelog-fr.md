@@ -2,7 +2,11 @@
 
 # Version WIP
 
+- i18n: changer la langue dans les options fonctionne aussi quand $LANG existe
 - gui: traduction en français
+- gui: ReDownloader ne supprimer plus le livre original
+- fix: corrections pour le visionneur interne
+- fix: quelques corrections pour les traductions
 
 # Version 2.0.1
 
