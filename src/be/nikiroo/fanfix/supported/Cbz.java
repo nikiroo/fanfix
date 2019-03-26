@@ -72,7 +72,7 @@ class Cbz extends Epub {
 		pg.addProgress(pgMeta, 10);
 		Story story = processMeta(true, pgMeta);
 		MetaData meta = story.getMeta();
-		
+
 		pgMeta.done(); // 10%
 
 		File tmpDir = Instance.getTempFiles().createTempDir("info-text");
@@ -126,17 +126,15 @@ class Cbz extends Epub {
 
 			pg.setProgress(90);
 
-			// include original story
+			// only the description is kept, we do not support hybrid CBZ
 			Story origStory = getStoryFromTxt(tmpDir, basename);
 			if (origStory != null) {
-				story.setChapters(origStory.getChapters());
 				if (origStory.getMeta().getCover() == null) {
 					origStory.getMeta().setCover(story.getMeta().getCover());
 				}
 				story.setMeta(origStory.getMeta());
-			} else {
-				story.setChapters(new ArrayList<Chapter>());
 			}
+			story.setChapters(new ArrayList<Chapter>());
 
 			if (!imagesList.isEmpty()) {
 				Chapter chap = new Chapter(story.getChapters().size() + 1, null);
