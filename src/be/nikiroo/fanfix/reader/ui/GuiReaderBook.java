@@ -154,14 +154,14 @@ class GuiReaderBook extends JPanel {
 		addMouseListener(new MouseListener() {
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				if (e.isPopupTrigger()) {
+				if (isEnabled() && e.isPopupTrigger()) {
 					popup(e);
 				}
 			}
 
 			@Override
 			public void mousePressed(MouseEvent e) {
-				if (e.isPopupTrigger()) {
+				if (isEnabled() && e.isPopupTrigger()) {
 					popup(e);
 				}
 			}
@@ -188,6 +188,7 @@ class GuiReaderBook extends JPanel {
 					}
 
 					lastClick = now;
+					e.consume();
 				}
 			}
 
@@ -206,6 +207,8 @@ class GuiReaderBook extends JPanel {
 					listener.select((GuiReaderBook.this));
 					listener.popupRequested(GuiReaderBook.this, e);
 				}
+
+				e.consume();
 			}
 		});
 	}
