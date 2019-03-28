@@ -211,6 +211,69 @@ Material.IO:
 - the options         : Switch
 - the languages       : Exposed Dropdown Menu
 - the text fields     : the default for text fields
-- the scret key field : the default for passwords (with * * *)
+- the scret key field : the default for passwords (with * * * )
 
+## Internal viewer
+
+The program will have an internal viewer that will be able to display the 2 kinds of stories (images and text).
+
+### Base viewer
+
+This is common to both of the viewer (this is **not** an architectural directives, I only speak about the concept here).
+
+[image]
+
+#### Header
+
+The title is the title of the story, shortened with "..." if too long.
+
+#### Content
+
+This area will host the text viewer or the image viewer.
+
+#### Navigator
+
+It contains 4 action buttons (first, previous, next and last chapter) and the title of the current chapter:
+
+- Descripton         : for the properties page (same layout as the actual Properties page)
+- Chapter X/Y: title : for the normal chapters (note that "Chapter X/Y" should be bold, and "X" should be coloured)
+
+#### UI
+
+Matrial.IO:
+
+- Header    : Header
+- Navigator : Bottom sheet
+
+### Text viewer
+
+[image]
+
+It will contain the content of the current chapter (Story.getChapters().get(index - 1)).
+
+Same layout as the Properties page uses for the resume, with just a small difference: the chapter name is now prefixed by "Chaper X: ".
+
+### Image viewer
+
+[image]
+
+#### Image
+
+Auto-zoom and fit (keep aspect ratio).
+
+#### Image counter
+
+Just display "Image X/Y"
+
+#### Handles
+
+This is a simple cue to show the user where to click.
+
+It can be hidden via the option "Show handles on image viewer" from the Options page.
+
+#### UI
+
+Pinch & Zoom should be allowed.
+
+Drag-to-pan should be allowed.
 
