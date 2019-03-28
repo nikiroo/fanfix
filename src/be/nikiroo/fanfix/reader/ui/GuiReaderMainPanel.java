@@ -9,6 +9,8 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -179,6 +181,13 @@ class GuiReaderMainPanel extends JPanel {
 
 		books = new TreeMap<String, GuiReaderGroup>();
 
+		addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusGained(FocusEvent e) {
+				focus();
+			}
+		});
+
 		pane.setVisible(false);
 		final Progress pg = new Progress();
 		final String typeF = type;
@@ -197,12 +206,12 @@ class GuiReaderMainPanel extends JPanel {
 					public void run() {
 						if (status == Status.READY) {
 							helper.createMenu(true);
+							pane.setVisible(true);
 							if (typeF == null) {
 								addBookPane(true, false);
 							} else {
 								addBookPane(typeF, true);
 							}
-							pane.setVisible(true);
 						} else {
 							helper.createMenu(false);
 							validate();
@@ -316,6 +325,8 @@ class GuiReaderMainPanel extends JPanel {
 				openBook(book);
 			}
 		});
+
+		focus();
 	}
 
 	/**
@@ -649,6 +660,27 @@ class GuiReaderMainPanel extends JPanel {
 				refreshBooks();
 			}
 		});
+
+		focus();
+	}
+
+	/**
+	 * Focus the first {@link GuiReaderGroup} we find.
+	 */
+	private void focus() {
+		GuiReaderGroup group = null;
+		Map<String, GuiReaderGroup> books = this.books;
+		if (books.size() > 0) {
+			group = books.values().iterator().next();
+		}
+
+		if (group == null) {
+			group = bookPane;
+		}
+
+		if (group != null) {
+			group.requestFocusInWindow();
+		}
 	}
 
 	/**
