@@ -111,6 +111,8 @@ The navigation drawer will list 4 destinations:
 Those subpanels will either contain the sources/authors **or** sub-subpanels with sources/authors.
 See fanfix.jar (BasicLibrary.getSourcesGrouped() and BasicLibrary.getAuthorsGrouped()).
 
+Note: if those last two cause problems, they can be removed; the first four options would be enough to cover the main use cases.
+
 #### UI
 
 Material.IO:
