@@ -44,7 +44,7 @@ Examples :
 
 ### Library (main screen)
 
-[image]
+![Main library](screens/main_lib.jpg)
 
 #### Header
 
@@ -60,6 +60,10 @@ Title can vary upon the current displayed books:
 - Author: xxx
 
 The navigation icon open the Navigation drawer.
+
+##### Search
+
+![Search/Filter](screens/search.jpg)
 
 The search icon is actually a filter: it will hide all the books that don't contain the given text (search on LUID, title and author).
 
@@ -89,7 +93,7 @@ A long press will first "select" the book (visually alter it so the user know wh
 
 ### Navigation drawer
 
-[Image]
+![Navigation Drawer](screens/navigation.jpg)
 
 The navigation drawer will list 4 destinations:
 
@@ -117,7 +121,7 @@ TODO: is it ok to have 3 levels of drawers?
 
 ### Context menu
 
-[image]
+![Context Menu](screens/menu.jpg)
 
 The context menu options are as follow for stories:
 
@@ -159,9 +163,7 @@ Material.IO:
 
 ### Description page
 
-[image-portrait]
-
-[image-landscape]
+![Description Page](screens/desc.jpg)
 
 #### Header
 
@@ -174,6 +176,8 @@ Simply display Story.getMeta().getResume(), without adding the chapter number (i
 An example can be seen in be.nikiroo.fanfix.ui.GuiReaderViewerTextOutput.java.
 
 ### Options page
+
+![Options Page](screens/options.jpg)
 
 It consists of a "Remote Library" panel:
 
@@ -221,7 +225,7 @@ The program will have an internal viewer that will be able to display the 2 kind
 
 This is common to both of the viewer (this is **not** an architectural directives, I only speak about the concept here).
 
-[image]
+![Base Viewer](screens/viewer.jpg)
 
 #### Header
 
@@ -247,7 +251,7 @@ Matrial.IO:
 
 ### Text viewer
 
-[image]
+![Text Viewer](screens/viewer-text.jpg)
 
 It will contain the content of the current chapter (Story.getChapters().get(index - 1)).
 
@@ -255,7 +259,7 @@ Same layout as the Properties page uses for the resume, with just a small differ
 
 ### Image viewer
 
-[image]
+![Image Viewer](screens/viewer-image.jpg)
 
 #### Image
 
