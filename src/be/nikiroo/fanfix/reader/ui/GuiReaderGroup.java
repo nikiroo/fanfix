@@ -2,6 +2,7 @@ package be.nikiroo.fanfix.reader.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -9,7 +10,6 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -194,7 +194,8 @@ public class GuiReaderGroup extends JPanel {
 					}
 
 					@Override
-					public void popupRequested(GuiReaderBook book, MouseEvent e) {
+					public void popupRequested(GuiReaderBook book,
+							Component target, int x, int y) {
 					}
 
 					@Override
@@ -300,12 +301,19 @@ public class GuiReaderGroup extends JPanel {
 	 */
 	private void onKeyTyped(KeyEvent e) {
 		boolean consumed = false;
-		if (e.getKeyChar() == '\n') {
+		boolean action = e.getKeyChar() == '\n';
+		boolean popup = e.getKeyChar() == ' ';
+		if (action || popup) {
 			consumed = true;
 
 			int index = getSelectedBookIndex();
 			if (index >= 0) {
-				books.get(index).action();
+				GuiReaderBook book = books.get(index);
+				if (action) {
+					book.action();
+				} else if (popup) {
+					book.popup(book, book.getWidth() / 2, book.getHeight() / 2);
+				}
 			}
 		}
 

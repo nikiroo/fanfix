@@ -1,6 +1,7 @@
 package be.nikiroo.fanfix.reader.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -48,10 +49,19 @@ class GuiReaderBook extends JPanel {
 		 * 
 		 * @param book
 		 *            the {@link GuiReaderBook} itself
-		 * @param e
-		 *            the {@link MouseEvent} that generated this call
+		 * @param target
+		 *            the target component for the popup
+		 * @param x
+		 *            the X position of the click/request (in case of popup
+		 *            request from the keyboard, the center of the target is
+		 *            selected as point of reference)
+		 * @param y
+		 *            the Y position of the click/request (in case of popup
+		 *            request from the keyboard, the center of the target is
+		 *            selected as point of reference)
 		 */
-		public void popupRequested(GuiReaderBook book, MouseEvent e);
+		public void popupRequested(GuiReaderBook book, Component target, int x,
+				int y);
 	}
 
 	private static final long serialVersionUID = 1L;
@@ -135,7 +145,7 @@ class GuiReaderBook extends JPanel {
 	 * 
 	 * @return TRUE if it is mouse-hovered
 	 */
-	private boolean isHovered() {
+	public boolean isHovered() {
 		return this.hovered;
 	}
 
@@ -145,7 +155,7 @@ class GuiReaderBook extends JPanel {
 	 * @param hovered
 	 *            TRUE if it is mouse-hovered
 	 */
-	private void setHovered(boolean hovered) {
+	public void setHovered(boolean hovered) {
 		if (this.hovered != hovered) {
 			this.hovered = hovered;
 			repaint();
@@ -208,11 +218,8 @@ class GuiReaderBook extends JPanel {
 			}
 
 			private void popup(MouseEvent e) {
-				for (BookActionListener listener : listeners) {
-					listener.select((GuiReaderBook.this));
-					listener.popupRequested(GuiReaderBook.this, e);
-				}
-
+				GuiReaderBook.this
+						.popup(GuiReaderBook.this, e.getX(), e.getY());
 				e.consume();
 			}
 		});
@@ -239,10 +246,33 @@ class GuiReaderBook extends JPanel {
 
 	/**
 	 * Cause a select event on this {@link GuiReaderBook}.
+	 * <p>
+	 * Have a look at {@link GuiReaderBook#setSelected(boolean)}.
 	 */
 	private void select() {
 		for (BookActionListener listener : listeners) {
 			listener.select(GuiReaderBook.this);
+		}
+	}
+
+	/**
+	 * Request a popup.
+	 * 
+	 * @param target
+	 *            the target component for the popup
+	 * @param x
+	 *            the X position of the click/request (in case of popup request
+	 *            from the keyboard, the center of the target should be selected
+	 *            as point of reference)
+	 * @param y
+	 *            the Y position of the click/request (in case of popup request
+	 *            from the keyboard, the center of the target should be selected
+	 *            as point of reference)
+	 */
+	public void popup(Component target, int x, int y) {
+		for (BookActionListener listener : listeners) {
+			listener.select((GuiReaderBook.this));
+			listener.popupRequested(GuiReaderBook.this, target, x, y);
 		}
 	}
 
