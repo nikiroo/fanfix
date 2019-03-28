@@ -1,0 +1,216 @@
+# Android UI mock-up
+
+## Concepts
+
+### Story
+
+We have **Stories** in Fanfix, which represent a story (an "epub", ...) or a comics (a "CBZ" file, ...).
+
+A story is written by an author, comes from a source and is dentified by a LUID (Local Unique ID).
+It can be a text story or an image story.
+
+The source can actually be changed by the user (this is the main sorting key).
+
+### Book
+
+We also have **Books**.
+
+Books can be used to display:
+
+- All the sources present in the library
+- All the authors known in the lbrary
+- Stories sharing a source or an author
+
+### All and Listing modes
+
+When representing sources or authors, books can be arranged in two modes:
+
+- "All" mode     : all the sources/authors are represented by a book and displayed in the UI
+- "Listing" mode : for each source/author, a group of books representing the corresponding story is present with the name of the source/author to group them (for instance, a JLabel on top of the group)
+
+Note: Listing mode can be left out of the Android version if needed (but the all mode is really needed).
+
+### Destination
+
+What I call here a destination is a specific group of books.
+
+Examples :
+
+- All the sources
+- All the books of author "Tulipe, F."
+- A listing of all the authors and their stories
+
+## Core
+
+### Library (main screen)
+
+[image]
+
+#### Header
+
+The header has a title, a navigation icon on the left and a search icon.
+
+Title can vary upon the current displayed books:
+
+- All sources
+- Sources listing
+- Source: xxx
+- All authors
+- Authors listing
+- Author: xxx
+
+The navigation icon open the Navigation drawer.
+
+The search icon is actually a filter: it will hide all the books that don't contain the given text (search on LUID, title and author).
+
+#### List
+
+This list will hold books. Each item will be represented by :
+
+- a cover image (which is provided by fanfix.jar)
+- a main info, which can be:
+  - for stories, the story title
+  - for source books, the source name
+  - for author books, the author name
+- a secondary info, which can vary via a setting (see the Options page) between:
+  - author name (for a book representing an author, it is left blank)
+  - a count (a word count for text stories, an image count for images stories, a stories count for sources and authors books)
+
+#### UI
+
+Material.IO:
+
+- Title, navigation icon, search icon : Header
+- List                                : TODO: List? AdaptiveList? (I forgot the full name...)
+
+A tap will open the target book.
+
+A long press will first "select" the book (visually alter it so the user know which book is the target) then open the context menu.
+
+### Navigation drawer
+
+[Image]
+
+The navigation drawer will list 4 destinations:
+
+- All the sources
+- Listing of the sources
+- All the authors
+- Listing of the authors
+- By source
+
+...and 2 foldable "panels" with more destinations:
+
+- By source
+- By author
+
+Those subpanels will either contain the sources/authors **or** sub-subpanels with sources/authors.
+See fanfix.jar (BasicLibrary.getSourcesGrouped() and BasicLibrary.getAuthorsGrouped()).
+
+#### UI
+
+Material.IO:
+
+- Navigation drawer: navigation drawer
+
+TODO: is it ok to have 3 levels of drawers?
+
+### Context menu
+
+[image]
+
+The context menu options are as follow for stories:
+
+- Open                : open the book (= internal or external reader)
+- Rename...           : ask the user for a new title for the story (default is current name)
+- Move to >>          : show a "new source..." option as well as the current ones fo quick select (BasicLibrary.getSourcesGrouped() will return all the sources on only one level if their number is small enough)
+  - *
+    - [new source...]
+  - [A-H]
+    - Anima
+    - Fanfiction.NET
+  - [I-Z]
+    - MangaFox
+- Change author to >> : show a "new author..." option as well as the current ones fo quick select (BasicLibrary.getAuthorsGrouped() will return all the authors on only one level if their number is small enough)
+  - *
+    - [new author...]
+  - [0-9]
+    - 5-stars
+  - [A-H]
+    - Albert
+    - Béatrice
+    - Hakan
+  - [I-Z]
+    - Irma
+    - Zoul
+- Delete              : delete the story
+- Redownload          : redownload the story (will **not** delete the original)
+- Properties          : open the properties page
+
+For other books (sources and authors):
+
+- Open: open the book (= go to the selected destination)
+
+#### UI
+
+Material.IO:
+
+- menu: menu
+
+### Description page
+
+[image-portrait]
+
+[image-landscape]
+
+#### Header
+
+Use the same cover image as the books, and the description key/values comes from BasicLibrary.getDescription().
+
+#### Description
+
+Simply display Story.getMeta().getResume(), without adding the chapter number (it is always 0 for description).
+
+An example can be seen in be.nikiroo.fanfix.ui.GuiReaderViewerTextOutput.java.
+
+### Options page
+
+It consists of a "Remote Library" panel:
+
+- enable : an option to enable/disable the remote library (if disabled, use the local library instead)
+- server : (only enabled if the remote library is) the remote server host
+- port   : (only enabled if the remote library is) the remote server port
+- key    : (only enabled if the remote library is) the remote server secret key
+
+...and 5 other options:
+
+- Open CBZ files internally    : open CBZ files with the internal viewer
+- Open epub files internally   : open EPUB files with the internal viewer
+- Show handles on image viewer : can hide the handles used as cues in the image viewer to know where to click
+- Startup screen               : select the destination to show on application startup
+- Language                     : select the language to use
+
+#### Startup screen
+
+Can be:
+
+- Sources
+  - All
+  - Listing
+- Authors
+  - All
+  - Listing
+
+...but will have to be presented in a better way to the user (i.e., better names).
+
+#### UI
+
+Material.IO:
+
+- the page itself     : Temporary UI Region
+- the options         : Switch
+- the languages       : Exposed Dropdown Menu
+- the text fields     : the default for text fields
+- the scret key field : the default for passwords (with * * *)
+
+
