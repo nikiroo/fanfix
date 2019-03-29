@@ -84,12 +84,16 @@ This list will hold books. Each item will be represented by :
 
 Material.IO:
 
-- Title, navigation icon, search icon : Header
-- List                                : TODO: List? AdaptiveList? (I forgot the full name...)
+- Title, navigation icon, search icon : [App bar top](https://material.io/design/components/app-bars-top.html)
+- List                                : [Cards](https://material.io/design/components/cards.html)
 
-A tap will open the target book.
+A tap will open the target book in full-screen mode (i.e., the details about the card).
 
-A long press will first "select" the book (visually alter it so the user know which book is the target) then open the context menu.
+On the detailed card, you will see the description (see Description Page) and 3 buttons :
+
+- Open
+- Delete
+- "..." for a menu
 
 ### Navigation drawer
 
@@ -118,8 +122,6 @@ Note: if those last two cause problems, they can be removed; the first four opti
 Material.IO:
 
 - Navigation drawer: navigation drawer
-
-TODO: is it ok to have 3 levels of drawers?
 
 ### Context menu
 
@@ -161,7 +163,9 @@ For other books (sources and authors):
 
 Material.IO:
 
-- menu: menu
+- menu: [menu](https://developer.android.com/guide/topics/ui/menus.html)
+
+The menu will NOT use sublevels but link to a [list](https://material.io/design/components/lists.html) instead.
 
 ### Description page
 
@@ -249,7 +253,7 @@ It contains 4 action buttons (first, previous, next and last chapter) and the ti
 Matrial.IO:
 
 - Header    : Header
-- Navigator : Bottom sheet
+- Navigator : [Sheets bottom](https://material.io/design/components/sheets-bottom.html)
 
 ### Text viewer
 
