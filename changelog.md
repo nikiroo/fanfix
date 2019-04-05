@@ -1,6 +1,6 @@
 # Fanfix
 
-# Version WIP
+# Version 2.0.2
 
 - i18n: setting the language in the option panel now works even with $LANG set
 - gui: translated into French

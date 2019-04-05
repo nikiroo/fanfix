@@ -1,10 +1,10 @@
 # Fanfix
 
-# Version WIP
+# Version 2.0.2
 
 - i18n: changer la langue dans les options fonctionne aussi quand $LANG existe
 - gui: traduction en français
-- gui: ReDownloader ne supprimer plus le livre original
+- gui: ReDownloader ne supprime plus le livre original
 - fix: corrections pour le visionneur interne
 - fix: quelques corrections pour les traductions
 
