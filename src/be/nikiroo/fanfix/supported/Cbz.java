@@ -17,6 +17,7 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
+import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
@@ -126,7 +127,7 @@ class Cbz extends Epub {
 
 			pg.setProgress(90);
 
-			// only the description is kept, we do not support hybrid CBZ
+			// only the description is kept
 			Story origStory = getStoryFromTxt(tmpDir, basename);
 			if (origStory != null) {
 				if (origStory.getMeta().getCover() == null) {
@@ -135,6 +136,29 @@ class Cbz extends Epub {
 				story.setMeta(origStory.getMeta());
 			}
 			story.setChapters(new ArrayList<Chapter>());
+
+			// Check if we can find non-images chapters, for hybrid-cbz support
+			for (Chapter chap : origStory) {
+				Boolean isImages = null;
+				for (Paragraph para : chap) {
+					ParagraphType t = para.getType();
+					if (isImages == null && !t.isText(true)) {
+						isImages = true;
+					}
+					if (t.isText(false)) {
+						String line = para.getContent();
+						// Images are saved in text mode as "[image-link]"
+						if (!(line.startsWith("[") && line.endsWith("]"))) {
+							isImages = false;
+						}
+					}
+				}
+
+				if (isImages != null && !isImages) {
+					story.getChapters().add(chap);
+					chap.setNumber(story.getChapters().size());
+				}
+			}
 
 			if (!imagesList.isEmpty()) {
 				Chapter chap = new Chapter(story.getChapters().size() + 1, null);
