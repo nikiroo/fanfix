@@ -44,7 +44,7 @@ Examples :
 
 ### Library (main screen)
 
-[image]
+![Main library](screens/main_lib.jpg)
 
 #### Header
 
@@ -60,6 +60,10 @@ Title can vary upon the current displayed books:
 - Author: xxx
 
 The navigation icon open the Navigation drawer.
+
+##### Search
+
+![Search/Filter](screens/search.jpg)
 
 The search icon is actually a filter: it will hide all the books that don't contain the given text (search on LUID, title and author).
 
@@ -80,16 +84,20 @@ This list will hold books. Each item will be represented by :
 
 Material.IO:
 
-- Title, navigation icon, search icon : Header
-- List                                : TODO: List? AdaptiveList? (I forgot the full name...)
+- Title, navigation icon, search icon : [App bar top](https://material.io/design/components/app-bars-top.html)
+- List                                : [Cards](https://material.io/design/components/cards.html)
 
-A tap will open the target book.
+A tap will open the target book in full-screen mode (i.e., the details about the card).
 
-A long press will first "select" the book (visually alter it so the user know which book is the target) then open the context menu.
+On the detailed card, you will see the description (see Description Page) and 3 buttons :
+
+- Open
+- Delete
+- "..." for a menu
 
 ### Navigation drawer
 
-[Image]
+![Navigation Drawer](screens/navigation.jpg)
 
 The navigation drawer will list 4 destinations:
 
@@ -107,17 +115,17 @@ The navigation drawer will list 4 destinations:
 Those subpanels will either contain the sources/authors **or** sub-subpanels with sources/authors.
 See fanfix.jar (BasicLibrary.getSourcesGrouped() and BasicLibrary.getAuthorsGrouped()).
 
+Note: if those last two cause problems, they can be removed; the first four options would be enough to cover the main use cases.
+
 #### UI
 
 Material.IO:
 
 - Navigation drawer: navigation drawer
 
-TODO: is it ok to have 3 levels of drawers?
-
 ### Context menu
 
-[image]
+![Context Menu](screens/menu.jpg)
 
 The context menu options are as follow for stories:
 
@@ -155,13 +163,13 @@ For other books (sources and authors):
 
 Material.IO:
 
-- menu: menu
+- menu: [menu](https://developer.android.com/guide/topics/ui/menus.html)
+
+The menu will NOT use sublevels but link to a [list](https://material.io/design/components/lists.html) instead.
 
 ### Description page
 
-[image-portrait]
-
-[image-landscape]
+![Description Page](screens/desc.jpg)
 
 #### Header
 
@@ -174,6 +182,8 @@ Simply display Story.getMeta().getResume(), without adding the chapter number (i
 An example can be seen in be.nikiroo.fanfix.ui.GuiReaderViewerTextOutput.java.
 
 ### Options page
+
+![Options Page](screens/options.jpg)
 
 It consists of a "Remote Library" panel:
 
@@ -221,7 +231,7 @@ The program will have an internal viewer that will be able to display the 2 kind
 
 This is common to both of the viewer (this is **not** an architectural directives, I only speak about the concept here).
 
-[image]
+![Base Viewer](screens/viewer.jpg)
 
 #### Header
 
@@ -243,11 +253,11 @@ It contains 4 action buttons (first, previous, next and last chapter) and the ti
 Matrial.IO:
 
 - Header    : Header
-- Navigator : Bottom sheet
+- Navigator : [Sheets bottom](https://material.io/design/components/sheets-bottom.html)
 
 ### Text viewer
 
-[image]
+![Text Viewer](screens/viewer-text.jpg)
 
 It will contain the content of the current chapter (Story.getChapters().get(index - 1)).
 
@@ -255,7 +265,7 @@ Same layout as the Properties page uses for the resume, with just a small differ
 
 ### Image viewer
 
-[image]
+![Image Viewer](screens/viewer-image.jpg)
 
 #### Image
 
