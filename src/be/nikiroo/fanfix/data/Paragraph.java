@@ -23,7 +23,19 @@ public class Paragraph implements Cloneable {
 		/** Quotation (dialogue) */
 		QUOTE,
 		/** An image (no text) */
-		IMAGE,
+		IMAGE, ;
+
+		/**
+		 * This paragraph type is of a text kind (quote or not).
+		 * 
+		 * @param allowEmpty
+		 *            allow empty text as text, too (blanks, breaks...)
+		 * @return TRUE if it is
+		 */
+		public boolean isText(boolean allowEmpty) {
+			return (this == NORMAL || this == QUOTE)
+					|| (allowEmpty && (this == BLANK || this == BREAK));
+		}
 	}
 
 	private ParagraphType type;
