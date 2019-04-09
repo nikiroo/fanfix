@@ -29,11 +29,6 @@ class MangaFox extends BasicSupport {
 	}
 
 	@Override
-	public String getSourceName() {
-		return "MangaFox.me";
-	}
-
-	@Override
 	protected MetaData getMeta() throws IOException {
 		MetaData meta = new MetaData();
 		Element doc = getSourceNode();
@@ -63,9 +58,9 @@ class MangaFox extends BasicSupport {
 			meta.setDate(StringUtils.unhtml(table.get(0).text()).trim());
 			meta.setTags(explode(table.get(3).text()));
 		}
-		meta.setSource(getSourceName());
+		meta.setSource(getType().getSourceName());
 		meta.setUrl(getSource().toString());
-		meta.setPublisher(getSourceName());
+		meta.setPublisher(getType().getSourceName());
 		meta.setUuid(getSource().toString());
 		meta.setLuid("");
 		meta.setLang("en");

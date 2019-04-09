@@ -37,11 +37,6 @@ class Cbz extends Epub {
 	}
 
 	@Override
-	public String getSourceName() {
-		return "cbz";
-	}
-
-	@Override
 	protected String getDataPrefix() {
 		return "";
 	}

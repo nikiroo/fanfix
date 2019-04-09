@@ -35,8 +35,44 @@ public enum SupportType {
 	HTML;
 
 	/**
-	 * A description of this support type (more information than the
-	 * {@link BasicSupport#getSourceName()}).
+	 * The name of this support type (a short version).
+	 * 
+	 * @return the name
+	 */
+	public String getSourceName() {
+		switch (this) {
+		case CBZ:
+			return "cbz";
+		case E621:
+			return "e621.net";
+		case E_HENTAI:
+			return "e-hentai.org";
+		case EPUB:
+			return "epub";
+		case FANFICTION:
+			return "Fanfiction.net";
+		case FIMFICTION:
+			return "FimFiction.net";
+		case HTML:
+			return "html";
+		case INFO_TEXT:
+			return "info-text";
+		case MANGA_LEL:
+			return "MangaLel.com";
+		case MANGAFOX:
+			return "MangaFox.me";
+		case TEXT:
+			return "text";
+		case YIFFSTAR:
+			return "YiffStar";
+		}
+
+		return "";
+	}
+
+	/**
+	 * A description of this support type (more information than
+	 * {@link SupportType#getSourceName()}).
 	 * 
 	 * @return the description
 	 */
@@ -49,20 +85,6 @@ public enum SupportType {
 		}
 
 		return desc;
-	}
-
-	/**
-	 * The name of this support type (a short version).
-	 * 
-	 * @return the name
-	 */
-	public String getSourceName() {
-		BasicSupport support = BasicSupport.getSupport(this, null);
-		if (support != null) {
-			return support.getSourceName();
-		}
-
-		return null;
 	}
 
 	@Override

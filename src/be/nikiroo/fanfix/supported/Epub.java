@@ -34,11 +34,6 @@ class Epub extends InfoText {
 	private URL fakeSource;
 	private InputStream fakeIn;
 
-	@Override
-	public String getSourceName() {
-		return "epub";
-	}
-
 	public File getSourceFileOriginal() {
 		return super.getSourceFile();
 	}
@@ -198,7 +193,7 @@ class Epub extends InfoText {
 				meta = new MetaData();
 				meta.setLang("en");
 				meta.setTags(new ArrayList<String>());
-				meta.setSource(getSourceName());
+				meta.setSource(getType().getSourceName());
 				meta.setUuid(url);
 				meta.setUrl(url);
 				meta.setTitle(title);

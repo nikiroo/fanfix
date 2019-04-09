@@ -84,11 +84,6 @@ class FimfictionApi extends BasicSupport {
 		return true;
 	}
 
-	@Override
-	public String getSourceName() {
-		return "FimFiction.net";
-	}
-
 	/**
 	 * Extract the full JSON data we will later use to build the {@link Story}.
 	 * 
@@ -137,9 +132,9 @@ class FimfictionApi extends BasicSupport {
 		meta.setAuthor(getKeyJson(json, 0, "type", "user", "name"));
 		meta.setDate(getKeyJson(json, 0, "type", "story", "date_published"));
 		meta.setTags(getTags());
-		meta.setSource(getSourceName());
+		meta.setSource(getType().getSourceName());
 		meta.setUrl(getSource().toString());
-		meta.setPublisher(getSourceName());
+		meta.setPublisher(getType().getSourceName());
 		meta.setUuid(getSource().toString());
 		meta.setLuid("");
 		meta.setLang("en");

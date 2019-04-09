@@ -26,12 +26,6 @@ import be.nikiroo.utils.StringUtils;
  * @author niki
  */
 class YiffStar extends BasicSupport_Deprecated {
-
-	@Override
-	public String getSourceName() {
-		return "YiffStar";
-	}
-
 	@Override
 	protected MetaData getMeta(URL source, InputStream in) throws IOException {
 		MetaData meta = new MetaData();
@@ -40,9 +34,9 @@ class YiffStar extends BasicSupport_Deprecated {
 		meta.setAuthor(getAuthor(reset(in)));
 		meta.setDate("");
 		meta.setTags(getTags(reset(in)));
-		meta.setSource(getSourceName());
+		meta.setSource(getType().getSourceName());
 		meta.setUrl(source.toString());
-		meta.setPublisher(getSourceName());
+		meta.setPublisher(getType().getSourceName());
 		meta.setUuid(source.toString());
 		meta.setLuid("");
 		meta.setLang("en");

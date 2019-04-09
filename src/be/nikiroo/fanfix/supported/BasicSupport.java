@@ -39,13 +39,6 @@ public abstract class BasicSupport {
 	private URL currentReferer; // with only one 'r', as in 'HTTP'...
 
 	/**
-	 * The name of this support class.
-	 * 
-	 * @return the name
-	 */
-	protected abstract String getSourceName();
-
-	/**
 	 * Check if the given resource is supported by this {@link BasicSupport}.
 	 * 
 	 * @param url
@@ -444,7 +437,8 @@ public abstract class BasicSupport {
 	 *            the type
 	 * @param url
 	 *            the {@link URL} to support (can be NULL to get an
-	 *            "abstract support")
+	 *            "abstract support"; if not NULL, will be used as the source
+	 *            URL)
 	 * 
 	 * @return an implementation that supports it, or NULL
 	 */

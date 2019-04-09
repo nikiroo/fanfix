@@ -15,11 +15,6 @@ import be.nikiroo.fanfix.Instance;
  */
 class Html extends InfoText {
 	@Override
-	public String getSourceName() {
-		return "html";
-	}
-
-	@Override
 	protected boolean supports(URL url) {
 		try {
 			File txt = getTxt(url);

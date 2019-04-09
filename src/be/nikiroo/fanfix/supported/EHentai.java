@@ -27,11 +27,6 @@ import be.nikiroo.utils.StringUtils;
  */
 class EHentai extends BasicSupport_Deprecated {
 	@Override
-	public String getSourceName() {
-		return "e-hentai.org";
-	}
-
-	@Override
 	protected MetaData getMeta(URL source, InputStream in) throws IOException {
 		MetaData meta = new MetaData();
 
@@ -39,9 +34,9 @@ class EHentai extends BasicSupport_Deprecated {
 		meta.setAuthor(getAuthor(reset(in)));
 		meta.setDate(getDate(reset(in)));
 		meta.setTags(getTags(reset(in)));
-		meta.setSource(getSourceName());
+		meta.setSource(getType().getSourceName());
 		meta.setUrl(source.toString());
-		meta.setPublisher(getSourceName());
+		meta.setPublisher(getType().getSourceName());
 		meta.setUuid(source.toString());
 		meta.setLuid("");
 		meta.setLang(getLang(reset(in)));

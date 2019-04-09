@@ -68,11 +68,6 @@ class Text extends BasicSupport {
 	}
 
 	@Override
-	public String getSourceName() {
-		return "text";
-	}
-
-	@Override
 	protected Document loadDocument(URL source) throws IOException {
 		try {
 			sourceFile = new File(source.toURI());
@@ -92,7 +87,7 @@ class Text extends BasicSupport {
 		meta.setAuthor(getAuthor());
 		meta.setDate(getDate());
 		meta.setTags(new ArrayList<String>());
-		meta.setSource(getSourceName());
+		meta.setSource(getType().getSourceName());
 		meta.setUrl(getSourceFile().toURI().toURL().toString());
 		meta.setPublisher("");
 		meta.setUuid(getSourceFile().toString());

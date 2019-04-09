@@ -27,11 +27,6 @@ class MangaLel extends BasicSupport {
 	}
 
 	@Override
-	public String getSourceName() {
-		return "MangaLel.com";
-	}
-
-	@Override
 	protected MetaData getMeta() throws IOException {
 		MetaData meta = new MetaData();
 
@@ -41,9 +36,9 @@ class MangaLel extends BasicSupport {
 		meta.setAuthor(authorDateTag[0]);
 		meta.setDate(authorDateTag[1]);
 		meta.setTags(explode(authorDateTag[2]));
-		meta.setSource(getSourceName());
+		meta.setSource(getType().getSourceName());
 		meta.setUrl(getSource().toString());
-		meta.setPublisher(getSourceName());
+		meta.setPublisher(getType().getSourceName());
 		meta.setUuid(getSource().toString());
 		meta.setLuid("");
 		meta.setLang("fr");

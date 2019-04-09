@@ -16,11 +16,6 @@ import be.nikiroo.fanfix.data.MetaData;
  * @author niki
  */
 class InfoText extends Text {
-	@Override
-	public String getSourceName() {
-		return "info-text";
-	}
-
 	protected File getInfoFile() {
 		return new File(assureNoTxt(getSourceFile()).getPath() + ".info");
 	}

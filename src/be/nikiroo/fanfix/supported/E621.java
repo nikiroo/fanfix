@@ -34,11 +34,6 @@ import be.nikiroo.utils.StringUtils;
  */
 class E621 extends BasicSupport_Deprecated {
 	@Override
-	public String getSourceName() {
-		return "e621.net";
-	}
-
-	@Override
 	protected MetaData getMeta(URL source, InputStream in) throws IOException {
 		MetaData meta = new MetaData();
 
@@ -46,9 +41,9 @@ class E621 extends BasicSupport_Deprecated {
 		meta.setAuthor(getAuthor(source, reset(in)));
 		meta.setDate("");
 		meta.setTags(getTags(source, reset(in), false));
-		meta.setSource(getSourceName());
+		meta.setSource(getType().getSourceName());
 		meta.setUrl(source.toString());
-		meta.setPublisher(getSourceName());
+		meta.setPublisher(getType().getSourceName());
 		meta.setUuid(source.toString());
 		meta.setLuid("");
 		meta.setLang("en");
