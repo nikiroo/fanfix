@@ -396,6 +396,29 @@ public abstract class BasicSupport {
 	}
 
 	/**
+	 * Create a chapter from the given data.
+	 * 
+	 * @param source
+	 *            the source URL for this content, which can be used to try and
+	 *            find images if images are present in the format [image-url]
+	 * @param number
+	 *            the chapter number (0 = description)
+	 * @param name
+	 *            the chapter name
+	 * @param content
+	 *            the content of the chapter
+	 * @return the {@link Chapter}
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public Chapter makeChapter(URL source, int number, String name,
+			String content) throws IOException {
+		return BasicSupportPara.makeChapter(this, source, number, name,
+				content, isHtml(), null);
+	}
+
+	/**
 	 * Return a {@link BasicSupport} implementation supporting the given
 	 * resource if possible.
 	 * 
@@ -434,7 +457,7 @@ public abstract class BasicSupport {
 	 * Return a {@link BasicSupport} implementation supporting the given type.
 	 * 
 	 * @param type
-	 *            the type
+	 *            the type, must not be NULL
 	 * @param url
 	 *            the {@link URL} to support (can be NULL to get an
 	 *            "abstract support"; if not NULL, will be used as the source
