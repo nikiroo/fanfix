@@ -52,6 +52,10 @@ public class Instance {
 
 		// Most of the rest is dependent upon this:
 		createConfigs(configDir, false);
+		
+		// Proxy support
+		// TODO: include new nikiroo-utils version
+		// Proxy.use(Instance.getConfig().getString(Config.USE_PROXY));
 
 		// update tracer:
 		boolean debug = Instance.getConfig()

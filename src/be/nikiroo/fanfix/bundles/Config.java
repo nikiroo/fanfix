@@ -64,6 +64,8 @@ public enum Config {
 	LOGIN_YIFFSTAR_PASS, //
 	@Meta(description = "If the last update check was done at least that many days, check for updates at startup (-1 for 'no checks' -- default is 1 day)", format = Format.INT)
 	UPDATE_INTERVAL, //
+	@Meta(def = "", description = "", info = "Format is ((user(:pass)@)proxy:port), with ':' being system proxy and an empty String being no proxy")
+	USE_PROXY,
 	@Meta(description = "An API key required to create a token from FimFiction", format = Format.STRING)
 	LOGIN_FIMFICTION_APIKEY_CLIENT_ID, //
 	@Meta(description = "An API key required to create a token from FimFiction", format = Format.PASSWORD)
