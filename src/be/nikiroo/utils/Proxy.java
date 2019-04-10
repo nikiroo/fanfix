@@ -10,6 +10,64 @@ import java.net.PasswordAuthentication;
  */
 public class Proxy {
 	/**
+	 * Use the proxy described by this string:
+	 * <ul>
+	 * <li><tt>((user(:pass)@)proxy:port)</tt></li>
+	 * <li>System proxy is noted <tt>:</tt></li>
+	 * </ul>
+	 * Some examples:
+	 * <ul>
+	 * <li><tt></tt> → do not use any proxy</li>
+	 * <li><tt>:</tt> → use the system proxy</li>
+	 * <li><tt>user@prox.com</tt> → use the proxy "prox.com" with default port
+	 * and user "user"</li>
+	 * <li><tt>prox.com:8080</tt> → use the proxy "prox.com" on port 8080</li>
+	 * <li><tt>user:pass@prox.com:8080</tt> → use "prox.com" on port 8080
+	 * authenticated as "user" with password "pass"</li>
+	 * <li><tt>user:pass@:</tt> → use the system proxy authenticated as user
+	 * "user" with password "pass"</li>
+	 * </ul>
+	 * 
+	 * @param proxy
+	 *            the proxy
+	 */
+	static public void use(String proxy) {
+		if (proxy != null && !proxy.isEmpty()) {
+			String user = null;
+			String password = null;
+			int port = 8080;
+
+			if (proxy.contains("@")) {
+				int pos = proxy.indexOf("@");
+				user = proxy.substring(0, pos);
+				proxy = proxy.substring(pos + 1);
+				if (user.contains(":")) {
+					pos = user.indexOf(":");
+					password = user.substring(pos + 1);
+					user = user.substring(0, pos);
+				}
+			}
+
+			if (proxy.equals(":")) {
+				proxy = null;
+			} else if (proxy.contains(":")) {
+				int pos = proxy.indexOf(":");
+				try {
+					port = Integer.parseInt(proxy.substring(0, pos));
+					proxy = proxy.substring(pos + 1);
+				} catch (Exception e) {
+				}
+			}
+
+			if (proxy == null) {
+				Proxy.useSystemProxy(user, password);
+			} else {
+				Proxy.useProxy(proxy, port, user, password);
+			}
+		}
+	}
+
+	/**
 	 * Use the system proxy.
 	 */
 	static public void useSystemProxy() {
