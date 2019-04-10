@@ -115,13 +115,18 @@ public abstract class BasicSearchable {
 	 * 
 	 * @param tagId
 	 *            the tag to search for
+	 * @param page
+	 *            the page to use for result pagination (see
+	 *            {@link SearchableTag#getPages()}, remember to check for -1),
+	 *            index is 1-based
 	 * 
 	 * @return a list of stories that satisfy that search term
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	abstract public List<MetaData> search(SearchableTag tag) throws IOException;
+	abstract public List<MetaData> search(SearchableTag tag, int page)
+			throws IOException;
 
 	/**
 	 * Load a document from its url.

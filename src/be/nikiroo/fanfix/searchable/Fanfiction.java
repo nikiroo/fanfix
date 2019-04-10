@@ -1,9 +1,12 @@
 package be.nikiroo.fanfix.searchable;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +19,7 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.supported.SupportType;
+import be.nikiroo.utils.Image;
 
 /**
  * A {@link BasicSearchable} for Fanfiction.NET.
@@ -94,8 +98,6 @@ class Fanfiction extends BasicSearchable {
 			return;
 		}
 
-		boolean subtagIsLeaf = !tag.getId().contains("/crossovers/");
-
 		Document doc = load(tag.getId(), false);
 		Element list = doc.getElementById("list_output");
 		if (list != null) {
@@ -106,8 +108,13 @@ class Fanfiction extends BasicSearchable {
 					Element span = div.getElementsByTag("span").first();
 
 					if (a != null) {
-						SearchableTag subtag = new SearchableTag(
-								a.absUrl("href"), a.text(), subtagIsLeaf);
+						String subid = a.absUrl("href");
+						boolean crossoverSubtag = subid
+								.contains("/crossovers/");
+
+						SearchableTag subtag = new SearchableTag(subid,
+								a.text(), !crossoverSubtag, !crossoverSubtag);
+
 						tag.add(subtag);
 						if (span != null) {
 							String nr = span.text();
@@ -147,20 +154,68 @@ class Fanfiction extends BasicSearchable {
 
 	@Override
 	public List<MetaData> search(String search) throws IOException {
-		// TODO /search/?reader=1&type=story&keywords=blablablab
-		return null;
+		String encoded = URLEncoder.encode(search.toLowerCase(), "utf-8");
+		return getStories(
+				"http://fanfiction.net/search/?ready=1&type=story&keywords="
+						+ encoded, null, null);
 	}
 
 	@Override
-	public List<MetaData> search(SearchableTag tag) throws IOException {
+	public List<MetaData> search(SearchableTag tag, int page)
+			throws IOException {
 		List<MetaData> metas = new ArrayList<MetaData>();
 
-		if (tag.getId() != null) {
-			Document doc = load(tag.getId(), false);
+		String url = tag.getId();
+		if (url != null) {
+			if (page > 1) {
+				int pos = url.indexOf("&p=");
+				if (pos >= 0) {
+					url = url.replaceAll("(.*\\&p=)[0-9]*(.*)", "$1\\" + page
+							+ "$2");
+				} else {
+					url += "&p=" + page;
+				}
+			}
 
+			Document doc = load(url, false);
+
+			// Update the pages number if needed
+			if (tag.getPages() < 0) {
+				tag.setPages(getPages(doc));
+			}
+
+			// Find out the full subjects (including parents)
+			String subjects = "";
+			for (SearchableTag t = tag; t != null; t = t.getParent()) {
+				if (!subjects.isEmpty()) {
+					subjects += ", ";
+				}
+				subjects += t.getName();
+			}
+
+			metas = getStories(url, doc, subjects);
+		}
+
+		return metas;
+	}
+
+	/**
+	 * Return the number of pages in this stories result listing.
+	 * 
+	 * @param doc
+	 *            the document
+	 * 
+	 * @return the number of pages or -1 if unknown
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
+	private int getPages(Document doc) throws IOException {
+		int pages = -1;
+
+		if (doc != null) {
 			Element center = doc.getElementsByTag("center").first();
 			if (center != null) {
-				int pages = -1;
 				for (Element a : center.getElementsByTag("a")) {
 					if (a.absUrl("href").contains("&p=")) {
 						int thisLinkPages = -1;
@@ -175,84 +230,177 @@ class Fanfiction extends BasicSearchable {
 						pages = Math.max(pages, thisLinkPages);
 					}
 				}
-
-				tag.setPages(pages);
-			}
-
-			for (Element story : doc.getElementsByClass("z-list")) {
-				String title = "";
-				String url = "";
-				String coverUrl = "";
-
-				Element stitle = story.getElementsByClass("stitle").first();
-				if (stitle != null) {
-					title = stitle.text();
-					url = stitle.absUrl("href");
-					Element cover = stitle.getElementsByTag("img").first();
-					if (cover != null) {
-						// note: see data-original if needed?
-						coverUrl = cover.absUrl("src");
-					}
-				}
-
-				String author = "";
-
-				Elements as = story.getElementsByTag("a");
-				if (as.size() > 1) {
-					author = as.get(1).text();
-				}
-
-				String resume = "";
-				String tags = "";
-
-				Elements divs = story.getElementsByTag("div");
-				if (divs.size() > 1 && divs.get(1).childNodeSize() > 0) {
-					resume = divs.get(1).text();
-					if (divs.size() > 2) {
-						tags = divs.get(2).text();
-						resume = resume.substring(0,
-								resume.length() - tags.length()).trim();
-					}
-				}
-
-				MetaData meta = new MetaData();
-				meta.setAuthor(author);
-				// meta.setCover(cover); //TODO ?
-				meta.setImageDocument(false);
-				meta.setResume(getSupport().makeChapter(new URL(tag.getId()),
-						0, Instance.getTrans().getString(StringId.DESCRIPTION),
-						resume));
-				meta.setSource(getType().getSourceName());
-				// TODO: remove tags to interpret them instead (lang, words..)
-				meta.setTags(Arrays.asList(tags.split(" *- *")));
-				meta.setTitle(title);
-				meta.setUrl(url);
-
-				metas.add(meta);
 			}
 		}
 
-		return metas;
+		return pages;
 	}
 
-	public static void main(String[] args) throws IOException {
-		Fanfiction f = new Fanfiction(SupportType.FANFICTION);
+	/**
+	 * Fetch the stories from the given page.
+	 * 
+	 * @param sourceUrl
+	 *            the url of the document
+	 * @param doc
+	 *            the document to use (if NULL, will be loaded from
+	 *            <tt>sourceUrl</tt>)
+	 * @param mainSubject
+	 *            the main subject (the anime/book/movie item related to the
+	 *            stories, like "MLP" or "Doctor Who"), or NULL if none
+	 * 
+	 * @return the stories found in it
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
+	private List<MetaData> getStories(String sourceUrl, Document doc,
+			String mainSubject) throws IOException {
+		List<MetaData> metas = new ArrayList<MetaData>();
 
-		SearchableTag cartoons = f.getTags().get(0).getChildren().get(2);
-		f.fillTag(cartoons);
-		SearchableTag mlp = cartoons.getChildren().get(2);
-		System.out.println(mlp);
+		if (doc == null) {
+			doc = load(sourceUrl, false);
+		}
 
-		SearchableTag ccartoons = f.getTags().get(1).getChildren().get(0);
-		f.fillTag(ccartoons);
-		SearchableTag cmlp = ccartoons.getChildren().get(0);
-		System.out.println(cmlp);
+		for (Element story : doc.getElementsByClass("z-list")) {
+			MetaData meta = new MetaData();
+			meta.setImageDocument(false);
+			meta.setSource(getType().getSourceName());
 
-		f.fillTag(cmlp);
-		System.out.println(cmlp);
+			String subject = mainSubject == null ? "" : mainSubject;
+			List<String> tagList = new ArrayList<String>();
 
-		List<MetaData> metas = f.search(mlp);
-		System.out.println(mlp.getPages());
-		//System.out.println(metas);
+			Element stitle = story.getElementsByClass("stitle").first();
+			if (stitle != null) {
+				meta.setTitle(stitle.text());
+				meta.setUrl(stitle.absUrl("href"));
+				Element cover = stitle.getElementsByTag("img").first();
+				if (cover != null) {
+					// note: see data-original if needed?
+					String coverUrl = cover.absUrl("src");
+
+					try {
+						InputStream in = Instance.getCache().open(
+								new URL(coverUrl), getSupport(), true);
+						try {
+							meta.setCover(new Image(in));
+						} finally {
+							in.close();
+						}
+					} catch (Exception e) {
+						Instance.getTraceHandler()
+								.error(new Exception(
+										"Cannot download cover for Fanfiction story in search mode",
+										e));
+					}
+				}
+			}
+
+			Elements as = story.getElementsByTag("a");
+			if (as.size() > 1) {
+				meta.setAuthor(as.get(1).text());
+			}
+
+			String tags = "";
+
+			Elements divs = story.getElementsByTag("div");
+			if (divs.size() > 1 && divs.get(1).childNodeSize() > 0) {
+				String resume = divs.get(1).text();
+				if (divs.size() > 2) {
+					tags = divs.get(2).text();
+					resume = resume.substring(0,
+							resume.length() - tags.length()).trim();
+
+					for (Element d : divs.get(2).getElementsByAttribute(
+							"data-xutime")) {
+						String secs = d.attr("data-xutime");
+						try {
+							String date = new SimpleDateFormat("yyyy-MM-dd")
+									.format(new Date(
+											Long.parseLong(secs) * 1000));
+							// (updated, ) published
+							if (meta.getDate() != null) {
+								tagList.add("Updated: " + meta.getDate());
+							}
+							meta.setDate(date);
+						} catch (Exception e) {
+						}
+					}
+				}
+
+				meta.setResume(getSupport().makeChapter(new URL(sourceUrl), 0,
+						Instance.getTrans().getString(StringId.DESCRIPTION),
+						resume));
+			}
+
+			// How are the tags ordered?
+			// We have "Rated: xx", then the language, then all other tags
+			// If the subject(s) is/are present, they are before "Rated: xx"
+
+			// /////////////
+			// Examples: //
+			// /////////////
+
+			// Search (Luna) Tags: [Harry Potter, Rated: T, English, Chapters:
+			// 1, Words: 270, Reviews: 2, Published: 2/19/2013, Luna L.]
+
+			// Normal (MLP) Tags: [Rated: T, Spanish, Drama/Suspense, Chapters:
+			// 2, Words: 8,686, Reviews: 1, Favs: 1, Follows: 1, Updated: 4/7,
+			// Published:
+			// 4/2]
+
+			// Crossover (MLP/Who) Tags: [Rated: K+, English, Adventure/Romance,
+			// Chapters: 8, Words: 7,788, Reviews: 2, Favs: 2, Follows: 1,
+			// Published:
+			// 9/1/2016]
+
+			boolean rated = false;
+			boolean isLang = false;
+			String[] tab = tags.split("  *-  *");
+			for (int i = 0; i < tab.length; i++) {
+				String tag = tab[i];
+				if (tag.startsWith("Rated: ")) {
+					rated = true;
+				}
+
+				if (!rated) {
+					if (!subject.isEmpty()) {
+						subject += ", ";
+					}
+					subject += tag;
+				} else if (isLang) {
+					meta.setLang(tag);
+					isLang = false;
+				} else {
+					if (tag.contains(":")) {
+						// Handle special tags:
+						if (tag.startsWith("Words: ")) {
+							try {
+								meta.setWords(Long.parseLong(tag
+										.substring("Words: ".length())
+										.replace(",", "").trim()));
+							} catch (Exception e) {
+							}
+						} else if (tag.startsWith("Rated: ")) {
+							tagList.add(tag);
+						}
+					} else {
+						for (String t : tag.split("/")) {
+							tagList.add(t);
+						}
+					}
+
+					if (tag.startsWith("Rated: ")) {
+						isLang = true;
+					}
+				}
+			}
+
+			meta.setSubject(subject);
+			meta.setTags(tagList);
+
+			metas.add(meta);
+		}
+
+		return metas;
 	}
 }

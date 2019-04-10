@@ -13,6 +13,8 @@ public class SearchableTag {
 	private String name;
 	private boolean complete;
 	private long count;
+
+	private SearchableTag parent;
 	private List<SearchableTag> children;
 
 	/**
@@ -238,6 +240,16 @@ public class SearchableTag {
 	 */
 	public void add(SearchableTag tag) {
 		children.add(tag);
+		tag.parent = this;
+	}
+
+	/**
+	 * This {@link SearchableTag} parent tag, or NULL if none.
+	 * 
+	 * @return the parent or NULL
+	 */
+	public SearchableTag getParent() {
+		return parent;
 	}
 
 	/**
