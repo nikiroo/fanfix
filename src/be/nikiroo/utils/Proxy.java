@@ -61,8 +61,8 @@ public class Proxy {
 	 */
 	static public void useProxy(String host, int port, String user,
 			String password) {
-		System.setProperty("http.proxyHost", "proxy.stluc.ucl.ac.be");
-		System.setProperty("http.proxyPort", "8080");
+		System.setProperty("http.proxyHost", host);
+		System.setProperty("http.proxyPort", Integer.toString(port));
 		auth(user, password);
 	}
 
