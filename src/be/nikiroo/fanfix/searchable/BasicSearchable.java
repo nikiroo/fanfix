@@ -128,13 +128,16 @@ public abstract class BasicSearchable {
 	 * 
 	 * @param url
 	 *            the URL to load
+	 * @param stable
+	 *            TRUE for more stable resources, FALSE when they often change
+	 * 
 	 * @return the document
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	protected Document load(String url) throws IOException {
-		return load(new URL(url));
+	protected Document load(String url, boolean stable) throws IOException {
+		return load(new URL(url), stable);
 	}
 
 	/**
@@ -142,13 +145,16 @@ public abstract class BasicSearchable {
 	 * 
 	 * @param url
 	 *            the URL to load
+	 * @param stable
+	 *            TRUE for more stable resources, FALSE when they often change
+	 * 
 	 * @return the document
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	protected Document load(URL url) throws IOException {
-		return DataUtil.load(Instance.getCache().open(url, support, false),
+	protected Document load(URL url, boolean stable) throws IOException {
+		return DataUtil.load(Instance.getCache().open(url, support, stable),
 				"UTF-8", url.toString());
 	}
 

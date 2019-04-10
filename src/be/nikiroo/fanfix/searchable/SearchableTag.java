@@ -16,49 +16,102 @@ public class SearchableTag {
 	private List<SearchableTag> children;
 
 	/**
+	 * The number of stories result pages this tag can get.
+	 * <p>
+	 * We keep more information than what the getter/setter returns/accepts.
+	 * <ul>
+	 * <li>-2: this tag does not support stories results (not a leaf tag)</li>
+	 * <li>-1: the number is not yet known, but will be known after a
+	 * {@link BasicSearchable#fillTag(SearchableTag)} operation</li>
+	 * <li>X: the number of pages</li>
+	 * </ul>
+	 */
+	private int pages;
+
+	/**
+	 * Create a new {@link SearchableTag}.
+	 * <p>
+	 * Note that tags are complete by default.
+	 * 
+	 * @param id
+	 *            the ID (usually a way to find the linked stories later on)
+	 * @param name
+	 *            the tag name, which can be displayed to the user
+	 * @param leaf
+	 *            the tag is a leaf tag, that is, it will not return subtags
+	 *            with {@link BasicSearchable#fillTag(SearchableTag)} but will
+	 *            return stories with
+	 *            {@link BasicSearchable#search(SearchableTag)}
+	 */
+	public SearchableTag(String id, String name, boolean leaf) {
+		this(id, name, leaf, true);
+	}
+
+	/**
 	 * Create a new {@link SearchableTag}.
 	 * 
 	 * @param id
 	 *            the ID (usually a way to find the linked stories later on)
 	 * @param name
 	 *            the tag name, which can be displayed to the user
+	 * @param leaf
+	 *            the tag is a leaf tag, that is, it will not return subtags
+	 *            with {@link BasicSearchable#fillTag(SearchableTag)} but will
+	 *            return stories with
+	 *            {@link BasicSearchable#search(SearchableTag)}
 	 * @param complete
-	 *            TRUE for a {@link SearchableTag} that cannot be "filled" by
-	 *            the {@link BasicSearchable} in order to get (more?) subtag
-	 *            children
+	 *            the tag {@link SearchableTag#isComplete()} or not
 	 */
-	public SearchableTag(String id, String name, boolean complete) {
+	public SearchableTag(String id, String name, boolean leaf, boolean complete) {
 		this.id = id;
 		this.name = name;
 		this.complete = complete;
 
+		setLeaf(leaf);
+
 		children = new ArrayList<SearchableTag>();
 	}
 
+	/**
+	 * The ID (usually a way to find the linked stories later on).
+	 * 
+	 * @return the ID
+	 */
 	public String getId() {
 		return id;
 	}
 
+	/**
+	 * The tag name, which can be displayed to the user.
+	 * 
+	 * @return then name
+	 */
 	public String getName() {
 		return name;
 	}
 
 	/**
-	 * This tag can still be completed via a "fill" tag operation from a
+	 * Non-complete, non-leaf tags can still be completed via a
+	 * {@link BasicSearchable#fillTag(SearchableTag)} operation from a
 	 * {@link BasicSearchable}, in order to gain (more?) subtag children.
+	 * <p>
+	 * This method does not make sense for leaf tags.
 	 * 
-	 * @return TRUE if it can
+	 * @return TRUE if it is complete
 	 */
 	public boolean isComplete() {
 		return complete;
 	}
 
 	/**
-	 * This tag can still be completed via a "fill" tag operation from a
+	 * Non-complete, non-leaf tags can still be completed via a
+	 * {@link BasicSearchable#fillTag(SearchableTag)} operation from a
 	 * {@link BasicSearchable}, in order to gain (more?) subtag children.
+	 * <p>
+	 * This method does not make sense for leaf tags.
 	 * 
 	 * @param complete
-	 *            TRUE if it can
+	 *            TRUE if it is complete
 	 */
 	public void setComplete(boolean complete) {
 		this.complete = complete;
@@ -113,6 +166,54 @@ public class SearchableTag {
 	 */
 	public void setCount(long count) {
 		this.count = count;
+	}
+
+	/**
+	 * The number of stories result pages this tag contains, only make sense if
+	 * {@link SearchableTag#isLeaf()} returns TRUE.
+	 * <p>
+	 * Will return -1 if the number is not yet known.
+	 * 
+	 * @return the number of pages, or -1
+	 */
+	public int getPages() {
+		return Math.max(-1, pages);
+	}
+
+	/**
+	 * The number of stories result pages this tag contains, only make sense if
+	 * {@link SearchableTag#isLeaf()} returns TRUE.
+	 * 
+	 * @param pages
+	 *            the (positive or 0) number of pages
+	 */
+	public void setPages(int pages) {
+		this.pages = Math.max(-1, pages);
+	}
+
+	/**
+	 * This tag is a leaf tag, that is, it will not return other subtags with
+	 * {@link BasicSearchable#fillTag(SearchableTag)} but will return stories
+	 * with {@link BasicSearchable#search(SearchableTag)}.
+	 * 
+	 * @return TRUE if it is
+	 */
+	public boolean isLeaf() {
+		return pages > -2;
+	}
+
+	/**
+	 * This tag is a leaf tag, that is, it will not return other subtags with
+	 * {@link BasicSearchable#fillTag(SearchableTag)} but will return stories
+	 * with {@link BasicSearchable#search(SearchableTag)}.
+	 * <p>
+	 * Will reset the number of pages to -1.
+	 * 
+	 * @param leaf
+	 *            TRUE if it is
+	 */
+	public void setLeaf(boolean leaf) {
+		pages = leaf ? -1 : -2;
 	}
 
 	/**

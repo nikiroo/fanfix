@@ -23,6 +23,8 @@ import be.nikiroo.fanfix.supported.SupportType;
  * @author niki
  */
 class Fanfiction extends BasicSearchable {
+	static private String BASE_URL = "http://fanfiction.net/";
+
 	/**
 	 * Create a new {@link Fanfiction}.
 	 * 
@@ -40,7 +42,7 @@ class Fanfiction extends BasicSearchable {
 		Map<String, String> stories = new HashMap<String, String>();
 		Map<String, String> crossovers = new HashMap<String, String>();
 
-		Document mainPage = load("http://fanfiction.net/");
+		Document mainPage = load(BASE_URL, true);
 		Element menu = mainPage.getElementsByClass("dropdown").first();
 		if (menu != null) {
 			Element ul = menu.getElementsByClass("dropdown-menu").first();
@@ -68,17 +70,17 @@ class Fanfiction extends BasicSearchable {
 		List<SearchableTag> tags = new ArrayList<SearchableTag>();
 
 		if (storiesName != null) {
-			SearchableTag tag = new SearchableTag(null, storiesName, true);
+			SearchableTag tag = new SearchableTag(null, storiesName, false);
 			for (String id : stories.keySet()) {
-				tag.add(new SearchableTag(id, stories.get(id), false));
+				tag.add(new SearchableTag(id, stories.get(id), true, false));
 			}
 			tags.add(tag);
 		}
 
 		if (crossoversName != null) {
-			SearchableTag tag = new SearchableTag(null, crossoversName, true);
+			SearchableTag tag = new SearchableTag(null, crossoversName, false);
 			for (String id : crossovers.keySet()) {
-				tag.add(new SearchableTag(id, crossovers.get(id), false));
+				tag.add(new SearchableTag(id, crossovers.get(id), false, false));
 			}
 			tags.add(tag);
 		}
@@ -92,9 +94,9 @@ class Fanfiction extends BasicSearchable {
 			return;
 		}
 
-		boolean subtagIsComplete = !tag.getId().contains("/crossovers/");
+		boolean subtagIsLeaf = !tag.getId().contains("/crossovers/");
 
-		Document doc = load(tag.getId());
+		Document doc = load(tag.getId(), false);
 		Element list = doc.getElementById("list_output");
 		if (list != null) {
 			Element table = list.getElementsByTag("table").first();
@@ -105,7 +107,7 @@ class Fanfiction extends BasicSearchable {
 
 					if (a != null) {
 						SearchableTag subtag = new SearchableTag(
-								a.absUrl("href"), a.text(), subtagIsComplete);
+								a.absUrl("href"), a.text(), subtagIsLeaf);
 						tag.add(subtag);
 						if (span != null) {
 							String nr = span.text();
@@ -145,7 +147,7 @@ class Fanfiction extends BasicSearchable {
 
 	@Override
 	public List<MetaData> search(String search) throws IOException {
-		// TODO Auto-generated method stub
+		// TODO /search/?reader=1&type=story&keywords=blablablab
 		return null;
 	}
 
@@ -154,7 +156,29 @@ class Fanfiction extends BasicSearchable {
 		List<MetaData> metas = new ArrayList<MetaData>();
 
 		if (tag.getId() != null) {
-			Document doc = load(tag.getId());
+			Document doc = load(tag.getId(), false);
+
+			Element center = doc.getElementsByTag("center").first();
+			if (center != null) {
+				int pages = -1;
+				for (Element a : center.getElementsByTag("a")) {
+					if (a.absUrl("href").contains("&p=")) {
+						int thisLinkPages = -1;
+						try {
+							String[] tab = a.absUrl("href").split("=");
+							tab = tab[tab.length - 1].split("&");
+							thisLinkPages = Integer
+									.parseInt(tab[tab.length - 1]);
+						} catch (Exception e) {
+						}
+
+						pages = Math.max(pages, thisLinkPages);
+					}
+				}
+
+				tag.setPages(pages);
+			}
+
 			for (Element story : doc.getElementsByClass("z-list")) {
 				String title = "";
 				String url = "";
@@ -199,6 +223,7 @@ class Fanfiction extends BasicSearchable {
 						0, Instance.getTrans().getString(StringId.DESCRIPTION),
 						resume));
 				meta.setSource(getType().getSourceName());
+				// TODO: remove tags to interpret them instead (lang, words..)
 				meta.setTags(Arrays.asList(tags.split(" *- *")));
 				meta.setTitle(title);
 				meta.setUrl(url);
@@ -227,6 +252,7 @@ class Fanfiction extends BasicSearchable {
 		System.out.println(cmlp);
 
 		List<MetaData> metas = f.search(mlp);
-		System.out.println(metas);
+		System.out.println(mlp.getPages());
+		//System.out.println(metas);
 	}
 }
