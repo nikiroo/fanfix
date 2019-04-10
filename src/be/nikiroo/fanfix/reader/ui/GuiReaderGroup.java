@@ -288,7 +288,7 @@ public class GuiReaderGroup extends JPanel {
 			books.get(previousIndex).setSelected(false);
 		}
 
-		if (index >= 0) {
+		if (index >= 0 && !books.isEmpty()) {
 			books.get(index).setSelected(true);
 		}
 	}
