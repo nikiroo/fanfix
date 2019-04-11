@@ -848,6 +848,63 @@ public class StringUtils {
 	}
 
 	/**
+	 * The reverse operation to {@link StringUtils#formatNumber(long)}: it will
+	 * read a "display" number that can contain a "M" or "k" suffix and return
+	 * the full value.
+	 * <p>
+	 * Of course, the conversion to and from display form is lossy (example:
+	 * <tt>6870</tt> to "6k" to <tt>6000</tt>).
+	 * 
+	 * @param value
+	 *            the value in display form with possible "M" and "k" suffixes,
+	 *            can be NULL
+	 * 
+	 * @return the value as a number, or 0 if not possible to convert
+	 */
+	public static long toNumber(String value) {
+		return toNumber(value, 0l);
+	}
+
+	/**
+	 * The reverse operation to {@link StringUtils#formatNumber(long)}: it will
+	 * read a "display" number that can contain a "M" or "k" suffix and return
+	 * the full value.
+	 * <p>
+	 * Of course, the conversion to and from display form is lossy (example:
+	 * <tt>6870</tt> to "6k" to <tt>6000</tt>).
+	 * 
+	 * @param value
+	 *            the value in display form with possible "M" and "k" suffixes,
+	 *            can be NULL
+	 * @param def
+	 *            the default value if it is not possible to convert the given
+	 *            value to a number
+	 * 
+	 * @return the value as a number, or 0 if not possible to convert
+	 */
+	public static long toNumber(String value, long def) {
+		long count = def;
+		if (value != null) {
+			try {
+				if (value.toLowerCase().endsWith("m")) {
+					count = Long.parseLong(value.substring(0,
+							value.length() - 1).trim());
+					count *= 1000000;
+				} else if (value.toLowerCase().endsWith("k")) {
+					count = Long.parseLong(value.substring(0,
+							value.length() - 1).trim());
+					count *= 1000;
+				} else {
+					count = Long.parseLong(value);
+				}
+			} catch (NumberFormatException pe) {
+			}
+		}
+
+		return count;
+	}
+
+	/**
 	 * The "remove accents" pattern.
 	 * 
 	 * @return the pattern, or NULL if a problem happens
