@@ -136,31 +136,6 @@ public class SearchableTag {
 	}
 
 	/**
-	 * The number of items that can be found with this tag if it is searched,
-	 * displayable format.
-	 * <p>
-	 * Will report the number of subtags by default.
-	 * 
-	 * @return the number of items
-	 */
-	public String getCountDisplay() {
-		long count = this.count;
-		if (count <= 0) {
-			count = children.size();
-		}
-
-		if (count > 999999) {
-			return count / 1000000 + "M";
-		}
-
-		if (count > 2000) {
-			return count / 1000 + "k";
-		}
-
-		return Long.toString(count);
-	}
-
-	/**
 	 * The number of items that can be found with this tag if it is searched.
 	 * 
 	 * @param count
@@ -263,7 +238,7 @@ public class SearchableTag {
 		}
 
 		if (getCount() > 0) {
-			rep += " (" + getCountDisplay() + ")";
+			rep += " (" + getCount() + ")";
 		}
 
 		if (!children.isEmpty()) {

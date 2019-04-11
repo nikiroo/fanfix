@@ -20,6 +20,7 @@ import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Image;
+import be.nikiroo.utils.StringUtils;
 
 /**
  * A {@link BasicSearchable} for Fanfiction.NET.
@@ -125,24 +126,7 @@ class Fanfiction extends BasicSearchable {
 								nr = nr.substring(0, nr.length() - 1);
 							}
 							nr = nr.trim();
-
-							long count = 0;
-							try {
-								if (nr.toLowerCase().endsWith("m")) {
-									count = Long.parseLong(nr.substring(0,
-											nr.length() - 1).trim());
-									count *= 1000000;
-								} else if (nr.toLowerCase().endsWith("k")) {
-									count = Long.parseLong(nr.substring(0,
-											nr.length() - 1).trim());
-									count *= 1000;
-								} else {
-									count = Long.parseLong(nr);
-								}
-							} catch (NumberFormatException pe) {
-							}
-
-							subtag.setCount(count);
+							subtag.setCount(toNumber(nr));
 						}
 					}
 				}
@@ -152,12 +136,38 @@ class Fanfiction extends BasicSearchable {
 		tag.setComplete(true);
 	}
 
+	/**
+	 * @deprecated use {@link StringUtils} when updated
+	 */
+	@Deprecated
+	private static long toNumber(String value) {
+		// TODO: use StringUtils instead after update
+		long count = 0l;
+		if (value != null) {
+			try {
+				if (value.toLowerCase().endsWith("m")) {
+					count = Long.parseLong(value.substring(0,
+							value.length() - 1).trim());
+					count *= 1000000;
+				} else if (value.toLowerCase().endsWith("k")) {
+					count = Long.parseLong(value.substring(0,
+							value.length() - 1).trim());
+					count *= 1000;
+				} else {
+					count = Long.parseLong(value);
+				}
+			} catch (NumberFormatException pe) {
+			}
+		}
+
+		return count;
+	}
+
 	@Override
 	public List<MetaData> search(String search) throws IOException {
 		String encoded = URLEncoder.encode(search.toLowerCase(), "utf-8");
-		return getStories(
-				"http://fanfiction.net/search/?ready=1&type=story&keywords="
-						+ encoded, null, null);
+		return getStories(BASE_URL + "search/?ready=1&type=story&keywords="
+				+ encoded, null, null);
 	}
 
 	@Override
@@ -266,9 +276,7 @@ class Fanfiction extends BasicSearchable {
 			meta.setImageDocument(false);
 			meta.setSource(getType().getSourceName());
 
-			String subject = mainSubject == null ? "" : mainSubject;
-			List<String> tagList = new ArrayList<String>();
-
+			// Title, URL, Cover
 			Element stitle = story.getElementsByClass("stitle").first();
 			if (stitle != null) {
 				meta.setTitle(stitle.text());
@@ -295,13 +303,15 @@ class Fanfiction extends BasicSearchable {
 				}
 			}
 
+			// Author
 			Elements as = story.getElementsByTag("a");
 			if (as.size() > 1) {
 				meta.setAuthor(as.get(1).text());
 			}
 
+			// Tags (concatenated text), published date, updated date, Resume
 			String tags = "";
-
+			List<String> tagList = new ArrayList<String>();
 			Elements divs = story.getElementsByTag("div");
 			if (divs.size() > 1 && divs.get(1).childNodeSize() > 0) {
 				String resume = divs.get(1).text();
@@ -336,25 +346,24 @@ class Fanfiction extends BasicSearchable {
 			// We have "Rated: xx", then the language, then all other tags
 			// If the subject(s) is/are present, they are before "Rated: xx"
 
-			// /////////////
+			// ////////////
 			// Examples: //
-			// /////////////
+			// ////////////
 
 			// Search (Luna) Tags: [Harry Potter, Rated: T, English, Chapters:
 			// 1, Words: 270, Reviews: 2, Published: 2/19/2013, Luna L.]
 
 			// Normal (MLP) Tags: [Rated: T, Spanish, Drama/Suspense, Chapters:
 			// 2, Words: 8,686, Reviews: 1, Favs: 1, Follows: 1, Updated: 4/7,
-			// Published:
-			// 4/2]
+			// Published: 4/2]
 
 			// Crossover (MLP/Who) Tags: [Rated: K+, English, Adventure/Romance,
 			// Chapters: 8, Words: 7,788, Reviews: 2, Favs: 2, Follows: 1,
-			// Published:
-			// 9/1/2016]
+			// Published: 9/1/2016]
 
 			boolean rated = false;
 			boolean isLang = false;
+			String subject = mainSubject == null ? "" : mainSubject;
 			String[] tab = tags.split("  *-  *");
 			for (int i = 0; i < tab.length; i++) {
 				String tag = tab[i];
@@ -384,6 +393,7 @@ class Fanfiction extends BasicSearchable {
 							tagList.add(tag);
 						}
 					} else {
+						// Normal tags are "/"-separated
 						for (String t : tag.split("/")) {
 							tagList.add(t);
 						}

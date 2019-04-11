@@ -5,6 +5,7 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.utils.Image;
+import be.nikiroo.utils.StringUtils;
 
 /**
  * Some meta information related to a "book" (which can either be a
@@ -220,8 +221,12 @@ public class GuiReaderBookInfo {
 	 *            the number to parse
 	 * 
 	 * @return the displayable version of the number
+	 * 
+	 * @deprecated use {@link StringUtils} after update instead
 	 */
+	@Deprecated
 	static private String formatNumber(long number) {
+		// TODO: replace with StringUtils after update
 		String displayNumber;
 		if (number >= 4000) {
 			displayNumber = "" + (number / 1000) + "k";
