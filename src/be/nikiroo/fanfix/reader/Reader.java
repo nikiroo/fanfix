@@ -6,6 +6,7 @@ import java.net.URL;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
+import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -168,6 +169,58 @@ public interface Reader {
 	 *            all
 	 */
 	public void browse(String source);
+
+	/**
+	 * Search for the given terms and find stories that correspond if possible.
+	 * 
+	 * @param searchOn
+	 *            the website to search on
+	 * @param keywords
+	 *            the words to search for (cannot be NULL)
+	 * @param page
+	 *            the page of results to show (0 = request the maximum number of
+	 *            pages, pages start at 1)
+	 * @param item
+	 *            the item to select (0 = do not select a specific item but show
+	 *            all the page, items start at 1)
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public void search(SupportType searchOn, String keywords, int page, int item)
+			throws IOException;
+
+	/**
+	 * Search based upon a hierarchy of tags, or search for (sub)tags.
+	 * <p>
+	 * We use the tags <tt>DisplayName</tt>.
+	 * <p>
+	 * If no tag is given, the main tags will be shown.
+	 * <p>
+	 * If a non-leaf tag is given, the subtags will be shown.
+	 * <p>
+	 * If a leaf tag is given (or a full hierarchy ending with a leaf tag),
+	 * stories will be shown.
+	 * <p>
+	 * You can select the story you want with the <tt>item</tt> number.
+	 * 
+	 * @param searchOn
+	 *            the website to search on
+	 * @param page
+	 *            the page of results to show (0 = request the maximum number of
+	 *            pages, pages start at 1)
+	 * @param item
+	 *            the item to select (0 = do not select a specific item but show
+	 *            all the page, items start at 1)
+	 * @param tags
+	 *            the tags display names to search for (this is a tag
+	 *            <b>hierarchy</b>, <b>NOT</b> a multiple tags choice)
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public void searchTag(SupportType searchOn, int page, int item,
+			String... tags) throws IOException;
 
 	/**
 	 * Open the {@link Story} with an external reader (the program should be

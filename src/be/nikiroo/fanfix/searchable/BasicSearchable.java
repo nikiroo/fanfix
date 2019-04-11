@@ -83,7 +83,7 @@ public abstract class BasicSearchable {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	abstract protected void fillTag(SearchableTag tag) throws IOException;
+	abstract public void fillTag(SearchableTag tag) throws IOException;
 
 	/**
 	 * Search for the given term and return a list of stories satisfying this

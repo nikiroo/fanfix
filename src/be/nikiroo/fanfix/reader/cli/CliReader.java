@@ -1,6 +1,7 @@
 package be.nikiroo.fanfix.reader.cli;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import be.nikiroo.fanfix.Instance;
@@ -10,6 +11,9 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.reader.BasicReader;
+import be.nikiroo.fanfix.searchable.BasicSearchable;
+import be.nikiroo.fanfix.searchable.SearchableTag;
+import be.nikiroo.fanfix.supported.SupportType;
 
 /**
  * Command line {@link Story} reader.
@@ -93,6 +97,102 @@ class CliReader extends BasicReader {
 
 			System.out.println(story.getLuid() + ": " + story.getTitle()
 					+ author);
+		}
+	}
+	
+	@Override
+	public void search(SupportType searchOn, String keywords, int page, int item) throws IOException {
+		
+	}
+	
+	@Override
+	public void searchTag(SupportType searchOn, int page, int item, String... tags) throws IOException {
+		BasicSearchable search = BasicSearchable.getSearchable(searchOn);
+		List<SearchableTag> stags = search.getTags();
+		
+		
+		SearchableTag stag = null;
+		for (String tag : tags) {
+			stag = null;
+			for (int i = 0 ; i < stags.size() ; i++) {
+				if (stags.get(i).getName().equalsIgnoreCase(tag)) {
+					stag = stags.get(i);
+					break;
+				}
+			}
+			
+			if (stag != null) {
+				search.fillTag(stag);
+				stags = stag.getChildren();
+			} else {
+				stags = new ArrayList<SearchableTag>();
+				break;
+			}
+		}
+
+		if (stag != null) {
+			if (page <= 0) {
+				if (stag.isLeaf()) {
+					System.out.println(stag.getPages());
+				} else {
+					System.out.println(stag.getCount());
+				}
+			} else {
+				List<MetaData> metas = null;
+				List<SearchableTag> subtags = null;
+				int count;
+				
+				if (stag.isLeaf()) {
+					metas = search.search(stag, page);
+					count = metas.size();
+				} else {
+					subtags = stag.getChildren();
+					count = subtags.size();
+				}
+				
+				if (item > 0) {
+					if (item <= count) {
+						if (metas != null) {
+							MetaData meta = metas.get(item - 1);
+							System.out.println(item + ": " + meta.getTitle());
+							System.out.println(meta.getUrl());
+							System.out.println();
+							System.out.println("Tags: " + meta.getTags());
+							System.out.println();
+							for (Paragraph para : meta.getResume()) {
+								System.out.println(para.getContent());
+								System.out.println("");
+							}
+						} else {
+							SearchableTag subtag = subtags.get(item - 1);
+							// TODO: display fixed info, not debug
+							System.out.println(subtag);
+						}
+					} else {
+						System.out.println("Invalid item: only " + count + " items found");
+					}
+				} else {
+					if (metas != null) {
+						int i = 0;
+						for (MetaData meta : metas) {
+							System.out.println((i + 1) + ": " + meta.getTitle());
+							i++;
+						}
+					} else {
+						for (SearchableTag subtag : subtags) {
+							if (subtag.getCount() > 0) {
+								System.out.println(subtag.getName() + " (" + subtag.getCount() + ")");
+							} else {
+								System.out.println(subtag.getName());
+							}
+						}
+					}
+				}
+			}
+		} else {
+			for (SearchableTag s : stags) {
+				System.out.println(s.getName());
+			}
 		}
 	}
 }

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import be.nikiroo.fanfix.bundles.StringId;
@@ -20,6 +21,7 @@ import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.reader.Reader;
 import be.nikiroo.fanfix.reader.Reader.ReaderType;
+import be.nikiroo.fanfix.searchable.BasicSearchable;
 import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Progress;
@@ -33,7 +35,7 @@ import be.nikiroo.utils.serial.server.ServerObject;
  */
 public class Main {
 	private enum MainAction {
-		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER, START, VERSION, SERVER, STOP_SERVER, REMOTE, SET_SOURCE, SET_TITLE, SET_AUTHOR
+		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER, START, VERSION, SERVER, STOP_SERVER, REMOTE, SET_SOURCE, SET_TITLE, SET_AUTHOR, SEARCH, SEARCH_TAG
 	}
 
 	/**
@@ -59,6 +61,11 @@ public class Main {
 	 * </li>
 	 * <li>--read-url [URL] ([chapter number]): convert on the fly and read the
 	 * story, without saving it</li>
+	 * <li>--search WEBSITE [free text] ([page] ([item])): search for the given terms, 
+	 * show the given page (page 0 means "how many page do we have", starts at page 1)</li>
+	 * <li>--search-tag WEBSITE ([tag 1] [tag2...] ([page] ([item]))): list the known 
+	 * tags or search the stories for the given tag(s), show the given page of results
+	 * (page 0 means "how many page do we have", starts at page 1)</li>
 	 * <li>--list ([type]): list the stories present in the library</li>
 	 * <li>--set-source [id] [new source]: change the source of the given story</li>
 	 * <li>--set-title [id] [new title]: change the title of the given story</li>
@@ -88,6 +95,11 @@ public class Main {
 		Boolean plusInfo = null;
 		String host = null;
 		Integer port = null;
+		SupportType searchOn = null;
+		String search = null;
+		List<String> tags = new ArrayList<String>();
+		Integer page = null;
+		Integer item = null;
 
 		boolean noMoreActions = false;
 
@@ -200,6 +212,64 @@ public class Main {
 					exitCode = 255;
 				}
 				break;
+			case SEARCH:
+				if (searchOn == null) {
+					searchOn = SupportType.valueOfAllOkUC(args[i]);
+					
+					if (searchOn == null) {
+						Instance.getTraceHandler().error(
+								"Website not known: <" + args[i] + ">");
+						exitCode = 255;
+					}
+					
+					if (BasicSearchable.getSearchable(searchOn) == null) {
+						Instance.getTraceHandler().error(
+								"Website not supported: " + searchOn);
+						exitCode = 255;
+					}
+				} else if (search == null) {
+					search = args[i];
+				} else if (page == null) {
+					try {
+						page = Integer.parseInt(args[i]);
+					} catch (NumberFormatException e) {
+						Instance.getTraceHandler().error(
+								new Exception("Incorrect page number: <"
+										+ args[i] + ">", e));
+						exitCode = 255;
+					}
+				} else if (item == null) {
+					try {
+						item = Integer.parseInt(args[i]);
+					} catch (NumberFormatException e) {
+						Instance.getTraceHandler().error(
+								new Exception("Incorrect item number: <"
+										+ args[i] + ">", e));
+						exitCode = 255;
+					}
+				} else {
+					exitCode = 255;
+				}
+				break;
+			case SEARCH_TAG:
+				if (searchOn == null) {
+					searchOn = SupportType.valueOfAllOkUC(args[i]);
+					
+					if (searchOn == null) {
+						Instance.getTraceHandler().error(
+								"Website not known: <" + args[i] + ">");
+						exitCode = 255;
+					}
+					
+					if (BasicSearchable.getSearchable(searchOn) == null) {
+						Instance.getTraceHandler().error(
+								"Website not supported: " + searchOn);
+						exitCode = 255;
+					}
+				} else {
+					tags.add(args[i]);
+				}
+				break;
 			case HELP:
 				exitCode = 255;
 				break;
@@ -282,8 +352,8 @@ public class Main {
 				System.err.println("\tVersion " + v);
 				System.err.println("\t-------------");
 				System.err.println("");
-				for (String item : updates.getChanges().get(v)) {
-					System.err.println("\t- " + item);
+				for (String it : updates.getChanges().get(v)) {
+					System.err.println("\t- " + it);
 				}
 				System.err.println("");
 			}
@@ -357,6 +427,73 @@ public class Main {
 					break;
 				}
 				exitCode = read(urlString, chapString, false);
+				break;
+			case SEARCH:
+				if (searchOn == null || search == null) {
+					exitCode = 255;
+					break;
+				}
+				
+				if (page == null) {
+					page = 1;
+				}
+				if (item == null) {
+					item = 0;
+				}
+				
+				if (BasicReader.getReader() == null) {
+					Instance.getTraceHandler()
+							.error(new Exception(
+									"No reader type has been configured"));
+					exitCode = 10;
+					break;
+				}
+				
+				try {
+					BasicReader.getReader().search(searchOn, search, page, item);
+				} catch (IOException e1) {
+					Instance.getTraceHandler().error(e1);
+				}
+				
+				break;
+			case SEARCH_TAG:
+				if (searchOn == null) {
+					exitCode = 255;
+					break;
+				}
+				
+				item = 0;
+				page = 1;
+
+				try {
+					item = Integer.parseInt(tags.get(tags.size()-1));
+					tags.remove(tags.size() - 1);
+					
+					try {
+						int tmp = Integer.parseInt(tags.get(tags.size()-1));
+						tags.remove(tags.size() - 1);
+						
+						page = item;
+						item = tmp;
+					} catch (Exception e) {
+					}
+				} catch (Exception e) {
+				}
+				
+				if (BasicReader.getReader() == null) {
+					Instance.getTraceHandler()
+							.error(new Exception(
+									"No reader type has been configured"));
+					exitCode = 10;
+					break;
+				}
+				
+				try {
+					BasicReader.getReader().searchTag(searchOn, page, item, tags.toArray(new String[]{}));
+				} catch (IOException e1) {
+					Instance.getTraceHandler().error(e1);
+				}
+				
 				break;
 			case HELP:
 				syntax(true);

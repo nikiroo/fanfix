@@ -7,6 +7,7 @@ import jexer.TApplication.BackendType;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.reader.Reader;
+import be.nikiroo.fanfix.supported.SupportType;
 
 /**
  * This {@link Reader}is based upon the TUI widget library 'jexer'
@@ -69,5 +70,17 @@ class TuiReader extends BasicReader {
 		} catch (Exception e) {
 			Instance.getTraceHandler().error(e);
 		}
+	}
+	
+	@Override
+	public void search(SupportType searchOn, String keywords, int page, int item) {
+		// TODO: !!!
+		throw new java.lang.IllegalStateException("Not implemented yet.");	
+	}
+	
+	@Override
+	public void searchTag(SupportType searchOn, int page, int item, String... tags) {
+		// TODO: !!!
+		throw new java.lang.IllegalStateException("Not implemented yet.");
 	}
 }

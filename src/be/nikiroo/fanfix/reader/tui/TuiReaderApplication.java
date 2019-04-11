@@ -25,6 +25,7 @@ import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.reader.Reader;
 import be.nikiroo.fanfix.reader.tui.TuiReaderMainWindow.Mode;
+import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -123,6 +124,16 @@ class TuiReaderApplication extends TApplication implements Reader {
 	@Override
 	public void setChapter(int chapter) {
 		reader.setChapter(chapter);
+	}
+	
+	@Override
+	public void search(SupportType searchOn, String keywords, int page, int item) {
+		reader.search(searchOn, keywords, page,item);	
+	}
+	
+	@Override
+	public void searchTag(SupportType searchOn, int page, int item, String... tags) {
+		reader.searchTag(searchOn, page, item, tags);
 	}
 
 	/**

@@ -94,7 +94,7 @@ class Fanfiction extends BasicSearchable {
 	}
 
 	@Override
-	protected void fillTag(SearchableTag tag) throws IOException {
+	public void fillTag(SearchableTag tag) throws IOException {
 		if (tag.getId() == null || tag.isComplete()) {
 			return;
 		}

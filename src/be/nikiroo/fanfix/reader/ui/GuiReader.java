@@ -25,6 +25,7 @@ import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.library.CacheLibrary;
 import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.reader.Reader;
+import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.ui.UIUtils;
@@ -216,6 +217,18 @@ class GuiReader extends BasicReader {
 		if (!handled) {
 			super.start(target, program, sync);
 		}
+	}
+	
+	@Override
+	public void search(SupportType searchOn, String keywords, int page, int item) {
+		// TODO: !!!
+		throw new java.lang.IllegalStateException("Not implemented yet.");
+	}
+	
+	@Override
+	public void searchTag(SupportType searchOn, int page, int item, String... tags) {
+		// TODO: !!!
+		throw new java.lang.IllegalStateException("Not implemented yet.");
 	}
 
 	/**

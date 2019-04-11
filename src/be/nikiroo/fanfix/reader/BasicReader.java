@@ -351,7 +351,13 @@ public abstract class BasicReader implements Reader {
 		}
 	}
 
+	/**
+	 * @deprecated use StringUtils when updated
+	 */
+	@Deprecated
 	static private String format(long value) {
+		//TODO: use StringUtils
+		
 		String display = "";
 		String suffix = "";
 
