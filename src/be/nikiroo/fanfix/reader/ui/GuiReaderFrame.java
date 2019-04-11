@@ -36,6 +36,8 @@ import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.reader.ui.GuiReaderMainPanel.FrameHelper;
 import be.nikiroo.fanfix.reader.ui.GuiReaderMainPanel.StoryRunnable;
+import be.nikiroo.fanfix.searchable.BasicSearchable;
+import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.ui.ConfigEditor;
@@ -181,6 +183,23 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 
 		bar.add(edit);
 
+		JMenu search = new JMenu(GuiReader.trans(StringIdGui.MENU_SEARCH));
+		search.setMnemonic(KeyEvent.VK_H);
+		for (SupportType type : SupportType.values()) {
+			BasicSearchable searchable = BasicSearchable.getSearchable(type);
+			if (searchable != null) {
+				JMenuItem searchItem = new JMenuItem(type.getSourceName());
+				searchItem.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						// TODO: open a search window
+					}
+				});
+				search.add(searchItem);
+			}
+		}
+		bar.add(search);
+		
 		JMenu view = new JMenu(GuiReader.trans(StringIdGui.MENU_VIEW));
 		view.setMnemonic(KeyEvent.VK_V);
 		JMenuItem vauthors = new JMenuItem(

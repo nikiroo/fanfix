@@ -119,6 +119,8 @@ public enum StringIdGui {
 	MENU_EDIT_SET_COVER_FOR_SOURCE, //
 	@Meta(def = "Set as cover for author", format = Format.STRING, description = "the edit/Set as cover for author menu button")
 	MENU_EDIT_SET_COVER_FOR_AUTHOR, //
+	@Meta(def = "Search", format = Format.STRING, description = "the search menu to open the earch stories on one of the searchable websites")
+	MENU_SEARCH,
 	@Meta(def = "View", format = Format.STRING, description = "the view menu")
 	MENU_VIEW, //
 	@Meta(def = "Word count", format = Format.STRING, description = "the view/word_count menu button, to show the word/image/story count as secondary info")
