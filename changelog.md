@@ -1,5 +1,11 @@
 # nikiroo-utils
 
+## Version 4.6.0
+
+- new: proxy
+- new: StringUtils formatNumber and toNumber
+- fix: UI Desc (NPE)
+
 ## Version 4.5.2
 
 - Serial: fix b64/not b64 error
