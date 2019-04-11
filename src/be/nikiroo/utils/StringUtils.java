@@ -796,6 +796,58 @@ public class StringUtils {
 	}
 
 	/**
+	 * Return a display {@link String} for the given value, which can be
+	 * suffixed with "k" or "M" depending upon the number, if it is big enough.
+	 * <p>
+	 * Example:
+	 * <ul>
+	 * <li><tt>8765</tt> becomes "8k"</li>
+	 * <li><tt>998765</tt> becomes "998k"</li>
+	 * <li><tt>12987364</tt> becomes "12M"</li>
+	 * </ul>
+	 * 
+	 * @param value
+	 *            the value to convert
+	 * 
+	 * @return the display value
+	 */
+	public static String formatNumber(long value) {
+		return formatNumber(value, true);
+	}
+
+	/**
+	 * Return a display {@link String} for the given value, which can be
+	 * suffixed with "k" or "M" depending upon the number, if it is big enough.
+	 * <p>
+	 * Example:
+	 * <ul>
+	 * <li><tt>8765</tt> becomes "8k"</li>
+	 * <li><tt>998765</tt> becomes "998k"</li>
+	 * <li><tt>12987364</tt> becomes "12M"</li>
+	 * </ul>
+	 * 
+	 * @param value
+	 *            the value to convert
+	 * @param strict
+	 *            TRUE if you want any value equals or greater than 1000 to use
+	 *            the "k" suffix; FALSE if you want to go a bit higher and only
+	 *            use "k" for values equal or greater than 4000
+	 * 
+	 * @return the display value
+	 */
+	public static String formatNumber(long value, boolean strict) {
+		if (value >= 1000000l) {
+			return Long.toString(value / 1000000l) + "M";
+		}
+
+		if ((strict && value >= 1000l) || (!strict && value >= 4000l)) {
+			return Long.toString(value / 1000l) + "k";
+		}
+
+		return Long.toString(value);
+	}
+
+	/**
 	 * The "remove accents" pattern.
 	 * 
 	 * @return the pattern, or NULL if a problem happens
