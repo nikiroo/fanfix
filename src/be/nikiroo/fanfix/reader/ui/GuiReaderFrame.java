@@ -198,7 +198,11 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 				search.add(searchItem);
 			}
 		}
-		bar.add(search);
+		
+		// TODO: enable when ready
+		if (false) {
+			bar.add(search);
+		}
 		
 		JMenu view = new JMenu(GuiReader.trans(StringIdGui.MENU_VIEW));
 		view.setMnemonic(KeyEvent.VK_V);
