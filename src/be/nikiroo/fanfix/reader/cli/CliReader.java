@@ -99,28 +99,29 @@ class CliReader extends BasicReader {
 					+ author);
 		}
 	}
-	
+
 	@Override
-	public void search(SupportType searchOn, String keywords, int page, int item) throws IOException {
-		
+	public void search(SupportType searchOn, String keywords, int page, int item)
+			throws IOException {
+
 	}
-	
+
 	@Override
-	public void searchTag(SupportType searchOn, int page, int item, String... tags) throws IOException {
+	public void searchTag(SupportType searchOn, int page, int item,
+			String... tags) throws IOException {
 		BasicSearchable search = BasicSearchable.getSearchable(searchOn);
 		List<SearchableTag> stags = search.getTags();
-		
-		
+
 		SearchableTag stag = null;
 		for (String tag : tags) {
 			stag = null;
-			for (int i = 0 ; i < stags.size() ; i++) {
+			for (int i = 0; i < stags.size(); i++) {
 				if (stags.get(i).getName().equalsIgnoreCase(tag)) {
 					stag = stags.get(i);
 					break;
 				}
 			}
-			
+
 			if (stag != null) {
 				search.fillTag(stag);
 				stags = stag.getChildren();
@@ -133,6 +134,7 @@ class CliReader extends BasicReader {
 		if (stag != null) {
 			if (page <= 0) {
 				if (stag.isLeaf()) {
+					search.search(stag, 1);
 					System.out.println(stag.getPages());
 				} else {
 					System.out.println(stag.getCount());
@@ -141,7 +143,7 @@ class CliReader extends BasicReader {
 				List<MetaData> metas = null;
 				List<SearchableTag> subtags = null;
 				int count;
-				
+
 				if (stag.isLeaf()) {
 					metas = search.search(stag, page);
 					count = metas.size();
@@ -149,12 +151,14 @@ class CliReader extends BasicReader {
 					subtags = stag.getChildren();
 					count = subtags.size();
 				}
-				
+
 				if (item > 0) {
 					if (item <= count) {
 						if (metas != null) {
 							MetaData meta = metas.get(item - 1);
-							System.out.println(item + ": " + meta.getTitle());
+							System.out.println(page + "/" + item + ": "
+									+ meta.getTitle());
+							System.out.println();
 							System.out.println(meta.getUrl());
 							System.out.println();
 							System.out.println("Tags: " + meta.getTags());
@@ -165,26 +169,58 @@ class CliReader extends BasicReader {
 							}
 						} else {
 							SearchableTag subtag = subtags.get(item - 1);
-							// TODO: display fixed info, not debug
-							System.out.println(subtag);
+
+							String sp = "";
+							if (subtag.getParent() != null) {
+								List<String> parents = new ArrayList<String>();
+								for (SearchableTag parent = subtag.getParent(); parent != null; parent = parent
+										.getParent()) {
+									parents.add(parent.getName());
+								}
+								for (String parent : parents) {
+									if (!sp.isEmpty()) {
+										sp += " / ";
+									}
+									sp += parent;
+								}
+							}
+
+							// TODO: i18n
+							if (sp.isEmpty()) {
+								System.out.println(String.format(
+										"%d/%d: %s, %d %s", page, item,
+										subtag.getName(), subtag.getCount(),
+										"stories"));
+							} else {
+								System.out.println(String.format(
+										"%d/%d: %s (%s), %d %s", page, item,
+										subtag.getName(), sp,
+										subtag.getCount(), "stories"));
+							}
 						}
 					} else {
-						System.out.println("Invalid item: only " + count + " items found");
+						System.out.println("Invalid item: only " + count
+								+ " items found");
 					}
 				} else {
 					if (metas != null) {
 						int i = 0;
 						for (MetaData meta : metas) {
-							System.out.println((i + 1) + ": " + meta.getTitle());
+							System.out
+									.println((i + 1) + ": " + meta.getTitle());
 							i++;
 						}
 					} else {
+						int i = 1;
 						for (SearchableTag subtag : subtags) {
+							String total = "";
 							if (subtag.getCount() > 0) {
-								System.out.println(subtag.getName() + " (" + subtag.getCount() + ")");
-							} else {
-								System.out.println(subtag.getName());
+								// TODO: use StringUtils fromNumber
+								total = " (" + subtag.getCount() + ")";
 							}
+							System.out.println(i + ": " + subtag.getName()
+									+ total);
+							i++;
 						}
 					}
 				}

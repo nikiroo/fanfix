@@ -466,15 +466,15 @@ public class Main {
 				page = 1;
 
 				try {
-					item = Integer.parseInt(tags.get(tags.size()-1));
+					page = Integer.parseInt(tags.get(tags.size()-1));
 					tags.remove(tags.size() - 1);
 					
 					try {
 						int tmp = Integer.parseInt(tags.get(tags.size()-1));
 						tags.remove(tags.size() - 1);
 						
-						page = item;
-						item = tmp;
+						item = page;
+						page = tmp;
 					} catch (Exception e) {
 					}
 				} catch (Exception e) {

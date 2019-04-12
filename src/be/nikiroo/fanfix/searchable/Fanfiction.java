@@ -77,7 +77,7 @@ class Fanfiction extends BasicSearchable {
 		if (storiesName != null) {
 			SearchableTag tag = new SearchableTag(null, storiesName, false);
 			for (String id : stories.keySet()) {
-				tag.add(new SearchableTag(id, stories.get(id), true, false));
+				tag.add(new SearchableTag(id, stories.get(id), false, false));
 			}
 			tags.add(tag);
 		}
@@ -126,6 +126,10 @@ class Fanfiction extends BasicSearchable {
 								nr = nr.substring(0, nr.length() - 1);
 							}
 							nr = nr.trim();
+							
+							//TODO: fix toNumber/fromNumber
+							nr = nr.replaceAll("\\.[0-9]*", "");
+							
 							subtag.setCount(toNumber(nr));
 						}
 					}
@@ -186,11 +190,11 @@ class Fanfiction extends BasicSearchable {
 					url += "&p=" + page;
 				}
 			}
-
+			
 			Document doc = load(url, false);
 
 			// Update the pages number if needed
-			if (tag.getPages() < 0) {
+			if (tag.getPages() < 0 && tag.isLeaf()) {
 				tag.setPages(getPages(doc));
 			}
 
