@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version 4.6.1
+
+- changed: formatNumber/toNumber and decimals
+
 ## Version 4.6.0
 
 - new: proxy

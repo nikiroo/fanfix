@@ -228,33 +228,43 @@ class StringUtilsTest extends TestLauncher {
 				assertEquals(orig, unzipped);
 			}
 		});
-		
-		addTest(new TestCase("from/toNumber") {
+
+		addTest(new TestCase("format/toNumber simple") {
 			@Override
 			public void test() throws Exception {
-				assertEquals(StringUtils.toNumber("263"), 263l);
-				assertEquals(StringUtils.toNumber("21200"), 21200l);
-				assertEquals(StringUtils.toNumber("0"), 0l);
-				assertEquals(StringUtils.formatNumber(263l), "263");
-				assertEquals(StringUtils.formatNumber(21000l), "21k");
-				assertEquals(StringUtils.formatNumber(0l), "0");
-				
-				assertEquals(StringUtils.formatNumber(1287l, false), "1287");
-				assertEquals(StringUtils.formatNumber(6056l, false), "6k");
-				
-				assertEquals(StringUtils.toNumber("263k"), 263000l);
-				assertEquals(StringUtils.toNumber("42k"), 42000l);
-				assertEquals(StringUtils.toNumber("12M"), 12000000l);
-				assertEquals(StringUtils.formatNumber(263012l), "263k");
-				assertEquals(StringUtils.formatNumber(42012l), "42k");
-				assertEquals(StringUtils.formatNumber(12012121212l), "12M");
-				
-				assertEquals(StringUtils.toNumber("263.2k"), 263200l);
-				assertEquals(StringUtils.toNumber("1.2k"), 1200l);
-				assertEquals(StringUtils.toNumber("42.7M"), 42700000000l);
-				assertEquals(StringUtils.formatNumber(263202l), "263.2k");
-				assertEquals(StringUtils.formatNumber(1267l), "1.2k");
-				assertEquals(StringUtils.formatNumber(42712121212l), "42.7M");
+				assertEquals(263l, StringUtils.toNumber("263"));
+				assertEquals(21200l, StringUtils.toNumber("21200"));
+				assertEquals(0l, StringUtils.toNumber("0"));
+				assertEquals("263", StringUtils.formatNumber(263l));
+				assertEquals("21k", StringUtils.formatNumber(21000l));
+				assertEquals("0", StringUtils.formatNumber(0l));
+			}
+		});
+
+		addTest(new TestCase("format/toNumber not 000") {
+			@Override
+			public void test() throws Exception {
+				assertEquals(263200l, StringUtils.toNumber("263.2k"));
+				assertEquals(42000l, StringUtils.toNumber("42.0k"));
+				assertEquals(12000000l, StringUtils.toNumber("12M"));
+				assertEquals("263k", StringUtils.formatNumber(263012l));
+				assertEquals("42k", StringUtils.formatNumber(42012l));
+				assertEquals("12M", StringUtils.formatNumber(12012121l));
+			}
+		});
+
+		addTest(new TestCase("format/toNumber decimals") {
+			@Override
+			public void test() throws Exception {
+				assertEquals(263200l, StringUtils.toNumber("263.2k"));
+				assertEquals(1200l, StringUtils.toNumber("1.2k"));
+				assertEquals(42700000l, StringUtils.toNumber("42.7M"));
+				assertEquals(1220l, StringUtils.toNumber("1.22k"));
+				assertEquals(1432l, StringUtils.toNumber("1.432k"));
+				assertEquals("1.3k", StringUtils.formatNumber(1300l, 1));
+				assertEquals("263.2020k", StringUtils.formatNumber(263202l, 4));
+				assertEquals("1.26k", StringUtils.formatNumber(1267l, 2));
+				assertEquals("42.7M", StringUtils.formatNumber(42712121l, 1));
 			}
 		});
 	}

@@ -812,7 +812,7 @@ public class StringUtils {
 	 * @return the display value
 	 */
 	public static String formatNumber(long value) {
-		return formatNumber(value, true);
+		return formatNumber(value, 0);
 	}
 
 	/**
@@ -821,30 +821,44 @@ public class StringUtils {
 	 * <p>
 	 * Example:
 	 * <ul>
-	 * <li><tt>8765</tt> becomes "8k"</li>
-	 * <li><tt>998765</tt> becomes "998k"</li>
-	 * <li><tt>12987364</tt> becomes "12M"</li>
+	 * <li><tt>8765</tt> becomes "8.7k"</li>
+	 * <li><tt>998765</tt> becomes "998.7k"</li>
+	 * <li><tt>12987364</tt> becomes "12.9M"</li>
 	 * </ul>
 	 * 
 	 * @param value
 	 *            the value to convert
-	 * @param strict
-	 *            TRUE if you want any value equals or greater than 1000 to use
-	 *            the "k" suffix; FALSE if you want to go a bit higher and only
-	 *            use "k" for values equal or greater than 4000
+	 * @param decimalPositions
+	 *            the number of decimal positions to keep
 	 * 
 	 * @return the display value
 	 */
-	public static String formatNumber(long value, boolean strict) {
+	public static String formatNumber(long value, int decimalPositions) {
+		String suffix = "";
+		String deci = "";
+
+		int deciDigits = 0;
 		if (value >= 1000000l) {
-			return Long.toString(value / 1000000l) + "M";
+			deciDigits = (int) (value % 1000000l);
+			value = value / 1000000l;
+			suffix = "M";
+
+		} else if (value >= 1000l) {
+			deciDigits = (int) (value % 1000l);
+			value = value / 1000l;
+			suffix = "k";
 		}
 
-		if ((strict && value >= 1000l) || (!strict && value >= 4000l)) {
-			return Long.toString(value / 1000l) + "k";
+		if (decimalPositions > 0) {
+			deci = Integer.toString(deciDigits);
+			deci = deci.substring(0, Math.min(decimalPositions, deci.length()));
+			while (deci.length() < decimalPositions) {
+				deci += "0";
+			}
+			deci = "." + deci;
 		}
 
-		return Long.toString(value);
+		return Long.toString(value) + deci + suffix;
 	}
 
 	/**
@@ -853,7 +867,7 @@ public class StringUtils {
 	 * the full value.
 	 * <p>
 	 * Of course, the conversion to and from display form is lossy (example:
-	 * <tt>6870</tt> to "6k" to <tt>6000</tt>).
+	 * <tt>6870</tt> to "6.5k" to <tt>6500</tt>).
 	 * 
 	 * @param value
 	 *            the value in display form with possible "M" and "k" suffixes,
@@ -871,7 +885,7 @@ public class StringUtils {
 	 * the full value.
 	 * <p>
 	 * Of course, the conversion to and from display form is lossy (example:
-	 * <tt>6870</tt> to "6k" to <tt>6000</tt>).
+	 * <tt>6870</tt> to "6.5k" to <tt>6500</tt>).
 	 * 
 	 * @param value
 	 *            the value in display form with possible "M" and "k" suffixes,
@@ -885,19 +899,30 @@ public class StringUtils {
 	public static long toNumber(String value, long def) {
 		long count = def;
 		if (value != null) {
+			value = value.trim().toLowerCase();
 			try {
-				if (value.toLowerCase().endsWith("m")) {
-					count = Long.parseLong(value.substring(0,
-							value.length() - 1).trim());
-					count *= 1000000;
-				} else if (value.toLowerCase().endsWith("k")) {
-					count = Long.parseLong(value.substring(0,
-							value.length() - 1).trim());
-					count *= 1000;
-				} else {
-					count = Long.parseLong(value);
+				int mult = 1;
+				if (value.endsWith("m")) {
+					value = value.substring(0, value.length() - 1).trim();
+					mult = 1000000;
+				} else if (value.endsWith("k")) {
+					value = value.substring(0, value.length() - 1).trim();
+					mult = 1000;
 				}
-			} catch (NumberFormatException pe) {
+
+				long deci = 0;
+				if (value.contains(".")) {
+					String[] tab = value.split("\\.");
+					if (tab.length != 2) {
+						throw new NumberFormatException(value);
+					}
+					double decimal = Double.parseDouble("0."
+							+ tab[tab.length - 1]);
+					deci = ((long) (mult * decimal));
+					value = tab[0];
+				}
+				count = mult * Long.parseLong(value) + deci;
+			} catch (Exception e) {
 			}
 		}
 
