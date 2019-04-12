@@ -126,11 +126,11 @@ class Fanfiction extends BasicSearchable {
 								nr = nr.substring(0, nr.length() - 1);
 							}
 							nr = nr.trim();
-							
-							//TODO: fix toNumber/fromNumber
+
+							// TODO: fix toNumber/fromNumber
 							nr = nr.replaceAll("\\.[0-9]*", "");
-							
-							subtag.setCount(toNumber(nr));
+
+							subtag.setCount(StringUtils.toNumber(nr));
 						}
 					}
 				}
@@ -138,33 +138,6 @@ class Fanfiction extends BasicSearchable {
 		}
 
 		tag.setComplete(true);
-	}
-
-	/**
-	 * @deprecated use {@link StringUtils} when updated
-	 */
-	@Deprecated
-	private static long toNumber(String value) {
-		// TODO: use StringUtils instead after update
-		long count = 0l;
-		if (value != null) {
-			try {
-				if (value.toLowerCase().endsWith("m")) {
-					count = Long.parseLong(value.substring(0,
-							value.length() - 1).trim());
-					count *= 1000000;
-				} else if (value.toLowerCase().endsWith("k")) {
-					count = Long.parseLong(value.substring(0,
-							value.length() - 1).trim());
-					count *= 1000;
-				} else {
-					count = Long.parseLong(value);
-				}
-			} catch (NumberFormatException pe) {
-			}
-		}
-
-		return count;
 	}
 
 	@Override
@@ -190,7 +163,7 @@ class Fanfiction extends BasicSearchable {
 					url += "&p=" + page;
 				}
 			}
-			
+
 			Document doc = load(url, false);
 
 			// Update the pages number if needed

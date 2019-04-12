@@ -14,6 +14,7 @@ import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.searchable.BasicSearchable;
 import be.nikiroo.fanfix.searchable.SearchableTag;
 import be.nikiroo.fanfix.supported.SupportType;
+import be.nikiroo.utils.StringUtils;
 
 /**
  * Command line {@link Story} reader.
@@ -215,11 +216,18 @@ class CliReader extends BasicReader {
 						for (SearchableTag subtag : subtags) {
 							String total = "";
 							if (subtag.getCount() > 0) {
-								// TODO: use StringUtils fromNumber
-								total = " (" + subtag.getCount() + ")";
+								total = StringUtils.formatNumber(subtag
+										.getCount());
 							}
-							System.out.println(i + ": " + subtag.getName()
-									+ total);
+
+							if (total.isEmpty()) {
+								System.out.println(String.format("%d: %s", i,
+										subtag.getName()));
+							} else {
+								System.out.println(String.format("%d: %s (%s)",
+										i, subtag.getName(), total));
+							}
+
 							i++;
 						}
 					}
