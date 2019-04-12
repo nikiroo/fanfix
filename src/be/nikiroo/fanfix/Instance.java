@@ -17,6 +17,7 @@ import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.library.RemoteLibrary;
 import be.nikiroo.utils.Cache;
 import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.Proxy;
 import be.nikiroo.utils.TempFiles;
 import be.nikiroo.utils.TraceHandler;
 import be.nikiroo.utils.resources.Bundles;
@@ -54,8 +55,7 @@ public class Instance {
 		createConfigs(configDir, false);
 		
 		// Proxy support
-		// TODO: include new nikiroo-utils version
-		// Proxy.use(Instance.getConfig().getString(Config.USE_PROXY));
+		Proxy.use(Instance.getConfig().getString(Config.USE_PROXY));
 
 		// update tracer:
 		boolean debug = Instance.getConfig()
