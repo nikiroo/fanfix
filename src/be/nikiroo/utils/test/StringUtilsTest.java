@@ -250,6 +250,7 @@ class StringUtilsTest extends TestLauncher {
 				assertEquals("263k", StringUtils.formatNumber(263012l));
 				assertEquals("42k", StringUtils.formatNumber(42012l));
 				assertEquals("12M", StringUtils.formatNumber(12012121l));
+				assertEquals("7G", StringUtils.formatNumber(7364635928l));
 			}
 		});
 
@@ -261,10 +262,12 @@ class StringUtilsTest extends TestLauncher {
 				assertEquals(42700000l, StringUtils.toNumber("42.7M"));
 				assertEquals(1220l, StringUtils.toNumber("1.22k"));
 				assertEquals(1432l, StringUtils.toNumber("1.432k"));
+				assertEquals(6938l, StringUtils.toNumber("6.938k"));
 				assertEquals("1.3k", StringUtils.formatNumber(1300l, 1));
 				assertEquals("263.2020k", StringUtils.formatNumber(263202l, 4));
 				assertEquals("1.26k", StringUtils.formatNumber(1267l, 2));
 				assertEquals("42.7M", StringUtils.formatNumber(42712121l, 1));
+				assertEquals("5.09M", StringUtils.formatNumber(5094837485l, 2));
 			}
 		});
 	}

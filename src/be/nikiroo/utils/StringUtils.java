@@ -838,11 +838,14 @@ public class StringUtils {
 		String deci = "";
 
 		int deciDigits = 0;
-		if (value >= 1000000l) {
+		if (value >= 1000000000l) {
+			deciDigits = (int) (value % 1000000000l);
+			value = value / 1000000000l;
+			suffix = "G";
+		} else if (value >= 1000000l) {
 			deciDigits = (int) (value % 1000000l);
 			value = value / 1000000l;
 			suffix = "M";
-
 		} else if (value >= 1000l) {
 			deciDigits = (int) (value % 1000l);
 			value = value / 1000l;
