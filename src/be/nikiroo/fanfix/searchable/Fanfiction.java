@@ -141,10 +141,10 @@ class Fanfiction extends BasicSearchable {
 	}
 
 	@Override
-	public List<MetaData> search(String search) throws IOException {
+	public List<MetaData> search(String search, int page) throws IOException {
 		String encoded = URLEncoder.encode(search.toLowerCase(), "utf-8");
 		return getStories(BASE_URL + "search/?ready=1&type=story&keywords="
-				+ encoded, null, null);
+				+ encoded + "&ppage=" + page, null, null);
 	}
 
 	@Override
@@ -193,11 +193,8 @@ class Fanfiction extends BasicSearchable {
 	 *            the document
 	 * 
 	 * @return the number of pages or -1 if unknown
-	 * 
-	 * @throws IOException
-	 *             in case of I/O errors
 	 */
-	private int getPages(Document doc) throws IOException {
+	private int getPages(Document doc) {
 		int pages = -1;
 
 		if (doc != null) {

@@ -96,13 +96,16 @@ public abstract class BasicSearchable {
 	 * 
 	 * @param search
 	 *            the term to search for
+	 * @param page
+	 *            the page to use for result pagination, index is 1-based
 	 * 
 	 * @return a list of stories that satisfy that search term
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	abstract public List<MetaData> search(String search) throws IOException;
+	abstract public List<MetaData> search(String search, int page)
+			throws IOException;
 
 	/**
 	 * Search for the given tag and return a list of stories satisfying this
@@ -113,7 +116,7 @@ public abstract class BasicSearchable {
 	 * <p>
 	 * URL is guaranteed to be usable, LUID will always be NULL.
 	 * 
-	 * @param tagId
+	 * @param tag
 	 *            the tag to search for
 	 * @param page
 	 *            the page to use for result pagination (see

@@ -104,7 +104,7 @@ class CliReader extends BasicReader {
 	@Override
 	public void search(SupportType searchOn, String keywords, int page,
 			int item, boolean sync) throws IOException {
-
+		// TODO
 	}
 
 	@Override
