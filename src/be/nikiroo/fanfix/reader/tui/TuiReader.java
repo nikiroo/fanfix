@@ -71,16 +71,22 @@ class TuiReader extends BasicReader {
 			Instance.getTraceHandler().error(e);
 		}
 	}
-	
+
 	@Override
-	public void search(SupportType searchOn, String keywords, int page, int item) {
-		// TODO: !!!
-		throw new java.lang.IllegalStateException("Not implemented yet.");	
+	public void search(SupportType searchOn, String keywords, int page,
+			int item, boolean sync) {
+		// TODO
+		if (sync) {
+			throw new java.lang.IllegalStateException("Not implemented yet.");
+		}
 	}
-	
+
 	@Override
-	public void searchTag(SupportType searchOn, int page, int item, String... tags) {
-		// TODO: !!!
-		throw new java.lang.IllegalStateException("Not implemented yet.");
+	public void searchTag(SupportType searchOn, int page, int item,
+			boolean sync, Integer... tags) {
+		// TODO
+		if (sync) {
+			throw new java.lang.IllegalStateException("Not implemented yet.");
+		}
 	}
 }

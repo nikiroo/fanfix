@@ -183,12 +183,15 @@ public interface Reader {
 	 * @param item
 	 *            the item to select (0 = do not select a specific item but show
 	 *            all the page, items start at 1)
+	 * @param sync
+	 *            execute the process synchronously (wait until it is terminated
+	 *            before returning)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public void search(SupportType searchOn, String keywords, int page, int item)
-			throws IOException;
+	public void search(SupportType searchOn, String keywords, int page,
+			int item, boolean sync) throws IOException;
 
 	/**
 	 * Search based upon a hierarchy of tags, or search for (sub)tags.
@@ -212,6 +215,9 @@ public interface Reader {
 	 * @param item
 	 *            the item to select (0 = do not select a specific item but show
 	 *            all the page, items <b>start at 1</b>)
+	 * @param sync
+	 *            execute the process synchronously (wait until it is terminated
+	 *            before returning)
 	 * @param tags
 	 *            the tags indices to search for (this is a tag
 	 *            <b>hierarchy</b>, <b>NOT</b> a multiple tags choice)
@@ -220,7 +226,7 @@ public interface Reader {
 	 *             in case of I/O error
 	 */
 	public void searchTag(SupportType searchOn, int page, int item,
-			Integer... tags) throws IOException;
+			boolean sync, Integer... tags) throws IOException;
 
 	/**
 	 * Open the {@link Story} with an external reader (the program should be

@@ -102,14 +102,14 @@ class CliReader extends BasicReader {
 	}
 
 	@Override
-	public void search(SupportType searchOn, String keywords, int page, int item)
-			throws IOException {
+	public void search(SupportType searchOn, String keywords, int page,
+			int item, boolean sync) throws IOException {
 
 	}
 
 	@Override
 	public void searchTag(SupportType searchOn, int page, int item,
-			Integer... tags) throws IOException {
+			boolean sync, Integer... tags) throws IOException {
 		BasicSearchable search = BasicSearchable.getSearchable(searchOn);
 		List<SearchableTag> stags = search.getTags();
 		String fqnTag = "";

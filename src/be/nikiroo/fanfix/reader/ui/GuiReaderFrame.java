@@ -192,7 +192,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 				searchItem.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						reader.search(type, "", 1, 0);
+						reader.search(type, "", 1, 0, false);
 					}
 				});
 				search.add(searchItem);

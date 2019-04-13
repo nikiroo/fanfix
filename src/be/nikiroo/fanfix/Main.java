@@ -501,7 +501,7 @@ public class Main {
 				} else {
 					try {
 						BasicReader.getReader().search(searchOn, search, page,
-								item);
+								item, true);
 					} catch (IOException e1) {
 						Instance.getTraceHandler().error(e1);
 					}
@@ -538,7 +538,7 @@ public class Main {
 
 				try {
 					BasicReader.getReader().searchTag(searchOn, page, item,
-							tags.toArray(new Integer[] {}));
+							true, tags.toArray(new Integer[] {}));
 				} catch (IOException e1) {
 					Instance.getTraceHandler().error(e1);
 				}
