@@ -5,6 +5,7 @@
 - new: story search (Fanfiction.net)
 - new: proxy support
 - fix: support hybrid CBZ (with text)
+- fix: fix DEBUG=0
 - gui: focus fix
 
 # Version 2.0.2

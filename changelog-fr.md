@@ -5,6 +5,7 @@
 - new: recherche d'histoires (Fanfiction.net)
 - new: support d'un proxy
 - fix: support des CBZ contenant du texte
+- fix: correction de DEBUG=0
 - gui: correction pour le focus 
 
 # Version 2.0.2
