@@ -80,7 +80,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 */
 	public GuiReaderFrame(GuiReader reader, String type) {
 		super(getAppTitle(reader.getLibrary().getLibraryName()));
-		
+
 		this.reader = reader;
 
 		mainPanel = new GuiReaderMainPanel(this, type);
@@ -185,22 +185,22 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 
 		JMenu search = new JMenu(GuiReader.trans(StringIdGui.MENU_SEARCH));
 		search.setMnemonic(KeyEvent.VK_H);
-		for (SupportType type : SupportType.values()) {
+		for (final SupportType type : SupportType.values()) {
 			BasicSearchable searchable = BasicSearchable.getSearchable(type);
 			if (searchable != null) {
 				JMenuItem searchItem = new JMenuItem(type.getSourceName());
 				searchItem.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						// TODO: open a search window
+						reader.search(type, "", 1, 0);
 					}
 				});
 				search.add(searchItem);
 			}
 		}
-		
+
 		bar.add(search);
-		
+
 		JMenu view = new JMenu(GuiReader.trans(StringIdGui.MENU_VIEW));
 		view.setMnemonic(KeyEvent.VK_V);
 		JMenuItem vauthors = new JMenuItem(
@@ -441,7 +441,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					fc.showDialog(GuiReaderFrame.this,
 							GuiReader.trans(StringIdGui.TITLE_SAVE));
 					if (fc.getSelectedFile() != null) {
-						final OutputType type = otherFilters.get(fc.getFileFilter());
+						final OutputType type = otherFilters.get(fc
+								.getFileFilter());
 						final String path = fc.getSelectedFile()
 								.getAbsolutePath()
 								+ type.getDefaultExtension(false);
@@ -738,21 +739,16 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
 					final MetaData meta = selectedBook.getInfo().getMeta();
-					mainPanel.imprt(
-							meta.getUrl(),
-							new StoryRunnable() {
-								@Override
-								public void run(Story story) {
-									MetaData newMeta = story.getMeta();
-									if (!newMeta.getSource().equals(
-											meta.getSource())) {
-										reader.changeSource(newMeta.getLuid(),
-												meta.getSource());
-									}
-								}
-							},
-							GuiReader
-									.trans(StringIdGui.PROGRESS_CHANGE_SOURCE));
+					mainPanel.imprt(meta.getUrl(), new StoryRunnable() {
+						@Override
+						public void run(Story story) {
+							MetaData newMeta = story.getMeta();
+							if (!newMeta.getSource().equals(meta.getSource())) {
+								reader.changeSource(newMeta.getLuid(),
+										meta.getSource());
+							}
+						}
+					}, GuiReader.trans(StringIdGui.PROGRESS_CHANGE_SOURCE));
 				}
 			}
 		});

@@ -218,15 +218,16 @@ class GuiReader extends BasicReader {
 			super.start(target, program, sync);
 		}
 	}
-	
+
 	@Override
 	public void search(SupportType searchOn, String keywords, int page, int item) {
 		// TODO: !!!
 		throw new java.lang.IllegalStateException("Not implemented yet.");
 	}
-	
+
 	@Override
-	public void searchTag(SupportType searchOn, int page, int item, String... tags) {
+	public void searchTag(SupportType searchOn, int page, int item,
+			Integer... tags) {
 		// TODO: !!!
 		throw new java.lang.IllegalStateException("Not implemented yet.");
 	}
