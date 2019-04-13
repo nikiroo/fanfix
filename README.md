@@ -50,7 +50,7 @@ Currently, the following websites are supported:
 - https://e621.net/: a Furry website supporting comics, including MLP
 - https://sofurry.com/: same thing, but story-oriented
 - https://e-hentai.org/: done upon request (so, feel free to ask for more websites!)
-- https://www.manga-lel.com/: a website offering a lot of mangas (in French)
+- http://mangas-lecture-en-ligne.fr/: a website offering a lot of mangas (in French)
 
 ### Support file types
 

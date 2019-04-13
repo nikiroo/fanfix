@@ -7,6 +7,7 @@
 - fix: support hybrid CBZ (with text)
 - fix: fix DEBUG=0
 - gui: focus fix
+- MangaLEL: website has changed
 
 # Version 2.0.2
 

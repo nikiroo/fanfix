@@ -7,6 +7,7 @@
 - fix: support des CBZ contenant du texte
 - fix: correction de DEBUG=0
 - gui: correction pour le focus 
+- MangaLEL: site web changé
 
 # Version 2.0.2
 
