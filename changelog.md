@@ -1,8 +1,8 @@
 # nikiroo-utils
 
-## Version 4.6.1
+## Version 4.6.2
 
-- changed: formatNumber/toNumber and decimals
+- fix: formatNumber/toNumber and decimals
 
 ## Version 4.6.0
 

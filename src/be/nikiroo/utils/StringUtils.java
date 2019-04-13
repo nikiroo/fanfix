@@ -799,11 +799,13 @@ public class StringUtils {
 	 * Return a display {@link String} for the given value, which can be
 	 * suffixed with "k" or "M" depending upon the number, if it is big enough.
 	 * <p>
-	 * Example:
+	 * <p>
+	 * Examples:
 	 * <ul>
-	 * <li><tt>8765</tt> becomes "8k"</li>
-	 * <li><tt>998765</tt> becomes "998k"</li>
-	 * <li><tt>12987364</tt> becomes "12M"</li>
+	 * <li><tt>8 765</tt> becomes "8k"</li>
+	 * <li><tt>998 765</tt> becomes "998k"</li>
+	 * <li><tt>12 987 364</tt> becomes "12M"</li>
+	 * <li><tt>5 534 333 221</tt> becomes "5G"</li>
 	 * </ul>
 	 * 
 	 * @param value
@@ -819,11 +821,12 @@ public class StringUtils {
 	 * Return a display {@link String} for the given value, which can be
 	 * suffixed with "k" or "M" depending upon the number, if it is big enough.
 	 * <p>
-	 * Example:
+	 * Examples (assuming decimalPositions = 1):
 	 * <ul>
-	 * <li><tt>8765</tt> becomes "8.7k"</li>
-	 * <li><tt>998765</tt> becomes "998.7k"</li>
-	 * <li><tt>12987364</tt> becomes "12.9M"</li>
+	 * <li><tt>8 765</tt> becomes "8.7k"</li>
+	 * <li><tt>998 765</tt> becomes "998.7k"</li>
+	 * <li><tt>12 987 364</tt> becomes "12.9M"</li>
+	 * <li><tt>5 534 333 221</tt> becomes "5.5G"</li>
 	 * </ul>
 	 * 
 	 * @param value
@@ -834,34 +837,41 @@ public class StringUtils {
 	 * @return the display value
 	 */
 	public static String formatNumber(long value, int decimalPositions) {
+		long userValue = value;
 		String suffix = "";
-		String deci = "";
+		long mult = 1;
 
-		int deciDigits = 0;
 		if (value >= 1000000000l) {
-			deciDigits = (int) (value % 1000000000l);
-			value = value / 1000000000l;
+			mult = 1000000000l;
+			userValue = value / 1000000000l;
 			suffix = "G";
 		} else if (value >= 1000000l) {
-			deciDigits = (int) (value % 1000000l);
-			value = value / 1000000l;
+			mult = 1000000l;
+			userValue = value / 1000000l;
 			suffix = "M";
 		} else if (value >= 1000l) {
-			deciDigits = (int) (value % 1000l);
-			value = value / 1000l;
+			mult = 1000l;
+			userValue = value / 1000l;
 			suffix = "k";
 		}
 
+		String deci = "";
 		if (decimalPositions > 0) {
-			deci = Integer.toString(deciDigits);
+			deci = Long.toString(value % mult);
+			int size = Long.toString(mult).length() - 1;
+			while (deci.length() < size) {
+				deci = "0" + deci;
+			}
+
 			deci = deci.substring(0, Math.min(decimalPositions, deci.length()));
 			while (deci.length() < decimalPositions) {
 				deci += "0";
 			}
+
 			deci = "." + deci;
 		}
 
-		return Long.toString(value) + deci + suffix;
+		return Long.toString(userValue) + deci + suffix;
 	}
 
 	/**
@@ -904,8 +914,11 @@ public class StringUtils {
 		if (value != null) {
 			value = value.trim().toLowerCase();
 			try {
-				int mult = 1;
-				if (value.endsWith("m")) {
+				long mult = 1;
+				if (value.endsWith("g")) {
+					value = value.substring(0, value.length() - 1).trim();
+					mult = 1000000000;
+				} else if (value.endsWith("m")) {
 					value = value.substring(0, value.length() - 1).trim();
 					mult = 1000000;
 				} else if (value.endsWith("k")) {
