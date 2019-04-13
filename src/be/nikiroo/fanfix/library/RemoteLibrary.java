@@ -58,6 +58,7 @@ public class RemoteLibrary extends BasicLibrary {
 
 		ConnectActionClientObject action = null;
 		try {
+			Instance.getTraceHandler().trace("Getting remote lib status...");
 			action = new ConnectActionClientObject(host, port, true) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
@@ -91,6 +92,7 @@ public class RemoteLibrary extends BasicLibrary {
 			}
 		}
 
+		Instance.getTraceHandler().trace("Remote lib status: " + result[0]);
 		return result[0];
 	}
 
