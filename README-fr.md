@@ -10,6 +10,10 @@ Fanfix est un petit programme Java qui peut télécharger des histoires sur inte
 - ```fanfix``` --convert [*URL*] [*output_type*] [*target*] (+info)
 - ```fanfix``` --read [*id*] ([*chapter number*])
 - ```fanfix``` --read-url [*URL*] ([*chapter number*])
+- ```fanfix``` --search
+- ```fanfix``` --search [*where*] [*keywords*] (page [*page*]) (item [*item*])
+- ```fanfix``` --tag
+- ```fanfix``` --tag [*index 1*]... (page [*page*]) (item [*item*])
 - ```fanfix``` --list
 - ```fanfix``` --set-reader [*GUI* | *TUI* | *CLI*]
 - ```fanfix``` --server [*key*] [*port*]
@@ -85,6 +89,10 @@ Les arguments suivants sont aussi supportés :
 - ```--convert [URL] [output_type] [target] (+info)```: convertir l'histoire vers le fichier donné, et forcer l'ajout d'un fichier .info si +info est utilisé
 - ```--read [id] ([chapter number])```: afficher l'histoire "id"
 - ```--read-url [URL] ([chapter number])```: convertir l'histoire et la lire à la volée, sans la sauver
+- ```--search```: liste les sites supportés (```where```)
+- ```--search [where] [keywords] (page [page]) (item [item])```: lance une recherche et affiche les résultats de la page ```page``` (page 1 par défaut), et de l'item ```item``` spécifique si demandé
+- ```--tag [where]```: liste tous les tags supportés par ce site web
+- ```--tag [index 1]... (page [page]) (item [item])```: affine la recherche, tag par tag, et affiche si besoin les sous-tags, les histoires ou les infos précises de l'histoire demandée
 - ```--list```: lister les histoires presentes dans la librairie et leurs IDs
 - ```--set-reader [reader type]```: changer le type de lecteur pour la commande en cours sur CLI, TUI ou GUI
 - ```--server [key] [port]```: démarrer un serveur d'histoires sur ce port

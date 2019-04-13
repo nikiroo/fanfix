@@ -109,23 +109,26 @@ class CliReader extends BasicReader {
 
 	@Override
 	public void searchTag(SupportType searchOn, int page, int item,
-			String... tags) throws IOException {
+			Integer... tags) throws IOException {
 		BasicSearchable search = BasicSearchable.getSearchable(searchOn);
 		List<SearchableTag> stags = search.getTags();
+		String fqnTag = "";
 
 		SearchableTag stag = null;
-		for (String tag : tags) {
-			stag = null;
-			for (int i = 0; i < stags.size(); i++) {
-				if (stags.get(i).getName().equalsIgnoreCase(tag)) {
-					stag = stags.get(i);
-					break;
-				}
+		for (Integer tagIndex : tags) {
+			// ! 1-based index !
+			if (tagIndex == null || tagIndex <= 0 | tagIndex > stags.size()) {
+				throw new IOException("Index out of bounds: " + tagIndex);
 			}
 
+			stag = stags.get(tagIndex - 1);
 			if (stag != null) {
 				search.fillTag(stag);
 				stags = stag.getChildren();
+				if (!fqnTag.isEmpty()) {
+					fqnTag += " / ";
+				}
+				fqnTag += stag.getName();
 			} else {
 				stags = new ArrayList<SearchableTag>();
 				break;
@@ -171,34 +174,12 @@ class CliReader extends BasicReader {
 						} else {
 							SearchableTag subtag = subtags.get(item - 1);
 
-							String sp = "";
-							if (subtag.getParent() != null) {
-								List<String> parents = new ArrayList<String>();
-								for (SearchableTag parent = subtag.getParent(); parent != null; parent = parent
-										.getParent()) {
-									parents.add(parent.getName());
-								}
-								for (String parent : parents) {
-									if (!sp.isEmpty()) {
-										sp += " / ";
-									}
-									sp += parent;
-								}
-							}
-
 							// TODO: i18n
 							String stories = "stories";
 							String num = StringUtils.formatNumber(subtag
 									.getCount());
-							if (sp.isEmpty()) {
-								System.out.println(String.format(
-										"%d/%d: %s, %s %s", page, item,
-										subtag.getName(), num, stories));
-							} else {
-								System.out.println(String.format(
-										"%d/%d: %s (%s), %s %s", page, item,
-										subtag.getName(), sp, num, stories));
-							}
+							System.out.println(String.format("%s (%s), %s %s",
+									subtag.getName(), fqnTag, num, stories));
 						}
 					} else {
 						System.out.println("Invalid item: only " + count
@@ -206,13 +187,18 @@ class CliReader extends BasicReader {
 					}
 				} else {
 					if (metas != null) {
-						int i = 0;
+						// TODO i18n
+						System.out.println(String.format("Content of %s: ",
+								fqnTag));
+						int i = 1;
 						for (MetaData meta : metas) {
-							System.out
-									.println((i + 1) + ": " + meta.getTitle());
+							System.out.println(i + ": " + meta.getTitle());
 							i++;
 						}
 					} else {
+						// TODO i18n
+						System.out.println(String.format("Subtags of %s: ",
+								fqnTag));
 						int i = 1;
 						for (SearchableTag subtag : subtags) {
 							String total = "";
@@ -235,8 +221,12 @@ class CliReader extends BasicReader {
 				}
 			}
 		} else {
+			// TODO i18n
+			System.out.println("Known tags: ");
+			int i = 1;
 			for (SearchableTag s : stags) {
-				System.out.println(s.getName());
+				System.out.println(String.format("%d: %s", i, s.getName()));
+				i++;
 			}
 		}
 	}

@@ -125,14 +125,15 @@ class TuiReaderApplication extends TApplication implements Reader {
 	public void setChapter(int chapter) {
 		reader.setChapter(chapter);
 	}
-	
+
 	@Override
-	public void search(SupportType searchOn, String keywords, int page, int item) {
-		reader.search(searchOn, keywords, page,item);	
+	public void search(SupportType searchOn, String keywords, int page, int item) throws IOException {
+		reader.search(searchOn, keywords, page, item);
 	}
-	
+
 	@Override
-	public void searchTag(SupportType searchOn, int page, int item, String... tags) {
+	public void searchTag(SupportType searchOn, int page, int item,
+			Integer... tags) throws IOException {
 		reader.searchTag(searchOn, page, item, tags);
 	}
 

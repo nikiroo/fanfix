@@ -10,6 +10,10 @@ Fanfix is a small Java program that can download stories from some supported web
 - ```fanfix``` --convert [*URL*] [*output_type*] [*target*] (+info)
 - ```fanfix``` --read [*id*] ([*chapter number*])
 - ```fanfix``` --read-url [*URL*] ([*chapter number*])
+- ```fanfix``` --search
+- ```fanfix``` --search [*where*] [*keywords*] (page [*page*]) (item [*item*])
+- ```fanfix``` --tag
+- ```fanfix``` --tag [*index 1*]... (page [*page*]) (item [*item*])
 - ```fanfix``` --list
 - ```fanfix``` --set-reader [*GUI* | *TUI* | *CLI*]
 - ```fanfix``` --server [*key*] [*port*]
@@ -85,6 +89,10 @@ The following arguments are also allowed:
 - ```--convert [URL] [output_type] [target] (+info)```: convert the story at URL into target, and force-add the .info and cover if +info is passed
 - ```--read [id] ([chapter number])```: read the given story denoted by ID from the library
 - ```--read-url [URL] ([chapter number])```: convert on the fly and read the story at URL, without saving it
+- ```--search```: list the supported websites (```where```)
+- ```--search [where] [keywords] (page [page]) (item [item])```: search on the supported website and display the given results page of stories it found, or the story details if asked
+- ```--tag [where]```: list all the tags supported by this website
+- ```--tag [index 1]... (page [page]) (item [item])```: search for the given stories or subtags, tag by tag, and display information about a specific page of results or about a specific item if requested
 - ```--list```: list the stories present in the library and their associated IDs
 - ```--set-reader [reader type]```: set the reader type to CLI, TUI or GUI for this command
 - ```--server [key] [port]```: start a story server on this port
