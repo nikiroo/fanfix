@@ -104,7 +104,27 @@ class CliReader extends BasicReader {
 	@Override
 	public void search(SupportType searchOn, String keywords, int page,
 			int item, boolean sync) throws IOException {
-		// TODO
+		BasicSearchable search = BasicSearchable.getSearchable(searchOn);
+
+		if (page == 0) {
+			System.out.println(search.searchPages(keywords));
+		} else {
+			List<MetaData> metas = search.search(keywords, page);
+
+			if (item == 0) {
+				System.out.println("Page " + page + " of stories for: "
+						+ keywords);
+				displayStories(metas);
+			} else {
+				// ! 1-based index !
+				if (item <= 0 | item > metas.size()) {
+					throw new IOException("Index out of bounds: " + item);
+				}
+
+				MetaData meta = metas.get(item - 1);
+				displayStory(meta);
+			}
+		}
 	}
 
 	@Override
@@ -160,17 +180,7 @@ class CliReader extends BasicReader {
 					if (item <= count) {
 						if (metas != null) {
 							MetaData meta = metas.get(item - 1);
-							System.out.println(page + "/" + item + ": "
-									+ meta.getTitle());
-							System.out.println();
-							System.out.println(meta.getUrl());
-							System.out.println();
-							System.out.println("Tags: " + meta.getTags());
-							System.out.println();
-							for (Paragraph para : meta.getResume()) {
-								System.out.println(para.getContent());
-								System.out.println("");
-							}
+							displayStory(meta);
 						} else {
 							SearchableTag subtag = subtags.get(item - 1);
 
@@ -190,11 +200,7 @@ class CliReader extends BasicReader {
 						// TODO i18n
 						System.out.println(String.format("Content of %s: ",
 								fqnTag));
-						int i = 1;
-						for (MetaData meta : metas) {
-							System.out.println(i + ": " + meta.getTitle());
-							i++;
-						}
+						displayStories(metas);
 					} else {
 						// TODO i18n
 						System.out.println(String.format("Subtags of %s: ",
@@ -228,6 +234,27 @@ class CliReader extends BasicReader {
 				System.out.println(String.format("%d: %s", i, s.getName()));
 				i++;
 			}
+		}
+	}
+
+	private void displayStory(MetaData meta) {
+		System.out.println(meta.getTitle());
+		System.out.println();
+		System.out.println(meta.getUrl());
+		System.out.println();
+		System.out.println("Tags: " + meta.getTags());
+		System.out.println();
+		for (Paragraph para : meta.getResume()) {
+			System.out.println(para.getContent());
+			System.out.println("");
+		}
+	}
+
+	private void displayStories(List<MetaData> metas) {
+		int i = 1;
+		for (MetaData meta : metas) {
+			System.out.println(i + ": " + meta.getTitle());
+			i++;
 		}
 	}
 }

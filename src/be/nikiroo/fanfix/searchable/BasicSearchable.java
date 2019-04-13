@@ -86,6 +86,20 @@ public abstract class BasicSearchable {
 	abstract public void fillTag(SearchableTag tag) throws IOException;
 
 	/**
+	 * Search for the given term and return the number of pages of results of
+	 * stories satisfying this search term.
+	 * 
+	 * @param search
+	 *            the term to search for
+	 * 
+	 * @return a number of pages
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	abstract public int searchPages(String search) throws IOException;
+
+	/**
 	 * Search for the given term and return a list of stories satisfying this
 	 * search term.
 	 * <p>

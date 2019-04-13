@@ -143,8 +143,19 @@ class Fanfiction extends BasicSearchable {
 	@Override
 	public List<MetaData> search(String search, int page) throws IOException {
 		String encoded = URLEncoder.encode(search.toLowerCase(), "utf-8");
-		return getStories(BASE_URL + "search/?ready=1&type=story&keywords="
-				+ encoded + "&ppage=" + page, null, null);
+		String url = BASE_URL + "search/?ready=1&type=story&keywords="
+				+ encoded + "&ppage=" + page;
+
+		return getStories(url, null, null);
+	}
+
+	@Override
+	public int searchPages(String search) throws IOException {
+		String encoded = URLEncoder.encode(search.toLowerCase(), "utf-8");
+		String url = BASE_URL + "search/?ready=1&type=story&keywords="
+				+ encoded;
+
+		return getPages(load(url, false));
 	}
 
 	@Override

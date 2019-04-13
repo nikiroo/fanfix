@@ -491,20 +491,22 @@ public class Main {
 					break;
 				}
 
-				if (searchOn == null || search == null) {
+				if (searchOn == null) {
 					// TODO: do on reader!!!
 					for (SupportType type : SupportType.values()) {
 						if (BasicSearchable.getSearchable(type) != null) {
 							System.out.println(type);
 						}
 					}
-				} else {
+				} else if (search != null) {
 					try {
 						BasicReader.getReader().search(searchOn, search, page,
 								item, true);
 					} catch (IOException e1) {
 						Instance.getTraceHandler().error(e1);
 					}
+				} else {
+					exitCode = 255;
 				}
 
 				break;
