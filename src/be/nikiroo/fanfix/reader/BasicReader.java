@@ -232,9 +232,11 @@ public abstract class BasicReader implements Reader {
 		metaDesc.put("Published on", meta.getPublisher());
 		metaDesc.put("URL", meta.getUrl());
 		if (meta.isImageDocument()) {
-			metaDesc.put("Number of images", format(meta.getWords()));
+			metaDesc.put("Number of images",
+					StringUtils.formatNumber(meta.getWords()));
 		} else {
-			metaDesc.put("Number of words", format(meta.getWords()));
+			metaDesc.put("Number of words",
+					StringUtils.formatNumber(meta.getWords()));
 		}
 		metaDesc.put("Source", meta.getSource());
 		metaDesc.put("Subject", meta.getSubject());
@@ -349,32 +351,6 @@ public abstract class BasicReader implements Reader {
 			} catch (InterruptedException e) {
 			}
 		}
-	}
-
-	/**
-	 * @deprecated use StringUtils when updated
-	 */
-	@Deprecated
-	static private String format(long value) {
-		//TODO: use StringUtils
-		
-		String display = "";
-		String suffix = "";
-
-		if (value > 4000) {
-			value = value / 1000;
-			suffix = "k";
-		}
-
-		while (value > 0) {
-			if (!display.isEmpty()) {
-				display = "." + display;
-			}
-			display = (value % 1000) + display;
-			value = value / 1000;
-		}
-
-		return display + suffix;
 	}
 
 	static private String formatDate(String date) {

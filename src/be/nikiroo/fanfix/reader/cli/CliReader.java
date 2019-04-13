@@ -187,16 +187,17 @@ class CliReader extends BasicReader {
 							}
 
 							// TODO: i18n
+							String stories = "stories";
+							String num = StringUtils.formatNumber(subtag
+									.getCount());
 							if (sp.isEmpty()) {
 								System.out.println(String.format(
-										"%d/%d: %s, %d %s", page, item,
-										subtag.getName(), subtag.getCount(),
-										"stories"));
+										"%d/%d: %s, %s %s", page, item,
+										subtag.getName(), num, stories));
 							} else {
 								System.out.println(String.format(
-										"%d/%d: %s (%s), %d %s", page, item,
-										subtag.getName(), sp,
-										subtag.getCount(), "stories"));
+										"%d/%d: %s (%s), %s %s", page, item,
+										subtag.getName(), sp, num, stories));
 							}
 						}
 					} else {
