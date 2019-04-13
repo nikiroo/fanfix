@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version WIP
+
+- tracer: traces on stderr by default
+
 ## Version 4.6.2
 
 - fix: formatNumber/toNumber and decimals

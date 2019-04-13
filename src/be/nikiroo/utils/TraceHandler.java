@@ -28,7 +28,7 @@ public class TraceHandler {
 	 * @param showErrorDetails
 	 *            show more details when printing errors
 	 * @param showTraces
-	 *            show level 1 traces on stdout, or no traces at all
+	 *            show level 1 traces on stderr, or no traces at all
 	 */
 	public TraceHandler(boolean showErrors, boolean showErrorDetails,
 			boolean showTraces) {
@@ -140,10 +140,10 @@ public class TraceHandler {
 	public void trace(String message, int level) {
 		if (traceLevel > 0 && level <= traceLevel) {
 			if (maxPrintSize > 0 && message.length() > maxPrintSize) {
-				System.out
+				System.err
 						.println(message.substring(0, maxPrintSize) + "[...]");
 			} else {
-				System.out.println(message);
+				System.err.println(message);
 			}
 		}
 	}
