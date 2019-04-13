@@ -43,7 +43,9 @@ public class Instance {
 
 	static {
 		// Before we can configure it:
-		tracer = new TraceHandler(true, checkEnv("DEBUG"), checkEnv("DEBUG"));
+		Boolean debug = checkEnv("DEBUG");
+		boolean trace = debug != null && debug;
+		tracer = new TraceHandler(true, trace, trace);
 
 		// config dir:
 		configDir = getConfigDir();
@@ -53,19 +55,14 @@ public class Instance {
 
 		// Most of the rest is dependent upon this:
 		createConfigs(configDir, false);
-		
+
 		// Proxy support
 		Proxy.use(Instance.getConfig().getString(Config.USE_PROXY));
 
 		// update tracer:
-		boolean debug = Instance.getConfig()
-				.getBoolean(Config.DEBUG_ERR, false);
-		boolean trace = Instance.getConfig().getBoolean(Config.DEBUG_TRACE,
-				false);
-
-		if (checkEnv("DEBUG")) {
-			debug = true;
-			trace = true;
+		if (debug == null) {
+			debug = Instance.getConfig().getBoolean(Config.DEBUG_ERR, false);
+			trace = Instance.getConfig().getBoolean(Config.DEBUG_TRACE, false);
 		}
 
 		tracer = new TraceHandler(true, debug, trace);
@@ -408,7 +405,8 @@ public class Instance {
 			trans.deleteFile(configDir);
 		}
 
-		if (checkEnv("NOUTF")) {
+		Boolean noutf = checkEnv("NOUTF");
+		if (noutf != null && noutf) {
 			trans.setUnicode(false);
 			transGui.setUnicode(false);
 		}
@@ -571,7 +569,7 @@ public class Instance {
 	 * 
 	 * @return TRUE if it is
 	 */
-	private static boolean checkEnv(String key) {
+	private static Boolean checkEnv(String key) {
 		String value = System.getenv(key);
 		if (value != null) {
 			value = value.trim().toLowerCase();
@@ -580,8 +578,10 @@ public class Instance {
 					|| "y".equals(value)) {
 				return true;
 			}
+
+			return false;
 		}
 
-		return false;
+		return null;
 	}
 }
