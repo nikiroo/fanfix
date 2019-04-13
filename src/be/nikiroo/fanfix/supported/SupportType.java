@@ -58,7 +58,7 @@ public enum SupportType {
 		case INFO_TEXT:
 			return "info-text";
 		case MANGA_LEL:
-			return "MangaLel.com";
+			return "MangaLEL";
 		case MANGAFOX:
 			return "MangaFox.me";
 		case TEXT:

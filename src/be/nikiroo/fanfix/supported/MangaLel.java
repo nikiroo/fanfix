@@ -2,11 +2,11 @@ package be.nikiroo.fanfix.supported;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -30,12 +30,10 @@ class MangaLel extends BasicSupport {
 	protected MetaData getMeta() throws IOException {
 		MetaData meta = new MetaData();
 
-		String[] authorDateTag = getAuthorDateTag();
-
 		meta.setTitle(getTitle());
-		meta.setAuthor(authorDateTag[0]);
-		meta.setDate(authorDateTag[1]);
-		meta.setTags(explode(authorDateTag[2]));
+		meta.setAuthor(getAuthor());
+		meta.setDate(getDate());
+		meta.setTags(getTags());
 		meta.setSource(getType().getSourceName());
 		meta.setUrl(getSource().toString());
 		meta.setPublisher(getType().getSourceName());
@@ -52,95 +50,117 @@ class MangaLel extends BasicSupport {
 
 	private String getTitle() {
 		Element doc = getSourceNode();
-		Element h2 = doc.getElementsByClass("widget-title").first();
-		if (h2 != null) {
-			return StringUtils.unhtml(h2.text()).trim();
+		Element h4 = doc.getElementsByTag("h4").first();
+		if (h4 != null) {
+			return StringUtils.unhtml(h4.text()).trim();
 		}
 
 		return null;
 	}
 
-	// 0 = author
-	// 1 = date
-	// 2 = tags
-	private String[] getAuthorDateTag() {
-		String[] tab = new String[3];
+	private String getAuthor() {
+		Element doc = getSourceNode();
+		Elements tabEls = doc.getElementsByClass("projet-titre");
+
+		String value = "";
+		if (tabEls.size() >= 2) {
+			value = StringUtils.unhtml(tabEls.get(1).text()).trim();
+		}
+
+		return value;
+	}
+
+	private List<String> getTags() {
+		List<String> tags = new ArrayList<String>();
 
 		Element doc = getSourceNode();
-		Element tabEls = doc.getElementsByClass("dl-horizontal").first();
-		int prevOk = 0;
-		for (Element tabEl : tabEls.children()) {
-			String txt = tabEl.text().trim();
-			if (prevOk > 0) {
-				if (tab[prevOk - 1] == null) {
-					tab[prevOk - 1] = "";
-				} else {
-					tab[prevOk - 1] += ", ";
-				}
+		Elements tabEls = doc.getElementsByClass("projet-titre");
 
-				tab[prevOk - 1] += txt;
-				prevOk = 0;
-			} else {
-				if (txt.equals("Auteur(s)") || txt.equals("Artist(s)")) {
-					prevOk = 1;
-				} else if (txt.equals("Date de sortie")) {
-					prevOk = 2;
-				} else if (txt.equals("Type") || txt.equals("Catégories")) {
-					prevOk = 3;
-				} else {
-					prevOk = 0;
+		if (tabEls.size() >= 4) {
+			String values = StringUtils.unhtml(tabEls.get(3).text()).trim();
+			for (String value : values.split(",")) {
+				tags.add(value);
+			}
+		}
+
+		return tags;
+	}
+
+	private String getDate() {
+		Element doc = getSourceNode();
+		Element table = doc.getElementsByClass("table").first();
+
+		// We take the first date we find
+		String value = "";
+		if (table != null) {
+			Elements els;
+			els = table.getElementsByTag("tr");
+			if (els.size() >= 2) {
+				els = els.get(1).getElementsByTag("td");
+				if (els.size() >= 3) {
+					value = StringUtils.unhtml(els.get(2).text()).trim();
 				}
 			}
 		}
 
-		for (int i = 0; i < 3; i++) {
-			String list = "";
-			for (String item : explode(tab[i])) {
-				if (!list.isEmpty()) {
-					list = list + ", ";
-				}
-				list += item;
+		if (!value.isEmpty()) {
+			try {
+				long time = StringUtils.toTime(value);
+				value = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+						.format(time);
+			} catch (ParseException e) {
 			}
-			tab[i] = list;
 		}
 
-		return tab;
+		return value;
 	}
 
 	@Override
 	protected String getDesc() {
-		String desc = null;
-
 		Element doc = getSourceNode();
-		Element title = doc.getElementsByClass("well").first();
-		if (title != null) {
-			desc = StringUtils.unhtml(title.text()).trim();
-			if (desc.startsWith("Résumé")) {
-				desc = desc.substring("Résumé".length()).trim();
-			}
+		Elements tabEls = doc.getElementsByClass("projet-titre");
+
+		String value = "";
+		if (tabEls.size() >= 5) {
+			value = StringUtils.unhtml(tabEls.get(4).text()).trim();
 		}
 
-		return desc;
+		return value;
 	}
 
 	private Image getCover() {
 		Element doc = getSourceNode();
-		Element cover = doc.getElementsByClass("img-responsive").first();
+		Element container = doc.getElementsByClass("container").first();
 
-		if (cover != null) {
-			String coverUrl = cover.absUrl("src");
+		if (container != null) {
 
-			InputStream coverIn;
-			try {
-				coverIn = Instance.getCache().open(new URL(coverUrl), this,
-						true);
-				try {
-					return new Image(coverIn);
-				} finally {
-					coverIn.close();
+			Elements imgs = container.getElementsByTag("img");
+			Element img = null;
+			if (imgs.size() >= 1) {
+				img = imgs.get(0);
+				if (img.hasClass("banniere-team-projet")) {
+					img = null;
+					if (imgs.size() >= 2) {
+						img = imgs.get(1);
+					}
 				}
-			} catch (IOException e) {
-				Instance.getTraceHandler().error(e);
+			}
+
+			if (img != null) {
+				String coverUrl = img.absUrl("src");
+
+				InputStream coverIn;
+				try {
+					coverIn = Instance.getCache().open(new URL(coverUrl), this,
+							true);
+					try {
+						return new Image(coverIn);
+					} finally {
+						coverIn.close();
+					}
+				} catch (IOException e) {
+					Instance.getTraceHandler().error(e);
+				}
 			}
 		}
 
@@ -148,35 +168,23 @@ class MangaLel extends BasicSupport {
 	}
 
 	@Override
-	protected List<Entry<String, URL>> getChapters(Progress pg) {
+	protected List<Entry<String, URL>> getChapters(Progress pg)
+			throws IOException {
 		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
 
-		int i = 0;
 		Element doc = getSourceNode();
-		Elements chapEls = doc.getElementsByClass("chapters").first()
-				.getElementsByTag("li");
-		for (Element chapEl : chapEls) {
-			Element titleEl = chapEl.getElementsByTag("h5").first();
-			String title = StringUtils.unhtml(titleEl.text()).trim();
-
-			// because Atril does not support strange file names
-			title = Integer.toString(chapEls.size() - i);
-
-			Element linkEl = chapEl.getElementsByTag("h5").first()
-					.getElementsByTag("a").first();
-			String link = linkEl.absUrl("href");
-
-			try {
-				urls.add(new AbstractMap.SimpleEntry<String, URL>(title,
-						new URL(link)));
-			} catch (MalformedURLException e) {
-				Instance.getTraceHandler().error(e);
+		Element table = doc.getElementsByClass("table").first();
+		if (table != null) {
+			for (Element tr : table.getElementsByTag("tr")) {
+				Element a = tr.getElementsByTag("a").first();
+				if (a != null) {
+					String name = StringUtils.unhtml(a.text()).trim();
+					URL url = new URL(a.absUrl("href"));
+					urls.add(new AbstractMap.SimpleEntry<String, URL>(name, url));
+				}
 			}
-
-			i++;
 		}
 
-		Collections.reverse(urls);
 		return urls;
 	}
 
@@ -192,13 +200,16 @@ class MangaLel extends BasicSupport {
 		InputStream in = Instance.getCache().open(chapUrl, this, false);
 		try {
 			Element pageDoc = DataUtil.load(in, "UTF-8", chapUrl.toString());
-			Elements linkEls = pageDoc.getElementsByClass("img-responsive");
+			Element content = pageDoc.getElementById("content");
+			Elements linkEls = content.getElementsByTag("img");
 			for (Element linkEl : linkEls) {
-				if (linkEl.hasAttr("data-src")) {
-					builder.append("[");
-					builder.append(linkEl.absUrl("data-src").trim());
-					builder.append("]<br/>");
+				if (linkEl.attr("src").trim().isEmpty()) {
+					continue;
 				}
+
+				builder.append("[");
+				builder.append(linkEl.absUrl("src").trim());
+				builder.append("]<br/>");
 			}
 
 		} finally {
@@ -208,32 +219,11 @@ class MangaLel extends BasicSupport {
 		return builder.toString();
 	}
 
-	/**
-	 * Explode an HTML comma-separated list of values into a non-duplicate text
-	 * {@link List} .
-	 * 
-	 * @param values
-	 *            the comma-separated values in HTML format
-	 * 
-	 * @return the full list with no duplicate in text format
-	 */
-	private List<String> explode(String values) {
-		List<String> list = new ArrayList<String>();
-		if (values != null && !values.isEmpty()) {
-			for (String auth : values.split(",")) {
-				String a = StringUtils.unhtml(auth).trim();
-				if (!a.isEmpty() && !list.contains(a.trim())) {
-					list.add(a);
-				}
-			}
-		}
-
-		return list;
-	}
-
 	@Override
 	protected boolean supports(URL url) {
-		return "manga-lel.com".equals(url.getHost())
-				|| "www.manga-lel.com".equals(url.getHost());
+		// URL structure (the projectId is the manga key):
+		// http://mangas-lecture-en-ligne.fr/index_lel.php?page=presentationProjet&idProjet=999
+
+		return "mangas-lecture-en-ligne.fr".equals(url.getHost());
 	}
 }
