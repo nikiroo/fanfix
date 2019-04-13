@@ -17,7 +17,7 @@
 
 # Version 2.0.1
 
-- lib: un changement de titre/source/author n'était pas toujours visible en runtime
+- core: un changement de titre/source/author n'était pas toujours visible en runtime
 - gui: ne recharger les histoires que quand nécessaire
 
 # Version 2.0.0
