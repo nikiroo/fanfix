@@ -60,6 +60,7 @@ My current planning for Fanfix (but not everything appears on this list):
   - [ ] Sort stories by Source/Author
   - [ ] Fix UI
   - [ ] support progress events
+  - [x] give up and ask a friend...
 - [ ] Translations
   - [x] i18n system in place
   - [x] Make use of it in text

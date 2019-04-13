@@ -17,7 +17,7 @@
 
 # Version 2.0.1
 
-- lib: a change of title/source/author was not always visible at runtime
+- core: a change of title/source/author was not always visible at runtime
 - gui: only reload the stoies when needed
 
 # Version 2.0.0
