@@ -1,5 +1,12 @@
 # Fanfix
 
+# Version WIP
+
+- new: recherche d'histoires (Fanfiction.net)
+- new: support d'un proxy
+- fix: support des CBZ contenant du texte
+- gui: correction pour le focus 
+
 # Version 2.0.2
 
 - i18n: changer la langue dans les options fonctionne aussi quand $LANG existe

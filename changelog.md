@@ -1,5 +1,12 @@
 # Fanfix
 
+# Version WIP
+
+- new: story search (Fanfiction.net)
+- new: proxy support
+- fix: support hybrid CBZ (with text)
+- gui: focus fix
+
 # Version 2.0.2
 
 - i18n: setting the language in the option panel now works even with $LANG set
