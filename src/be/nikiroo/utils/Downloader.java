@@ -216,7 +216,13 @@ public class Downloader {
 	 * @param url
 	 *            the {@link URL} to open
 	 * @param originalUrl
-	 *            the original {@link URL} before any redirection occurs
+	 *            the original {@link URL} before any redirection occurs, which
+	 *            is also used for the cache ID if needed (so we can retrieve
+	 *            the content with this URL if needed)
+	 * @param currentReferer
+	 *            the current referer, for websites that needs this info
+	 * @param cookiesValues
+	 *            the cookies
 	 * @param postParams
 	 *            the POST parameters
 	 * @param getParams
@@ -233,17 +239,18 @@ public class Downloader {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	private InputStream open(URL url, final URL originalUrl,
-			URL currentReferer, Map<String, String> cookiesValues,
-			Map<String, String> postParams, Map<String, String> getParams,
-			String oauth, boolean stable) throws IOException {
+	public InputStream open(URL url, final URL originalUrl, URL currentReferer,
+			Map<String, String> cookiesValues, Map<String, String> postParams,
+			Map<String, String> getParams, String oauth, boolean stable)
+			throws IOException {
 
 		tracer.trace("Request: " + url);
 
 		if (cache != null) {
-			InputStream in = cache.load(url, false, stable);
+			InputStream in = cache.load(originalUrl, false, stable);
 			if (in != null) {
 				tracer.trace("Take from cache: " + url);
+				tracer.trace("Original URL from cache: " + originalUrl);
 				return in;
 			}
 		}
