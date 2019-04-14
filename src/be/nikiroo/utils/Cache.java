@@ -319,8 +319,9 @@ public class Cache {
 	 *             in case of I/O error
 	 */
 	private void save(InputStream in, File cached) throws IOException {
-		clean(true, dir, 10);
+		// We delete AFTER so not to remove the subdir we will use...
 		IOUtils.write(in, cached);
+		clean(true, dir, 10);
 	}
 
 	/**
