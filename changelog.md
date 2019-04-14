@@ -1,8 +1,10 @@
 # nikiroo-utils
 
-## Version WIP
+## Version 4.7.0
 
 - tracer: traces on stderr by default
+- new: downloader one more public method
+- fix: downloader use original URL for cache ID
 
 ## Version 4.6.2
 
