@@ -249,8 +249,8 @@ public class Downloader {
 		if (cache != null) {
 			InputStream in = cache.load(originalUrl, false, stable);
 			if (in != null) {
-				tracer.trace("Take from cache: " + url);
-				tracer.trace("Original URL from cache: " + originalUrl);
+				tracer.trace("Use the cache: " + url);
+				tracer.trace("Original URL : " + originalUrl);
 				return in;
 			}
 		}
@@ -388,7 +388,6 @@ public class Downloader {
 				builder.append(';');
 			}
 
-			// TODO: check if format is ok
 			builder.append(cookie.toString());
 		}
 

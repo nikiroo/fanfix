@@ -63,7 +63,9 @@ public class TempFiles implements Closeable {
 
 		root = base;
 
-		IOUtils.deltree(root, true);
+		if (root.exists()) {
+			IOUtils.deltree(root, true);
+		}
 
 		root = new File(root.getParentFile(), ".temp");
 		root.mkdir();

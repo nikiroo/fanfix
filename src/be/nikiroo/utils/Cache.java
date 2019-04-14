@@ -158,7 +158,16 @@ public class Cache {
 	 * @return the number of cleaned items
 	 */
 	public int clean(boolean onlyOld) {
-		return clean(onlyOld, dir);
+		long ms = System.currentTimeMillis();
+
+		tracer.trace("Cleaning cache from old files...");
+
+		int num = clean(onlyOld, dir, -1);
+
+		tracer.trace(num + "cache items cleaned in "
+				+ (System.currentTimeMillis() - ms) + " ms");
+
+		return num;
 	}
 
 	/**
@@ -169,40 +178,23 @@ public class Cache {
 	 *            resources
 	 * @param cacheDir
 	 *            the cache directory to clean
+	 * @param limit
+	 *            stop after limit files deleted, or -1 for unlimited
 	 * 
 	 * @return the number of cleaned items
 	 */
-	private int clean(boolean onlyOld, File cacheDir) {
-		long ms = System.currentTimeMillis();
-
-		tracer.trace("Cleaning cache from old files...");
-
-		int num = doClean(onlyOld, cacheDir);
-
-		tracer.trace("Cache cleaned in " + (System.currentTimeMillis() - ms)
-				+ " ms");
-
-		return num;
-	}
-
-	/**
-	 * Actual work done for {@link Cache#clean(boolean, File)}.
-	 * 
-	 * @param onlyOld
-	 *            only clean the files that are considered too old for stable
-	 *            resources
-	 * @param cacheDir
-	 *            the cache directory to clean
-	 * 
-	 * @return the number of cleaned items
-	 */
-	private int doClean(boolean onlyOld, File cacheDir) {
+	private int clean(boolean onlyOld, File cacheDir, int limit) {
 		int num = 0;
 		File[] files = cacheDir.listFiles();
 		if (files != null) {
 			for (File file : files) {
+				if (limit >= 0 && num >= limit) {
+					return num;
+				}
+
 				if (file.isDirectory()) {
-					num += doClean(onlyOld, file);
+					num += clean(onlyOld, file, limit);
+					file.delete(); // only if empty
 				} else {
 					if (!onlyOld || isOld(file, true)) {
 						if (file.delete()) {
@@ -327,7 +319,7 @@ public class Cache {
 	 *             in case of I/O error
 	 */
 	private void save(InputStream in, File cached) throws IOException {
-		clean(true);
+		clean(true, dir, 10);
 		IOUtils.write(in, cached);
 	}
 
