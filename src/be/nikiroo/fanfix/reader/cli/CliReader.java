@@ -1,7 +1,6 @@
 package be.nikiroo.fanfix.reader.cli;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import be.nikiroo.fanfix.Instance;
@@ -130,32 +129,19 @@ class CliReader extends BasicReader {
 	@Override
 	public void searchTag(SupportType searchOn, int page, int item,
 			boolean sync, Integer... tags) throws IOException {
+
 		BasicSearchable search = BasicSearchable.getSearchable(searchOn);
-		List<SearchableTag> stags = search.getTags();
-		String fqnTag = "";
+		SearchableTag stag = search.getTag(tags);
 
-		SearchableTag stag = null;
-		for (Integer tagIndex : tags) {
-			// ! 1-based index !
-			if (tagIndex == null || tagIndex <= 0 | tagIndex > stags.size()) {
-				throw new IOException("Index out of bounds: " + tagIndex);
+		if (stag == null) {
+			// TODO i18n
+			System.out.println("Known tags: ");
+			int i = 1;
+			for (SearchableTag s : search.getTags()) {
+				System.out.println(String.format("%d: %s", i, s.getName()));
+				i++;
 			}
-
-			stag = stags.get(tagIndex - 1);
-			if (stag != null) {
-				search.fillTag(stag);
-				stags = stag.getChildren();
-				if (!fqnTag.isEmpty()) {
-					fqnTag += " / ";
-				}
-				fqnTag += stag.getName();
-			} else {
-				stags = new ArrayList<SearchableTag>();
-				break;
-			}
-		}
-
-		if (stag != null) {
+		} else {
 			if (page <= 0) {
 				if (stag.isLeaf()) {
 					search.search(stag, 1);
@@ -183,13 +169,7 @@ class CliReader extends BasicReader {
 							displayStory(meta);
 						} else {
 							SearchableTag subtag = subtags.get(item - 1);
-
-							// TODO: i18n
-							String stories = "stories";
-							String num = StringUtils.formatNumber(subtag
-									.getCount());
-							System.out.println(String.format("%s (%s), %s %s",
-									subtag.getName(), fqnTag, num, stories));
+							displayTag(subtag);
 						}
 					} else {
 						System.out.println("Invalid item: only " + count
@@ -199,42 +179,25 @@ class CliReader extends BasicReader {
 					if (metas != null) {
 						// TODO i18n
 						System.out.println(String.format("Content of %s: ",
-								fqnTag));
+								stag.getFqName()));
 						displayStories(metas);
 					} else {
 						// TODO i18n
 						System.out.println(String.format("Subtags of %s: ",
-								fqnTag));
-						int i = 1;
-						for (SearchableTag subtag : subtags) {
-							String total = "";
-							if (subtag.getCount() > 0) {
-								total = StringUtils.formatNumber(subtag
-										.getCount());
-							}
-
-							if (total.isEmpty()) {
-								System.out.println(String.format("%d: %s", i,
-										subtag.getName()));
-							} else {
-								System.out.println(String.format("%d: %s (%s)",
-										i, subtag.getName(), total));
-							}
-
-							i++;
-						}
+								stag.getFqName()));
+						displayTags(subtags);
 					}
 				}
 			}
-		} else {
-			// TODO i18n
-			System.out.println("Known tags: ");
-			int i = 1;
-			for (SearchableTag s : stags) {
-				System.out.println(String.format("%d: %s", i, s.getName()));
-				i++;
-			}
 		}
+	}
+
+	private void displayTag(SearchableTag subtag) {
+		// TODO: i18n
+		String stories = "stories";
+		String num = StringUtils.formatNumber(subtag.getCount());
+		System.out.println(String.format("%s (%s), %s %s", subtag.getName(),
+				subtag.getFqName(), num, stories));
 	}
 
 	private void displayStory(MetaData meta) {
@@ -247,6 +210,26 @@ class CliReader extends BasicReader {
 		for (Paragraph para : meta.getResume()) {
 			System.out.println(para.getContent());
 			System.out.println("");
+		}
+	}
+
+	private void displayTags(List<SearchableTag> subtags) {
+		int i = 1;
+		for (SearchableTag subtag : subtags) {
+			String total = "";
+			if (subtag.getCount() > 0) {
+				total = StringUtils.formatNumber(subtag.getCount());
+			}
+
+			if (total.isEmpty()) {
+				System.out
+						.println(String.format("%d: %s", i, subtag.getName()));
+			} else {
+				System.out.println(String.format("%d: %s (%s)", i,
+						subtag.getName(), total));
+			}
+
+			i++;
 		}
 	}
 

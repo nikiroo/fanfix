@@ -35,6 +35,38 @@ public abstract class BasicSearchable {
 	}
 
 	/**
+	 * Find the given tag by its hierarchical IDs.
+	 * <p>
+	 * I.E., it will take the tag A, subtag B, subsubtag C...
+	 * 
+	 * @param ids
+	 *            the IDs to look for
+	 * 
+	 * @return the appropriate tag fully filled, or NULL if not found
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public SearchableTag getTag(Integer... ids) throws IOException {
+		SearchableTag tag = null;
+		List<SearchableTag> tags = getTags();
+
+		for (Integer tagIndex : ids) {
+			// ! 1-based index !
+			if (tagIndex == null || tags == null || tagIndex <= 0
+					|| tagIndex > tags.size()) {
+				return null;
+			}
+
+			tag = tags.get(tagIndex - 1);
+			fillTag(tag);
+			tags = tag.getChildren();
+		}
+
+		return tag;
+	}
+
+	/**
 	 * The support type.
 	 * 
 	 * @return the type
@@ -189,7 +221,7 @@ public abstract class BasicSearchable {
 	 * 
 	 * @return an implementation that supports it, or NULL
 	 */
-	public static BasicSearchable getSearchable(SupportType type) {
+	static public BasicSearchable getSearchable(SupportType type) {
 		BasicSearchable support = null;
 
 		switch (type) {

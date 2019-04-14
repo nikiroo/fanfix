@@ -43,7 +43,7 @@ public class SearchableTag {
 	 *            the tag is a leaf tag, that is, it will not return subtags
 	 *            with {@link BasicSearchable#fillTag(SearchableTag)} but will
 	 *            return stories with
-	 *            {@link BasicSearchable#search(SearchableTag)}
+	 *            {@link BasicSearchable#search(SearchableTag, int)}
 	 */
 	public SearchableTag(String id, String name, boolean leaf) {
 		this(id, name, leaf, true);
@@ -60,7 +60,7 @@ public class SearchableTag {
 	 *            the tag is a leaf tag, that is, it will not return subtags
 	 *            with {@link BasicSearchable#fillTag(SearchableTag)} but will
 	 *            return stories with
-	 *            {@link BasicSearchable#search(SearchableTag)}
+	 *            {@link BasicSearchable#search(SearchableTag, int)}
 	 * @param complete
 	 *            the tag {@link SearchableTag#isComplete()} or not
 	 */
@@ -89,6 +89,21 @@ public class SearchableTag {
 	 * @return then name
 	 */
 	public String getName() {
+		return name;
+	}
+
+	/**
+	 * The fully qualified tag name, which can be displayed to the user.
+	 * <p>
+	 * It will display all the tags that lead to this one as well as this one.
+	 * 
+	 * @return the fully qualified name
+	 */
+	public String getFqName() {
+		if (parent != null) {
+			return parent.getFqName() + " / " + name;
+		}
+		
 		return name;
 	}
 
@@ -171,7 +186,7 @@ public class SearchableTag {
 	/**
 	 * This tag is a leaf tag, that is, it will not return other subtags with
 	 * {@link BasicSearchable#fillTag(SearchableTag)} but will return stories
-	 * with {@link BasicSearchable#search(SearchableTag)}.
+	 * with {@link BasicSearchable#search(SearchableTag, int)}.
 	 * 
 	 * @return TRUE if it is
 	 */
@@ -182,7 +197,7 @@ public class SearchableTag {
 	/**
 	 * This tag is a leaf tag, that is, it will not return other subtags with
 	 * {@link BasicSearchable#fillTag(SearchableTag)} but will return stories
-	 * with {@link BasicSearchable#search(SearchableTag)}.
+	 * with {@link BasicSearchable#search(SearchableTag, int)}.
 	 * <p>
 	 * Will reset the number of pages to -1.
 	 * 
