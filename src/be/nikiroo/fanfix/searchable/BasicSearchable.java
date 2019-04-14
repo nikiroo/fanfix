@@ -212,7 +212,7 @@ public abstract class BasicSearchable {
 			// TODO
 			break;
 		case MANGA_LEL:
-			// TODO
+			support = new MangaLel();
 			break;
 		case CBZ:
 		case HTML:
