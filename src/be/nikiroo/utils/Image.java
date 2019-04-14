@@ -13,6 +13,7 @@ import java.io.InputStream;
  * @author niki
  */
 public class Image implements Closeable {
+	static private File tempRoot;
 	static private TempFiles tmpRepository;
 	static private long count = 0;
 	static private Object lock = new Object();
@@ -143,7 +144,7 @@ public class Image implements Closeable {
 	private File getTemporaryFile() throws IOException {
 		synchronized (lock) {
 			if (tmpRepository == null) {
-				tmpRepository = new TempFiles("images");
+				tmpRepository = new TempFiles(tempRoot, "images");
 				count = 0;
 			}
 
@@ -151,5 +152,24 @@ public class Image implements Closeable {
 
 			return tmpRepository.createTempFile("image");
 		}
+	}
+
+	/**
+	 * Change the temporary root directory used by the program.
+	 * <p>
+	 * Caution: the directory will be <b>owned</b> by the system, all its files
+	 * now belong to us (and will most probably be deleted).
+	 * <p>
+	 * Note: it may take some time until the new temporary root is used, we
+	 * first need to make sure the previous one is not used anymore (i.e., we
+	 * must reach a point where no unclosed {@link Image} remains in memory) to
+	 * switch the temporary root.
+	 * 
+	 * @param root
+	 *            the new temporary root, which will be <b>owned</b> by the
+	 *            system
+	 */
+	public static void setTemporaryFilesRoot(File root) {
+		tempRoot = root;
 	}
 }

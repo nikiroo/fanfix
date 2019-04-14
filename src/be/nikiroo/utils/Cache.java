@@ -173,12 +173,36 @@ public class Cache {
 	 * @return the number of cleaned items
 	 */
 	private int clean(boolean onlyOld, File cacheDir) {
+		long ms = System.currentTimeMillis();
+
+		tracer.trace("Cleaning cache from old files...");
+
+		int num = doClean(onlyOld, cacheDir);
+
+		tracer.trace("Cache cleaned in " + (System.currentTimeMillis() - ms)
+				+ " ms");
+
+		return num;
+	}
+
+	/**
+	 * Actual work done for {@link Cache#clean(boolean, File)}.
+	 * 
+	 * @param onlyOld
+	 *            only clean the files that are considered too old for stable
+	 *            resources
+	 * @param cacheDir
+	 *            the cache directory to clean
+	 * 
+	 * @return the number of cleaned items
+	 */
+	private int doClean(boolean onlyOld, File cacheDir) {
 		int num = 0;
 		File[] files = cacheDir.listFiles();
 		if (files != null) {
 			for (File file : files) {
 				if (file.isDirectory()) {
-					num += clean(onlyOld, file);
+					num += doClean(onlyOld, file);
 				} else {
 					if (!onlyOld || isOld(file, true)) {
 						if (file.delete()) {

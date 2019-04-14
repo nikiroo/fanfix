@@ -11,6 +11,10 @@ import java.io.IOException;
  * @author niki
  */
 public class TempFiles implements Closeable {
+	/**
+	 * Root directory of this instance, owned by it, where all temporary files
+	 * must reside.
+	 */
 	protected File root;
 
 	/**
@@ -18,7 +22,7 @@ public class TempFiles implements Closeable {
 	 * dedicated sub-directory in a shared temporary root.
 	 * <p>
 	 * The whole repository will be deleted on close (if you fail to call it,
-	 * the program will <b>try</b> to all it on JVM termination).
+	 * the program will <b>try</b> to call it on JVM termination).
 	 * 
 	 * @param name
 	 *            the instance name (will be <b>part</b> of the final directory
@@ -28,7 +32,37 @@ public class TempFiles implements Closeable {
 	 *             in case of I/O error
 	 */
 	public TempFiles(String name) throws IOException {
-		root = File.createTempFile(".temp", "");
+		this(null, name);
+	}
+
+	/**
+	 * Create a new {@link TempFiles} -- each instance is separate and have a
+	 * dedicated sub-directory in a given temporary root.
+	 * <p>
+	 * The whole repository will be deleted on close (if you fail to call it,
+	 * the program will <b>try</b> to call it on JVM termination).
+	 * <p>
+	 * Be careful, this instance will <b>own</b> the given root directory, and
+	 * will most probably delete all its files.
+	 * 
+	 * @param base
+	 *            the root base directory to use for all the temporary files of
+	 *            this instance (if NULL, will be the default temporary
+	 *            directory of the OS)
+	 * @param name
+	 *            the instance name (will be <b>part</b> of the final directory
+	 *            name)
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public TempFiles(File base, String name) throws IOException {
+		if (base == null) {
+			base = File.createTempFile(".temp", "");
+		}
+
+		root = base;
+
 		IOUtils.deltree(root, true);
 
 		root = new File(root.getParentFile(), ".temp");

@@ -1,5 +1,11 @@
 # nikiroo-utils
 
+## Version WIP
+
+- new: can now select the TempFiles root
+- new: can now select the Image temporary root
+- fix: Cache now offer some tracing when cleaning the cache
+
 ## Version 4.7.0
 
 - tracer: traces on stderr by default
