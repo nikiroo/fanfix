@@ -120,7 +120,8 @@ public class VersionCheck {
 				InputStream in = null;
 				for (String url : new String[] { urlFrBE, urlFr, urlDefault }) {
 					try {
-						in = Instance.getCache().openNoCache(new URL(url));
+						in = Instance.getCache()
+								.open(new URL(url), null, false);
 						break;
 					} catch (IOException e) {
 					}

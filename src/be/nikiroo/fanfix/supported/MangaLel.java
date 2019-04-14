@@ -60,30 +60,29 @@ class MangaLel extends BasicSupport {
 
 	private String getAuthor() {
 		Element doc = getSourceNode();
-		Elements tabEls = doc.getElementsByClass("projet-titre");
-
-		String value = "";
-		if (tabEls.size() >= 2) {
-			value = StringUtils.unhtml(tabEls.get(1).text()).trim();
+		Element tabEls = doc.getElementsByClass("presentation-projet").first();
+		if (tabEls != null) {
+			String[] tab = tabEls.outerHtml().split("<br>");
+			return getVal(tab, 1);
 		}
 
-		return value;
+		return "";
 	}
 
 	private List<String> getTags() {
-		List<String> tags = new ArrayList<String>();
-
 		Element doc = getSourceNode();
-		Elements tabEls = doc.getElementsByClass("projet-titre");
-
-		if (tabEls.size() >= 4) {
-			String values = StringUtils.unhtml(tabEls.get(3).text()).trim();
-			for (String value : values.split(",")) {
-				tags.add(value);
+		Element tabEls = doc.getElementsByClass("presentation-projet").first();
+		if (tabEls != null) {
+			String[] tab = tabEls.outerHtml().split("<br>");
+			List<String> tags = new ArrayList<String>();
+			for (String tag : getVal(tab, 3).split(" ")) {
+				tags.add(tag);
 			}
+			return tags;
 		}
 
-		return tags;
+		return new ArrayList<String>();
+
 	}
 
 	private String getDate() {
@@ -118,14 +117,13 @@ class MangaLel extends BasicSupport {
 	@Override
 	protected String getDesc() {
 		Element doc = getSourceNode();
-		Elements tabEls = doc.getElementsByClass("projet-titre");
-
-		String value = "";
-		if (tabEls.size() >= 5) {
-			value = StringUtils.unhtml(tabEls.get(4).text()).trim();
+		Element tabEls = doc.getElementsByClass("presentation-projet").first();
+		if (tabEls != null) {
+			String[] tab = tabEls.outerHtml().split("<br>");
+			return getVal(tab, 4);
 		}
 
-		return value;
+		return "";
 	}
 
 	private Image getCover() {
@@ -167,6 +165,20 @@ class MangaLel extends BasicSupport {
 		return null;
 	}
 
+	private String getVal(String[] tab, int i) {
+		String val = "";
+
+		if (i < tab.length) {
+			val = StringUtils.unhtml(tab[i]);
+			int pos = val.indexOf(":");
+			if (pos >= 0) {
+				val = val.substring(pos + 1).trim();
+			}
+		}
+
+		return val;
+	}
+
 	@Override
 	protected List<Entry<String, URL>> getChapters(Progress pg)
 			throws IOException {
@@ -203,12 +215,12 @@ class MangaLel extends BasicSupport {
 			Element content = pageDoc.getElementById("content");
 			Elements linkEls = content.getElementsByTag("img");
 			for (Element linkEl : linkEls) {
-				if (linkEl.attr("src").trim().isEmpty()) {
+				if (linkEl.absUrl("src").isEmpty()) {
 					continue;
 				}
 
 				builder.append("[");
-				builder.append(linkEl.absUrl("src").trim());
+				builder.append(linkEl.absUrl("src"));
 				builder.append("]<br/>");
 			}
 

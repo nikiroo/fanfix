@@ -11,7 +11,6 @@ import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.utils.Cache;
 import be.nikiroo.utils.CacheMemory;
 import be.nikiroo.utils.Downloader;
-import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.ImageUtils;
 import be.nikiroo.utils.TraceHandler;
@@ -27,7 +26,7 @@ import be.nikiroo.utils.TraceHandler;
  */
 public class DataLoader {
 	private Downloader downloader;
-	private Cache downloadCache;
+	private Downloader downloaderNoCache;
 	private Cache cache;
 
 	/**
@@ -51,9 +50,11 @@ public class DataLoader {
 	 */
 	public DataLoader(File dir, String UA, int hoursChanging, int hoursStable)
 			throws IOException {
-		downloader = new Downloader(UA);
-		downloadCache = new Cache(dir, hoursChanging, hoursStable);
-		cache = downloadCache;
+		downloader = new Downloader(UA, new Cache(dir, hoursChanging,
+				hoursStable));
+		downloaderNoCache = new Downloader(UA);
+
+		cache = downloader.getCache();
 	}
 
 	/**
@@ -65,7 +66,7 @@ public class DataLoader {
 	 */
 	public DataLoader(String UA) {
 		downloader = new Downloader(UA);
-		downloadCache = null;
+		downloaderNoCache = downloader;
 		cache = new CacheMemory();
 	}
 
@@ -77,9 +78,10 @@ public class DataLoader {
 	 */
 	public void setTraceHandler(TraceHandler tracer) {
 		downloader.setTraceHandler(tracer);
+		downloaderNoCache.setTraceHandler(tracer);
 		cache.setTraceHandler(tracer);
-		if (downloadCache != null) {
-			downloadCache.setTraceHandler(tracer);
+		if (downloader.getCache() != null) {
+			downloader.getCache().setTraceHandler(tracer);
 		}
 
 	}
@@ -87,6 +89,8 @@ public class DataLoader {
 	/**
 	 * Open a resource (will load it from the cache if possible, or save it into
 	 * the cache after downloading if not).
+	 * <p>
+	 * The cached resource will be assimilated to the given original {@link URL}
 	 * 
 	 * @param url
 	 *            the resource to open
@@ -102,8 +106,7 @@ public class DataLoader {
 	 */
 	public InputStream open(URL url, BasicSupport support, boolean stable)
 			throws IOException {
-		// MUST NOT return null
-		return open(url, support, stable, url);
+		return open(url, url, support, stable, null, null, null);
 	}
 
 	/**
@@ -114,72 +117,71 @@ public class DataLoader {
 	 * 
 	 * @param url
 	 *            the resource to open
+	 * @param originalUrl
+	 *            the original {@link URL} before any redirection occurs, which
+	 *            is also used for the cache ID if needed (so we can retrieve
+	 *            the content with this URL if needed)
 	 * @param support
 	 *            the support to use to download the resource
 	 * @param stable
 	 *            TRUE for more stable resources, FALSE when they often change
-	 * @param originalUrl
-	 *            the original {@link URL} used to locate the cached resource
 	 * 
 	 * @return the opened resource, NOT NULL
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public InputStream open(URL url, BasicSupport support, boolean stable,
-			URL originalUrl) throws IOException {
-		// MUST NOT return null
-		try {
-			InputStream in = null;
-
-			if (downloadCache != null) {
-				in = downloadCache.load(originalUrl, false, stable);
-				Instance.getTraceHandler().trace(
-						"Cache " + (in != null ? "hit" : "miss") + ": " + url);
-			}
-
-			if (in == null) {
-				try {
-					in = openNoCache(url, support, null, null, null);
-					if (downloadCache != null) {
-						downloadCache.save(in, originalUrl);
-						// ..But we want a resetable stream
-						in.close();
-						in = downloadCache.load(originalUrl, true, stable);
-					} else {
-						InputStream resetIn = IOUtils.forceResetableStream(in);
-						if (resetIn != in) {
-							in.close();
-							in = resetIn;
-						}
-					}
-				} catch (IOException e) {
-					throw new IOException("Cannot save the url: "
-							+ (url == null ? "null" : url.toString()), e);
-				}
-			}
-
-			return in;
-		} catch (IOException e) {
-			throw new IOException("Cannot open the url: "
-					+ (url == null ? "null" : url.toString()), e);
-		}
+	public InputStream open(URL url, URL originalUrl, BasicSupport support,
+			boolean stable) throws IOException {
+		return open(url, originalUrl, support, stable, null, null, null);
 	}
 
 	/**
-	 * Open the given {@link URL} without using the cache, but still update the
-	 * cookies.
+	 * Open a resource (will load it from the cache if possible, or save it into
+	 * the cache after downloading if not).
+	 * <p>
+	 * The cached resource will be assimilated to the given original {@link URL}
 	 * 
 	 * @param url
-	 *            the {@link URL} to open
+	 *            the resource to open
+	 * @param originalUrl
+	 *            the original {@link URL} before any redirection occurs, which
+	 *            is also used for the cache ID if needed (so we can retrieve
+	 *            the content with this URL if needed)
+	 * @param support
+	 *            the support to use to download the resource
+	 * @param stable
+	 *            TRUE for more stable resources, FALSE when they often change
+	 * @param postParams
+	 *            the POST parameters
+	 * @param getParams
+	 *            the GET parameters (priority over POST)
+	 * @param oauth
+	 *            OAuth authorization (aka, "bearer XXXXXXX")
 	 * 
-	 * @return the {@link InputStream} of the opened page
+	 * @return the opened resource, NOT NULL
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public InputStream openNoCache(URL url) throws IOException {
-		return downloader.open(url);
+	public InputStream open(URL url, URL originalUrl, BasicSupport support,
+			boolean stable, Map<String, String> postParams,
+			Map<String, String> getParams, String oauth) throws IOException {
+
+		Map<String, String> cookiesValues = null;
+		URL currentReferer = url;
+
+		if (support != null) {
+			cookiesValues = support.getCookies();
+			currentReferer = support.getCurrentReferer();
+			// priority: arguments
+			if (oauth == null) {
+				oauth = support.getOAuth();
+			}
+		}
+
+		return downloader.open(url, originalUrl, currentReferer, cookiesValues,
+				postParams, getParams, oauth, stable);
 	}
 
 	/**
@@ -217,8 +219,8 @@ public class DataLoader {
 			}
 		}
 
-		return downloader.open(url, currentReferer, cookiesValues, postParams,
-				getParams, oauth);
+		return downloaderNoCache.open(url, currentReferer, cookiesValues,
+				postParams, getParams, oauth);
 	}
 
 	/**
@@ -236,8 +238,8 @@ public class DataLoader {
 	 */
 	public void refresh(URL url, BasicSupport support, boolean stable)
 			throws IOException {
-		if (downloadCache != null && !downloadCache.check(url, false, stable)) {
-			open(url, support, stable).close();
+		if (check(url, stable)) {
+			open(url, url, support, stable, null, null, null).close();
 		}
 	}
 
@@ -254,7 +256,8 @@ public class DataLoader {
 	 * 
 	 */
 	public boolean check(URL url, boolean stable) {
-		return downloadCache != null && downloadCache.check(url, false, stable);
+		return downloader.getCache() != null
+				&& downloader.getCache().check(url, false, stable);
 	}
 
 	/**

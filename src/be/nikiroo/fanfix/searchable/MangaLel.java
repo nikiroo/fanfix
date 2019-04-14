@@ -86,27 +86,18 @@ class MangaLel extends BasicSearchable {
 		for (Element result : doc.getElementsByClass("rechercheAffichage")) {
 			Element a = result.getElementsByTag("a").first();
 			if (a != null) {
-				MetaData meta = new MetaData();
-				meta.setUrl(a.absUrl("href"));
-				Element img = result.getElementsByTag("img").first();
-				if (img != null) {
-					String coverUrl = img.absUrl("src");
+				int projectId = -1;
 
-					try {
-						InputStream in = Instance.getCache().open(
-								new URL(coverUrl), getSupport(), true);
-						try {
-							meta.setCover(new Image(in));
-						} finally {
-							in.close();
-						}
-					} catch (Exception e) {
-						Instance.getTraceHandler()
-								.error(new Exception(
-										"Cannot download cover for MangaLEL story in search mode",
-										e));
-					}
-				}
+				MetaData meta = new MetaData();
+
+				// Target:
+				// http://mangas-lecture-en-ligne.fr/index_lel.php?page=presentationProjet&idProjet=218
+
+				// a.absUrl("href"):
+				// http://mangas-lecture-en-ligne.fr/index_lel?onCommence=oui&idChapitre=2805
+
+				// ...but we need the PROJECT id, not the CHAPTER id -> use
+				// <IMG>
 
 				Elements infos = result.getElementsByClass("texte");
 				if (infos != null) {
@@ -125,7 +116,43 @@ class MangaLel extends BasicSearchable {
 									getVal(tab, 5)));
 				}
 
-				metas.add(meta);
+				Element img = result.getElementsByTag("img").first();
+				if (img != null) {
+					try {
+						String[] tab = img.attr("src").split("/");
+						String str = tab[tab.length - 1];
+						tab = str.split("\\.");
+						str = tab[0];
+						projectId = Integer.parseInt(str);
+
+						String coverUrl = img.absUrl("src");
+						try {
+							InputStream in = Instance.getCache().open(
+									new URL(coverUrl), getSupport(), true);
+							try {
+								meta.setCover(new Image(in));
+							} finally {
+								in.close();
+							}
+						} catch (Exception e) {
+							// Happen often on MangaLEL...
+							Instance.getTraceHandler().trace(
+									"Cannot download cover for MangaLEL story in search mode: "
+											+ meta.getTitle());
+						}
+					} catch (Exception e) {
+						// no project id... cannot use the story :(
+						Instance.getTraceHandler().error(
+								"Cannot find ProjectId for MangaLEL story in search mode: "
+										+ meta.getTitle());
+					}
+				}
+
+				if (projectId >= 0) {
+					meta.setUrl("http://mangas-lecture-en-ligne.fr/index_lel.php?page=presentationProjet&idProjet="
+							+ projectId);
+					metas.add(meta);
+				}
 			}
 		}
 

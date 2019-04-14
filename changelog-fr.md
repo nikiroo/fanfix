@@ -8,6 +8,7 @@
 - fix: correction de DEBUG=0
 - gui: correction pour le focus 
 - MangaLEL: site web changé
+- search: supporte MangaLEL
 
 # Version 2.0.2
 

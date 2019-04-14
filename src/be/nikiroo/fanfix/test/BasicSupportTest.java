@@ -395,11 +395,6 @@ class BasicSupportTest extends TestLauncher {
 
 	private class BasicSupportEmpty extends BasicSupport_Deprecated {
 		@Override
-		protected String getSourceName() {
-			return null;
-		}
-
-		@Override
 		protected boolean supports(URL url) {
 			return false;
 		}

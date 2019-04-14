@@ -8,6 +8,7 @@
 - fix: fix DEBUG=0
 - gui: focus fix
 - MangaLEL: website has changed
+- search: MangaLEL support
 
 # Version 2.0.2
 

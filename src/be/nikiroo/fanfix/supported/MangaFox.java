@@ -336,8 +336,8 @@ class MangaFox extends BasicSupport {
 	 */
 	private InputStream openEx(String url) throws IOException {
 		try {
-			return Instance.getCache().open(new URL(url), this, true,
-					withoutQuery(url));
+			return Instance.getCache().open(new URL(url), withoutQuery(url),
+					this, true);
 		} catch (Exception e) {
 			// second chance
 			try {
@@ -345,8 +345,8 @@ class MangaFox extends BasicSupport {
 			} catch (InterruptedException ee) {
 			}
 
-			return Instance.getCache().open(new URL(url), this, true,
-					withoutQuery(url));
+			return Instance.getCache().open(new URL(url), withoutQuery(url),
+					this, true);
 		}
 	}
 

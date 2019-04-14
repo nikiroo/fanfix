@@ -17,6 +17,7 @@ import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.library.RemoteLibrary;
 import be.nikiroo.utils.Cache;
 import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Proxy;
 import be.nikiroo.utils.TempFiles;
 import be.nikiroo.utils.TraceHandler;
@@ -71,7 +72,8 @@ public class Instance {
 		remoteDir = new File(configDir, "remote");
 		lib = createDefaultLibrary(remoteDir);
 
-		// create cache
+		// create cache and TMP
+		Image.setTemporaryFilesRoot(new File(configDir, "tmp.images"));
 		File tmp = getFile(Config.CACHE_DIR);
 		if (tmp == null) {
 			// Could have used: System.getProperty("java.io.tmpdir")

@@ -280,10 +280,11 @@ class Fanfiction extends BasicSearchable {
 							in.close();
 						}
 					} catch (Exception e) {
-						Instance.getTraceHandler()
-								.error(new Exception(
-										"Cannot download cover for Fanfiction story in search mode",
-										e));
+						// Should not happen on Fanfiction.net
+						Instance.getTraceHandler().error(
+								new Exception(
+										"Cannot download cover for Fanfiction story in search mode: "
+												+ meta.getTitle(), e));
 					}
 				}
 			}
