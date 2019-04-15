@@ -227,16 +227,19 @@ public abstract class BasicReader implements Reader {
 			tags.append(tag);
 		}
 
+		// TODO: i18n
 		metaDesc.put("Author", meta.getAuthor());
 		metaDesc.put("Publication date", formatDate(meta.getDate()));
 		metaDesc.put("Published on", meta.getPublisher());
 		metaDesc.put("URL", meta.getUrl());
+		String count = "";
+		if (meta.getWords() > 0) {
+			count = StringUtils.formatNumber(meta.getWords());
+		}
 		if (meta.isImageDocument()) {
-			metaDesc.put("Number of images",
-					StringUtils.formatNumber(meta.getWords()));
+			metaDesc.put("Number of images", count);
 		} else {
-			metaDesc.put("Number of words",
-					StringUtils.formatNumber(meta.getWords()));
+			metaDesc.put("Number of words", count);
 		}
 		metaDesc.put("Source", meta.getSource());
 		metaDesc.put("Subject", meta.getSubject());
@@ -356,23 +359,29 @@ public abstract class BasicReader implements Reader {
 	static private String formatDate(String date) {
 		long ms = 0;
 
-		try {
-			ms = StringUtils.toTime(date);
-		} catch (ParseException e) {
-		}
-
-		if (ms <= 0) {
-			SimpleDateFormat sdf = new SimpleDateFormat(
-					"yyyy-MM-dd'T'HH:mm:ssSSS");
+		if (date != null && !date.isEmpty()) {
 			try {
-				ms = sdf.parse(date).getTime();
+				ms = StringUtils.toTime(date);
 			} catch (ParseException e) {
+			}
+
+			if (ms <= 0) {
+				SimpleDateFormat sdf = new SimpleDateFormat(
+						"yyyy-MM-dd'T'HH:mm:ssSSS");
+				try {
+					ms = sdf.parse(date).getTime();
+				} catch (ParseException e) {
+				}
+			}
+
+			if (ms > 0) {
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				return sdf.format(new Date(ms));
 			}
 		}
 
-		if (ms > 0) {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-			return sdf.format(new Date(ms));
+		if (date == null) {
+			date = "";
 		}
 
 		// :(

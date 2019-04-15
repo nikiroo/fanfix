@@ -260,12 +260,15 @@ class Fanfiction extends BasicSearchable {
 			MetaData meta = new MetaData();
 			meta.setImageDocument(false);
 			meta.setSource(getType().getSourceName());
+			meta.setPublisher(getType().getSourceName());
+			meta.setType(getType().toString());
 
 			// Title, URL, Cover
 			Element stitle = story.getElementsByClass("stitle").first();
 			if (stitle != null) {
 				meta.setTitle(stitle.text());
 				meta.setUrl(stitle.absUrl("href"));
+				meta.setUuid(meta.getUrl());
 				Element cover = stitle.getElementsByTag("img").first();
 				if (cover != null) {
 					// note: see data-original if needed?

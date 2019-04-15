@@ -20,6 +20,7 @@ import javax.swing.SwingConstants;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.StringIdGui;
 import be.nikiroo.fanfix.data.Chapter;
+import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.ui.ImageUtilsAwt;
@@ -51,12 +52,24 @@ public class GuiReaderViewerPanel extends JPanel {
 	 * Create a new viewer.
 	 * 
 	 * @param story
-	 *            the {@link Story} to work on.
+	 *            the {@link Story} to work on
 	 */
 	public GuiReaderViewerPanel(Story story) {
+		this(story.getMeta(), story.getMeta().isImageDocument());
+	}
+
+	/**
+	 * Create a new viewer.
+	 * 
+	 * @param meta
+	 *            the {@link MetaData} of the story to show
+	 * @param isImageDocument
+	 *            TRUE if it is an image document, FALSE if not
+	 */
+	public GuiReaderViewerPanel(MetaData meta, boolean isImageDocument) {
 		super(new BorderLayout());
 
-		this.imageDocument = story.getMeta().isImageDocument();
+		this.imageDocument = isImageDocument;
 
 		this.text = new JEditorPane("text/html", "");
 		text.setEditable(false);
@@ -102,7 +115,7 @@ public class GuiReaderViewerPanel extends JPanel {
 			main.invalidate();
 		}
 
-		setChapter(story.getMeta().getResume());
+		setChapter(meta.getResume());
 	}
 
 	/**

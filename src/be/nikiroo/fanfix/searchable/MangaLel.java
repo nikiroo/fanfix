@@ -103,6 +103,12 @@ class MangaLel extends BasicSearchable {
 				if (infos != null) {
 					String[] tab = infos.outerHtml().split("<br>");
 
+					meta.setLang("fr");
+					meta.setSource(getType().getSourceName());
+					meta.setPublisher(getType().getSourceName());
+					meta.setType(getType().toString());
+					meta.setSubject("manga");
+					meta.setImageDocument(true);
 					meta.setTitle(getVal(tab, 0));
 					meta.setAuthor(getVal(tab, 1));
 					meta.setTags(Arrays.asList(getVal(tab, 2).split(" ")));
@@ -151,6 +157,7 @@ class MangaLel extends BasicSearchable {
 				if (projectId >= 0) {
 					meta.setUrl("http://mangas-lecture-en-ligne.fr/index_lel.php?page=presentationProjet&idProjet="
 							+ projectId);
+					meta.setUuid(meta.getUrl());
 					metas.add(meta);
 				}
 			}

@@ -1,6 +1,7 @@
 package be.nikiroo.fanfix.reader.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,6 +20,7 @@ import javax.swing.JTextField;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.fanfix.reader.ui.GuiReaderBook.BookActionListener;
 import be.nikiroo.fanfix.searchable.BasicSearchable;
 import be.nikiroo.fanfix.searchable.SearchableTag;
 import be.nikiroo.fanfix.supported.SupportType;
@@ -45,7 +47,7 @@ public class GuiReaderSearch extends JFrame {
 	private boolean seeWordcount;
 	private GuiReaderGroup books;
 
-	public GuiReaderSearch(GuiReader reader) {
+	public GuiReaderSearch(final GuiReader reader) {
 		// TODO: i18n
 		super("Browse stories");
 		setLayout(new BorderLayout());
@@ -85,6 +87,22 @@ public class GuiReaderSearch extends JFrame {
 		add(top, BorderLayout.NORTH);
 
 		books = new GuiReaderGroup(reader, null, null);
+		books.setActionListener(new BookActionListener() {
+			@Override
+			public void select(GuiReaderBook book) {
+			}
+
+			@Override
+			public void popupRequested(GuiReaderBook book, Component target,
+					int x, int y) {
+			}
+
+			@Override
+			public void action(GuiReaderBook book) {
+				new GuiReaderSearchAction(reader.getLibrary(), book.getInfo())
+						.setVisible(true);
+			}
+		});
 		JScrollPane scroll = new JScrollPane(books);
 		scroll.getVerticalScrollBar().setUnitIncrement(16);
 		add(scroll, BorderLayout.CENTER);
