@@ -9,6 +9,7 @@ My current planning for Fanfix (but not everything appears on this list):
     - [x] [e-Hentai](https://e-hentai.org/) requested
     - [x] Find some FR comics/manga websites
     - [ ] Find more FR thingies
+- [ ] Support videos (anime)?
 - [x] A GUI library
   - [x] Make one
   - [x] Make it run when no args passed
