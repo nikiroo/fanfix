@@ -127,7 +127,15 @@ public class GuiReaderBookInfo {
 	public Image getBaseImage(BasicLibrary lib) {
 		switch (type) {
 		case STORY:
-			return lib.getCover(meta.getLuid());
+			if (meta.getCover() != null) {
+				return meta.getCover();
+			}
+
+			if (meta.getLuid() != null) {
+				return lib.getCover(meta.getLuid());
+			}
+
+			return null;
 		case SOURCE:
 			return lib.getSourceCover(value);
 		case AUTHOR:
@@ -149,6 +157,9 @@ public class GuiReaderBookInfo {
 		String uid = meta.getUuid();
 		if (uid == null || uid.trim().isEmpty()) {
 			uid = meta.getLuid();
+		}
+		if (uid == null || uid.trim().isEmpty()) {
+			uid = meta.getUrl();
 		}
 
 		GuiReaderBookInfo info = new GuiReaderBookInfo(Type.STORY, uid,
