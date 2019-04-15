@@ -116,7 +116,7 @@ class CliReader extends BasicReader {
 				displayStories(metas);
 			} else {
 				// ! 1-based index !
-				if (item <= 0 | item > metas.size()) {
+				if (item <= 0 || item > metas.size()) {
 					throw new IOException("Index out of bounds: " + item);
 				}
 

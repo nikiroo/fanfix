@@ -33,6 +33,7 @@ public class GuiReaderGroup extends JPanel {
 	private List<GuiReaderBookInfo> infos;
 	private List<GuiReaderBook> books;
 	private JPanel pane;
+	private JLabel titleLabel;
 	private boolean words; // words or authors (secondary info on books)
 	private int itemsPerLine;
 
@@ -43,7 +44,8 @@ public class GuiReaderGroup extends JPanel {
 	 *            the {@link GuiReaderBook} used to probe some information about
 	 *            the stories
 	 * @param title
-	 *            the title of this group
+	 *            the title of this group (can be NULL for "no title", an empty
+	 *            {@link String} will trigger a default title for empty groups)
 	 * @param backgroundColor
 	 *            the background colour to use (or NULL for default)
 	 */
@@ -68,18 +70,10 @@ public class GuiReaderGroup extends JPanel {
 
 		add(pane, BorderLayout.CENTER);
 
-		if (title != null) {
-			if (title.isEmpty()) {
-				title = GuiReader.trans(StringIdGui.MENU_AUTHORS_UNKNOWN);
-			}
-
-			JLabel label = new JLabel();
-			label.setText(String.format("<html>"
-					+ "<body style='text-align: center; color: gray;'><br><b>"
-					+ "%s" + "</b></body>" + "</html>", title));
-			label.setHorizontalAlignment(JLabel.CENTER);
-			add(label, BorderLayout.NORTH);
-		}
+		titleLabel = new JLabel();
+		titleLabel.setHorizontalAlignment(JLabel.CENTER);
+		add(titleLabel, BorderLayout.NORTH);
+		setTitle(title);
 
 		// Compute the number of items per line at each resize
 		addComponentListener(new ComponentAdapter() {
@@ -117,6 +111,28 @@ public class GuiReaderGroup extends JPanel {
 				setSelectedBook(-1, false);
 			}
 		});
+	}
+
+	/**
+	 * The title of this group (can be NULL for "no title", an empty
+	 * {@link String} will trigger a default title for empty groups)
+	 * 
+	 * @param title
+	 *            the title or NULL
+	 */
+	public void setTitle(String title) {
+		if (title != null) {
+			if (title.isEmpty()) {
+				title = GuiReader.trans(StringIdGui.MENU_AUTHORS_UNKNOWN);
+			}
+
+			titleLabel.setText(String.format("<html>"
+					+ "<body style='text-align: center; color: gray;'><br><b>"
+					+ "%s" + "</b></body>" + "</html>", title));
+			titleLabel.setVisible(true);
+		} else {
+			titleLabel.setVisible(false);
+		}
 	}
 
 	/**
@@ -243,11 +259,20 @@ public class GuiReaderGroup extends JPanel {
 	}
 
 	/**
+	 * The number of books in this group.
+	 * 
+	 * @return the count
+	 */
+	public int getBooksCount() {
+		return books.size();
+	}
+
+	/**
 	 * Return the index of the currently selected book if any, -1 if none.
 	 * 
 	 * @return the index or -1
 	 */
-	private int getSelectedBookIndex() {
+	public int getSelectedBookIndex() {
 		int index = -1;
 		for (int i = 0; i < books.size(); i++) {
 			if (books.get(i).isSelected()) {
@@ -269,7 +294,7 @@ public class GuiReaderGroup extends JPanel {
 	 *            TRUE to constraint the index to the first/last element, FALSE
 	 *            to unselect when outside the range
 	 */
-	private void setSelectedBook(int index, boolean forceRange) {
+	public void setSelectedBook(int index, boolean forceRange) {
 		int previousIndex = getSelectedBookIndex();
 
 		if (index >= books.size()) {
