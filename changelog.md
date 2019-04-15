@@ -1,10 +1,11 @@
 # nikiroo-utils
 
-## Version WIP
+## Version 4.7.1
 
 - new: can now select the TempFiles root
 - new: can now select the Image temporary root
 - fix: Cache now offer some tracing when cleaning the cache
+- fix: TemporaryFiles.close() was not indempotent (and was called in finalize!)
 
 ## Version 4.7.0
 
