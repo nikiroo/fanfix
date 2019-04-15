@@ -1,5 +1,10 @@
 # nikiroo-utils
 
+## Version 4.7.2
+
+- fix: Downloader issue with caching (input was spent when returned the first time)
+- fix: IOUtil.forceResetableStream
+
 ## Version 4.7.1
 
 - new: can now select the TempFiles root
