@@ -9,6 +9,7 @@ import java.io.IOException;
 
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.ImageUtils;
+import be.nikiroo.utils.StringUtils;
 
 /**
  * This class offer some utilities based around images and uses the Android
@@ -61,23 +62,10 @@ public class ImageUtilsAndroid extends ImageUtils {
 	 *             in case of IO error
 	 */
 	static public Bitmap fromImage(Image img) throws IOException {
-		Bitmap image = BitmapFactory.decodeByteArray(img.getData(), 0,
-				img.getData().length);
+		int size = img.getData().length;
+		Bitmap image = BitmapFactory.decodeByteArray(img.getData(), 0, size);
 		if (image == null) {
-			int size = img.getData().length;
-			String ssize = size + " byte";
-			if (size > 1) {
-				ssize = size + " bytes";
-				if (size >= 1000) {
-					size = size / 1000;
-					ssize = size + " kb";
-					if (size > 1000) {
-						size = size / 1000;
-						ssize = size + " MB";
-					}
-				}
-			}
-
+			String ssize = StringUtils.formatNumber(size);
 			throw new IOException(
 					"Failed to convert input to image, size was: " + ssize);
 		}
