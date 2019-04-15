@@ -334,9 +334,11 @@ public class Downloader {
 		}
 
 		if (in != null && cache != null) {
-			tracer.trace("Save to cache: " + url);
+			tracer.trace("Save to cache: " + originalUrl);
 			try {
-				cache.save(in, url);
+				cache.save(in, originalUrl);
+				in.close();
+				in = cache.load(originalUrl, true, false);
 			} catch (IOException e) {
 				tracer.error(new IOException(
 						"Cannot save URL to cache, will ignore cache: " + url,
