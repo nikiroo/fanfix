@@ -110,8 +110,8 @@ public class TempFiles implements Closeable {
 			if (!test.exists()) {
 				test.createNewFile();
 				if (!test.exists()) {
-					throw new IOException("Cannot create temporary file: "
-							+ test);
+					throw new IOException(
+							"Cannot create temporary file: " + test);
 				}
 
 				test.deleteOnExit();
@@ -164,9 +164,16 @@ public class TempFiles implements Closeable {
 
 	@Override
 	public synchronized void close() throws IOException {
-		IOUtils.deltree(root); // NO exception here
-		root.getParentFile().delete(); // only if empty
-		root = null;
+		File root = this.root;
+		this.root = null;
+
+		if (root != null) {
+			IOUtils.deltree(root);
+
+			// Since we allocate temp directories from a base point,
+			// try and remove that base point
+			root.getParentFile().delete(); // (only works if empty)
+		}
 	}
 
 	@Override
