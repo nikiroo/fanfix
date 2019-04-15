@@ -396,9 +396,6 @@ public class IOUtils {
 	 */
 	public static InputStream forceResetableStream(InputStream in)
 			throws IOException {
-		MarkableFileInputStream tmpIn = null;
-		File tmp = null;
-
 		boolean resetable = in.markSupported();
 		if (resetable) {
 			try {
@@ -412,19 +409,32 @@ public class IOUtils {
 			return in;
 		}
 
-		tmp = File.createTempFile(".tmp-stream", ".tmp");
+		final File tmp = File.createTempFile(".tmp-stream.", ".tmp");
 		try {
 			write(in, tmp);
-			tmpIn = new MarkableFileInputStream(new FileInputStream(tmp));
-			return tmpIn;
-		} finally {
-			try {
-				if (tmpIn != null) {
-					tmpIn.close();
+			in.close();
+
+			final FileInputStream fis = new FileInputStream(tmp);
+			return new MarkableFileInputStream(fis) {
+				@Override
+				public void close() throws IOException {
+					try {
+						try {
+							super.close();
+						} finally {
+							try {
+								fis.close();
+							} catch (IOException e) {
+							}
+						}
+					} finally {
+						tmp.delete();
+					}
 				}
-			} finally {
-				tmp.delete();
-			}
+			};
+		} catch (IOException e) {
+			tmp.delete();
+			throw e;
 		}
 	}
 
