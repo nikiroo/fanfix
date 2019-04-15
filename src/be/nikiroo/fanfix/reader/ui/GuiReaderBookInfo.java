@@ -155,7 +155,7 @@ public class GuiReaderBookInfo {
 				meta.getTitle());
 
 		info.meta = meta;
-		info.count = formatNumber(meta.getWords());
+		info.count = StringUtils.formatNumber(meta.getWords());
 		if (!info.count.isEmpty()) {
 			info.count = GuiReader.trans(
 					meta.isImageDocument() ? StringIdGui.BOOK_COUNT_IMAGES
@@ -180,7 +180,8 @@ public class GuiReaderBookInfo {
 		GuiReaderBookInfo info = new GuiReaderBookInfo(Type.SOURCE, "source_"
 				+ source, source);
 
-		info.count = formatNumber(lib.getListBySource(source).size());
+		info.count = StringUtils.formatNumber(lib.getListBySource(source)
+				.size());
 		if (!info.count.isEmpty()) {
 			info.count = GuiReader.trans(StringIdGui.BOOK_COUNT_STORIES,
 					info.count);
@@ -204,38 +205,13 @@ public class GuiReaderBookInfo {
 		GuiReaderBookInfo info = new GuiReaderBookInfo(Type.AUTHOR, "author_"
 				+ author, author);
 
-		info.count = formatNumber(lib.getListByAuthor(author).size());
+		info.count = StringUtils.formatNumber(lib.getListByAuthor(author)
+				.size());
 		if (!info.count.isEmpty()) {
 			info.count = GuiReader.trans(StringIdGui.BOOK_COUNT_STORIES,
 					info.count);
 		}
 
 		return info;
-	}
-
-	/**
-	 * Format a number for display (use the "k" notation if higher or equal to
-	 * 4000).
-	 * 
-	 * @param number
-	 *            the number to parse
-	 * 
-	 * @return the displayable version of the number
-	 * 
-	 * @deprecated use {@link StringUtils} after update instead
-	 */
-	@Deprecated
-	static private String formatNumber(long number) {
-		// TODO: replace with StringUtils after update
-		String displayNumber;
-		if (number >= 4000) {
-			displayNumber = "" + (number / 1000) + "k";
-		} else if (number > 0) {
-			displayNumber = "" + number;
-		} else {
-			displayNumber = "";
-		}
-
-		return displayNumber;
 	}
 }
