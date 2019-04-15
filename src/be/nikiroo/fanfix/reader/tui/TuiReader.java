@@ -73,6 +73,14 @@ class TuiReader extends BasicReader {
 	}
 
 	@Override
+	public void search(boolean sync) throws IOException {
+		// TODO
+		if (sync) {
+			throw new java.lang.IllegalStateException("Not implemented yet.");
+		}
+	}
+
+	@Override
 	public void search(SupportType searchOn, String keywords, int page,
 			int item, boolean sync) {
 		// TODO

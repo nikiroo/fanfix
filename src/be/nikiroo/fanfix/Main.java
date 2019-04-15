@@ -222,13 +222,15 @@ public class Main {
 					if (searchOn == null) {
 						Instance.getTraceHandler().error(
 								"Website not known: <" + args[i] + ">");
-						exitCode = 255;
+						exitCode = 41;
+						break;
 					}
 
 					if (BasicSearchable.getSearchable(searchOn) == null) {
 						Instance.getTraceHandler().error(
 								"Website not supported: " + searchOn);
-						exitCode = 255;
+						exitCode = 42;
+						break;
 					}
 				} else if (search == null) {
 					search = args[i];
@@ -399,7 +401,7 @@ public class Main {
 			}
 		}
 
-		if (exitCode != 255) {
+		if (exitCode == 0) {
 			switch (action) {
 			case IMPORT:
 				exitCode = imprt(urlString, pg);
@@ -491,22 +493,19 @@ public class Main {
 					break;
 				}
 
-				if (searchOn == null) {
-					// TODO: do on reader!!!
-					for (SupportType type : SupportType.values()) {
-						if (BasicSearchable.getSearchable(type) != null) {
-							System.out.println(type);
-						}
-					}
-				} else if (search != null) {
-					try {
+				try {
+					if (searchOn == null) {
+						BasicReader.getReader().search(true);
+					} else if (search != null) {
+
 						BasicReader.getReader().search(searchOn, search, page,
 								item, true);
-					} catch (IOException e1) {
-						Instance.getTraceHandler().error(e1);
+					} else {
+						exitCode = 255;
 					}
-				} else {
-					exitCode = 255;
+				} catch (IOException e1) {
+					Instance.getTraceHandler().error(e1);
+					exitCode = 20;
 				}
 
 				break;

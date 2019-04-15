@@ -171,6 +171,18 @@ public interface Reader {
 	public void browse(String source);
 
 	/**
+	 * Display all supports that allow search operations.
+	 * 
+	 * @param sync
+	 *            execute the process synchronously (wait until it is terminated
+	 *            before returning)
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public void search(boolean sync) throws IOException;
+
+	/**
 	 * Search for the given terms and find stories that correspond if possible.
 	 * 
 	 * @param searchOn

@@ -217,41 +217,44 @@ public abstract class BasicSearchable {
 	 * type, or NULL if it does not exist.
 	 * 
 	 * @param type
-	 *            the type, must not be NULL
+	 *            the type, can be NULL (will just return NULL, since we do not
+	 *            support it)
 	 * 
 	 * @return an implementation that supports it, or NULL
 	 */
 	static public BasicSearchable getSearchable(SupportType type) {
 		BasicSearchable support = null;
 
-		switch (type) {
-		case FIMFICTION:
-			// TODO
-			break;
-		case FANFICTION:
-			support = new Fanfiction(type);
-			break;
-		case MANGAFOX:
-			// TODO
-			break;
-		case E621:
-			// TODO
-			break;
-		case YIFFSTAR:
-			// TODO
-			break;
-		case E_HENTAI:
-			// TODO
-			break;
-		case MANGA_LEL:
-			support = new MangaLel();
-			break;
-		case CBZ:
-		case HTML:
-		case INFO_TEXT:
-		case TEXT:
-		case EPUB:
-			break;
+		if (type != null) {
+			switch (type) {
+			case FIMFICTION:
+				// TODO
+				break;
+			case FANFICTION:
+				support = new Fanfiction(type);
+				break;
+			case MANGAFOX:
+				// TODO
+				break;
+			case E621:
+				// TODO
+				break;
+			case YIFFSTAR:
+				// TODO
+				break;
+			case E_HENTAI:
+				// TODO
+				break;
+			case MANGA_LEL:
+				support = new MangaLel();
+				break;
+			case CBZ:
+			case HTML:
+			case INFO_TEXT:
+			case TEXT:
+			case EPUB:
+				break;
+			}
 		}
 
 		return support;

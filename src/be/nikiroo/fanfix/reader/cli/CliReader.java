@@ -101,6 +101,15 @@ class CliReader extends BasicReader {
 	}
 
 	@Override
+	public void search(boolean sync) throws IOException {
+		for (SupportType type : SupportType.values()) {
+			if (BasicSearchable.getSearchable(type) != null) {
+				System.out.println(type);
+			}
+		}
+	}
+
+	@Override
 	public void search(SupportType searchOn, String keywords, int page,
 			int item, boolean sync) throws IOException {
 		BasicSearchable search = BasicSearchable.getSearchable(searchOn);

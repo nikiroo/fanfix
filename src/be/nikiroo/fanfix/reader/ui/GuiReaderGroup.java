@@ -188,7 +188,7 @@ public class GuiReaderGroup extends JPanel {
 		if (infos != null) {
 			for (GuiReaderBookInfo info : infos) {
 				boolean isCached = false;
-				if (info.getMeta() != null) {
+				if (info.getMeta() != null && info.getMeta().getLuid() != null) {
 					isCached = reader.isCached(info.getMeta().getLuid());
 				}
 

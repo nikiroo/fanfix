@@ -127,6 +127,11 @@ class TuiReaderApplication extends TApplication implements Reader {
 	}
 
 	@Override
+	public void search(boolean sync) throws IOException {
+		reader.search(sync);
+	}
+
+	@Override
 	public void search(SupportType searchOn, String keywords, int page,
 			int item, boolean sync) throws IOException {
 		reader.search(searchOn, keywords, page, item, sync);
