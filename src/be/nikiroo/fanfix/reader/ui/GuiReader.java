@@ -25,6 +25,8 @@ import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.library.CacheLibrary;
 import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.reader.Reader;
+import be.nikiroo.fanfix.searchable.BasicSearchable;
+import be.nikiroo.fanfix.searchable.SearchableTag;
 import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
@@ -221,16 +223,6 @@ class GuiReader extends BasicReader {
 
 	@Override
 	public void search(boolean sync) throws IOException {
-		// TODO
-		if (sync) {
-			throw new java.lang.IllegalStateException("Not implemented yet.");
-		}
-	}
-
-	@Override
-	public void search(SupportType searchOn, String keywords, int page,
-			int item, boolean sync) {
-		// TODO: add parameters!
 		GuiReaderSearch search = new GuiReaderSearch(this);
 		if (sync) {
 			sync(search);
@@ -240,11 +232,49 @@ class GuiReader extends BasicReader {
 	}
 
 	@Override
-	public void searchTag(SupportType searchOn, int page, int item,
-			boolean sync, Integer... tags) {
-		// TODO
+	public void search(SupportType searchOn, String keywords, int page,
+			int item, boolean sync) {
+		GuiReaderSearch search = new GuiReaderSearch(this);
+		search.search(searchOn, keywords, page, item);
 		if (sync) {
-			throw new java.lang.IllegalStateException("Not implemented yet.");
+			sync(search);
+		} else {
+			search.setVisible(true);
+		}
+	}
+
+	@Override
+	public void searchTag(final SupportType searchOn, final int page,
+			final int item, final boolean sync, final Integer... tags) {
+
+		final GuiReaderSearch search = new GuiReaderSearch(GuiReader.this);
+		final BasicSearchable searchable = BasicSearchable
+				.getSearchable(searchOn);
+
+		Runnable action = new Runnable() {
+			@Override
+			public void run() {
+				SearchableTag tag = null;
+				try {
+					tag = searchable.getTag(tags);
+				} catch (IOException e) {
+					Instance.getTraceHandler().error(e);
+				}
+
+				search.searchTag(searchOn, page, item, tag);
+
+				if (sync) {
+					sync(search);
+				} else {
+					search.setVisible(true);
+				}
+			}
+		};
+
+		if (sync) {
+			action.run();
+		} else {
+			new Thread(action).start();
 		}
 	}
 

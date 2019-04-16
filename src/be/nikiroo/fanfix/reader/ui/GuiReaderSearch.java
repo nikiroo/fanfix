@@ -36,6 +36,7 @@ public class GuiReaderSearch extends JFrame {
 
 	private List<SupportType> supportTypes;
 	private SupportType supportType;
+	private boolean searchByTags;
 	private List<SearchableTag> tags;
 	private String keywords;
 	private int page;
@@ -43,6 +44,7 @@ public class GuiReaderSearch extends JFrame {
 
 	private JComboBox<SupportType> comboSupportTypes;
 	private JTabbedPane searchTabs;
+	private JTextField keywordsField;
 
 	private boolean seeWordcount;
 	private GuiReaderGroup books;
@@ -56,6 +58,7 @@ public class GuiReaderSearch extends JFrame {
 		tags = new ArrayList<SearchableTag>();
 		page = 1; // TODO
 		maxPage = -1;
+		searchByTags = false;
 
 		supportTypes = new ArrayList<SupportType>();
 		for (SupportType type : SupportType.values()) {
@@ -71,7 +74,7 @@ public class GuiReaderSearch extends JFrame {
 		comboSupportTypes.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				setSupportType((SupportType) comboSupportTypes
+				updateSupportType((SupportType) comboSupportTypes
 						.getSelectedItem());
 			}
 		});
@@ -108,16 +111,10 @@ public class GuiReaderSearch extends JFrame {
 		add(scroll, BorderLayout.CENTER);
 	}
 
-	public void setSupportType(SupportType supportType) {
-		this.supportType = supportType;
-		comboSupportTypes.setSelectedItem(supportType);
-		// TODO: reset all
-	}
-
 	private JPanel createByNameSearchPanel() {
 		JPanel byName = new JPanel(new BorderLayout());
 
-		final JTextField keywordsField = new JTextField();
+		keywordsField = new JTextField();
 		byName.add(keywordsField, BorderLayout.CENTER);
 
 		// TODO: i18n
@@ -144,12 +141,79 @@ public class GuiReaderSearch extends JFrame {
 		return byTag;
 	}
 
-	// item 0 = no selction, else = default selection
+	private void updateSupportType(SupportType supportType) {
+		if (supportType != this.supportType) {
+			this.supportType = supportType;
+			comboSupportTypes.setSelectedItem(supportType);
+			// TODO: reset all
+		}
+	}
+
+	private void updateSearchBy(final boolean byTag) {
+		if (byTag != this.searchByTags) {
+			inUi(new Runnable() {
+				@Override
+				public void run() {
+					if (!byTag) {
+						searchTabs.setSelectedIndex(0);
+					} else {
+						searchTabs.setSelectedIndex(1);
+					}
+				}
+			});
+		}
+	}
+
+	private void updatePages(final int page, final Integer maxPage) {
+		inUi(new Runnable() {
+			@Override
+			public void run() {
+				GuiReaderSearch.this.page = page;
+				GuiReaderSearch.this.maxPage = maxPage;
+				// TODO: gui
+				System.out.println("page: " + page);
+				System.out.println("max page: " + maxPage);
+			}
+		});
+	}
+
+	private void updateKeywords(final String keywords) {
+		inUi(new Runnable() {
+			@Override
+			public void run() {
+				GuiReaderSearch.this.keywords = keywords;
+				keywordsField.setText(keywords);
+			}
+		});
+	}
+
+	// can be NULL
+	private void updateTags(final SearchableTag tag) {
+		inUi(new Runnable() {
+			@Override
+			public void run() {
+				// TODO
+			}
+		});
+	}
+
+	private void updateBooks(final List<GuiReaderBookInfo> infos) {
+		inUi(new Runnable() {
+			@Override
+			public void run() {
+				books.refreshBooks(infos, seeWordcount);
+			}
+		});
+	}
+
+	// item 0 = no selection, else = default selection
 	public void search(final SupportType searchOn, final String keywords,
 			final int page, final int item) {
-		setSupportType(searchOn);
-		this.keywords = keywords;
-		this.page = page;
+
+		updateSupportType(searchOn);
+		updateSearchBy(false);
+		updateKeywords(keywords);
+		updatePages(page, maxPage);
 
 		new Thread(new Runnable() {
 			@Override
@@ -188,60 +252,41 @@ public class GuiReaderSearch extends JFrame {
 		}).start();
 	}
 
-	private void updatePages(final int page, final Integer maxPage) {
-		inUi(new Runnable() {
-			@Override
-			public void run() {
-				GuiReaderSearch.this.page = page;
-				GuiReaderSearch.this.maxPage = maxPage;
-				// TODO: gui
-				System.out.println("page: " + page);
-				System.out.println("max page: " + maxPage);
-			}
-		});
-	}
+	public void searchTag(SupportType searchOn, int page, int item,
+			SearchableTag tag) {
 
-	private void updateBooks(final List<GuiReaderBookInfo> infos) {
-		inUi(new Runnable() {
-			@Override
-			public void run() {
-				books.refreshBooks(infos, seeWordcount);
-			}
-		});
-	}
-
-	private void searchTag(SupportType searchOn, int page, int item,
-			boolean sync, Integer... tags) throws IOException {
+		updateSupportType(searchOn);
+		updateSearchBy(true);
+		updateTags(tag);
+		updatePages(page, maxPage);
 
 		BasicSearchable search = BasicSearchable.getSearchable(searchOn);
-		SearchableTag stag = search.getTag(tags);
 
-		if (stag == null) {
-			// TODO i18n
-			System.out.println("Known tags: ");
-			int i = 1;
-			for (SearchableTag s : search.getTags()) {
-				System.out.println(String.format("%d: %s", i, s.getName()));
-				i++;
+		if (tag != null) {
+			int maxPage = 0;
+			try {
+				maxPage = search.searchPages(tag);
+			} catch (IOException e) {
+				Instance.getTraceHandler().error(e);
 			}
-		} else {
-			if (page <= 0) {
-				if (stag.isLeaf()) {
-					search.search(stag, 1);
-					System.out.println(stag.getPages());
-				} else {
-					System.out.println(stag.getCount());
-				}
-			} else {
+
+			updatePages(page, maxPage);
+
+			if (page > 0) {
 				List<MetaData> metas = null;
 				List<SearchableTag> subtags = null;
 				int count;
 
-				if (stag.isLeaf()) {
-					metas = search.search(stag, page);
+				if (tag.isLeaf()) {
+					try {
+						metas = search.search(tag, page);
+					} catch (IOException e) {
+						metas = new ArrayList<MetaData>();
+						Instance.getTraceHandler().error(e);
+					}
 					count = metas.size();
 				} else {
-					subtags = stag.getChildren();
+					subtags = tag.getChildren();
 					count = subtags.size();
 				}
 
@@ -249,26 +294,11 @@ public class GuiReaderSearch extends JFrame {
 					if (item <= count) {
 						if (metas != null) {
 							MetaData meta = metas.get(item - 1);
-							// displayStory(meta);
+							// TODO: select story
 						} else {
 							SearchableTag subtag = subtags.get(item - 1);
-							// displayTag(subtag);
+							// TODO: search on tag
 						}
-					} else {
-						System.out.println("Invalid item: only " + count
-								+ " items found");
-					}
-				} else {
-					if (metas != null) {
-						// TODO i18n
-						System.out.println(String.format("Content of %s: ",
-								stag.getFqName()));
-						// displayStories(metas);
-					} else {
-						// TODO i18n
-						System.out.println(String.format("Subtags of %s: ",
-								stag.getFqName()));
-						// displayTags(subtags);
 					}
 				}
 			}

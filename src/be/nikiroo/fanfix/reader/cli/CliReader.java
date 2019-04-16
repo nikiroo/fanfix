@@ -153,8 +153,7 @@ class CliReader extends BasicReader {
 		} else {
 			if (page <= 0) {
 				if (stag.isLeaf()) {
-					search.search(stag, 1);
-					System.out.println(stag.getPages());
+					System.out.println(search.searchPages(stag));
 				} else {
 					System.out.println(stag.getCount());
 				}

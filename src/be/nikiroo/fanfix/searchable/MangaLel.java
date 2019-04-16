@@ -51,12 +51,6 @@ class MangaLel extends BasicSearchable {
 	}
 
 	@Override
-	public int searchPages(String search) throws IOException {
-		// No pagination
-		return 1;
-	}
-
-	@Override
 	public List<MetaData> search(String search, int page) throws IOException {
 		String url = BASE_URL + "?nomProjet="
 				+ URLEncoder.encode(search, "utf-8")
@@ -74,6 +68,22 @@ class MangaLel extends BasicSearchable {
 
 		// No pagination
 		return getResults(url);
+	}
+
+	@Override
+	public int searchPages(String search) throws IOException {
+		// No pagination
+		return 1;
+	}
+
+	@Override
+	public int searchPages(SearchableTag tag) throws IOException {
+		if (tag.isLeaf()) {
+			// No pagination
+			return 1;
+		}
+
+		return 0;
 	}
 
 	private List<MetaData> getResults(String sourceUrl) throws IOException {

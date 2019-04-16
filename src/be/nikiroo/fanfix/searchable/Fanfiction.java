@@ -150,15 +150,6 @@ class Fanfiction extends BasicSearchable {
 	}
 
 	@Override
-	public int searchPages(String search) throws IOException {
-		String encoded = URLEncoder.encode(search.toLowerCase(), "utf-8");
-		String url = BASE_URL + "search/?ready=1&type=story&keywords="
-				+ encoded;
-
-		return getPages(load(url, false));
-	}
-
-	@Override
 	public List<MetaData> search(SearchableTag tag, int page)
 			throws IOException {
 		List<MetaData> metas = new ArrayList<MetaData>();
@@ -195,6 +186,25 @@ class Fanfiction extends BasicSearchable {
 		}
 
 		return metas;
+	}
+
+	@Override
+	public int searchPages(String search) throws IOException {
+		String encoded = URLEncoder.encode(search.toLowerCase(), "utf-8");
+		String url = BASE_URL + "search/?ready=1&type=story&keywords="
+				+ encoded;
+
+		return getPages(load(url, false));
+	}
+
+	@Override
+	public int searchPages(SearchableTag tag) throws IOException {
+		if (tag.isLeaf()) {
+			String url = tag.getId();
+			return getPages(load(url, false));
+		}
+
+		return 0;
 	}
 
 	/**
