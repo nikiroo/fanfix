@@ -29,6 +29,8 @@ public class GuiReaderGroup extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private BookActionListener action;
 	private Color backgroundColor;
+	private Color backgroundColorDef;
+	private Color backgroundColorDefPane;
 	private GuiReader reader;
 	private List<GuiReaderBookInfo> infos;
 	private List<GuiReaderBook> books;
@@ -51,15 +53,13 @@ public class GuiReaderGroup extends JPanel {
 	 */
 	public GuiReaderGroup(GuiReader reader, String title, Color backgroundColor) {
 		this.reader = reader;
-		this.backgroundColor = backgroundColor;
 
 		this.pane = new JPanel();
-
 		pane.setLayout(new WrapLayout(WrapLayout.LEADING, 5, 5));
-		if (backgroundColor != null) {
-			pane.setBackground(backgroundColor);
-			setBackground(backgroundColor);
-		}
+
+		this.backgroundColorDef = getBackground();
+		this.backgroundColorDefPane = pane.getBackground();
+		setBackground(backgroundColor);
 
 		setLayout(new BorderLayout(0, 10));
 
@@ -111,6 +111,43 @@ public class GuiReaderGroup extends JPanel {
 				setSelectedBook(-1, false);
 			}
 		});
+	}
+
+	/**
+	 * Note: this class supports NULL as a background color, which will revert
+	 * it to its default state.
+	 * <p>
+	 * Note: this class' implementation will also set the main pane background
+	 * color at the same time.
+	 * <p>
+	 * Sets the background color of this component. The background color is used
+	 * only if the component is opaque, and only by subclasses of
+	 * <code>JComponent</code> or <code>ComponentUI</code> implementations.
+	 * Direct subclasses of <code>JComponent</code> must override
+	 * <code>paintComponent</code> to honor this property.
+	 * <p>
+	 * It is up to the look and feel to honor this property, some may choose to
+	 * ignore it.
+	 * 
+	 * @param bg
+	 *            the desired background <code>Color</code>
+	 * @see java.awt.Component#getBackground
+	 * @see #setOpaque
+	 * 
+	 * @beaninfo preferred: true bound: true attribute: visualUpdate true
+	 *           description: The background color of the component.
+	 */
+	@Override
+	public void setBackground(Color backgroundColor) {
+		Color cme = backgroundColor == null ? backgroundColorDef
+				: backgroundColor;
+		Color cpane = backgroundColor == null ? backgroundColorDefPane
+				: backgroundColor;
+
+		if (pane != null) { // can happen at theme setup time
+			pane.setBackground(cpane);
+		}
+		super.setBackground(cme);
 	}
 
 	/**

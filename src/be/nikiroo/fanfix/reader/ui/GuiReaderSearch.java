@@ -1,6 +1,7 @@
 package be.nikiroo.fanfix.reader.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
@@ -198,10 +199,12 @@ public class GuiReaderSearch extends JFrame {
 	}
 
 	private void updateBooks(final List<GuiReaderBookInfo> infos) {
+		setWaitingScreen(true);
 		inUi(new Runnable() {
 			@Override
 			public void run() {
 				books.refreshBooks(infos, seeWordcount);
+				setWaitingScreen(false);
 			}
 		});
 	}
@@ -252,57 +255,67 @@ public class GuiReaderSearch extends JFrame {
 		}).start();
 	}
 
-	public void searchTag(SupportType searchOn, int page, int item,
-			SearchableTag tag) {
+	public void searchTag(final SupportType searchOn, final int page,
+			final int item, final SearchableTag tag) {
+
+		setWaitingScreen(true);
 
 		updateSupportType(searchOn);
 		updateSearchBy(true);
 		updateTags(tag);
 		updatePages(page, maxPage);
 
-		BasicSearchable search = BasicSearchable.getSearchable(searchOn);
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				BasicSearchable search = BasicSearchable
+						.getSearchable(searchOn);
 
-		if (tag != null) {
-			int maxPage = 0;
-			try {
-				maxPage = search.searchPages(tag);
-			} catch (IOException e) {
-				Instance.getTraceHandler().error(e);
-			}
-
-			updatePages(page, maxPage);
-
-			if (page > 0) {
-				List<MetaData> metas = null;
-				List<SearchableTag> subtags = null;
-				int count;
-
-				if (tag.isLeaf()) {
+				if (tag != null) {
+					int maxPage = 0;
 					try {
-						metas = search.search(tag, page);
+						maxPage = search.searchPages(tag);
 					} catch (IOException e) {
-						metas = new ArrayList<MetaData>();
 						Instance.getTraceHandler().error(e);
 					}
-					count = metas.size();
-				} else {
-					subtags = tag.getChildren();
-					count = subtags.size();
-				}
 
-				if (item > 0) {
-					if (item <= count) {
-						if (metas != null) {
-							MetaData meta = metas.get(item - 1);
-							// TODO: select story
+					updatePages(page, maxPage);
+
+					if (page > 0) {
+						List<MetaData> metas = null;
+						List<SearchableTag> subtags = null;
+						int count;
+
+						if (tag.isLeaf()) {
+							try {
+								metas = search.search(tag, page);
+							} catch (IOException e) {
+								metas = new ArrayList<MetaData>();
+								Instance.getTraceHandler().error(e);
+							}
+							count = metas.size();
 						} else {
-							SearchableTag subtag = subtags.get(item - 1);
-							// TODO: search on tag
+							subtags = tag.getChildren();
+							count = subtags.size();
+						}
+
+						if (item > 0) {
+							if (item <= count) {
+								if (metas != null) {
+									MetaData meta = metas.get(item - 1);
+									// TODO: select story
+								} else {
+									SearchableTag subtag = subtags
+											.get(item - 1);
+									// TODO: search on tag
+								}
+							}
 						}
 					}
 				}
+				setWaitingScreen(false);
 			}
-		}
+		}).start();
 	}
 
 	/**
@@ -316,7 +329,7 @@ public class GuiReaderSearch extends JFrame {
 	 * @param run
 	 *            the action to run
 	 */
-	public void inUi(final Runnable run) {
+	private void inUi(final Runnable run) {
 		if (EventQueue.isDispatchThread()) {
 			run.run();
 		} else {
@@ -328,5 +341,20 @@ public class GuiReaderSearch extends JFrame {
 				Instance.getTraceHandler().error(e);
 			}
 		}
+	}
+
+	private void setWaitingScreen(final boolean waiting) {
+		inUi(new Runnable() {
+			@Override
+			public void run() {
+				GuiReaderSearch.this.setEnabled(!waiting);
+				// TODO: this is just an example of something to do
+				if (waiting) {
+					books.setBackground(Color.RED);
+				} else {
+					books.setBackground(null);
+				}
+			}
+		});
 	}
 }
