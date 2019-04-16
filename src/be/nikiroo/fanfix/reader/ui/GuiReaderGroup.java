@@ -179,8 +179,13 @@ public class GuiReaderGroup extends JPanel {
 	 * up/down one line at a time.
 	 */
 	private void computeItemsPerLine() {
-		// TODO
-		itemsPerLine = 5;
+		itemsPerLine = 1;
+
+		if (books != null && books.size() > 0) {
+			// this.pane holds all the books with a hgap of 5 px
+			int wbook = books.get(0).getWidth() + 5;
+			itemsPerLine = pane.getWidth() / wbook;
+		}
 	}
 
 	/**
@@ -270,6 +275,8 @@ public class GuiReaderGroup extends JPanel {
 		pane.repaint();
 		validate();
 		repaint();
+
+		computeItemsPerLine();
 	}
 
 	/**

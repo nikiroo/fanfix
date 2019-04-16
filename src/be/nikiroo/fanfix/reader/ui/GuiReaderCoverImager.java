@@ -130,6 +130,24 @@ class GuiReaderCoverImager {
 	}
 
 	/**
+	 * The width of a cover image.
+	 * 
+	 * @return the width
+	 */
+	static public int getCoverWidth() {
+		return SPINE_WIDTH + COVER_WIDTH;
+	}
+
+	/**
+	 * The height of a cover image.
+	 * 
+	 * @return the height
+	 */
+	static public int getCoverHeight() {
+		return COVER_HEIGHT + HOFFSET;
+	}
+
+	/**
 	 * Generate a cover icon based upon the given {@link GuiReaderBookInfo}.
 	 * 
 	 * @param lib
@@ -158,9 +176,8 @@ class GuiReaderCoverImager {
 		if (resizedImage == null) {
 			try {
 				Image cover = info.getBaseImage(lib);
-				resizedImage = new BufferedImage(SPINE_WIDTH + COVER_WIDTH,
-						SPINE_HEIGHT + COVER_HEIGHT + HOFFSET,
-						BufferedImage.TYPE_4BYTE_ABGR);
+				resizedImage = new BufferedImage(getCoverWidth(),
+						getCoverHeight(), BufferedImage.TYPE_4BYTE_ABGR);
 
 				Graphics2D g = resizedImage.createGraphics();
 				try {
