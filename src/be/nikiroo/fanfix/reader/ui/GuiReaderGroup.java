@@ -197,6 +197,33 @@ public class GuiReaderGroup extends JPanel {
 	 */
 	public void setActionListener(BookActionListener action) {
 		this.action = action;
+		refreshBooks();
+	}
+
+	/**
+	 * Clear all the books in this {@link GuiReaderGroup}.
+	 */
+	public void clear() {
+		refreshBooks(new ArrayList<GuiReaderBookInfo>());
+	}
+
+	/**
+	 * Refresh the list of {@link GuiReaderBook}s displayed in the control.
+	 * 
+	 * @param infos
+	 *            the new list of infos
+	 */
+	public void refreshBooks() {
+		refreshBooks(infos, words);
+	}
+
+	/**
+	 * Refresh the list of {@link GuiReaderBook}s displayed in the control.
+	 * 
+	 * @param infos
+	 *            the new list of infos
+	 */
+	public void refreshBooks(List<GuiReaderBookInfo> infos) {
 		refreshBooks(infos, words);
 	}
 

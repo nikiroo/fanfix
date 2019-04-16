@@ -147,7 +147,8 @@ public class GuiReaderSearch extends JFrame {
 		if (supportType != this.supportType) {
 			this.supportType = supportType;
 			comboSupportTypes.setSelectedItem(supportType);
-			// TODO: reset all
+			books.clear();
+			// TODO: reset all tags
 		}
 	}
 
