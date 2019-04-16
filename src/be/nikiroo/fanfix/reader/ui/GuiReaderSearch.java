@@ -1,7 +1,6 @@
 package be.nikiroo.fanfix.reader.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
@@ -14,6 +13,7 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
@@ -46,12 +46,12 @@ public class GuiReaderSearch extends JFrame {
 	private JComboBox<SupportType> comboSupportTypes;
 	private JTabbedPane searchTabs;
 	private JTextField keywordsField;
+	private JButton submitKeywords;
 
 	private boolean seeWordcount;
 	private GuiReaderGroup books;
 
 	public GuiReaderSearch(final GuiReader reader) {
-		// TODO: i18n
 		super("Browse stories");
 		setLayout(new BorderLayout());
 		setSize(800, 600);
@@ -69,7 +69,6 @@ public class GuiReaderSearch extends JFrame {
 		}
 		supportType = supportTypes.isEmpty() ? null : supportTypes.get(0);
 
-		JPanel top = new JPanel(new BorderLayout());
 		comboSupportTypes = new JComboBox<SupportType>(
 				supportTypes.toArray(new SupportType[] {}));
 		comboSupportTypes.addActionListener(new ActionListener() {
@@ -79,13 +78,16 @@ public class GuiReaderSearch extends JFrame {
 						.getSelectedItem());
 			}
 		});
-		top.add(comboSupportTypes, BorderLayout.NORTH);
+		JPanel searchSites = new JPanel(new BorderLayout());
+		searchSites.add(comboSupportTypes, BorderLayout.CENTER);
+		searchSites.add(new JLabel(" " + "Website : "), BorderLayout.WEST);
 
-		// TODO: i18n
 		searchTabs = new JTabbedPane();
 		searchTabs.addTab("By name", createByNameSearchPanel());
 		searchTabs.addTab("By tags", createByTagSearchPanel());
 
+		JPanel top = new JPanel(new BorderLayout());
+		top.add(searchSites, BorderLayout.NORTH);
 		top.add(searchTabs, BorderLayout.CENTER);
 
 		add(top, BorderLayout.NORTH);
@@ -118,13 +120,12 @@ public class GuiReaderSearch extends JFrame {
 		keywordsField = new JTextField();
 		byName.add(keywordsField, BorderLayout.CENTER);
 
-		// TODO: i18n
-		JButton submit = new JButton("Search");
-		byName.add(submit, BorderLayout.EAST);
+		submitKeywords = new JButton("Search");
+		byName.add(submitKeywords, BorderLayout.EAST);
 
 		// TODO: ENTER -> search
 
-		submit.addActionListener(new ActionListener() {
+		submitKeywords.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				search(supportType, keywordsField.getText(), page, 0);
@@ -178,14 +179,17 @@ public class GuiReaderSearch extends JFrame {
 		});
 	}
 
+	// cannot be NULL
 	private void updateKeywords(final String keywords) {
-		inUi(new Runnable() {
-			@Override
-			public void run() {
-				GuiReaderSearch.this.keywords = keywords;
-				keywordsField.setText(keywords);
-			}
-		});
+		if (!keywords.equals(this.keywords)) {
+			inUi(new Runnable() {
+				@Override
+				public void run() {
+					GuiReaderSearch.this.keywords = keywords;
+					keywordsField.setText(keywords);
+				}
+			});
+		}
 	}
 
 	// can be NULL
@@ -212,6 +216,8 @@ public class GuiReaderSearch extends JFrame {
 	// item 0 = no selection, else = default selection
 	public void search(final SupportType searchOn, final String keywords,
 			final int page, final int item) {
+
+		setWaitingScreen(true);
 
 		updateSupportType(searchOn);
 		updateSearchBy(false);
@@ -251,6 +257,8 @@ public class GuiReaderSearch extends JFrame {
 						// TODO: "click" on item ITEM
 					}
 				}
+
+				setWaitingScreen(false);
 			}
 		}).start();
 	}
@@ -348,12 +356,8 @@ public class GuiReaderSearch extends JFrame {
 			@Override
 			public void run() {
 				GuiReaderSearch.this.setEnabled(!waiting);
-				// TODO: this is just an example of something to do
-				if (waiting) {
-					books.setBackground(Color.RED);
-				} else {
-					books.setBackground(null);
-				}
+				books.setEnabled(!waiting);
+				submitKeywords.setEnabled(!waiting);
 			}
 		});
 	}
