@@ -3,6 +3,8 @@ package be.nikiroo.fanfix.reader.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Rectangle;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -421,6 +423,21 @@ public class GuiReaderGroup extends JPanel {
 
 		if (consumed) {
 			e.consume();
+		}
+	}
+
+	@Override
+	public void paint(Graphics g) {
+		super.paint(g);
+
+		Rectangle clip = g.getClipBounds();
+		if (clip.getWidth() <= 0 || clip.getHeight() <= 0) {
+			return;
+		}
+
+		if (!isEnabled()) {
+			g.setColor(new Color(128, 128, 128, 128));
+			g.fillRect(clip.x, clip.y, clip.width, clip.height);
 		}
 	}
 }
