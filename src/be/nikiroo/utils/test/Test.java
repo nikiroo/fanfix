@@ -1,6 +1,7 @@
 package be.nikiroo.utils.test;
 
 import be.nikiroo.utils.Cache;
+import be.nikiroo.utils.CacheMemory;
 import be.nikiroo.utils.Downloader;
 import be.nikiroo.utils.main.bridge;
 import be.nikiroo.utils.main.img2aa;
@@ -30,9 +31,10 @@ public class Test extends TestLauncher {
 		addSeries(new SerialServerTest(args));
 		addSeries(new StringUtilsTest(args));
 		addSeries(new TempFilesTest(args));
-		
+
 		// TODO: test cache and downloader
 		Cache cache = null;
+		CacheMemory memcache = null;
 		Downloader downloader = null;
 
 		// To include the sources:
