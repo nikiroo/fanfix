@@ -257,6 +257,9 @@ class GuiReader extends BasicReader {
 				SearchableTag tag = null;
 				try {
 					tag = searchable.getTag(tags);
+					if (tag != null) {
+						searchable.fillTag(tag);
+					}
 				} catch (IOException e) {
 					Instance.getTraceHandler().error(e);
 				}

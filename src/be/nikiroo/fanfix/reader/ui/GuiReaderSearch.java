@@ -1,6 +1,7 @@
 package be.nikiroo.fanfix.reader.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
@@ -10,14 +11,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
@@ -42,6 +46,8 @@ public class GuiReaderSearch extends JFrame {
 	private String keywords;
 	private int page;
 	private int maxPage;
+
+	private JPanel tagBars;
 
 	private JComboBox<SupportType> comboSupportTypes;
 	private JTabbedPane searchTabs;
@@ -112,6 +118,8 @@ public class GuiReaderSearch extends JFrame {
 		JScrollPane scroll = new JScrollPane(books);
 		scroll.getVerticalScrollBar().setUnitIncrement(16);
 		add(scroll, BorderLayout.CENTER);
+
+		updateTags(null);
 	}
 
 	private JPanel createByNameSearchPanel() {
@@ -137,8 +145,9 @@ public class GuiReaderSearch extends JFrame {
 
 	private JPanel createByTagSearchPanel() {
 		JPanel byTag = new JPanel();
-		JPanel searchBars = new JPanel();
-		add(searchBars, BorderLayout.NORTH);
+		tagBars = new JPanel();
+		tagBars.setLayout(new BoxLayout(tagBars, BoxLayout.Y_AXIS));
+		byTag.add(tagBars, BorderLayout.NORTH);
 
 		return byTag;
 	}
@@ -148,7 +157,7 @@ public class GuiReaderSearch extends JFrame {
 			this.supportType = supportType;
 			comboSupportTypes.setSelectedItem(supportType);
 			books.clear();
-			// TODO: reset all tags
+			updateTags(null);
 		}
 	}
 
@@ -193,12 +202,36 @@ public class GuiReaderSearch extends JFrame {
 		}
 	}
 
-	// can be NULL
+	// can be NULL, for base tags
 	private void updateTags(final SearchableTag tag) {
+		final List<SearchableTag> parents = new ArrayList<SearchableTag>();
+		SearchableTag parent = (tag == null) ? null : tag;
+		while (parent != null) {
+			parents.add(parent);
+			parent = parent.getParent();
+		}
+
 		inUi(new Runnable() {
 			@Override
 			public void run() {
-				// TODO
+				tagBars.invalidate();
+				tagBars.removeAll();
+
+				// TODO: Slow UI
+				// TODO: select the right one
+				try {
+					addTagBar(BasicSearchable.getSearchable(supportType)
+							.getTags(), tag);
+				} catch (IOException e) {
+					error(e);
+				}
+
+				for (int i = parents.size() - 1; i >= 0; i--) {
+					SearchableTag parent = parents.get(i);
+					addTagBar(parent.getChildren(), parent);
+				}
+
+				tagBars.validate();
 			}
 		});
 	}
@@ -212,6 +245,114 @@ public class GuiReaderSearch extends JFrame {
 				setWaitingScreen(false);
 			}
 		});
+	}
+
+	private void addTagBar(List<SearchableTag> tags,
+			final SearchableTag selected) {
+		tags.add(0, null);
+
+		final JComboBox<SearchableTag> combo = new JComboBox<SearchableTag>(
+				tags.toArray(new SearchableTag[] {}));
+		combo.setSelectedItem(selected);
+
+		// We want to pass it a String
+		@SuppressWarnings({ "rawtypes" })
+		final ListCellRenderer basic = combo.getRenderer();
+
+		combo.setRenderer(new ListCellRenderer<SearchableTag>() {
+			@Override
+			public Component getListCellRendererComponent(
+					JList<? extends SearchableTag> list, SearchableTag value,
+					int index, boolean isSelected, boolean cellHasFocus) {
+
+				Object displayValue = value;
+				if (value == null) {
+					displayValue = "Select a tag...";
+					cellHasFocus = false;
+					isSelected = false;
+				} else {
+					displayValue = value.getName();
+				}
+
+				// We willingly pass a String here
+				@SuppressWarnings("unchecked")
+				Component rep = basic.getListCellRendererComponent(list,
+						displayValue, index, isSelected, cellHasFocus);
+
+				if (value == null) {
+					rep.setForeground(Color.GRAY);
+				}
+
+				return rep;
+			}
+		});
+
+		combo.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				final SearchableTag tag = (SearchableTag) combo
+						.getSelectedItem();
+				if (tag != null) {
+					addTagBar(tag, new Runnable() {
+						@Override
+						public void run() {
+							// TODO: stories if needed
+							setWaitingScreen(false);
+						}
+					});
+				}
+			}
+		});
+
+		tagBars.add(combo);
+	}
+
+	// async, add children of tag, NULL = base tags
+	private void addTagBar(final SearchableTag tag, final Runnable inUi) {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				BasicSearchable searchable = BasicSearchable
+						.getSearchable(supportType);
+
+				List<SearchableTag> children = new ArrayList<SearchableTag>();
+				if (tag == null) {
+					try {
+						List<SearchableTag> baseTags = searchable.getTags();
+						children = baseTags;
+					} catch (IOException e) {
+						error(e);
+					}
+				} else {
+					try {
+						searchable.fillTag(tag);
+					} catch (IOException e) {
+						error(e);
+					}
+
+					if (!tag.isLeaf()) {
+						children = tag.getChildren();
+					} else {
+						children = null;
+						// TODO: stories
+					}
+				}
+
+				final List<SearchableTag> fchildren = children;
+				inUi(new Runnable() {
+					@Override
+					public void run() {
+						if (fchildren != null) {
+							addTagBar(fchildren, tag);
+						}
+
+						if (inUi != null) {
+							inUi.run();
+						}
+					}
+				});
+			}
+		}).start();
 	}
 
 	// item 0 = no selection, else = default selection
@@ -231,27 +372,26 @@ public class GuiReaderSearch extends JFrame {
 				BasicSearchable search = BasicSearchable
 						.getSearchable(searchOn);
 
+				int maxPage = -1;
+				try {
+					maxPage = search.searchPages(keywords);
+				} catch (IOException e) {
+					error(e);
+				}
+
 				if (page <= 0) {
-					int maxPage = -1;
-					try {
-						maxPage = search.searchPages(keywords);
-					} catch (IOException e) {
-						Instance.getTraceHandler().error(e);
-					}
 					updateBooks(new ArrayList<GuiReaderBookInfo>());
 					updatePages(0, maxPage);
 				} else {
-					List<GuiReaderBookInfo> infos = new ArrayList<GuiReaderBookInfo>();
+					List<MetaData> results;
 					try {
-						for (MetaData meta : search.search(keywords, page)) {
-							infos.add(GuiReaderBookInfo.fromMeta(meta));
-						}
+						results = search.search(keywords, page);
 					} catch (IOException e) {
-						Instance.getTraceHandler().error(e);
+						error(e);
+						results = new ArrayList<MetaData>();
 					}
 
-					updateBooks(infos);
-					updatePages(page, maxPage);
+					search(results, page, maxPage, item);
 
 					// ! 1-based index !
 					if (item > 0 && item <= books.getBooksCount()) {
@@ -264,6 +404,7 @@ public class GuiReaderSearch extends JFrame {
 		}).start();
 	}
 
+	// tag: must be filled (or NULL for base tags)
 	public void searchTag(final SupportType searchOn, final int page,
 			final int item, final SearchableTag tag) {
 
@@ -285,46 +426,65 @@ public class GuiReaderSearch extends JFrame {
 					try {
 						maxPage = search.searchPages(tag);
 					} catch (IOException e) {
-						Instance.getTraceHandler().error(e);
+						error(e);
 					}
 
 					updatePages(page, maxPage);
 
 					if (page > 0) {
-						List<MetaData> metas = null;
-						List<SearchableTag> subtags = null;
-						int count;
+						List<MetaData> metas = new ArrayList<MetaData>();
 
 						if (tag.isLeaf()) {
 							try {
 								metas = search.search(tag, page);
 							} catch (IOException e) {
-								metas = new ArrayList<MetaData>();
-								Instance.getTraceHandler().error(e);
+								error(e);
 							}
-							count = metas.size();
 						} else {
-							subtags = tag.getChildren();
-							count = subtags.size();
-						}
-
-						if (item > 0) {
-							if (item <= count) {
-								if (metas != null) {
-									MetaData meta = metas.get(item - 1);
-									// TODO: select story
-								} else {
-									SearchableTag subtag = subtags
-											.get(item - 1);
-									// TODO: search on tag
+							List<SearchableTag> subtags = tag.getChildren();
+							if (item > 0 && item <= subtags.size()) {
+								SearchableTag subtag = subtags.get(item - 1);
+								try {
+									metas = search.search(subtag, page);
+									maxPage = subtag.getPages();
+								} catch (IOException e) {
+									error(e);
 								}
 							}
 						}
+
+						updatePages(page, maxPage);
+						search(metas, page, maxPage, item);
 					}
 				}
+
 				setWaitingScreen(false);
 			}
 		}).start();
+	}
+
+	// item 0 = no selection, else = default selection
+	public void search(final List<MetaData> results, final int page,
+			final int maxPage, final int item) {
+
+		updatePages(page, maxPage);
+
+		if (page <= 0) {
+			updateBooks(new ArrayList<GuiReaderBookInfo>());
+			updatePages(0, maxPage);
+		} else {
+			List<GuiReaderBookInfo> infos = new ArrayList<GuiReaderBookInfo>();
+			for (MetaData meta : results) {
+				infos.add(GuiReaderBookInfo.fromMeta(meta));
+			}
+
+			updateBooks(infos);
+
+			// ! 1-based index !
+			if (item > 0 && item <= books.getBooksCount()) {
+				// TODO: "click" on item ITEM
+			}
+		}
 	}
 
 	/**
@@ -345,11 +505,15 @@ public class GuiReaderSearch extends JFrame {
 			try {
 				EventQueue.invokeAndWait(run);
 			} catch (InterruptedException e) {
-				Instance.getTraceHandler().error(e);
+				error(e);
 			} catch (InvocationTargetException e) {
-				Instance.getTraceHandler().error(e);
+				error(e);
 			}
 		}
+	}
+
+	private void error(Exception e) {
+		Instance.getTraceHandler().error(e);
 	}
 
 	private void setWaitingScreen(final boolean waiting) {

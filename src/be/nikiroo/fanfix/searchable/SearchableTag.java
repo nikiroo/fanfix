@@ -67,7 +67,7 @@ public class SearchableTag {
 	public SearchableTag(String id, String name, boolean leaf, boolean complete) {
 		this.id = id;
 		this.name = name;
-		this.complete = complete;
+		this.complete = leaf || complete;
 
 		setLeaf(leaf);
 
@@ -103,7 +103,7 @@ public class SearchableTag {
 		if (parent != null) {
 			return parent.getFqName() + " / " + name;
 		}
-		
+
 		return name;
 	}
 
@@ -112,7 +112,7 @@ public class SearchableTag {
 	 * {@link BasicSearchable#fillTag(SearchableTag)} operation from a
 	 * {@link BasicSearchable}, in order to gain (more?) subtag children.
 	 * <p>
-	 * This method does not make sense for leaf tags.
+	 * Leaf tags are always considered complete.
 	 * 
 	 * @return TRUE if it is complete
 	 */
@@ -125,13 +125,13 @@ public class SearchableTag {
 	 * {@link BasicSearchable#fillTag(SearchableTag)} operation from a
 	 * {@link BasicSearchable}, in order to gain (more?) subtag children.
 	 * <p>
-	 * This method does not make sense for leaf tags.
+	 * Leaf tags are always considered complete.
 	 * 
 	 * @param complete
 	 *            TRUE if it is complete
 	 */
 	public void setComplete(boolean complete) {
-		this.complete = complete;
+		this.complete = isLeaf() || complete;
 	}
 
 	/**
@@ -206,6 +206,9 @@ public class SearchableTag {
 	 */
 	public void setLeaf(boolean leaf) {
 		pages = leaf ? -1 : -2;
+		if (leaf) {
+			complete = true;
+		}
 	}
 
 	/**
