@@ -37,14 +37,13 @@ import be.nikiroo.utils.serial.server.ServerObject;
  * <li>PING: will return PONG if the key is accepted</li>
  * <li>GET_METADATA *: will return the metadata of all the stories in the
  * library (array)</li> *
- * <li>GET_METADATA [luid]: will return the metadata of the story of LUID
- * luid</li>
+ * <li>GET_METADATA [luid]: will return the metadata of the story of LUID luid</li>
  * <li>GET_STORY [luid]: will return the given story if it exists (or NULL if
  * not)</li>
  * <li>SAVE_STORY [luid]: save the story (that must be sent just after the
  * command) with the given LUID, then return the LUID</li>
- * <li>IMPORT [url]: save the story found at the given URL, then return the
- * LUID</li>
+ * <li>IMPORT [url]: save the story found at the given URL, then return the LUID
+ * </li>
  * <li>DELETE_STORY [luid]: delete the story of LUID luid</li>
  * <li>GET_COVER [luid]: return the cover of the story</li>
  * <li>GET_CUSTOM_COVER ["SOURCE"|"AUTHOR"] [source]: return the cover for this
@@ -124,8 +123,11 @@ public class RemoteLibraryServer extends ServerObject {
 
 		Object rep = doRequest(action, command, args);
 
-		getTraceHandler().trace(String.format("[>%s]: %d ms", command,
-				(new Date().getTime() - start)));
+		String rec = StringUtils.formatNumber(action.getBytesReceived()) + "b";
+		String sent = StringUtils.formatNumber(action.getBytesSent()) + "b";
+		getTraceHandler().trace(
+				String.format("[>%s]: (%s sent, %s rec) in %d ms", command,
+						sent, rec, (new Date().getTime() - start)));
 
 		return rep;
 	}
@@ -157,8 +159,8 @@ public class RemoteLibraryServer extends ServerObject {
 				return metas.toArray(new MetaData[] {});
 			}
 
-			return new MetaData[] {
-					Instance.getLibrary().getInfo((String) args[0]) };
+			return new MetaData[] { Instance.getLibrary().getInfo(
+					(String) args[0]) };
 		} else if ("GET_STORY".equals(command)) {
 			MetaData meta = Instance.getLibrary().getInfo((String) args[0]);
 			meta = meta.clone();
@@ -167,8 +169,8 @@ public class RemoteLibraryServer extends ServerObject {
 			action.send(meta);
 			action.rec();
 
-			Story story = Instance.getLibrary().getStory((String) args[0],
-					null);
+			Story story = Instance.getLibrary()
+					.getStory((String) args[0], null);
 			for (Object obj : breakStory(story)) {
 				action.send(obj);
 				action.rec();
@@ -189,8 +191,8 @@ public class RemoteLibraryServer extends ServerObject {
 			return story.getMeta().getLuid();
 		} else if ("IMPORT".equals(command)) {
 			Progress pg = createPgForwarder(action);
-			Story story = Instance.getLibrary().imprt(new URL((String) args[0]),
-					pg);
+			Story story = Instance.getLibrary().imprt(
+					new URL((String) args[0]), pg);
 			forcePgDoneSent(pg);
 			return story.getMeta().getLuid();
 		} else if ("DELETE_STORY".equals(command)) {
@@ -199,11 +201,11 @@ public class RemoteLibraryServer extends ServerObject {
 			return Instance.getLibrary().getCover((String) args[0]);
 		} else if ("GET_CUSTOM_COVER".equals(command)) {
 			if ("SOURCE".equals(args[0])) {
-				return Instance.getLibrary()
-						.getCustomSourceCover((String) args[1]);
+				return Instance.getLibrary().getCustomSourceCover(
+						(String) args[1]);
 			} else if ("AUTHOR".equals(args[0])) {
-				return Instance.getLibrary()
-						.getCustomAuthorCover((String) args[1]);
+				return Instance.getLibrary().getCustomAuthorCover(
+						(String) args[1]);
 			} else {
 				return null;
 			}
@@ -341,8 +343,9 @@ public class RemoteLibraryServer extends ServerObject {
 			public void progress(Progress progress, String name) {
 				int min = pg.getMin();
 				int max = pg.getMax();
-				int relativeProgress = min + (int) Math
-						.round(pg.getRelativeProgress() * (max - min));
+				int relativeProgress = min
+						+ (int) Math.round(pg.getRelativeProgress()
+								* (max - min));
 
 				// Do not re-send the same value twice over the wire,
 				// unless more than 2 seconds have elapsed (to maintain the
@@ -354,8 +357,7 @@ public class RemoteLibraryServer extends ServerObject {
 					p[2] = relativeProgress;
 
 					try {
-						action.send(
-								new Integer[] { min, max, relativeProgress });
+						action.send(new Integer[] { min, max, relativeProgress });
 						action.rec();
 					} catch (Exception e) {
 						Instance.getTraceHandler().error(e);
