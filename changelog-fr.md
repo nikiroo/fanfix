@@ -9,6 +9,8 @@
 - gui: correction pour le focus 
 - MangaLEL: site web changé
 - search: supporte MangaLEL
+- remote: passage en CLEAR TEXT parce que Google et Android n'aiment pas le SSL anonyme
+- remote: incompatible avec 2.x
 
 # Version 2.0.2
 
