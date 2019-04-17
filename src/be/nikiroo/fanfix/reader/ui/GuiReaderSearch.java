@@ -49,7 +49,7 @@ public class GuiReaderSearch extends JFrame {
 
 	private JPanel tagBars;
 
-	private JComboBox<SupportType> comboSupportTypes;
+	private JComboBox comboSupportTypes;
 	private JTabbedPane searchTabs;
 	private JTextField keywordsField;
 	private JButton submitKeywords;
@@ -75,7 +75,7 @@ public class GuiReaderSearch extends JFrame {
 		}
 		supportType = supportTypes.isEmpty() ? null : supportTypes.get(0);
 
-		comboSupportTypes = new JComboBox<SupportType>(
+		comboSupportTypes = new JComboBox(
 				supportTypes.toArray(new SupportType[] {}));
 		comboSupportTypes.addActionListener(new ActionListener() {
 			@Override
@@ -251,31 +251,27 @@ public class GuiReaderSearch extends JFrame {
 			final SearchableTag selected) {
 		tags.add(0, null);
 
-		final JComboBox<SearchableTag> combo = new JComboBox<SearchableTag>(
+		final JComboBox combo = new JComboBox(
 				tags.toArray(new SearchableTag[] {}));
 		combo.setSelectedItem(selected);
 
-		// We want to pass it a String
-		@SuppressWarnings({ "rawtypes" })
 		final ListCellRenderer basic = combo.getRenderer();
 
-		combo.setRenderer(new ListCellRenderer<SearchableTag>() {
+		combo.setRenderer(new ListCellRenderer() {
 			@Override
 			public Component getListCellRendererComponent(
-					JList<? extends SearchableTag> list, SearchableTag value,
+					JList list, Object value,
 					int index, boolean isSelected, boolean cellHasFocus) {
 
 				Object displayValue = value;
-				if (value == null) {
+				if (value instanceof SearchableTag) {
+					displayValue = ((SearchableTag)value).getName();
+				} else {
 					displayValue = "Select a tag...";
 					cellHasFocus = false;
 					isSelected = false;
-				} else {
-					displayValue = value.getName();
 				}
 
-				// We willingly pass a String here
-				@SuppressWarnings("unchecked")
 				Component rep = basic.getListCellRendererComponent(list,
 						displayValue, index, isSelected, cellHasFocus);
 
