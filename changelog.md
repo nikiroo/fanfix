@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version WIP
+
+- new: server: count the bytes we rec/send
+
 ## Version 4.7.2
 
 - fix: Downloader issue with caching (input was spent when returned the first time)
