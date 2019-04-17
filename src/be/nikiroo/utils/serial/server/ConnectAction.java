@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 
+import javax.net.ssl.SSLException;
+
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.Exporter;
 import be.nikiroo.utils.serial.Importer;
@@ -102,8 +104,8 @@ abstract class ConnectAction {
 	 */
 	public void connect() {
 		try {
-			in = new BufferedReader(new InputStreamReader(s.getInputStream(),
-					"UTF-8"));
+			in = new BufferedReader(
+					new InputStreamReader(s.getInputStream(), "UTF-8"));
 			try {
 				out = new OutputStreamWriter(s.getOutputStream(), "UTF-8");
 				try {
@@ -140,6 +142,20 @@ abstract class ConnectAction {
 				in = null;
 			}
 		} catch (Exception e) {
+			if (e instanceof SSLException) {
+				String ciphers = "";
+				for (String cipher : Server.getAnonCiphers()) {
+					if (!ciphers.isEmpty()) {
+						ciphers += ", ";
+					}
+					ciphers += cipher;
+				}
+
+				e = new SSLException(
+						"SSL error (available SSL ciphers: " + ciphers + ")",
+						e);
+			}
+			
 			onError(e);
 		} finally {
 			try {
@@ -172,11 +188,12 @@ abstract class ConnectAction {
 	 * @throws ClassNotFoundException
 	 *             if a class described in the serialised data cannot be found
 	 */
-	protected Object sendObject(Object data) throws IOException,
-			NoSuchFieldException, NoSuchMethodException, ClassNotFoundException {
+	protected Object sendObject(Object data)
+			throws IOException, NoSuchFieldException, NoSuchMethodException,
+			ClassNotFoundException {
 		synchronized (lock) {
-			String rep = sendString(new Exporter().append(data).toString(true,
-					true));
+			String rep = sendString(
+					new Exporter().append(data).toString(true, true));
 			if (rep != null) {
 				return new Importer().read(rep).getValue();
 			}
@@ -209,9 +226,9 @@ abstract class ConnectAction {
 	 * @throws java.lang.NullPointerException
 	 *             if the counter part has no data to send
 	 */
-	protected Object recObject() throws IOException, NoSuchFieldException,
-			NoSuchMethodException, ClassNotFoundException,
-			java.lang.NullPointerException {
+	protected Object recObject()
+			throws IOException, NoSuchFieldException, NoSuchMethodException,
+			ClassNotFoundException, java.lang.NullPointerException {
 		String str = recString();
 		if (str == null) {
 			throw new NullPointerException("No more data available");
