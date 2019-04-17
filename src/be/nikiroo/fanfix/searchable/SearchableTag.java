@@ -104,7 +104,7 @@ public class SearchableTag {
 			return parent.getFqName() + " / " + name;
 		}
 
-		return name;
+		return "" + name;
 	}
 
 	/**
@@ -232,6 +232,23 @@ public class SearchableTag {
 	 *            the tag to add
 	 */
 	public void add(SearchableTag tag) {
+		if (tag == null) {
+			throw new NullPointerException("tag");
+		}
+
+		for (SearchableTag p = this; p != null; p = p.parent) {
+			if (p.equals(tag)) {
+				throw new IllegalArgumentException(
+						"Tags do not allow recursion");
+			}
+		}
+		for (SearchableTag p = tag; p != null; p = p.parent) {
+			if (p.equals(this)) {
+				throw new IllegalArgumentException(
+						"Tags do not allow recursion");
+			}
+		}
+
 		children.add(tag);
 		tag.parent = this;
 	}
@@ -280,5 +297,28 @@ public class SearchableTag {
 		}
 
 		return rep;
+	}
+
+	@Override
+	public int hashCode() {
+		return getFqName().hashCode();
+	}
+
+	@Override
+	public boolean equals(Object otherObj) {
+		if (otherObj instanceof SearchableTag) {
+			SearchableTag other = (SearchableTag) otherObj;
+			if ((id == null && other.id == null)
+					|| (id != null && id.equals(other.id))) {
+				if (getFqName().equals(other.getFqName())) {
+					if ((parent == null && other.parent == null)
+							|| (parent != null && parent.equals(other.parent))) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 }
