@@ -311,7 +311,22 @@ public class GuiReaderSearch extends JFrame {
 					addTagBar(tag, new Runnable() {
 						@Override
 						public void run() {
-							// TODO: stories if needed
+							// TODO: slow ui
+							SearchableTag tag = ((SearchableTag) combo
+									.getSelectedItem());
+							if (tag != null && tag.isLeaf()) {
+								BasicSearchable searchable = BasicSearchable
+										.getSearchable(supportType);
+								List<MetaData> metas = new ArrayList<MetaData>();
+								try {
+									metas = searchable.search(tag, 1);
+									search(metas, 1,
+											searchable.searchPages(tag), 0);
+								} catch (IOException e) {
+									error(e);
+								}
+							}
+							
 							setWaitingScreen(false);
 						}
 					});
@@ -319,6 +334,7 @@ public class GuiReaderSearch extends JFrame {
 			}
 		});
 
+		combos.add(combo);
 		tagBars.add(combo);
 	}
 
@@ -349,7 +365,6 @@ public class GuiReaderSearch extends JFrame {
 						children = tag.getChildren();
 					} else {
 						children = null;
-						// TODO: stories
 					}
 				}
 
