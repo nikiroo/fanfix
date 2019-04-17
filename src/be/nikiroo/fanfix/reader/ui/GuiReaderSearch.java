@@ -202,6 +202,7 @@ public class GuiReaderSearch extends JFrame {
 		}
 	}
 
+	// update and reset the tagsbar
 	// can be NULL, for base tags
 	private void updateTags(final SearchableTag tag) {
 		final List<SearchableTag> parents = new ArrayList<SearchableTag>();
@@ -220,15 +221,21 @@ public class GuiReaderSearch extends JFrame {
 				// TODO: Slow UI
 				// TODO: select the right one
 				try {
+					SearchableTag selectedChild = parents.isEmpty() ? null
+							: parents.get(parents.size() - 1);
 					addTagBar(BasicSearchable.getSearchable(supportType)
-							.getTags(), tag);
+							.getTags(), selectedChild);
 				} catch (IOException e) {
 					error(e);
 				}
 
 				for (int i = parents.size() - 1; i >= 0; i--) {
+					SearchableTag selectedChild = null;
+					if (i > 0) {
+						selectedChild = parents.get(i - 1);
+					}
 					SearchableTag parent = parents.get(i);
-					addTagBar(parent.getChildren(), parent);
+					addTagBar(parent.getChildren(), selectedChild);
 				}
 
 				tagBars.validate();
@@ -247,6 +254,8 @@ public class GuiReaderSearch extends JFrame {
 		});
 	}
 
+	// not 1.6 compatible
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void addTagBar(List<SearchableTag> tags,
 			final SearchableTag selected) {
 		tags.add(0, null);
@@ -259,13 +268,13 @@ public class GuiReaderSearch extends JFrame {
 
 		combo.setRenderer(new ListCellRenderer() {
 			@Override
-			public Component getListCellRendererComponent(
-					JList list, Object value,
-					int index, boolean isSelected, boolean cellHasFocus) {
+			public Component getListCellRendererComponent(JList list,
+					Object value, int index, boolean isSelected,
+					boolean cellHasFocus) {
 
 				Object displayValue = value;
 				if (value instanceof SearchableTag) {
-					displayValue = ((SearchableTag)value).getName();
+					displayValue = ((SearchableTag) value).getName();
 				} else {
 					displayValue = "Select a tag...";
 					cellHasFocus = false;
