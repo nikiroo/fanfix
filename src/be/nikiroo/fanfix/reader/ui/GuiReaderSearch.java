@@ -48,6 +48,7 @@ public class GuiReaderSearch extends JFrame {
 	private int maxPage;
 
 	private JPanel tagBars;
+	private List<JComboBox> combos;
 
 	private JComboBox comboSupportTypes;
 	private JTabbedPane searchTabs;
@@ -144,6 +145,8 @@ public class GuiReaderSearch extends JFrame {
 	}
 
 	private JPanel createByTagSearchPanel() {
+		combos = new ArrayList<JComboBox>();
+
 		JPanel byTag = new JPanel();
 		tagBars = new JPanel();
 		tagBars.setLayout(new BoxLayout(tagBars, BoxLayout.Y_AXIS));
@@ -260,6 +263,8 @@ public class GuiReaderSearch extends JFrame {
 			final SearchableTag selected) {
 		tags.add(0, null);
 
+		final int comboIndex = combos.size();
+
 		final JComboBox combo = new JComboBox(
 				tags.toArray(new SearchableTag[] {}));
 		combo.setSelectedItem(selected);
@@ -298,6 +303,11 @@ public class GuiReaderSearch extends JFrame {
 				final SearchableTag tag = (SearchableTag) combo
 						.getSelectedItem();
 				if (tag != null) {
+					while (comboIndex + 1 < combos.size()) {
+						JComboBox combo = combos.remove(comboIndex + 1);
+						tagBars.remove(combo);
+					}
+
 					addTagBar(tag, new Runnable() {
 						@Override
 						public void run() {
