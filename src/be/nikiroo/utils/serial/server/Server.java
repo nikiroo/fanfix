@@ -194,6 +194,15 @@ abstract class Server implements Runnable {
 			tracer.trace(name + ": server starting on port " + port + " ("
 					+ (ssl ? "SSL" : "plain text") + ")");
 
+			String ciphers = "";
+			for (String cipher : getAnonCiphers()) {
+				if (!ciphers.isEmpty()) {
+					ciphers += ", ";
+				}
+				ciphers += cipher;
+			}
+			tracer.trace("Available SSL ciphers: " + ciphers);
+
 			while (started && !exiting) {
 				count(1);
 				final Socket s = ss.accept();
@@ -407,7 +416,7 @@ abstract class Server implements Runnable {
 	 * 
 	 * @return the list of such supported ciphers
 	 */
-	private static String[] getAnonCiphers() {
+	public static String[] getAnonCiphers() {
 		List<String> anonCiphers = new ArrayList<String>();
 		for (String cipher : ((SSLSocketFactory) SSLSocketFactory.getDefault())
 				.getSupportedCipherSuites()) {
