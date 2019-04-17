@@ -26,7 +26,7 @@ import be.nikiroo.utils.serial.server.ConnectActionClientObject;
 public class RemoteLibrary extends BasicLibrary {
 	private String host;
 	private int port;
-	private final String md5;
+	private final String key;
 
 	/**
 	 * Create a {@link RemoteLibrary} linked to the given server.
@@ -40,7 +40,7 @@ public class RemoteLibrary extends BasicLibrary {
 	 *            the port to contact it on
 	 */
 	public RemoteLibrary(String key, String host, int port) {
-		this.md5 = StringUtils.getMd5Hash(key);
+		this.key = key;
 		this.host = host;
 		this.port = port;
 	}
@@ -56,16 +56,20 @@ public class RemoteLibrary extends BasicLibrary {
 
 		result[0] = Status.INVALID;
 
-		ConnectActionClientObject action = null;
 		try {
 			Instance.getTraceHandler().trace("Getting remote lib status...");
-			action = new ConnectActionClientObject(host, port, true) {
+			new ConnectActionClientObject(host, port, false) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					Object rep = send(new Object[] { md5, "PING" });
-					if ("PONG".equals(rep)) {
-						result[0] = Status.READY;
-					} else {
+					try {
+						Object rep = sendCmd(this, new Object[] { "PING" });
+
+						if ("PONG".equals(rep)) {
+							result[0] = Status.READY;
+						} else {
+							result[0] = Status.UNAUTORIZED;
+						}
+					} catch (IllegalArgumentException e) {
 						result[0] = Status.UNAUTORIZED;
 					}
 				}
@@ -74,22 +78,13 @@ public class RemoteLibrary extends BasicLibrary {
 				protected void onError(Exception e) {
 					result[0] = Status.UNAVAILABLE;
 				}
-			};
-
+			}.connect();
 		} catch (UnknownHostException e) {
 			result[0] = Status.INVALID;
 		} catch (IllegalArgumentException e) {
 			result[0] = Status.INVALID;
 		} catch (Exception e) {
 			result[0] = Status.UNAVAILABLE;
-		}
-
-		if (action != null) {
-			try {
-				action.connect();
-			} catch (Exception e) {
-				result[0] = Status.UNAVAILABLE;
-			}
 		}
 
 		Instance.getTraceHandler().trace("Remote lib status: " + result[0]);
@@ -101,10 +96,11 @@ public class RemoteLibrary extends BasicLibrary {
 		final Image[] result = new Image[1];
 
 		try {
-			new ConnectActionClientObject(host, port, true) {
+			new ConnectActionClientObject(host, port, false) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					Object rep = send(new Object[] { md5, "GET_COVER", luid });
+					Object rep = sendCmd(this,
+							new Object[] { "GET_COVER", luid });
 					result[0] = (Image) rep;
 				}
 
@@ -135,11 +131,11 @@ public class RemoteLibrary extends BasicLibrary {
 		final Image[] result = new Image[1];
 
 		try {
-			new ConnectActionClientObject(host, port, true) {
+			new ConnectActionClientObject(host, port, false) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					Object rep = send(new Object[] { md5, "GET_CUSTOM_COVER",
-							type, source });
+					Object rep = sendCmd(this,
+							new Object[] { "GET_CUSTOM_COVER", type, source });
 					result[0] = (Image) rep;
 				}
 
@@ -161,7 +157,7 @@ public class RemoteLibrary extends BasicLibrary {
 		final Story[] result = new Story[1];
 
 		try {
-			new ConnectActionClientObject(host, port, true) {
+			new ConnectActionClientObject(host, port, false) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
@@ -169,7 +165,8 @@ public class RemoteLibrary extends BasicLibrary {
 						pg = new Progress();
 					}
 
-					Object rep = send(new Object[] { md5, "GET_STORY", luid });
+					Object rep = sendCmd(this,
+							new Object[] { "GET_STORY", luid });
 
 					MetaData meta = null;
 					if (rep instanceof MetaData) {
@@ -180,7 +177,8 @@ public class RemoteLibrary extends BasicLibrary {
 					}
 
 					List<Object> list = new ArrayList<Object>();
-					for (Object obj = send(null); obj != null; obj = send(null)) {
+					for (Object obj = send(null); obj != null; obj = send(
+							null)) {
 						list.add(obj);
 						pg.add(1);
 					}
@@ -217,7 +215,7 @@ public class RemoteLibrary extends BasicLibrary {
 
 		final Progress pgF = pgSave;
 
-		new ConnectActionClientObject(host, port, true) {
+		new ConnectActionClientObject(host, port, false) {
 			@Override
 			public void action(Version serverVersion) throws Exception {
 				Progress pg = pgF;
@@ -225,7 +223,7 @@ public class RemoteLibrary extends BasicLibrary {
 					pg.setMinMax(0, (int) story.getMeta().getWords());
 				}
 
-				send(new Object[] { md5, "SAVE_STORY", luid });
+				sendCmd(this, new Object[] { "SAVE_STORY", luid });
 
 				List<Object> list = RemoteLibraryServer.breakStory(story);
 				for (Object obj : list) {
@@ -262,10 +260,10 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public synchronized void delete(final String luid) throws IOException {
-		new ConnectActionClientObject(host, port, true) {
+		new ConnectActionClientObject(host, port, false) {
 			@Override
 			public void action(Version serverVersion) throws Exception {
-				send(new Object[] { md5, "DELETE_STORY", luid });
+				sendCmd(this, new Object[] { "DELETE_STORY", luid });
 			}
 
 			@Override
@@ -289,10 +287,11 @@ public class RemoteLibrary extends BasicLibrary {
 	private void setCover(final String value, final String luid,
 			final String type) {
 		try {
-			new ConnectActionClientObject(host, port, true) {
+			new ConnectActionClientObject(host, port, false) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					send(new Object[] { md5, "SET_COVER", type, value, luid });
+					sendCmd(this,
+							new Object[] { "SET_COVER", type, value, luid });
 				}
 
 				@Override
@@ -329,13 +328,13 @@ public class RemoteLibrary extends BasicLibrary {
 		final String[] luid = new String[1];
 
 		try {
-			new ConnectActionClientObject(host, port, true) {
+			new ConnectActionClientObject(host, port, false) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
 
-					Object rep = send(new Object[] { md5, "IMPORT",
-							url.toString() });
+					Object rep = sendCmd(this,
+							new Object[] { "IMPORT", url.toString() });
 
 					while (true) {
 						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
@@ -377,13 +376,13 @@ public class RemoteLibrary extends BasicLibrary {
 		final Progress pgF = pg == null ? new Progress() : pg;
 
 		try {
-			new ConnectActionClientObject(host, port, true) {
+			new ConnectActionClientObject(host, port, false) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
 
-					Object rep = send(new Object[] { md5, "CHANGE_STA", luid,
-							newSource, newTitle, newAuthor });
+					Object rep = sendCmd(this, new Object[] { "CHANGE_STA",
+							luid, newSource, newTitle, newAuthor });
 					while (true) {
 						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
 							break;
@@ -414,10 +413,10 @@ public class RemoteLibrary extends BasicLibrary {
 	 */
 	public void exit() {
 		try {
-			new ConnectActionClientObject(host, port, true) {
+			new ConnectActionClientObject(host, port, false) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					send(new Object[] { md5, "EXIT" });
+					sendCmd(this, new Object[] { "EXIT" });
 				}
 
 				@Override
@@ -493,7 +492,7 @@ public class RemoteLibrary extends BasicLibrary {
 		final List<MetaData> metas = new ArrayList<MetaData>();
 
 		try {
-			new ConnectActionClientObject(host, port, true) {
+			new ConnectActionClientObject(host, port, false) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
@@ -501,7 +500,9 @@ public class RemoteLibrary extends BasicLibrary {
 						pg = new Progress();
 					}
 
-					Object rep = send(new Object[] { md5, "GET_METADATA", luid });
+					
+					Object rep = sendCmd(this,
+							new Object[] { "GET_METADATA", luid });
 
 					while (true) {
 						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
@@ -530,5 +531,36 @@ public class RemoteLibrary extends BasicLibrary {
 		}
 
 		return metas;
+	}
+
+	// IllegalArgumentException if key is bad
+	private Object sendCmd(ConnectActionClientObject action, Object[] params)
+			throws IOException, NoSuchFieldException, NoSuchMethodException,
+			ClassNotFoundException {
+		Object rep = action.send(params);
+
+		String hash = hashKey(key, "" + rep);
+		rep = action.send(hash);
+		if (rep == null) {
+			throw new java.lang.IllegalArgumentException();
+		}
+
+		return action.send(hash);
+	}
+
+	/**
+	 * Return a hash that corresponds to the given key and the given random
+	 * value.
+	 * 
+	 * @param key
+	 *            the key (the secret)
+	 * 
+	 * @param random
+	 *            the random value
+	 * 
+	 * @return a hash that was computed using both
+	 */
+	static String hashKey(String key, String random) {
+		return StringUtils.getMd5Hash(key + " <==> " + random);
 	}
 }

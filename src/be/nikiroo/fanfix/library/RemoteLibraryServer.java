@@ -19,41 +19,47 @@ import be.nikiroo.utils.serial.server.ConnectActionServerObject;
 import be.nikiroo.utils.serial.server.ServerObject;
 
 /**
- * Create a new remote server that will listen for order on the given port.
+ * Create a new remote server that will listen for orders on the given port.
  * <p>
- * The available commands are given as arrays of objects (first item is the key,
- * second is the command, the rest are the arguments).
+ * The available commands are given as arrays of objects (first item is the
+ * command, the rest are the arguments).
  * <p>
- * The md5 is always a String (the MD5 hash of the access key), the commands are
- * also Strings; the parameters vary depending upon the command.
+ * All commands, including PING, will first return a random value to you that
+ * you must hash with your key and return before processing the rest; if the
+ * value is OK, it will return "true", if not, it will return NULL and stop the
+ * connection.
+ * <p>
+ * BTW: this system <b>is by no means secure</b>. It is just slightly
+ * obfuscated, and operate on clear text (because Google decided not to support
+ * anonymous SSL exchanges on Android, and the main use case for this server is
+ * Android).
  * <ul>
- * <li>[md5] PING: will return PONG if the key is accepted</li>
- * <li>[md5] GET_METADATA *: will return the metadata of all the stories in the
- * library (array)</li>
- * *
- * <li>[md5] GET_METADATA [luid]: will return the metadata of the story of LUID
+ * <li>PING: will return PONG if the key is accepted</li>
+ * <li>GET_METADATA *: will return the metadata of all the stories in the
+ * library (array)</li> *
+ * <li>GET_METADATA [luid]: will return the metadata of the story of LUID
  * luid</li>
- * <li>[md5] GET_STORY [luid]: will return the given story if it exists (or NULL
- * if not)</li>
- * <li>[md5] SAVE_STORY [luid]: save the story (that must be sent just after the
+ * <li>GET_STORY [luid]: will return the given story if it exists (or NULL if
+ * not)</li>
+ * <li>SAVE_STORY [luid]: save the story (that must be sent just after the
  * command) with the given LUID, then return the LUID</li>
- * <li>[md5] IMPORT [url]: save the story found at the given URL, then return
- * the LUID</li>
- * <li>[md5] DELETE_STORY [luid]: delete the story of LUID luid</li>
- * <li>[md5] GET_COVER [luid]: return the cover of the story</li>
- * <li>[md5] GET_CUSTOM_COVER ["SOURCE"|"AUTHOR"] [source]: return the cover for
- * this source/author</li>
- * <li>[md5] SET_COVER ["SOURCE"|"AUTHOR"] [value] [luid]: set the default cover
- * for the given source/author to the cover of the story denoted by luid</li>
- * <li>[md5] CHANGE_SOURCE [luid] [new source]: change the source of the story
- * of LUID luid</li>
- * <li>[md5] EXIT: stop the server</li>
+ * <li>IMPORT [url]: save the story found at the given URL, then return the
+ * LUID</li>
+ * <li>DELETE_STORY [luid]: delete the story of LUID luid</li>
+ * <li>GET_COVER [luid]: return the cover of the story</li>
+ * <li>GET_CUSTOM_COVER ["SOURCE"|"AUTHOR"] [source]: return the cover for this
+ * source/author</li>
+ * <li>SET_COVER ["SOURCE"|"AUTHOR"] [value] [luid]: set the default cover for
+ * the given source/author to the cover of the story denoted by luid</li>
+ * <li>CHANGE_SOURCE [luid] [new source]: change the source of the story of LUID
+ * luid</li>
+ * <li>EXIT: stop the server</li>
  * </ul>
  * 
  * @author niki
  */
 public class RemoteLibraryServer extends ServerObject {
-	private final String md5;
+	private final String key;
 
 	/**
 	 * Create a new remote server (will not be active until
@@ -68,8 +74,8 @@ public class RemoteLibraryServer extends ServerObject {
 	 *             in case of I/O error
 	 */
 	public RemoteLibraryServer(String key, int port) throws IOException {
-		super("Fanfix remote library", port, true);
-		this.md5 = StringUtils.getMd5Hash(key);
+		super("Fanfix remote library", port, false);
+		this.key = key;
 
 		setTraceHandler(Instance.getTraceHandler());
 	}
@@ -77,18 +83,18 @@ public class RemoteLibraryServer extends ServerObject {
 	@Override
 	protected Object onRequest(ConnectActionServerObject action,
 			Version clientVersion, Object data) throws Exception {
-		String md5 = "";
+		long start = new Date().getTime();
+
 		String command = "";
 		Object[] args = new Object[0];
 		if (data instanceof Object[]) {
 			Object[] dataArray = (Object[]) data;
 			if (dataArray.length >= 2) {
-				md5 = "" + dataArray[0];
-				command = "" + dataArray[1];
+				command = "" + dataArray[0];
 
-				args = new Object[dataArray.length - 2];
-				for (int i = 2; i < dataArray.length; i++) {
-					args[i - 2] = dataArray[i];
+				args = new Object[dataArray.length - 1];
+				for (int i = 1; i < dataArray.length; i++) {
+					args[i - 1] = dataArray[i];
 				}
 			}
 		}
@@ -99,17 +105,27 @@ public class RemoteLibraryServer extends ServerObject {
 		}
 		getTraceHandler().trace(trace);
 
-		if (!md5.equals(this.md5)) {
+		// Authentication:
+		String random = StringUtils.getMd5Hash(Double.toString(Math.random()));
+		action.send(random);
+		String answer = "";
+		try {
+			answer += action.rec();
+		} catch (NullPointerException e) {
+			return null;
+		}
+
+		if (answer.equals(RemoteLibrary.hashKey(key, random))) {
+			action.send(true);
+		} else {
 			getTraceHandler().trace("Key rejected.");
 			return null;
 		}
 
-		long start = new Date().getTime();
 		Object rep = doRequest(action, command, args);
 
-		getTraceHandler().trace(
-				String.format("[>%s]: %d ms", command,
-						(new Date().getTime() - start)));
+		getTraceHandler().trace(String.format("[>%s]: %d ms", command,
+				(new Date().getTime() - start)));
 
 		return rep;
 	}
@@ -141,8 +157,8 @@ public class RemoteLibraryServer extends ServerObject {
 				return metas.toArray(new MetaData[] {});
 			}
 
-			return new MetaData[] { Instance.getLibrary().getInfo(
-					(String) args[0]) };
+			return new MetaData[] {
+					Instance.getLibrary().getInfo((String) args[0]) };
 		} else if ("GET_STORY".equals(command)) {
 			MetaData meta = Instance.getLibrary().getInfo((String) args[0]);
 			meta = meta.clone();
@@ -151,8 +167,8 @@ public class RemoteLibraryServer extends ServerObject {
 			action.send(meta);
 			action.rec();
 
-			Story story = Instance.getLibrary()
-					.getStory((String) args[0], null);
+			Story story = Instance.getLibrary().getStory((String) args[0],
+					null);
 			for (Object obj : breakStory(story)) {
 				action.send(obj);
 				action.rec();
@@ -173,8 +189,8 @@ public class RemoteLibraryServer extends ServerObject {
 			return story.getMeta().getLuid();
 		} else if ("IMPORT".equals(command)) {
 			Progress pg = createPgForwarder(action);
-			Story story = Instance.getLibrary().imprt(
-					new URL((String) args[0]), pg);
+			Story story = Instance.getLibrary().imprt(new URL((String) args[0]),
+					pg);
 			forcePgDoneSent(pg);
 			return story.getMeta().getLuid();
 		} else if ("DELETE_STORY".equals(command)) {
@@ -183,11 +199,11 @@ public class RemoteLibraryServer extends ServerObject {
 			return Instance.getLibrary().getCover((String) args[0]);
 		} else if ("GET_CUSTOM_COVER".equals(command)) {
 			if ("SOURCE".equals(args[0])) {
-				return Instance.getLibrary().getCustomSourceCover(
-						(String) args[1]);
+				return Instance.getLibrary()
+						.getCustomSourceCover((String) args[1]);
 			} else if ("AUTHOR".equals(args[0])) {
-				return Instance.getLibrary().getCustomAuthorCover(
-						(String) args[1]);
+				return Instance.getLibrary()
+						.getCustomAuthorCover((String) args[1]);
 			} else {
 				return null;
 			}
@@ -325,9 +341,8 @@ public class RemoteLibraryServer extends ServerObject {
 			public void progress(Progress progress, String name) {
 				int min = pg.getMin();
 				int max = pg.getMax();
-				int relativeProgress = min
-						+ (int) Math.round(pg.getRelativeProgress()
-								* (max - min));
+				int relativeProgress = min + (int) Math
+						.round(pg.getRelativeProgress() * (max - min));
 
 				// Do not re-send the same value twice over the wire,
 				// unless more than 2 seconds have elapsed (to maintain the
@@ -339,7 +354,8 @@ public class RemoteLibraryServer extends ServerObject {
 					p[2] = relativeProgress;
 
 					try {
-						action.send(new Integer[] { min, max, relativeProgress });
+						action.send(
+								new Integer[] { min, max, relativeProgress });
 						action.rec();
 					} catch (Exception e) {
 						Instance.getTraceHandler().error(e);
