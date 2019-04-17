@@ -32,6 +32,9 @@ abstract class ConnectAction {
 	private OutputStreamWriter out;
 	private boolean contentToSend;
 
+	private long bytesReceived;
+	private long bytesSent;
+
 	/**
 	 * Method that will be called when an action is performed on either the
 	 * client or server this {@link ConnectAction} represent.
@@ -100,12 +103,30 @@ abstract class ConnectAction {
 	}
 
 	/**
+	 * The total amount of bytes received.
+	 * 
+	 * @return the amount of bytes received
+	 */
+	public long getBytesReceived() {
+		return bytesReceived;
+	}
+
+	/**
+	 * The total amount of bytes sent.
+	 * 
+	 * @return the amount of bytes sent
+	 */
+	public long getBytesSent() {
+		return bytesSent;
+	}
+
+	/**
 	 * Actually start the process (this is synchronous).
 	 */
 	public void connect() {
 		try {
-			in = new BufferedReader(
-					new InputStreamReader(s.getInputStream(), "UTF-8"));
+			in = new BufferedReader(new InputStreamReader(s.getInputStream(),
+					"UTF-8"));
 			try {
 				out = new OutputStreamWriter(s.getOutputStream(), "UTF-8");
 				try {
@@ -151,11 +172,10 @@ abstract class ConnectAction {
 					ciphers += cipher;
 				}
 
-				e = new SSLException(
-						"SSL error (available SSL ciphers: " + ciphers + ")",
-						e);
+				e = new SSLException("SSL error (available SSL ciphers: "
+						+ ciphers + ")", e);
 			}
-			
+
 			onError(e);
 		} finally {
 			try {
@@ -188,12 +208,11 @@ abstract class ConnectAction {
 	 * @throws ClassNotFoundException
 	 *             if a class described in the serialised data cannot be found
 	 */
-	protected Object sendObject(Object data)
-			throws IOException, NoSuchFieldException, NoSuchMethodException,
-			ClassNotFoundException {
+	protected Object sendObject(Object data) throws IOException,
+			NoSuchFieldException, NoSuchMethodException, ClassNotFoundException {
 		synchronized (lock) {
-			String rep = sendString(
-					new Exporter().append(data).toString(true, true));
+			String rep = sendString(new Exporter().append(data).toString(true,
+					true));
 			if (rep != null) {
 				return new Importer().read(rep).getValue();
 			}
@@ -226,9 +245,9 @@ abstract class ConnectAction {
 	 * @throws java.lang.NullPointerException
 	 *             if the counter part has no data to send
 	 */
-	protected Object recObject()
-			throws IOException, NoSuchFieldException, NoSuchMethodException,
-			ClassNotFoundException, java.lang.NullPointerException {
+	protected Object recObject() throws IOException, NoSuchFieldException,
+			NoSuchMethodException, ClassNotFoundException,
+			java.lang.NullPointerException {
 		String str = recString();
 		if (str == null) {
 			throw new NullPointerException("No more data available");
@@ -254,6 +273,7 @@ abstract class ConnectAction {
 		synchronized (lock) {
 			out.write(line);
 			out.write("\n");
+			bytesSent += line.length() + 1;
 
 			if (server) {
 				out.flush();
@@ -287,7 +307,12 @@ abstract class ConnectAction {
 					contentToSend = false;
 				}
 
-				return in.readLine();
+				String line = in.readLine();
+				if (line != null) {
+					bytesReceived += line.length();
+				}
+
+				return line;
 			}
 
 			return null;

@@ -78,6 +78,24 @@ abstract class ConnectActionServer {
 	}
 
 	/**
+	 * The total amount of bytes received.
+	 * 
+	 * @return the amount of bytes received
+	 */
+	public long getBytesReceived() {
+		return action.getBytesReceived();
+	}
+
+	/**
+	 * The total amount of bytes sent.
+	 * 
+	 * @return the amount of bytes sent
+	 */
+	public long getBytesSent() {
+		return action.getBytesSent();
+	}
+
+	/**
 	 * Method that will be called when an action is performed on the server.
 	 * 
 	 * @param clientVersion

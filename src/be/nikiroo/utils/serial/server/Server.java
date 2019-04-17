@@ -38,6 +38,9 @@ abstract class Server implements Runnable {
 	private boolean exiting = false;
 	private int counter;
 
+	private long bytesReceived;
+	private long bytesSent;
+
 	private TraceHandler tracer = new TraceHandler();
 
 	/**
@@ -147,6 +150,24 @@ abstract class Server implements Runnable {
 	}
 
 	/**
+	 * The total amount of bytes received.
+	 * 
+	 * @return the amount of bytes received
+	 */
+	public long getBytesReceived() {
+		return bytesReceived;
+	}
+
+	/**
+	 * The total amount of bytes sent.
+	 * 
+	 * @return the amount of bytes sent
+	 */
+	public long getBytesSent() {
+		return bytesSent;
+	}
+
+	/**
 	 * Start the server (listen on the network for new connections).
 	 * <p>
 	 * Can only be called once.
@@ -209,10 +230,16 @@ abstract class Server implements Runnable {
 				new Thread(new Runnable() {
 					@Override
 					public void run() {
+						ConnectActionServer action = null;
 						try {
-							createConnectActionServer(s).connect();
+							action = createConnectActionServer(s);
+							action.connect();
 						} finally {
 							count(-1);
+							if (action != null) {
+								bytesReceived += action.getBytesReceived();
+								bytesSent += action.getBytesSent();
+							}
 						}
 					}
 				}).start();
