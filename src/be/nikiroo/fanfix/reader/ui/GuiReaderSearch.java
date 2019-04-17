@@ -36,13 +36,14 @@ import be.nikiroo.fanfix.supported.SupportType;
  * 
  * @author niki
  */
+// JCombobox<E> not 1.6 compatible
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class GuiReaderSearch extends JFrame {
 	private static final long serialVersionUID = 1L;
 
 	private List<SupportType> supportTypes;
 	private SupportType supportType;
 	private boolean searchByTags;
-	private List<SearchableTag> tags;
 	private String keywords;
 	private int page;
 	private int maxPage;
@@ -63,7 +64,6 @@ public class GuiReaderSearch extends JFrame {
 		setLayout(new BorderLayout());
 		setSize(800, 600);
 
-		tags = new ArrayList<SearchableTag>();
 		page = 1; // TODO
 		maxPage = -1;
 		searchByTags = false;
@@ -257,8 +257,6 @@ public class GuiReaderSearch extends JFrame {
 		});
 	}
 
-	// not 1.6 compatible
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void addTagBar(List<SearchableTag> tags,
 			final SearchableTag selected) {
 		tags.add(0, null);
@@ -326,7 +324,7 @@ public class GuiReaderSearch extends JFrame {
 									error(e);
 								}
 							}
-							
+
 							setWaitingScreen(false);
 						}
 					});
@@ -434,7 +432,7 @@ public class GuiReaderSearch extends JFrame {
 		}).start();
 	}
 
-	// tag: must be filled (or NULL for base tags)
+	// tag: null = base tags
 	public void searchTag(final SupportType searchOn, final int page,
 			final int item, final SearchableTag tag) {
 
@@ -452,6 +450,12 @@ public class GuiReaderSearch extends JFrame {
 						.getSearchable(searchOn);
 
 				if (tag != null) {
+					try {
+						search.fillTag(tag);
+					} catch (IOException e) {
+						error(e);
+					}
+
 					int maxPage = 0;
 					try {
 						maxPage = search.searchPages(tag);
