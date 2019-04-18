@@ -208,8 +208,8 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 
 		List<SearchableTag> rootTags = null;
 		SearchableTag selectedRootTag = null;
-		selectedRootTag = parents.isEmpty() ? null : parents
-				.get(parents.size() - 1);
+		selectedRootTag = parents.isEmpty() ? null
+				: parents.get(parents.size() - 1);
 
 		try {
 			rootTags = searchable.getTags();
@@ -282,89 +282,87 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 			}
 		});
 
-		combo.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				final SearchableTag tag = (SearchableTag) combo
-						.getSelectedItem();
-				if (tag != null) {
-					while (comboIndex + 1 < combos.size()) {
-						JComboBox combo = combos.remove(comboIndex + 1);
-						tagBars.remove(combo);
-					}
-
-					addTagBar(tag, new Runnable() {
-						@Override
-						public void run() {
-							// TODO: slow ui
-							SearchableTag tag = ((SearchableTag) combo
-									.getSelectedItem());
-							if (tag != null && tag.isLeaf()) {
-								BasicSearchable searchable = BasicSearchable
-										.getSearchable(supportType);
-								List<MetaData> metas = new ArrayList<MetaData>();
-								try {
-									metas = searchable.search(tag, 1);
-									search(metas, 1,
-											searchable.searchPages(tag), 0);
-								} catch (IOException e) {
-									error(e);
-								}
-							}
-
-							setWaitingScreen(false);
-						}
-					});
-				}
-			}
-		});
+		combo.addActionListener(createComboTagAction(comboIndex));
 
 		combos.add(combo);
 		tagBars.add(combo);
 	}
-
-	// async, add children of tag, NULL = base tags
-	private void addTagBar(final SearchableTag tag, final Runnable inUi) {
-		new Thread(new Runnable() {
+	
+	private ActionListener createComboTagAction(final int comboIndex) {
+		return new ActionListener() {
 			@Override
-			public void run() {
-				List<SearchableTag> children = new ArrayList<SearchableTag>();
-				if (tag == null) {
-					try {
-						List<SearchableTag> baseTags = searchable.getTags();
-						children = baseTags;
-					} catch (IOException e) {
-						error(e);
-					}
-				} else {
-					try {
-						searchable.fillTag(tag);
-					} catch (IOException e) {
-						error(e);
-					}
-
-					if (!tag.isLeaf()) {
-						children = tag.getChildren();
-					} else {
-						children = null;
-					}
+			public void actionPerformed(ActionEvent ae) {
+				List<JComboBox> combos = GuiReaderSearchByNamePanel.this.combos;
+				if (combos == null || comboIndex < 0 || comboIndex >= combos.size()) {
+					return;
+				}
+				
+				// Tag can be NULL
+				final SearchableTag tag = (SearchableTag) combos.get(comboIndex)
+						.getSelectedItem();
+				
+				while (comboIndex + 1 < combos.size()) {
+					JComboBox combo = combos.remove(comboIndex + 1);
+					tagBars.remove(combo);
 				}
 
-				final List<SearchableTag> fchildren = children;
-				inUi(new Runnable() {
+				new Thread(new Runnable() {
 					@Override
 					public void run() {
-						if (fchildren != null) {
-							addTagBar(fchildren, tag);
+						final List<SearchableTag> children = getChildrenForTag(tag);
+						if (children != null) {
+							GuiReaderSearchFrame.inUi(new Runnable() {
+								@Override
+								public void run() {
+									addTagBar(children, tag);
+								}
+							});
 						}
-
-						if (inUi != null) {
-							inUi.run();
+						
+						if (tag != null && tag.isLeaf()) {
+							try {
+								GuiReaderSearchByNamePanel.this.page = 1;
+								stories = searchable.search(tag, 1);
+							} catch (IOException e) {
+								GuiReaderSearchFrame.error(e);
+								GuiReaderSearchByNamePanel.this.page = 0;
+								stories = new ArrayList<MetaData>();
+							}
+							
+							fireAction();
 						}
 					}
-				});
+				}).start();
 			}
-		}).start();
+		};
+	}
+
+	// sync, add children of tag, NULL = base tags
+	// return children of the tag or base tags or NULL
+	private List<SearchableTag> getChildrenForTag(final SearchableTag tag) {
+		List<SearchableTag> children = new ArrayList<SearchableTag>();
+		if (tag == null) {
+			try {
+				List<SearchableTag> baseTags = searchable.getTags();
+				children = baseTags;
+			} catch (IOException e) {
+				GuiReaderSearchFrame.error(e);
+			}
+		} else {
+			try {
+				searchable.fillTag(tag);
+			} catch (IOException e) {
+				GuiReaderSearchFrame.error(e);
+			}
+
+			if (!tag.isLeaf()) {
+				children = tag.getChildren();
+			} else {
+				children = null;
+			}
+		}
+
+		return children;
 	}
 
 	// item 0 = no selection, else = default selection
@@ -446,10 +444,9 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 							if (item > 0 && item <= stories.size()) {
 								storyItem = item;
 							} else if (item > 0) {
-								GuiReaderSearchFrame
-										.error(String
-												.format("Story item does not exist: Tag [%s], item %d",
-														tag.getFqName(), item));
+								GuiReaderSearchFrame.error(String.format(
+										"Story item does not exist: Tag [%s], item %d",
+										tag.getFqName(), item));
 							}
 						} catch (IOException e) {
 							GuiReaderSearchFrame.error(e);
