@@ -223,7 +223,7 @@ class GuiReader extends BasicReader {
 
 	@Override
 	public void search(boolean sync) throws IOException {
-		GuiReaderSearch search = new GuiReaderSearch(this);
+		GuiReaderSearchFrame search = new GuiReaderSearchFrame(this);
 		if (sync) {
 			sync(search);
 		} else {
@@ -234,7 +234,7 @@ class GuiReader extends BasicReader {
 	@Override
 	public void search(SupportType searchOn, String keywords, int page,
 			int item, boolean sync) {
-		GuiReaderSearch search = new GuiReaderSearch(this);
+		GuiReaderSearchFrame search = new GuiReaderSearchFrame(this);
 		search.search(searchOn, keywords, page, item);
 		if (sync) {
 			sync(search);
@@ -247,7 +247,7 @@ class GuiReader extends BasicReader {
 	public void searchTag(final SupportType searchOn, final int page,
 			final int item, final boolean sync, final Integer... tags) {
 
-		final GuiReaderSearch search = new GuiReaderSearch(GuiReader.this);
+		final GuiReaderSearchFrame search = new GuiReaderSearchFrame(GuiReader.this);
 		final BasicSearchable searchable = BasicSearchable
 				.getSearchable(searchOn);
 

@@ -38,7 +38,7 @@ import be.nikiroo.fanfix.supported.SupportType;
  */
 // JCombobox<E> not 1.6 compatible
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public class GuiReaderSearch extends JFrame {
+public class GuiReaderSearchFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
 
 	private List<SupportType> supportTypes;
@@ -59,7 +59,7 @@ public class GuiReaderSearch extends JFrame {
 	private boolean seeWordcount;
 	private GuiReaderGroup books;
 
-	public GuiReaderSearch(final GuiReader reader) {
+	public GuiReaderSearchFrame(final GuiReader reader) {
 		super("Browse stories");
 		setLayout(new BorderLayout());
 		setSize(800, 600);
@@ -183,8 +183,8 @@ public class GuiReaderSearch extends JFrame {
 		inUi(new Runnable() {
 			@Override
 			public void run() {
-				GuiReaderSearch.this.page = page;
-				GuiReaderSearch.this.maxPage = maxPage;
+				GuiReaderSearchFrame.this.page = page;
+				GuiReaderSearchFrame.this.maxPage = maxPage;
 				// TODO: gui
 				System.out.println("page: " + page);
 				System.out.println("max page: " + maxPage);
@@ -198,7 +198,7 @@ public class GuiReaderSearch extends JFrame {
 			inUi(new Runnable() {
 				@Override
 				public void run() {
-					GuiReaderSearch.this.keywords = keywords;
+					GuiReaderSearchFrame.this.keywords = keywords;
 					keywordsField.setText(keywords);
 				}
 			});
@@ -532,7 +532,7 @@ public class GuiReaderSearch extends JFrame {
 	 * @param run
 	 *            the action to run
 	 */
-	private void inUi(final Runnable run) {
+	static void inUi(final Runnable run) {
 		if (EventQueue.isDispatchThread()) {
 			run.run();
 		} else {
@@ -546,15 +546,19 @@ public class GuiReaderSearch extends JFrame {
 		}
 	}
 
-	private void error(Exception e) {
+	static void error(Exception e) {
 		Instance.getTraceHandler().error(e);
 	}
 
+	static void error(String e) {
+		Instance.getTraceHandler().error(e);
+	}
+	
 	private void setWaitingScreen(final boolean waiting) {
 		inUi(new Runnable() {
 			@Override
 			public void run() {
-				GuiReaderSearch.this.setEnabled(!waiting);
+				GuiReaderSearchFrame.this.setEnabled(!waiting);
 				books.setEnabled(!waiting);
 				submitKeywords.setEnabled(!waiting);
 			}
