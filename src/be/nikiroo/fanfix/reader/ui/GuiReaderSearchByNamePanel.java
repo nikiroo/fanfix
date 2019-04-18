@@ -54,10 +54,12 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 	private List<MetaData> stories = new ArrayList<MetaData>();
 	private int storyItem;
 
-	// will throw illegalArgEx if bad support type
+	// will throw illegalArgEx if bad support type, NULL allowed
 	public GuiReaderSearchByNamePanel(SupportType supportType) {
 		setLayout(new BorderLayout());
 
+		// TODO: check if null really is OK for supportType (must be)
+		
 		setSupportType(supportType);
 		page = 1;
 		searchByTags = false;
@@ -83,7 +85,7 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 		submitKeywords.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				search(keywordsField.getText(), 0);
+				search(keywordsField.getText(), 0, null);
 			}
 		});
 
@@ -107,11 +109,14 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 
 	public void setSupportType(SupportType supportType) {
 		BasicSearchable searchable = BasicSearchable.getSearchable(supportType);
-		if (searchable == null) {
+		if (searchable == null && supportType != null) {
 			throw new java.lang.IllegalArgumentException(
 					"Unupported support type: " + supportType);
 		}
 
+		// TODO: if <>, reset all
+		// if new, set the base tags
+		
 		this.supportType = supportType;
 		this.searchable = searchable;
 	}
@@ -144,7 +149,7 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 		return storyItem;
 	}
 
-	private void fireAction() {
+	private void fireAction(final Runnable inUi) {
 		GuiReaderSearchFrame.inUi(new Runnable() {
 			@Override
 			public void run() {
@@ -163,6 +168,10 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 					} catch (Exception e) {
 						GuiReaderSearchFrame.error(e);
 					}
+				}
+				
+				if (inUi != null) {
+					inUi.run();
 				}
 			}
 		});
@@ -329,7 +338,7 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 								stories = new ArrayList<MetaData>();
 							}
 							
-							fireAction();
+							fireAction(null);
 						}
 					}
 				}).start();
@@ -367,7 +376,7 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 
 	// item 0 = no selection, else = default selection
 	// return: maxpage
-	public int search(String keywords, int item) {
+	public int search(String keywords, int item, Runnable inUi) {
 		List<MetaData> stories = new ArrayList<MetaData>();
 		int storyItem = 0;
 
@@ -400,14 +409,14 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 
 		this.stories = stories;
 		this.storyItem = storyItem;
-		fireAction();
+		fireAction(inUi);
 
 		return maxPage;
 	}
 
 	// tag: null = base tags
 	// return: max pages
-	public int searchTag(SearchableTag tag, int item) {
+	public int searchTag(SearchableTag tag, int item, Runnable inUi) {
 		List<MetaData> stories = new ArrayList<MetaData>();
 		int storyItem = 0;
 
@@ -461,7 +470,7 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 
 		this.stories = stories;
 		this.storyItem = storyItem;
-		fireAction();
+		fireAction(inUi);
 
 		return maxPage;
 	}
