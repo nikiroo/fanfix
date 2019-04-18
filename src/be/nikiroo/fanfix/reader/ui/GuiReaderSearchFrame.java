@@ -49,7 +49,7 @@ public class GuiReaderSearchFrame extends JFrame {
 		setLayout(new BorderLayout());
 		setSize(800, 600);
 
-		page = 1; // TODO
+		page = 1;
 		maxPage = -1;
 
 		supportTypes = new ArrayList<SupportType>();
@@ -65,19 +65,33 @@ public class GuiReaderSearchFrame extends JFrame {
 		comboSupportTypes.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				updateSupportType((SupportType) comboSupportTypes
-						.getSelectedItem());
+				setWaitingScreen(true);
+				updateSupportType(
+						(SupportType) comboSupportTypes.getSelectedItem(),
+						new Runnable() {
+							@Override
+							public void run() {
+								setWaitingScreen(false);
+							}
+						});
 			}
 		});
 		JPanel searchSites = new JPanel(new BorderLayout());
 		searchSites.add(comboSupportTypes, BorderLayout.CENTER);
 		searchSites.add(new JLabel(" " + "Website : "), BorderLayout.WEST);
 
-		searchPanel = new GuiReaderSearchByNamePanel(supportType);
+		searchPanel = new GuiReaderSearchByNamePanel(supportType,
+				new Runnable() {
+					@Override
+					public void run() {
+						setWaitingScreen(false);
+					}
+				});
+
 		searchPanel.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				updatePages(0, maxPage);
+				updateMaxPage(searchPanel.getMaxPage());
 				List<GuiReaderBookInfo> infos = new ArrayList<GuiReaderBookInfo>();
 				for (MetaData meta : searchPanel.getStories()) {
 					infos.add(GuiReaderBookInfo.fromMeta(meta));
@@ -119,28 +133,38 @@ public class GuiReaderSearchFrame extends JFrame {
 		JScrollPane scroll = new JScrollPane(books);
 		scroll.getVerticalScrollBar().setUnitIncrement(16);
 		add(scroll, BorderLayout.CENTER);
+
+		setWaitingScreen(true);
 	}
 
-	private void updateSupportType(SupportType supportType) {
+	private void updateSupportType(SupportType supportType, Runnable inUi) {
 		if (supportType != this.supportType) {
 			this.supportType = supportType;
 			comboSupportTypes.setSelectedItem(supportType);
 			books.clear();
-			searchPanel.setSupportType(supportType);
+			searchPanel.setSupportType(supportType, inUi);
 		}
 	}
 
-	private void updatePages(final int page, final Integer maxPage) {
+	private void updatePage(final int page) {
 		inUi(new Runnable() {
 			@Override
 			public void run() {
 				GuiReaderSearchFrame.this.page = page;
-				GuiReaderSearchFrame.this.maxPage = maxPage;
-				
-				searchPanel.setPage(page);
-				
+
 				// TODO: gui
 				System.out.println("page: " + page);
+			}
+		});
+	}
+
+	private void updateMaxPage(final int maxPage) {
+		inUi(new Runnable() {
+			@Override
+			public void run() {
+				GuiReaderSearchFrame.this.maxPage = maxPage;
+
+				// TODO: gui
 				System.out.println("max page: " + maxPage);
 			}
 		});
@@ -161,18 +185,24 @@ public class GuiReaderSearchFrame extends JFrame {
 	public void search(final SupportType searchOn, final String keywords,
 			final int page, final int item) {
 
-		updatePages(page, maxPage);
-		searchPanel.setSupportType(searchOn);
-		
-		if (keywords != null) {
-			setWaitingScreen(true);
-			searchPanel.search(keywords, item, new Runnable() {
-				@Override
-				public void run() {
-					setWaitingScreen(false);
+		setWaitingScreen(true);
+
+		searchPanel.setSupportType(searchOn, new Runnable() {
+			@Override
+			public void run() {
+				if (keywords != null) {
+					setWaitingScreen(true);
+					searchPanel.search(keywords, page, item, new Runnable() {
+						@Override
+						public void run() {
+							updateMaxPage(searchPanel.getMaxPage());
+							updatePage(page);
+							setWaitingScreen(false);
+						}
+					});
 				}
-			});
-		}
+			}
+		});
 	}
 
 	// tag: null = base tags
@@ -180,12 +210,19 @@ public class GuiReaderSearchFrame extends JFrame {
 			final int item, final SearchableTag tag) {
 
 		setWaitingScreen(true);
-		updatePages(page, maxPage);
-		searchPanel.setSupportType(searchOn);
-		searchPanel.searchTag(tag, item, new Runnable() {
+
+		searchPanel.setSupportType(searchOn, new Runnable() {
 			@Override
 			public void run() {
-				setWaitingScreen(false);
+				setWaitingScreen(true);
+				searchPanel.searchTag(tag, page, item, new Runnable() {
+					@Override
+					public void run() {
+						updateMaxPage(searchPanel.getMaxPage());
+						updatePage(page);
+						setWaitingScreen(false);
+					}
+				});
 			}
 		});
 	}
@@ -222,7 +259,7 @@ public class GuiReaderSearchFrame extends JFrame {
 	static void error(String e) {
 		Instance.getTraceHandler().error(e);
 	}
-	
+
 	private void setWaitingScreen(final boolean waiting) {
 		inUi(new Runnable() {
 			@Override

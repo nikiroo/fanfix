@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,32 +38,32 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 
 	private int actionEventId = ActionEvent.ACTION_FIRST;
 
-	private SupportType supportType;
 	private BasicSearchable searchable;
-	private int page;
 	private boolean searchByTags;
+	private int page;
+	private int maxPage;
 
-	private String keywords;
 	private JTabbedPane searchTabs;
+
 	private JTextField keywordsField;
 	private JButton submitKeywords;
 
+	private SearchableTag currentTag;
 	private JPanel tagBars;
 	private List<JComboBox> combos;
-	private JComboBox comboSupportTypes;
 
 	private List<ActionListener> actions = new ArrayList<ActionListener>();
 	private List<MetaData> stories = new ArrayList<MetaData>();
 	private int storyItem;
 
 	// will throw illegalArgEx if bad support type, NULL allowed
-	public GuiReaderSearchByNamePanel(SupportType supportType) {
+	public GuiReaderSearchByNamePanel(final SupportType supportType,
+			final Runnable inUi) {
 		setLayout(new BorderLayout());
 
-		// TODO: check if null really is OK for supportType (must be)
-		
-		setSupportType(supportType);
 		page = 1;
+		maxPage = -1;
+		currentTag = null;
 		searchByTags = false;
 
 		searchTabs = new JTabbedPane();
@@ -69,6 +71,15 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 		searchTabs.addTab("By tags", createByTagSearchPanel());
 
 		add(searchTabs, BorderLayout.CENTER);
+		updateSearchBy(searchByTags);
+
+		// TODO: check if null really is OK for supportType (must be)
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				setSupportType(supportType, inUi);
+			}
+		}).start();
 	}
 
 	private JPanel createByNameSearchPanel() {
@@ -82,10 +93,21 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 
 		// TODO: ENTER -> search
 
+		keywordsField.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					search(keywordsField.getText(), 1, 0, null);
+				} else {
+					super.keyReleased(e);
+				}
+			}
+		});
+
 		submitKeywords.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				search(keywordsField.getText(), 0, null);
+				search(keywordsField.getText(), 1, 0, null);
 			}
 		});
 
@@ -103,32 +125,34 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 		return byTag;
 	}
 
-	public SupportType getSupportType() {
-		return supportType;
-	}
-
-	public void setSupportType(SupportType supportType) {
+	// slow
+	public void setSupportType(SupportType supportType, Runnable inUi) {
 		BasicSearchable searchable = BasicSearchable.getSearchable(supportType);
 		if (searchable == null && supportType != null) {
 			throw new java.lang.IllegalArgumentException(
 					"Unupported support type: " + supportType);
 		}
 
-		// TODO: if <>, reset all
-		// if new, set the base tags
-		
-		this.supportType = supportType;
 		this.searchable = searchable;
+
+		searchTag(null, 1, 0, inUi);
 	}
 
 	public int getPage() {
 		return page;
 	}
 
-	public void setPage(int page) {
-		// TODO: set against maxPage
-		// TODO: update last search?
-		this.page = page;
+	public int getMaxPage() {
+		return maxPage;
+	}
+
+	// throw outOfBounds if needed
+	public void setPage(int page, Runnable inUi) {
+		if (searchByTags) {
+			searchTag(currentTag, page, 0, inUi);
+		} else {
+			search(keywordsField.getText(), page, 0, inUi);
+		}
 	}
 
 	// actions will be fired in UIthread
@@ -169,7 +193,7 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 						GuiReaderSearchFrame.error(e);
 					}
 				}
-				
+
 				if (inUi != null) {
 					inUi.run();
 				}
@@ -178,27 +202,24 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 	}
 
 	private void updateSearchBy(final boolean byTag) {
-		if (byTag != this.searchByTags) {
-			GuiReaderSearchFrame.inUi(new Runnable() {
-				@Override
-				public void run() {
-					if (!byTag) {
-						searchTabs.setSelectedIndex(0);
-					} else {
-						searchTabs.setSelectedIndex(1);
-					}
+		GuiReaderSearchFrame.inUi(new Runnable() {
+			@Override
+			public void run() {
+				if (!byTag) {
+					searchTabs.setSelectedIndex(0);
+				} else {
+					searchTabs.setSelectedIndex(1);
 				}
-			});
-		}
+			}
+		});
 	}
 
 	// cannot be NULL
 	private void updateKeywords(final String keywords) {
-		if (!keywords.equals(this.keywords)) {
+		if (!keywords.equals(keywordsField.getText())) {
 			GuiReaderSearchFrame.inUi(new Runnable() {
 				@Override
 				public void run() {
-					GuiReaderSearchByNamePanel.this.keywords = keywords;
 					keywordsField.setText(keywords);
 				}
 			});
@@ -217,8 +238,8 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 
 		List<SearchableTag> rootTags = null;
 		SearchableTag selectedRootTag = null;
-		selectedRootTag = parents.isEmpty() ? null
-				: parents.get(parents.size() - 1);
+		selectedRootTag = parents.isEmpty() ? null : parents
+				.get(parents.size() - 1);
 
 		try {
 			rootTags = searchable.getTags();
@@ -296,20 +317,21 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 		combos.add(combo);
 		tagBars.add(combo);
 	}
-	
+
 	private ActionListener createComboTagAction(final int comboIndex) {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
 				List<JComboBox> combos = GuiReaderSearchByNamePanel.this.combos;
-				if (combos == null || comboIndex < 0 || comboIndex >= combos.size()) {
+				if (combos == null || comboIndex < 0
+						|| comboIndex >= combos.size()) {
 					return;
 				}
-				
+
 				// Tag can be NULL
-				final SearchableTag tag = (SearchableTag) combos.get(comboIndex)
-						.getSelectedItem();
-				
+				final SearchableTag tag = (SearchableTag) combos
+						.get(comboIndex).getSelectedItem();
+
 				while (comboIndex + 1 < combos.size()) {
 					JComboBox combo = combos.remove(comboIndex + 1);
 					tagBars.remove(combo);
@@ -327,7 +349,7 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 								}
 							});
 						}
-						
+
 						if (tag != null && tag.isLeaf()) {
 							try {
 								GuiReaderSearchByNamePanel.this.page = 1;
@@ -337,7 +359,7 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 								GuiReaderSearchByNamePanel.this.page = 0;
 								stories = new ArrayList<MetaData>();
 							}
-							
+
 							fireAction(null);
 						}
 					}
@@ -375,8 +397,8 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 	}
 
 	// item 0 = no selection, else = default selection
-	// return: maxpage
-	public int search(String keywords, int item, Runnable inUi) {
+	// throw if page > max
+	public void search(String keywords, int page, int item, Runnable inUi) {
 		List<MetaData> stories = new ArrayList<MetaData>();
 		int storyItem = 0;
 
@@ -391,6 +413,11 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 		}
 
 		if (page > 0) {
+			if (maxPage >= 0 && (page <= 0 || page > maxPage)) {
+				throw new IndexOutOfBoundsException("Page " + page + " out of "
+						+ maxPage);
+			}
+
 			try {
 				stories = searchable.search(keywords, page);
 			} catch (IOException e) {
@@ -407,19 +434,22 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 			}
 		}
 
+		this.page = page;
 		this.stories = stories;
 		this.storyItem = storyItem;
-		fireAction(inUi);
+		this.maxPage = maxPage;
 
-		return maxPage;
+		fireAction(inUi);
 	}
 
+	// slow
 	// tag: null = base tags
-	// return: max pages
-	public int searchTag(SearchableTag tag, int item, Runnable inUi) {
+	// throw if page > max, but only if stories
+	public void searchTag(SearchableTag tag, int page, int item, Runnable inUi) {
 		List<MetaData> stories = new ArrayList<MetaData>();
 		int storyItem = 0;
 
+		currentTag = tag;
 		updateSearchBy(true);
 		updateTags(tag);
 
@@ -446,20 +476,24 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 				}
 
 				maxPage = searchable.searchPages(tag);
-				if (page > 0) {
-					if (tag.isLeaf()) {
-						try {
-							stories = searchable.search(tag, page);
-							if (item > 0 && item <= stories.size()) {
-								storyItem = item;
-							} else if (item > 0) {
-								GuiReaderSearchFrame.error(String.format(
-										"Story item does not exist: Tag [%s], item %d",
-										tag.getFqName(), item));
-							}
-						} catch (IOException e) {
-							GuiReaderSearchFrame.error(e);
+				if (page > 0 && tag.isLeaf()) {
+					if (maxPage >= 0 && (page <= 0 || page > maxPage)) {
+						throw new IndexOutOfBoundsException("Page " + page
+								+ " out of " + maxPage);
+					}
+
+					try {
+						stories = searchable.search(tag, page);
+						if (item > 0 && item <= stories.size()) {
+							storyItem = item;
+						} else if (item > 0) {
+							GuiReaderSearchFrame
+									.error(String
+											.format("Story item does not exist: Tag [%s], item %d",
+													tag.getFqName(), item));
 						}
+					} catch (IOException e) {
+						GuiReaderSearchFrame.error(e);
 					}
 				}
 			} catch (IOException e) {
@@ -470,9 +504,10 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 
 		this.stories = stories;
 		this.storyItem = storyItem;
-		fireAction(inUi);
+		this.page = page;
+		this.maxPage = maxPage;
 
-		return maxPage;
+		fireAction(inUi);
 	}
 
 	/**
@@ -487,14 +522,18 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 	 *            this component is disabled
 	 */
 	@Override
-	public void setEnabled(final boolean waiting) {
+	public void setEnabled(final boolean enabled) {
 		GuiReaderSearchFrame.inUi(new Runnable() {
 			@Override
 			public void run() {
-				GuiReaderSearchByNamePanel.super.setEnabled(!waiting);
-				keywordsField.setEnabled(!waiting);
-				submitKeywords.setEnabled(!waiting);
-				// TODO
+				GuiReaderSearchByNamePanel.super.setEnabled(enabled);
+				searchTabs.setEnabled(enabled);
+				keywordsField.setEnabled(enabled);
+				submitKeywords.setEnabled(enabled);
+				tagBars.setEnabled(enabled);
+				for (JComboBox combo : combos) {
+					combo.setEnabled(enabled);
+				}
 			}
 		});
 	}
