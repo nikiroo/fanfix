@@ -39,7 +39,7 @@ public class GuiReaderSearchFrame extends JFrame {
 	private int maxPage;
 
 	private JComboBox comboSupportTypes;
-	private GuiReaderSearchByNamePanel searchPanel;
+	private GuiReaderSearchByPanel searchPanel;
 
 	private boolean seeWordcount;
 	private GuiReaderGroup books;
@@ -65,13 +65,13 @@ public class GuiReaderSearchFrame extends JFrame {
 		comboSupportTypes.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				setWaitingScreen(true);
+				setWaiting(true);
 				updateSupportType(
 						(SupportType) comboSupportTypes.getSelectedItem(),
 						new Runnable() {
 							@Override
 							public void run() {
-								setWaitingScreen(false);
+								setWaiting(false);
 							}
 						});
 			}
@@ -80,18 +80,18 @@ public class GuiReaderSearchFrame extends JFrame {
 		searchSites.add(comboSupportTypes, BorderLayout.CENTER);
 		searchSites.add(new JLabel(" " + "Website : "), BorderLayout.WEST);
 
-		searchPanel = new GuiReaderSearchByNamePanel(supportType,
-				new Runnable() {
+		searchPanel = new GuiReaderSearchByPanel(supportType,
+				new GuiReaderSearchByPanel.Waitable() {
 					@Override
-					public void run() {
-						setWaitingScreen(false);
+					public void setWaiting(boolean waiting) {
+						GuiReaderSearchFrame.this.setWaiting(waiting);
 					}
 				});
 
 		searchPanel.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				updateMaxPage(searchPanel.getMaxPage());
+				updatePages(searchPanel.getPage(), searchPanel.getMaxPage());
 				List<GuiReaderBookInfo> infos = new ArrayList<GuiReaderBookInfo>();
 				for (MetaData meta : searchPanel.getStories()) {
 					infos.add(GuiReaderBookInfo.fromMeta(meta));
@@ -133,50 +133,44 @@ public class GuiReaderSearchFrame extends JFrame {
 		JScrollPane scroll = new JScrollPane(books);
 		scroll.getVerticalScrollBar().setUnitIncrement(16);
 		add(scroll, BorderLayout.CENTER);
-
-		setWaitingScreen(true);
 	}
 
-	private void updateSupportType(SupportType supportType, Runnable inUi) {
-		if (supportType != this.supportType) {
-			this.supportType = supportType;
-			comboSupportTypes.setSelectedItem(supportType);
-			books.clear();
-			searchPanel.setSupportType(supportType, inUi);
-		}
+	private void updateSupportType(final SupportType supportType,
+			final Runnable inUi) {
+		this.supportType = supportType;
+		comboSupportTypes.setSelectedItem(supportType);
+		books.clear();
+
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				searchPanel.setSupportType(supportType);
+				inUi(inUi);
+			}
+		}).start();
 	}
 
-	private void updatePage(final int page) {
+	private void updatePages(final int page, final int maxPage) {
 		inUi(new Runnable() {
 			@Override
 			public void run() {
 				GuiReaderSearchFrame.this.page = page;
-
-				// TODO: gui
-				System.out.println("page: " + page);
-			}
-		});
-	}
-
-	private void updateMaxPage(final int maxPage) {
-		inUi(new Runnable() {
-			@Override
-			public void run() {
 				GuiReaderSearchFrame.this.maxPage = maxPage;
 
 				// TODO: gui
+				System.out.println("page: " + page);
 				System.out.println("max page: " + maxPage);
 			}
 		});
 	}
 
 	private void updateBooks(final List<GuiReaderBookInfo> infos) {
-		setWaitingScreen(true);
+		setWaiting(true);
 		inUi(new Runnable() {
 			@Override
 			public void run() {
 				books.refreshBooks(infos, seeWordcount);
-				setWaitingScreen(false);
+				setWaiting(false);
 			}
 		});
 	}
@@ -184,47 +178,39 @@ public class GuiReaderSearchFrame extends JFrame {
 	// item 0 = no selection, else = default selection
 	public void search(final SupportType searchOn, final String keywords,
 			final int page, final int item) {
-
-		setWaitingScreen(true);
-
-		searchPanel.setSupportType(searchOn, new Runnable() {
+		setWaiting(true);
+		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				if (keywords != null) {
-					setWaitingScreen(true);
-					searchPanel.search(keywords, page, item, new Runnable() {
-						@Override
-						public void run() {
-							updateMaxPage(searchPanel.getMaxPage());
-							updatePage(page);
-							setWaitingScreen(false);
-						}
-					});
-				}
+				searchPanel.setSupportType(searchOn);
+				searchPanel.search(keywords, page, item);
+				inUi(new Runnable() {
+					@Override
+					public void run() {
+						setWaiting(false);
+					}
+				});
 			}
-		});
+		}).start();
 	}
 
 	// tag: null = base tags
 	public void searchTag(final SupportType searchOn, final int page,
 			final int item, final SearchableTag tag) {
-
-		setWaitingScreen(true);
-
-		searchPanel.setSupportType(searchOn, new Runnable() {
+		setWaiting(true);
+		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				setWaitingScreen(true);
-				searchPanel.searchTag(tag, page, item, new Runnable() {
+				searchPanel.setSupportType(searchOn);
+				searchPanel.searchTag(tag, page, item);
+				inUi(new Runnable() {
 					@Override
 					public void run() {
-						updateMaxPage(searchPanel.getMaxPage());
-						updatePage(page);
-						setWaitingScreen(false);
+						setWaiting(false);
 					}
 				});
 			}
-		});
+		}).start();
 	}
 
 	/**
@@ -260,13 +246,29 @@ public class GuiReaderSearchFrame extends JFrame {
 		Instance.getTraceHandler().error(e);
 	}
 
-	private void setWaitingScreen(final boolean waiting) {
+	/**
+	 * Enables or disables this component, depending on the value of the
+	 * parameter <code>b</code>. An enabled component can respond to user input
+	 * and generate events. Components are enabled initially by default.
+	 * <p>
+	 * Disabling this component will also affect its children.
+	 * 
+	 * @param b
+	 *            If <code>true</code>, this component is enabled; otherwise
+	 *            this component is disabled
+	 */
+	@Override
+	public void setEnabled(boolean b) {
+		super.setEnabled(b);
+		books.setEnabled(b);
+		searchPanel.setEnabled(b);
+	}
+
+	private void setWaiting(final boolean waiting) {
 		inUi(new Runnable() {
 			@Override
 			public void run() {
 				GuiReaderSearchFrame.this.setEnabled(!waiting);
-				books.setEnabled(!waiting);
-				searchPanel.setEnabled(!waiting);
 			}
 		});
 	}
