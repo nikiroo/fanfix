@@ -1,7 +1,6 @@
 package be.nikiroo.fanfix.reader.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
@@ -9,7 +8,6 @@ import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -35,11 +33,9 @@ public class GuiReaderViewer extends JFrame {
 	private Story story;
 	private MetaData meta;
 	private JLabel title;
-	private JLabel chapterLabel;
 	private GuiReaderPropertiesPane descPane;
-	private int currentChapter = -42; // cover = -1
 	private GuiReaderViewerPanel mainPanel;
-	private JButton[] navButtons;
+	private GuiReaderNavBar navbar;
 
 	/**
 	 * Create a new {@link Story} viewer.
@@ -97,61 +93,46 @@ public class GuiReaderViewer extends JFrame {
 	 * initialise them.
 	 */
 	private void initGuiNavButtons() {
+		navbar = new GuiReaderNavBar(-1, story.getChapters().size() - 1) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected String computeLabel(int index, int min, int max) {
+				int chapter = index;
+				Chapter chap;
+				if (chapter < 0) {
+					chap = meta.getResume();
+					descPane.setVisible(true);
+				} else {
+					chap = story.getChapters().get(chapter);
+					descPane.setVisible(false);
+				}
+
+				String chapterDisplay = GuiReader.trans(
+						StringIdGui.CHAPTER_HTML_UNNAMED, chap.getNumber(),
+						story.getChapters().size());
+				if (chap.getName() != null && !chap.getName().trim().isEmpty()) {
+					chapterDisplay = GuiReader.trans(
+							StringIdGui.CHAPTER_HTML_NAMED, chap.getNumber(),
+							story.getChapters().size(), chap.getName());
+				}
+
+				return "<HTML>" + chapterDisplay + "</HTML>";
+			}
+		};
+
+		navbar.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setChapter(navbar.getIndex());
+			}
+		});
+
 		JPanel navButtonsPane = new JPanel();
 		LayoutManager layout = new BoxLayout(navButtonsPane, BoxLayout.X_AXIS);
 		navButtonsPane.setLayout(layout);
 
-		navButtons = new JButton[4];
-
-		navButtons[0] = createNavButton("<<", new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setChapter(-1);
-			}
-		});
-		navButtons[1] = createNavButton(" < ", new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setChapter(currentChapter - 1);
-			}
-		});
-		navButtons[2] = createNavButton(" > ", new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setChapter(currentChapter + 1);
-			}
-		});
-		navButtons[3] = createNavButton(">>", new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setChapter(story.getChapters().size() - 1);
-			}
-		});
-
-		for (JButton navButton : navButtons) {
-			navButtonsPane.add(navButton);
-		}
-
-		add(navButtonsPane, BorderLayout.SOUTH);
-
-		chapterLabel = new JLabel("");
-		navButtonsPane.add(chapterLabel);
-	}
-
-	/**
-	 * Create a single navigation button.
-	 * 
-	 * @param text
-	 *            the text to display
-	 * @param action
-	 *            the action to take on click
-	 * @return the button
-	 */
-	private JButton createNavButton(String text, ActionListener action) {
-		JButton navButton = new JButton(text);
-		navButton.addActionListener(action);
-		navButton.setForeground(Color.BLUE);
-		return navButton;
+		add(navbar, BorderLayout.SOUTH);
 	}
 
 	/**
@@ -163,36 +144,15 @@ public class GuiReaderViewer extends JFrame {
 	 *            the chapter number to set
 	 */
 	private void setChapter(int chapter) {
-		navButtons[0].setEnabled(chapter >= 0);
-		navButtons[1].setEnabled(chapter >= 0);
-		navButtons[2].setEnabled(chapter + 1 < story.getChapters().size());
-		navButtons[3].setEnabled(chapter + 1 < story.getChapters().size());
-
-		if (chapter >= -1 && chapter < story.getChapters().size()
-				&& chapter != currentChapter) {
-			currentChapter = chapter;
-
-			Chapter chap;
-			if (chapter == -1) {
-				chap = meta.getResume();
-				descPane.setVisible(true);
-			} else {
-				chap = story.getChapters().get(chapter);
-				descPane.setVisible(false);
-			}
-
-			String chapterDisplay = GuiReader.trans(
-					StringIdGui.CHAPTER_HTML_UNNAMED, chap.getNumber(), story
-							.getChapters().size());
-			if (chap.getName() != null && !chap.getName().trim().isEmpty()) {
-				chapterDisplay = GuiReader.trans(
-						StringIdGui.CHAPTER_HTML_NAMED, chap.getNumber(), story
-								.getChapters().size(), chap.getName());
-			}
-
-			chapterLabel.setText("<HTML>" + chapterDisplay + "</HTML>");
-
-			mainPanel.setChapter(chap);
+		Chapter chap;
+		if (chapter < 0) {
+			chap = meta.getResume();
+			descPane.setVisible(true);
+		} else {
+			chap = story.getChapters().get(chapter);
+			descPane.setVisible(false);
 		}
+
+		mainPanel.setChapter(chap);
 	}
 }
