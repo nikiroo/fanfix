@@ -12,8 +12,8 @@ Fanfix est un petit programme Java qui peut télécharger des histoires sur inte
 - ```fanfix``` --read-url [*URL*] ([*chapter number*])
 - ```fanfix``` --search
 - ```fanfix``` --search [*where*] [*keywords*] (page [*page*]) (item [*item*])
-- ```fanfix``` --tag
-- ```fanfix``` --tag [*index 1*]... (page [*page*]) (item [*item*])
+- ```fanfix``` --search-tag
+- ```fanfix``` --search-tag [*index 1*]... (page [*page*]) (item [*item*])
 - ```fanfix``` --list
 - ```fanfix``` --set-reader [*GUI* | *TUI* | *CLI*]
 - ```fanfix``` --server [*key*] [*port*]

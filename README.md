@@ -12,8 +12,8 @@ Fanfix is a small Java program that can download stories from some supported web
 - ```fanfix``` --read-url [*URL*] ([*chapter number*])
 - ```fanfix``` --search
 - ```fanfix``` --search [*where*] [*keywords*] (page [*page*]) (item [*item*])
-- ```fanfix``` --tag
-- ```fanfix``` --tag [*index 1*]... (page [*page*]) (item [*item*])
+- ```fanfix``` --search-tag
+- ```fanfix``` --search-tag [*index 1*]... (page [*page*]) (item [*item*])
 - ```fanfix``` --list
 - ```fanfix``` --set-reader [*GUI* | *TUI* | *CLI*]
 - ```fanfix``` --server [*key*] [*port*]

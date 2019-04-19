@@ -35,7 +35,7 @@ import be.nikiroo.utils.serial.server.ServerObject;
  */
 public class Main {
 	private enum MainAction {
-		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER, START, VERSION, SERVER, STOP_SERVER, REMOTE, SET_SOURCE, SET_TITLE, SET_AUTHOR, SEARCH, TAG
+		IMPORT, EXPORT, CONVERT, READ, READ_URL, LIST, HELP, SET_READER, START, VERSION, SERVER, STOP_SERVER, REMOTE, SET_SOURCE, SET_TITLE, SET_AUTHOR, SEARCH, SEARCH_TAG
 	}
 
 	/**
@@ -65,10 +65,10 @@ public class Main {
 	 * <li>--search [where] [keywords] (page [page]) (item [item]): search on
 	 * the supported website and display the given results page of stories it
 	 * found, or the story details if asked</li>
-	 * <li>--tag [where]: list all the tags supported by this website</li>
-	 * <li>--tag [index 1]... (page [page]) (item [item]): search for the given
-	 * stories or subtags, tag by tag, and display information about a specific
-	 * page of results or about a specific item if requested</li>
+	 * <li>--search-tag [where]: list all the tags supported by this website</li>
+	 * <li>--search-tag [index 1]... (page [page]) (item [item]): search for the
+	 * given stories or subtags, tag by tag, and display information about a
+	 * specific page of results or about a specific item if requested</li>
 	 * <li>--list ([type]): list the stories present in the library</li>
 	 * <li>--set-source [id] [new source]: change the source of the given story</li>
 	 * <li>--set-title [id] [new title]: change the title of the given story</li>
@@ -258,7 +258,7 @@ public class Main {
 					exitCode = 255;
 				}
 				break;
-			case TAG:
+			case SEARCH_TAG:
 				if (searchOn == null) {
 					searchOn = SupportType.valueOfAllOkUC(args[i]);
 
@@ -509,7 +509,7 @@ public class Main {
 				}
 
 				break;
-			case TAG:
+			case SEARCH_TAG:
 				if (searchOn == null) {
 					exitCode = 255;
 					break;
