@@ -36,17 +36,20 @@ public class GuiReaderNavBar extends JPanel {
 	 * Create a new navigation bar.
 	 * <p>
 	 * The minimum must be lower or equal to the maximum.
+	 * <p>
+	 * Note than a max of "-1" means "infinite".
 	 * 
 	 * @param min
-	 *            the minimum page number
+	 *            the minimum page number (cannot be negative)
 	 * @param max
-	 *            the maximum page number
+	 *            the maximum page number (cannot be lower than min, except if
+	 *            -1 (infinite))
 	 * 
 	 * @throws IndexOutOfBoundsException
-	 *             if min &gt; max
+	 *             if min &gt; max and max is not "-1"
 	 */
 	public GuiReaderNavBar(int min, int max) {
-		if (min > max) {
+		if (min > max && max != -1) {
 			throw new IndexOutOfBoundsException(String.format(
 					"min (%d) > max (%d)", min, max));
 		}
@@ -60,24 +63,28 @@ public class GuiReaderNavBar extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setIndex(GuiReaderNavBar.this.min);
+				fireEvent();
 			}
 		});
 		navButtons[1] = createNavButton(" < ", new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setIndex(index - 1);
+				fireEvent();
 			}
 		});
 		navButtons[2] = createNavButton(" > ", new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setIndex(index + 1);
+				fireEvent();
 			}
 		});
 		navButtons[3] = createNavButton(">>", new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				setIndex(GuiReaderNavBar.this.max);
+				fireEvent();
 			}
 		});
 
@@ -114,15 +121,14 @@ public class GuiReaderNavBar extends JPanel {
 	 * @param index
 	 *            the new index
 	 */
-	private void setIndex(int index) {
+	public void setIndex(int index) {
 		if (index != this.index) {
-			if (index < min || index > max) {
+			if (index < min || (index > max && max != -1)) {
 				throw new IndexOutOfBoundsException(String.format(
 						"Index %d but min/max is [%d/%d]", index, min, max));
 			}
 
 			this.index = index;
-			fireEvent();
 			updateLabel();
 		}
 
@@ -130,7 +136,7 @@ public class GuiReaderNavBar extends JPanel {
 	}
 
 	/**
-	 * The minimun page number.
+	 * The minimun page number. Cannot be negative.
 	 * 
 	 * @return the min
 	 */
@@ -139,7 +145,7 @@ public class GuiReaderNavBar extends JPanel {
 	}
 
 	/**
-	 * The minimum page number.
+	 * The minimum page number. Cannot be negative.
 	 * <p>
 	 * May update the index if needed (if the index is &lt; the new min).
 	 * <p>
@@ -153,17 +159,15 @@ public class GuiReaderNavBar extends JPanel {
 		this.min = min;
 		if (index < min) {
 			index = min;
-			updateEnabled();
-			updateLabel();
-			fireEvent();
-		} else {
-			updateEnabled();
-			updateLabel();
 		}
+		updateEnabled();
+		updateLabel();
+
 	}
 
 	/**
-	 * The maximum page number.
+	 * The maximum page number. Cannot be lower than min, except if -1
+	 * (infinite).
 	 * 
 	 * @return the max
 	 */
@@ -172,7 +176,8 @@ public class GuiReaderNavBar extends JPanel {
 	}
 
 	/**
-	 * The maximum page number.
+	 * The maximum page number. Cannot be lower than min, except if -1
+	 * (infinite).
 	 * <p>
 	 * May update the index if needed (if the index is &gt; the new max).
 	 * <p>
@@ -184,15 +189,11 @@ public class GuiReaderNavBar extends JPanel {
 	 */
 	public void setMax(int max) {
 		this.max = max;
-		if (index > max) {
+		if (index > max && max != -1) {
 			index = max;
-			updateEnabled();
-			updateLabel();
-			fireEvent();
-		} else {
-			updateEnabled();
-			updateLabel();
 		}
+		updateEnabled();
+		updateLabel();
 	}
 
 	/**
@@ -246,9 +247,9 @@ public class GuiReaderNavBar extends JPanel {
 	}
 
 	/**
-	 * Notify a chnge of page.
+	 * Notify a change of page.
 	 */
-	private void fireEvent() {
+	public void fireEvent() {
 		for (ActionListener listener : listeners) {
 			try {
 				listener.actionPerformed(new ActionEvent(this,
@@ -289,8 +290,8 @@ public class GuiReaderNavBar extends JPanel {
 	private void updateEnabled() {
 		navButtons[0].setEnabled(index > min);
 		navButtons[1].setEnabled(index > min);
-		navButtons[2].setEnabled(index < max);
-		navButtons[3].setEnabled(index < max);
+		navButtons[2].setEnabled(index < max || max == -1);
+		navButtons[3].setEnabled(index < max || max == -1);
 	}
 
 	/**
@@ -313,7 +314,12 @@ public class GuiReaderNavBar extends JPanel {
 	protected String computeLabel(int index,
 			@SuppressWarnings("unused") int min, int max) {
 
-		String base = "&nbsp;&nbsp;<B>Page <SPAN COLOR='#444466'>%d</SPAN>&nbsp;/&nbsp;%d</B>";
+		String base = "&nbsp;&nbsp;<B>Page <SPAN COLOR='#444466'>%d</SPAN>&nbsp;";
+		if (max >= 0) {
+			base += "/&nbsp;%d";
+		}
+		base += "</B>";
+
 		String ifLabel = ": %s";
 
 		String display = base;
@@ -324,6 +330,10 @@ public class GuiReaderNavBar extends JPanel {
 
 		display = "<HTML>" + display + "</HTML>";
 
-		return String.format(display, index, max, label);
+		if (max >= 0) {
+			return String.format(display, index, max, label);
+		}
+
+		return String.format(display, index, label);
 	}
 }

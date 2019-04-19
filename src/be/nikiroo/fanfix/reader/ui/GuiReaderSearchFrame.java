@@ -34,12 +34,11 @@ public class GuiReaderSearchFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
 
 	private List<SupportType> supportTypes;
-	private int page;
-	private int maxPage;
 
 	private JComboBox comboSupportTypes;
 	private ActionListener comboSupportTypesListener;
 	private GuiReaderSearchByPanel searchPanel;
+	private GuiReaderNavBar navbar;
 
 	private boolean seeWordcount;
 	private GuiReaderGroup books;
@@ -48,9 +47,6 @@ public class GuiReaderSearchFrame extends JFrame {
 		super("Browse stories");
 		setLayout(new BorderLayout());
 		setSize(800, 600);
-
-		page = 1;
-		maxPage = -1;
 
 		supportTypes = new ArrayList<SupportType>();
 		supportTypes.add(null);
@@ -103,6 +99,16 @@ public class GuiReaderSearchFrame extends JFrame {
 							infos.add(GuiReaderBookInfo.fromMeta(meta));
 						}
 
+						int page = searchPanel.getPage();
+						if (page <= 0) {
+							navbar.setMin(1);
+							navbar.setMax(1);
+						} else {
+							int max = searchPanel.getMaxPage();
+							navbar.setMin(1);
+							navbar.setMax(max);
+							navbar.setIndex(page);
+						}
 						updateBooks(infos);
 
 						// ! 1-based index !
@@ -139,6 +145,27 @@ public class GuiReaderSearchFrame extends JFrame {
 		JScrollPane scroll = new JScrollPane(books);
 		scroll.getVerticalScrollBar().setUnitIncrement(16);
 		add(scroll, BorderLayout.CENTER);
+
+		navbar = new GuiReaderNavBar(-1, -1) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected String computeLabel(int index, int min, int max) {
+				if (index <= 0) {
+					return "";
+				}
+				return super.computeLabel(index, min, max);
+			}
+		};
+
+		navbar.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				searchPanel.setPage(navbar.getIndex());
+			}
+		});
+
+		add(navbar, BorderLayout.SOUTH);
 	}
 
 	/**
@@ -162,7 +189,6 @@ public class GuiReaderSearchFrame extends JFrame {
 						.removeActionListener(comboSupportTypesListener);
 				comboSupportTypes.setSelectedItem(supportType);
 				comboSupportTypes.addActionListener(comboSupportTypesListener);
-
 			}
 		});
 
@@ -185,12 +211,14 @@ public class GuiReaderSearchFrame extends JFrame {
 		inUi(new Runnable() {
 			@Override
 			public void run() {
-				GuiReaderSearchFrame.this.page = page;
-				GuiReaderSearchFrame.this.maxPage = maxPage;
-
-				// TODO: gui
-				System.out.println("page: " + page);
-				System.out.println("max page: " + maxPage);
+				if (maxPage >= 1) {
+					navbar.setMin(1);
+					navbar.setMax(maxPage);
+					navbar.setIndex(page);
+				} else {
+					navbar.setMin(-1);
+					navbar.setMax(-1);
+				}
 			}
 		});
 	}

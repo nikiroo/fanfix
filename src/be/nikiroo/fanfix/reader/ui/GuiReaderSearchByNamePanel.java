@@ -90,7 +90,7 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 	 */
 	public void setSearchable(BasicSearchable searchable) {
 		this.searchable = searchable;
-		page = 1;
+		page = 0;
 		maxPage = -1;
 		storyItem = 0;
 		stories = new ArrayList<MetaData>();

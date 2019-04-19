@@ -49,7 +49,7 @@ public class GuiReaderSearchByTagPanel extends JPanel {
 
 		this.waitable = waitable;
 		combos = new ArrayList<JComboBox>();
-		page = 1;
+		page = 0;
 		maxPage = -1;
 
 		tagBars = new JPanel();
@@ -69,7 +69,7 @@ public class GuiReaderSearchByTagPanel extends JPanel {
 	 */
 	public void setSearchable(BasicSearchable searchable) {
 		this.searchable = searchable;
-		page = 1;
+		page = 0;
 		maxPage = -1;
 		storyItem = 0;
 		stories = new ArrayList<MetaData>();
@@ -298,6 +298,7 @@ public class GuiReaderSearchByTagPanel extends JPanel {
 									page = 1;
 									stories = searchable.search(tag, 1);
 									maxPage = searchable.searchPages(tag);
+									currentTag = tag;
 								} catch (IOException e) {
 									GuiReaderSearchFrame.error(e);
 									page = 0;
