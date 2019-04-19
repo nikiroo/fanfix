@@ -362,7 +362,7 @@ public class GuiReaderGroup extends JPanel {
 	 * @param index
 	 *            the index of the book to select, can be outside the bounds
 	 *            (either all the items will be unselected or the first or last
-	 *            book will then be selected, see <tt>forceRange>/tt>)
+	 *            book will then be selected, see <tt>forceRange></tt>)
 	 * @param forceRange
 	 *            TRUE to constraint the index to the first/last element, FALSE
 	 *            to unselect when outside the range

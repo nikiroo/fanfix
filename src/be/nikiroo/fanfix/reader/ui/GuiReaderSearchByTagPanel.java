@@ -16,8 +16,10 @@ import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.fanfix.reader.ui.GuiReaderSearchByPanel.Waitable;
 import be.nikiroo.fanfix.searchable.BasicSearchable;
 import be.nikiroo.fanfix.searchable.SearchableTag;
+import be.nikiroo.fanfix.supported.SupportType;
 
 /**
  * This panel represents a search panel that works for keywords and tags based
@@ -31,7 +33,7 @@ public class GuiReaderSearchByTagPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 
 	private BasicSearchable searchable;
-	private Runnable fireEvent;
+	private Waitable waitable;
 
 	private SearchableTag currentTag;
 	private JPanel tagBars;
@@ -42,10 +44,10 @@ public class GuiReaderSearchByTagPanel extends JPanel {
 	private List<MetaData> stories = new ArrayList<MetaData>();
 	private int storyItem;
 
-	public GuiReaderSearchByTagPanel(Runnable fireEvent) {
+	public GuiReaderSearchByTagPanel(Waitable waitable) {
 		setLayout(new BorderLayout());
 
-		this.fireEvent = fireEvent;
+		this.waitable = waitable;
 		combos = new ArrayList<JComboBox>();
 		page = 1;
 		maxPage = -1;
@@ -57,6 +59,8 @@ public class GuiReaderSearchByTagPanel extends JPanel {
 
 	/**
 	 * The {@link BasicSearchable} object use for the searches themselves.
+	 * <p>
+	 * This operation can be long and should be run outside the UI thread.
 	 * <p>
 	 * Can be NULL, but no searches will work.
 	 * 
@@ -72,29 +76,70 @@ public class GuiReaderSearchByTagPanel extends JPanel {
 		updateTags(null);
 	}
 
+	/**
+	 * The currently displayed page of result for the current search (see the
+	 * <tt>page</tt> parameter of
+	 * {@link GuiReaderSearchByTagPanel#searchTag(SupportType, int, int, SearchableTag)}
+	 * ).
+	 * 
+	 * @return the currently displayed page of results
+	 */
 	public int getPage() {
 		return page;
 	}
 
+	/**
+	 * The number of pages of result for the current search (see the
+	 * <tt>page</tt> parameter of
+	 * {@link GuiReaderSearchByPanel#searchTag(SupportType, int, int, SearchableTag)}
+	 * ).
+	 * <p>
+	 * For an unknown number or when not applicable, -1 is returned.
+	 * 
+	 * @return the number of pages of results or -1
+	 */
 	public int getMaxPage() {
 		return maxPage;
 	}
 
+	/**
+	 * Return the tag used for the current search.
+	 * 
+	 * @return the tag (which can be NULL, for "base tags")
+	 */
 	public SearchableTag getCurrentTag() {
 		return currentTag;
 	}
 
+	/**
+	 * The currently loaded stories (the result of the latest search).
+	 * 
+	 * @return the stories
+	 */
 	public List<MetaData> getStories() {
 		return stories;
 	}
 
-	// selected item or 0 if none ! one-based !
+	/**
+	 * Return the currently selected story (the <tt>item</tt>) if it was
+	 * specified in the latest, or 0 if not.
+	 * <p>
+	 * Note: this is thus a 1-based index, <b>not</b> a 0-based index.
+	 * 
+	 * @return the item
+	 */
 	public int getStoryItem() {
 		return storyItem;
 	}
 
-	// update and reset the tagsbar
-	// can be NULL, for base tags
+	/**
+	 * Update the tags displayed on screen and reset the tags bar.
+	 * <p>
+	 * This operation can be long and should be run outside the UI thread.
+	 * 
+	 * @param tag
+	 *            the tag to use, or NULL for base tags
+	 */
 	private void updateTags(final SearchableTag tag) {
 		final List<SearchableTag> parents = new ArrayList<SearchableTag>();
 		SearchableTag parent = (tag == null) ? null : tag;
@@ -142,7 +187,16 @@ public class GuiReaderSearchByTagPanel extends JPanel {
 		});
 	}
 
-	// must be quick and no thread change
+	/**
+	 * Add a tags bar (do not remove possible previous ones).
+	 * <p>
+	 * Will always add an "empty" (NULL) tag as first option.
+	 * 
+	 * @param tags
+	 *            the tags to display
+	 * @param selected
+	 *            the selected tag if any, or NULL for none
+	 */
 	private void addTagBar(List<SearchableTag> tags,
 			final SearchableTag selected) {
 		tags.add(0, null);
@@ -187,6 +241,22 @@ public class GuiReaderSearchByTagPanel extends JPanel {
 		tagBars.add(combo);
 	}
 
+	/**
+	 * The action to do on {@link JComboBox} selection.
+	 * <p>
+	 * The content of the action is:
+	 * <ul>
+	 * <li>Remove all tags bar below this one</li>
+	 * <li>Load the subtags if any in anew tags bar</li>
+	 * <li>Load the related stories if the tag was a leaf tag and notify the
+	 * {@link Waitable} (via {@link Waitable#fireEvent()})</li>
+	 * </ul>
+	 * 
+	 * @param comboIndex
+	 *            the index of the related {@link JComboBox}
+	 * 
+	 * @return the action
+	 */
 	private ActionListener createComboTagAction(final int comboIndex) {
 		return new ActionListener() {
 			@Override
@@ -209,31 +279,36 @@ public class GuiReaderSearchByTagPanel extends JPanel {
 				new Thread(new Runnable() {
 					@Override
 					public void run() {
-						final List<SearchableTag> children = getChildrenForTag(tag);
-						if (children != null) {
-							GuiReaderSearchFrame.inUi(new Runnable() {
-								@Override
-								public void run() {
-									addTagBar(children, tag);
-								}
-							});
-						}
-
-						if (tag != null && tag.isLeaf()) {
-							storyItem = 0;
-							try {
-								searchable.fillTag(tag);
-								page = 1;
-								stories = searchable.search(tag, 1);
-								maxPage = searchable.searchPages(tag);
-							} catch (IOException e) {
-								GuiReaderSearchFrame.error(e);
-								page = 0;
-								maxPage = -1;
-								stories = new ArrayList<MetaData>();
+						waitable.setWaiting(true);
+						try {
+							final List<SearchableTag> children = getChildrenForTag(tag);
+							if (children != null) {
+								GuiReaderSearchFrame.inUi(new Runnable() {
+									@Override
+									public void run() {
+										addTagBar(children, tag);
+									}
+								});
 							}
 
-							fireEvent.run();
+							if (tag != null && tag.isLeaf()) {
+								storyItem = 0;
+								try {
+									searchable.fillTag(tag);
+									page = 1;
+									stories = searchable.search(tag, 1);
+									maxPage = searchable.searchPages(tag);
+								} catch (IOException e) {
+									GuiReaderSearchFrame.error(e);
+									page = 0;
+									maxPage = -1;
+									stories = new ArrayList<MetaData>();
+								}
+
+								waitable.fireEvent();
+							}
+						} finally {
+							waitable.setWaiting(false);
 						}
 					}
 				}).start();
@@ -241,8 +316,19 @@ public class GuiReaderSearchByTagPanel extends JPanel {
 		};
 	}
 
-	// sync, add children of tag, NULL = base tags
-	// return children of the tag or base tags or NULL
+	/**
+	 * Get the children of the given tag (or the base tags if the given tag is
+	 * NULL).
+	 * <p>
+	 * This action will "fill" ({@link BasicSearchable#fillTag(SearchableTag)})
+	 * the given tag if needed first.
+	 * <p>
+	 * This operation can be long and should be run outside the UI thread.
+	 * 
+	 * @param tag
+	 *            the tag to search into or NULL for the base tags
+	 * @return the children
+	 */
 	private List<SearchableTag> getChildrenForTag(final SearchableTag tag) {
 		List<SearchableTag> children = new ArrayList<SearchableTag>();
 		if (tag == null) {
@@ -269,9 +355,24 @@ public class GuiReaderSearchByTagPanel extends JPanel {
 		return children;
 	}
 
-	// slow
-	// tag: null = base tags
-	// throw if page > max, but only if stories
+	/**
+	 * Search for the given tag on the currently selected searchable.
+	 * <p>
+	 * If the tag contains children tags, those will be displayed so you can
+	 * select them; if the tag is a leaf tag, the linked stories will be
+	 * displayed.
+	 * <p>
+	 * This operation can be long and should be run outside the UI thread.
+	 * 
+	 * @param tag
+	 *            the tag to search for, or NULL for base tags
+	 * @param page
+	 *            the page of results to load
+	 * @param item
+	 *            the item to select (or 0 for none by default)
+	 * 
+	 * @throw IndexOutOfBoundsException if the page is out of bounds
+	 */
 	public void searchTag(SearchableTag tag, int page, int item) {
 		List<MetaData> stories = new ArrayList<MetaData>();
 		int storyItem = 0;

@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.fanfix.reader.ui.GuiReaderSearchByPanel.Waitable;
 import be.nikiroo.fanfix.searchable.BasicSearchable;
 
 /**
@@ -35,7 +36,7 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 	private List<MetaData> stories = new ArrayList<MetaData>();
 	private int storyItem;
 
-	public GuiReaderSearchByNamePanel(final Runnable fireEvent) {
+	public GuiReaderSearchByNamePanel(final Waitable waitable) {
 		super(new BorderLayout());
 
 		keywordsField = new JTextField();
@@ -44,11 +45,25 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 		submitKeywords = new JButton("Search");
 		add(submitKeywords, BorderLayout.EAST);
 
+		// should be done out of UI
+		final Runnable go = new Runnable() {
+			@Override
+			public void run() {
+				waitable.setWaiting(true);
+				try {
+					search(keywordsField.getText(), 1, 0);
+					waitable.fireEvent();
+				} finally {
+					waitable.setWaiting(false);
+				}
+			}
+		};
+
 		keywordsField.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					search(keywordsField.getText(), 1, 0);
+					new Thread(go).start();
 				} else {
 					super.keyReleased(e);
 				}
@@ -58,13 +73,7 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 		submitKeywords.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new Thread(new Runnable() {
-					@Override
-					public void run() {
-						search(keywordsField.getText(), 1, 0);
-						fireEvent.run();
-					}
-				}).start();
+				new Thread(go).start();
 			}
 		});
 
@@ -88,28 +97,66 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 		updateKeywords("");
 	}
 
+	/**
+	 * The currently displayed page of result for the current search (see the
+	 * <tt>page</tt> parameter of
+	 * {@link GuiReaderSearchByNamePanel#search(String, int, int)}).
+	 * 
+	 * @return the currently displayed page of results
+	 */
 	public int getPage() {
 		return page;
 	}
 
+	/**
+	 * The number of pages of result for the current search (see the
+	 * <tt>page</tt> parameter of
+	 * {@link GuiReaderSearchByPanel#search(String, int, int)}).
+	 * <p>
+	 * For an unknown number or when not applicable, -1 is returned.
+	 * 
+	 * @return the number of pages of results or -1
+	 */
 	public int getMaxPage() {
 		return maxPage;
 	}
 
+	/**
+	 * Return the keywords used for the current search.
+	 * 
+	 * @return the keywords
+	 */
 	public String getCurrentKeywords() {
 		return keywordsField.getText();
 	}
 
+	/**
+	 * The currently loaded stories (the result of the latest search).
+	 * 
+	 * @return the stories
+	 */
 	public List<MetaData> getStories() {
 		return stories;
 	}
 
-	// selected item or 0 if none ! one-based !
+	/**
+	 * Return the currently selected story (the <tt>item</tt>) if it was
+	 * specified in the latest, or 0 if not.
+	 * <p>
+	 * Note: this is thus a 1-based index, <b>not</b> a 0-based index.
+	 * 
+	 * @return the item
+	 */
 	public int getStoryItem() {
 		return storyItem;
 	}
 
-	// cannot be NULL
+	/**
+	 * Update the keywords displayed on screen.
+	 * 
+	 * @param keywords
+	 *            the keywords
+	 */
 	private void updateKeywords(final String keywords) {
 		if (!keywords.equals(keywordsField.getText())) {
 			GuiReaderSearchFrame.inUi(new Runnable() {
@@ -121,8 +168,20 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 		}
 	}
 
-	// item 0 = no selection, else = default selection
-	// throw if page > max
+	/**
+	 * Search for the given terms on the currently selected searchable.
+	 * <p>
+	 * This operation can be long and should be run outside the UI thread.
+	 * 
+	 * @param keywords
+	 *            the keywords to search for
+	 * @param page
+	 *            the page of results to load
+	 * @param item
+	 *            the item to select (or 0 for none by default)
+	 * 
+	 * @throw IndexOutOfBoundsException if the page is out of bounds
+	 */
 	public void search(String keywords, int page, int item) {
 		List<MetaData> stories = new ArrayList<MetaData>();
 		int storyItem = 0;
@@ -130,10 +189,12 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 		updateKeywords(keywords);
 
 		int maxPage = -1;
-		try {
-			maxPage = searchable.searchPages(keywords);
-		} catch (IOException e) {
-			GuiReaderSearchFrame.error(e);
+		if (searchable != null) {
+			try {
+				maxPage = searchable.searchPages(keywords);
+			} catch (IOException e) {
+				GuiReaderSearchFrame.error(e);
+			}
 		}
 
 		if (page > 0) {
@@ -142,11 +203,12 @@ public class GuiReaderSearchByNamePanel extends JPanel {
 						+ maxPage);
 			}
 
-			try {
-				stories = searchable.search(keywords, page);
-			} catch (IOException e) {
-				GuiReaderSearchFrame.error(e);
-				stories = new ArrayList<MetaData>();
+			if (searchable != null) {
+				try {
+					stories = searchable.search(keywords, page);
+				} catch (IOException e) {
+					GuiReaderSearchFrame.error(e);
+				}
 			}
 
 			if (item > 0 && item <= stories.size()) {

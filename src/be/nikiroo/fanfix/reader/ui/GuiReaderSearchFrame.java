@@ -34,11 +34,11 @@ public class GuiReaderSearchFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
 
 	private List<SupportType> supportTypes;
-	private SupportType supportType;
 	private int page;
 	private int maxPage;
 
 	private JComboBox comboSupportTypes;
+	private ActionListener comboSupportTypesListener;
 	private GuiReaderSearchByPanel searchPanel;
 
 	private boolean seeWordcount;
@@ -53,59 +53,65 @@ public class GuiReaderSearchFrame extends JFrame {
 		maxPage = -1;
 
 		supportTypes = new ArrayList<SupportType>();
+		supportTypes.add(null);
 		for (SupportType type : SupportType.values()) {
 			if (BasicSearchable.getSearchable(type) != null) {
 				supportTypes.add(type);
 			}
 		}
-		supportType = supportTypes.isEmpty() ? null : supportTypes.get(0);
 
 		comboSupportTypes = new JComboBox(
 				supportTypes.toArray(new SupportType[] {}));
-		comboSupportTypes.addActionListener(new ActionListener() {
+
+		comboSupportTypesListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				final SupportType support = (SupportType) comboSupportTypes
+						.getSelectedItem();
 				setWaiting(true);
-				updateSupportType(
-						(SupportType) comboSupportTypes.getSelectedItem(),
-						new Runnable() {
-							@Override
-							public void run() {
-								setWaiting(false);
-							}
-						});
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						try {
+							updateSupportType(support);
+						} finally {
+							setWaiting(false);
+						}
+					}
+				}).start();
 			}
-		});
+		};
+		comboSupportTypes.addActionListener(comboSupportTypesListener);
+
 		JPanel searchSites = new JPanel(new BorderLayout());
 		searchSites.add(comboSupportTypes, BorderLayout.CENTER);
 		searchSites.add(new JLabel(" " + "Website : "), BorderLayout.WEST);
 
-		searchPanel = new GuiReaderSearchByPanel(supportType,
+		searchPanel = new GuiReaderSearchByPanel(
 				new GuiReaderSearchByPanel.Waitable() {
 					@Override
 					public void setWaiting(boolean waiting) {
 						GuiReaderSearchFrame.this.setWaiting(waiting);
 					}
+
+					@Override
+					public void fireEvent() {
+						updatePages(searchPanel.getPage(),
+								searchPanel.getMaxPage());
+						List<GuiReaderBookInfo> infos = new ArrayList<GuiReaderBookInfo>();
+						for (MetaData meta : searchPanel.getStories()) {
+							infos.add(GuiReaderBookInfo.fromMeta(meta));
+						}
+
+						updateBooks(infos);
+
+						// ! 1-based index !
+						int item = searchPanel.getStoryItem();
+						if (item > 0 && item <= books.getBooksCount()) {
+							books.setSelectedBook(item - 1, false);
+						}
+					}
 				});
-
-		searchPanel.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				updatePages(searchPanel.getPage(), searchPanel.getMaxPage());
-				List<GuiReaderBookInfo> infos = new ArrayList<GuiReaderBookInfo>();
-				for (MetaData meta : searchPanel.getStories()) {
-					infos.add(GuiReaderBookInfo.fromMeta(meta));
-				}
-
-				updateBooks(infos);
-
-				// ! 1-based index !
-				int item = searchPanel.getStoryItem();
-				if (item > 0 && item <= books.getBooksCount()) {
-					// TODO: "click" on item ITEM
-				}
-			}
-		});
 
 		JPanel top = new JPanel(new BorderLayout());
 		top.add(searchSites, BorderLayout.NORTH);
@@ -135,21 +141,46 @@ public class GuiReaderSearchFrame extends JFrame {
 		add(scroll, BorderLayout.CENTER);
 	}
 
-	private void updateSupportType(final SupportType supportType,
-			final Runnable inUi) {
-		this.supportType = supportType;
-		comboSupportTypes.setSelectedItem(supportType);
-		books.clear();
-
-		new Thread(new Runnable() {
+	/**
+	 * Update the {@link SupportType} currently displayed to the user.
+	 * <p>
+	 * Will also cause a search for the new base tags of the given support if
+	 * not NULL.
+	 * <p>
+	 * This operation can be long and should be run outside the UI thread.
+	 * 
+	 * @param supportType
+	 *            the new {@link SupportType}
+	 */
+	private void updateSupportType(final SupportType supportType) {
+		inUi(new Runnable() {
 			@Override
 			public void run() {
-				searchPanel.setSupportType(supportType);
-				inUi(inUi);
+				books.clear();
+
+				comboSupportTypes
+						.removeActionListener(comboSupportTypesListener);
+				comboSupportTypes.setSelectedItem(supportType);
+				comboSupportTypes.addActionListener(comboSupportTypesListener);
+
 			}
-		}).start();
+		});
+
+		searchPanel.setSupportType(supportType);
 	}
 
+	/**
+	 * Update the pages and the lined buttons currently displayed on screen.
+	 * <p>
+	 * Those are the same pages and maximum pages used by
+	 * {@link GuiReaderSearchByPanel#search(String, int, int)} and
+	 * {@link GuiReaderSearchByPanel#searchTag(SearchableTag, int, int)}.
+	 * 
+	 * @param page
+	 *            the current page of results
+	 * @param maxPage
+	 *            the maximum number of pages of results
+	 */
 	private void updatePages(final int page, final int maxPage) {
 		inUi(new Runnable() {
 			@Override
@@ -164,51 +195,79 @@ public class GuiReaderSearchFrame extends JFrame {
 		});
 	}
 
+	/**
+	 * Update the currently displayed books.
+	 * 
+	 * @param infos
+	 *            the new books
+	 */
 	private void updateBooks(final List<GuiReaderBookInfo> infos) {
-		setWaiting(true);
 		inUi(new Runnable() {
 			@Override
 			public void run() {
 				books.refreshBooks(infos, seeWordcount);
-				setWaiting(false);
 			}
 		});
 	}
 
-	// item 0 = no selection, else = default selection
+	/**
+	 * Search for the given terms on the currently selected searchable. This
+	 * will update the displayed books if needed.
+	 * <p>
+	 * This operation is asynchronous.
+	 * 
+	 * @param keywords
+	 *            the keywords to search for
+	 * @param page
+	 *            the page of results to load
+	 * @param item
+	 *            the item to select (or 0 for none by default)
+	 */
 	public void search(final SupportType searchOn, final String keywords,
 			final int page, final int item) {
 		setWaiting(true);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				searchPanel.setSupportType(searchOn);
-				searchPanel.search(keywords, page, item);
-				inUi(new Runnable() {
-					@Override
-					public void run() {
-						setWaiting(false);
-					}
-				});
+				try {
+					updateSupportType(searchOn);
+					searchPanel.search(keywords, page, item);
+				} finally {
+					setWaiting(false);
+				}
 			}
 		}).start();
 	}
 
-	// tag: null = base tags
+	/**
+	 * Search for the given tag on the currently selected searchable. This will
+	 * update the displayed books if needed.
+	 * <p>
+	 * If the tag contains children tags, those will be displayed so you can
+	 * select them; if the tag is a leaf tag, the linked stories will be
+	 * displayed.
+	 * <p>
+	 * This operation is asynchronous.
+	 * 
+	 * @param tag
+	 *            the tag to search for, or NULL for base tags
+	 * @param page
+	 *            the page of results to load
+	 * @param item
+	 *            the item to select (or 0 for none by default)
+	 */
 	public void searchTag(final SupportType searchOn, final int page,
 			final int item, final SearchableTag tag) {
 		setWaiting(true);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				searchPanel.setSupportType(searchOn);
-				searchPanel.searchTag(tag, page, item);
-				inUi(new Runnable() {
-					@Override
-					public void run() {
-						setWaiting(false);
-					}
-				});
+				try {
+					updateSupportType(searchOn);
+					searchPanel.searchTag(tag, page, item);
+				} finally {
+					setWaiting(false);
+				}
 			}
 		}).start();
 	}
@@ -238,10 +297,22 @@ public class GuiReaderSearchFrame extends JFrame {
 		}
 	}
 
+	/**
+	 * An error occurred, inform the user and/or log the error.
+	 * 
+	 * @param e
+	 *            the error
+	 */
 	static void error(Exception e) {
 		Instance.getTraceHandler().error(e);
 	}
 
+	/**
+	 * An error occurred, inform the user and/or log the error.
+	 * 
+	 * @param e
+	 *            the error message
+	 */
 	static void error(String e) {
 		Instance.getTraceHandler().error(e);
 	}
@@ -264,6 +335,12 @@ public class GuiReaderSearchFrame extends JFrame {
 		searchPanel.setEnabled(b);
 	}
 
+	/**
+	 * Set the item in wait mode, blocking it from accepting UI input.
+	 * 
+	 * @param waiting
+	 *            TRUE for wait more, FALSE to restore normal mode
+	 */
 	private void setWaiting(final boolean waiting) {
 		inUi(new Runnable() {
 			@Override

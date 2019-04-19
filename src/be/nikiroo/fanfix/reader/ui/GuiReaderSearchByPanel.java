@@ -1,9 +1,6 @@
 package be.nikiroo.fanfix.reader.ui;
 
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -25,39 +22,52 @@ import be.nikiroo.fanfix.supported.SupportType;
 public class GuiReaderSearchByPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 
-	private int actionEventId = ActionEvent.ACTION_FIRST;
-
 	private Waitable waitable;
 
 	private boolean searchByTags;
-
 	private JTabbedPane searchTabs;
 	private GuiReaderSearchByNamePanel byName;
 	private GuiReaderSearchByTagPanel byTag;
 
-	private List<ActionListener> actions = new ArrayList<ActionListener>();
-
+	/**
+	 * This interface represents an item that wan be put in "wait" mode. It is
+	 * supposed to be used for long running operations during which we want to
+	 * disable UI interactions.
+	 * <p>
+	 * It also allows reporting an event to the item.
+	 * 
+	 * @author niki
+	 */
 	public interface Waitable {
+		/**
+		 * Set the item in wait mode, blocking it from accepting UI input.
+		 * 
+		 * @param waiting
+		 *            TRUE for wait more, FALSE to restore normal mode
+		 */
 		public void setWaiting(boolean waiting);
+
+		/**
+		 * Notify the {@link Waitable} that an event occured (i.e., new stories
+		 * were found).
+		 */
+		public void fireEvent();
 	}
 
-	// will throw illegalArgEx if bad support type, NULL allowed
-	public GuiReaderSearchByPanel(final SupportType supportType,
-			Waitable waitable) {
+	/**
+	 * Create a new {@link GuiReaderSearchByPanel}.
+	 * 
+	 * @param waitable
+	 *            the waitable we can wait on for long UI operations
+	 */
+	public GuiReaderSearchByPanel(Waitable waitable) {
 		setLayout(new BorderLayout());
 
 		this.waitable = waitable;
 		searchByTags = false;
 
-		Runnable fireEvent = new Runnable() {
-			@Override
-			public void run() {
-				fireAction();
-			}
-		};
-
-		byName = new GuiReaderSearchByNamePanel(fireEvent);
-		byTag = new GuiReaderSearchByTagPanel(fireEvent);
+		byName = new GuiReaderSearchByNamePanel(waitable);
+		byTag = new GuiReaderSearchByTagPanel(waitable);
 
 		searchTabs = new JTabbedPane();
 		searchTabs.addTab("By name", byName);
@@ -71,20 +81,43 @@ public class GuiReaderSearchByPanel extends JPanel {
 
 		add(searchTabs, BorderLayout.CENTER);
 		updateSearchBy(searchByTags);
-		setSupportType(supportType);
 	}
 
+	/**
+	 * Set the new {@link SupportType}.
+	 * <p>
+	 * This operation can be long and should be run outside the UI thread.
+	 * <p>
+	 * Note that if a non-searchable {@link SupportType} is used, an
+	 * {@link IllegalArgumentException} will be thrown.
+	 * 
+	 * @param supportType
+	 *            the support mode, must be searchable or NULL
+	 * 
+	 * @throws IllegalArgumentException
+	 *             if the {@link SupportType} is not NULL but not searchable
+	 *             (see {@link BasicSearchable#getSearchable(SupportType)})
+	 */
 	public void setSupportType(SupportType supportType) {
 		BasicSearchable searchable = BasicSearchable.getSearchable(supportType);
 		if (searchable == null && supportType != null) {
-			throw new java.lang.IllegalArgumentException(
-					"Unupported support type: " + supportType);
+			throw new IllegalArgumentException("Unupported support type: "
+					+ supportType);
 		}
 
 		byName.setSearchable(searchable);
 		byTag.setSearchable(searchable);
 	}
 
+	/**
+	 * The currently displayed page of result for the current search (see the
+	 * <tt>page</tt> parameter of
+	 * {@link GuiReaderSearchByPanel#search(String, int, int)} or
+	 * {@link GuiReaderSearchByPanel#searchTag(SupportType, int, int, SearchableTag)}
+	 * ).
+	 * 
+	 * @return the currently displayed page of results
+	 */
 	public int getPage() {
 		if (!searchByTags) {
 			return byName.getPage();
@@ -93,6 +126,17 @@ public class GuiReaderSearchByPanel extends JPanel {
 		return byTag.getPage();
 	}
 
+	/**
+	 * The number of pages of result for the current search (see the
+	 * <tt>page</tt> parameter of
+	 * {@link GuiReaderSearchByPanel#search(String, int, int)} or
+	 * {@link GuiReaderSearchByPanel#searchTag(SupportType, int, int, SearchableTag)}
+	 * ).
+	 * <p>
+	 * For an unknown number or when not applicable, -1 is returned.
+	 * 
+	 * @return the number of pages of results or -1
+	 */
 	public int getMaxPage() {
 		if (!searchByTags) {
 			return byName.getMaxPage();
@@ -101,7 +145,17 @@ public class GuiReaderSearchByPanel extends JPanel {
 		return byTag.getMaxPage();
 	}
 
-	// throw outOfBounds if needed
+	/**
+	 * Set the page of results to display for the current search. This will
+	 * cause {@link Waitable#fireEvent()} to be called if needed.
+	 * <p>
+	 * This operation can be long and should be run outside the UI thread.
+	 * 
+	 * @param page
+	 *            the page of results to set
+	 * 
+	 * @throw IndexOutOfBoundsException if the page is out of bounds
+	 */
 	public void setPage(int page) {
 		if (searchByTags) {
 			searchTag(byTag.getCurrentTag(), page, 0);
@@ -110,15 +164,11 @@ public class GuiReaderSearchByPanel extends JPanel {
 		}
 	}
 
-	// actions will be fired in UIthread
-	public void addActionListener(ActionListener action) {
-		actions.add(action);
-	}
-
-	public boolean removeActionListener(ActionListener action) {
-		return actions.remove(action);
-	}
-
+	/**
+	 * The currently loaded stories (the result of the latest search).
+	 * 
+	 * @return the stories
+	 */
 	public List<MetaData> getStories() {
 		if (!searchByTags) {
 			return byName.getStories();
@@ -127,7 +177,14 @@ public class GuiReaderSearchByPanel extends JPanel {
 		return byTag.getStories();
 	}
 
-	// selected item or 0 if none ! one-based !
+	/**
+	 * Return the currently selected story (the <tt>item</tt>) if it was
+	 * specified in the latest, or 0 if not.
+	 * <p>
+	 * Note: this is thus a 1-based index, <b>not</b> a 0-based index.
+	 * 
+	 * @return the item
+	 */
 	public int getStoryItem() {
 		if (!searchByTags) {
 			return byName.getStoryItem();
@@ -136,29 +193,13 @@ public class GuiReaderSearchByPanel extends JPanel {
 		return byTag.getStoryItem();
 	}
 
-	private void fireAction() {
-		GuiReaderSearchFrame.inUi(new Runnable() {
-			@Override
-			public void run() {
-				ActionEvent ae = new ActionEvent(GuiReaderSearchByPanel.this,
-						actionEventId, "stories found");
-
-				actionEventId++;
-				if (actionEventId > ActionEvent.ACTION_LAST) {
-					actionEventId = ActionEvent.ACTION_FIRST;
-				}
-
-				for (ActionListener action : actions) {
-					try {
-						action.actionPerformed(ae);
-					} catch (Exception e) {
-						GuiReaderSearchFrame.error(e);
-					}
-				}
-			}
-		});
-	}
-
+	/**
+	 * Update the kind of searches to make: search by keywords or search by tags
+	 * (it will impact what the user can see and interact with on the UI).
+	 * 
+	 * @param byTag
+	 *            TRUE for tag-based searches, FALSE for keywords-based searches
+	 */
 	private void updateSearchBy(final boolean byTag) {
 		GuiReaderSearchFrame.inUi(new Runnable() {
 			@Override
@@ -172,41 +213,51 @@ public class GuiReaderSearchByPanel extends JPanel {
 		});
 	}
 
-	// slow, start in UI mode
+	/**
+	 * Search for the given terms on the currently selected searchable. This
+	 * will cause {@link Waitable#fireEvent()} to be called if needed.
+	 * <p>
+	 * This operation can be long and should be run outside the UI thread.
+	 * 
+	 * @param keywords
+	 *            the keywords to search for
+	 * @param page
+	 *            the page of results to load
+	 * @param item
+	 *            the item to select (or 0 for none by default)
+	 * 
+	 * @throw IndexOutOfBoundsException if the page is out of bounds
+	 */
 	public void search(final String keywords, final int page, final int item) {
-		waitable.setWaiting(true);
 		updateSearchBy(false);
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					byName.search(keywords, page, item);
-					fireAction();
-				} finally {
-					waitable.setWaiting(false);
-				}
-			}
-		}).start();
+		byName.search(keywords, page, item);
+		waitable.fireEvent();
 	}
 
-	// slow, start in UI mode
-	// tag: null = base tags
+	/**
+	 * Search for the given tag on the currently selected searchable. This will
+	 * cause {@link Waitable#fireEvent()} to be called if needed.
+	 * <p>
+	 * If the tag contains children tags, those will be displayed so you can
+	 * select them; if the tag is a leaf tag, the linked stories will be
+	 * displayed.
+	 * <p>
+	 * This operation can be long and should be run outside the UI thread.
+	 * 
+	 * @param tag
+	 *            the tag to search for, or NULL for base tags
+	 * @param page
+	 *            the page of results to load
+	 * @param item
+	 *            the item to select (or 0 for none by default)
+	 * 
+	 * @throw IndexOutOfBoundsException if the page is out of bounds
+	 */
 	public void searchTag(final SearchableTag tag, final int page,
 			final int item) {
-		waitable.setWaiting(true);
 		updateSearchBy(true);
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-
-					byTag.searchTag(tag, page, item);
-					fireAction();
-				} finally {
-					waitable.setWaiting(false);
-				}
-			}
-		}).start();
+		byTag.searchTag(tag, page, item);
+		waitable.fireEvent();
 	}
 
 	/**
