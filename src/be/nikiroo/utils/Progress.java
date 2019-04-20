@@ -327,7 +327,8 @@ public class Progress {
 	 * Notify the listeners that this {@link Progress} changed value.
 	 * 
 	 * @param pg
-	 *            the emmiter
+	 *            the emmiter, that is, the (sub-){link Progress} that just
+	 *            reported some change, not always the same as <tt>this</tt>
 	 * @param name
 	 *            the current name (if it is NULL, the first non-null name in
 	 *            the hierarchy will overwrite it) of the {@link Progress} who
