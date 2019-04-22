@@ -58,7 +58,7 @@ public class RemoteLibrary extends BasicLibrary {
 
 		try {
 			Instance.getTraceHandler().trace("Getting remote lib status...");
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					try {
@@ -96,7 +96,7 @@ public class RemoteLibrary extends BasicLibrary {
 		final Image[] result = new Image[1];
 
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					Object rep = sendCmd(this,
@@ -131,7 +131,7 @@ public class RemoteLibrary extends BasicLibrary {
 		final Image[] result = new Image[1];
 
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					Object rep = sendCmd(this, new Object[] {
@@ -157,7 +157,7 @@ public class RemoteLibrary extends BasicLibrary {
 		final Story[] result = new Story[1];
 
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
@@ -214,7 +214,7 @@ public class RemoteLibrary extends BasicLibrary {
 
 		final Progress pgF = pgSave;
 
-		new ConnectActionClientObject(host, port, false) {
+		new ConnectActionClientObject(host, port, key) {
 			@Override
 			public void action(Version serverVersion) throws Exception {
 				Progress pg = pgF;
@@ -259,7 +259,7 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public synchronized void delete(final String luid) throws IOException {
-		new ConnectActionClientObject(host, port, false) {
+		new ConnectActionClientObject(host, port, key) {
 			@Override
 			public void action(Version serverVersion) throws Exception {
 				sendCmd(this, new Object[] { "DELETE_STORY", luid });
@@ -286,7 +286,7 @@ public class RemoteLibrary extends BasicLibrary {
 	private void setCover(final String value, final String luid,
 			final String type) {
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					sendCmd(this,
@@ -327,7 +327,7 @@ public class RemoteLibrary extends BasicLibrary {
 		final String[] luid = new String[1];
 
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
@@ -375,7 +375,7 @@ public class RemoteLibrary extends BasicLibrary {
 		final Progress pgF = pg == null ? new Progress() : pg;
 
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
@@ -412,7 +412,7 @@ public class RemoteLibrary extends BasicLibrary {
 	 */
 	public void exit() {
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					sendCmd(this, new Object[] { "EXIT" });
@@ -491,7 +491,7 @@ public class RemoteLibrary extends BasicLibrary {
 		final List<MetaData> metas = new ArrayList<MetaData>();
 
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
