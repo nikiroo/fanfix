@@ -279,6 +279,6 @@ public class CryptUtils {
 	 * @return a 128 bits key computed from the given input
 	 */
 	static private byte[] key2key(String input) {
-		return StringUtils.getMd5Hash(input).getBytes();
+		return StringUtils.getMd5Hash("" + input).getBytes();
 	}
 }
