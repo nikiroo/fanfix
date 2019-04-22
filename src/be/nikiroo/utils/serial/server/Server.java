@@ -215,14 +215,6 @@ abstract class Server implements Runnable {
 			tracer.trace(name + ": server starting on port " + port + " ("
 					+ (ssl ? "SSL" : "plain text") + ")");
 
-			String ciphers = "";
-			for (String cipher : getAnonCiphers()) {
-				if (!ciphers.isEmpty()) {
-					ciphers += ", ";
-				}
-				ciphers += cipher;
-			}
-
 			while (started && !exiting) {
 				count(1);
 				final Socket s = ss.accept();
