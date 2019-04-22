@@ -26,8 +26,7 @@ import be.nikiroo.utils.serial.server.ServerObject;
  * <p>
  * All commands, including PING, will first return a random value to you that
  * you must hash with your key and return before processing the rest; if the
- * value is OK, it will return "true", if not, it will return NULL and stop the
- * connection.
+ * value not correct, the connection will be closed.
  * <p>
  * BTW: this system <b>is by no means secure</b>. It is just slightly
  * obfuscated, and operate on clear text (because Google decided not to support
@@ -102,32 +101,26 @@ public class RemoteLibraryServer extends ServerObject {
 		for (Object arg : args) {
 			trace += arg + " ";
 		}
-		getTraceHandler().trace(trace);
+		System.out.println(trace);
 
 		// Authentication:
 		String random = StringUtils.getMd5Hash(Double.toString(Math.random()));
 		action.send(random);
-		String answer = "";
-		try {
-			answer += action.rec();
-		} catch (NullPointerException e) {
-			return null;
-		}
+		String answer = "" + action.rec();
 
-		if (answer.equals(RemoteLibrary.hashKey(key, random))) {
-			action.send(true);
-		} else {
-			getTraceHandler().trace("Key rejected.");
+		if (!answer.equals(RemoteLibrary.hashKey(key, random))) {
+			System.out.println("Key rejected.");
+			action.close();
 			return null;
 		}
+		//
 
 		Object rep = doRequest(action, command, args);
 
 		String rec = StringUtils.formatNumber(action.getBytesReceived()) + "b";
 		String sent = StringUtils.formatNumber(action.getBytesSent()) + "b";
-		getTraceHandler().trace(
-				String.format("[>%s]: (%s sent, %s rec) in %d ms", command,
-						sent, rec, (new Date().getTime() - start)));
+		System.out.println(String.format("[>%s]: (%s sent, %s rec) in %d ms",
+				command, sent, rec, (new Date().getTime() - start)));
 
 		return rep;
 	}
@@ -326,8 +319,7 @@ public class RemoteLibraryServer extends ServerObject {
 	 * 
 	 * @return the {@link Progress}
 	 */
-	private static Progress createPgForwarder(
-			final ConnectActionServerObject action) {
+	private Progress createPgForwarder(final ConnectActionServerObject action) {
 		final Boolean[] isDoneForwarded = new Boolean[] { false };
 		final Progress pg = new Progress() {
 			@Override
@@ -360,7 +352,7 @@ public class RemoteLibraryServer extends ServerObject {
 						action.send(new Integer[] { min, max, relativeProgress });
 						action.rec();
 					} catch (Exception e) {
-						Instance.getTraceHandler().error(e);
+						getTraceHandler().error(e);
 					}
 
 					lastTime[0] = new Date().getTime();
@@ -374,14 +366,14 @@ public class RemoteLibraryServer extends ServerObject {
 	}
 
 	// with 30 seconds timeout
-	private static void forcePgDoneSent(Progress pg) {
+	private void forcePgDoneSent(Progress pg) {
 		long start = new Date().getTime();
 		pg.done();
 		while (!pg.isDone() && new Date().getTime() - start < 30000) {
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
-				Instance.getTraceHandler().error(e);
+				getTraceHandler().error(e);
 			}
 		}
 	}
