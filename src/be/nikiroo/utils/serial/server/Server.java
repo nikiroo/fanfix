@@ -222,7 +222,6 @@ abstract class Server implements Runnable {
 				}
 				ciphers += cipher;
 			}
-			tracer.trace("Available SSL ciphers: " + ciphers);
 
 			while (started && !exiting) {
 				count(1);
