@@ -1,6 +1,7 @@
 package be.nikiroo.utils;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -10,6 +11,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import javax.net.ssl.SSLException;
 
 /**
  * Small utility class to do AES encryption/decryption.
@@ -104,17 +106,17 @@ public class CryptUtils {
 	 * 
 	 * @return the encrypted data
 	 * 
-	 * @throws IOException
+	 * @throws SSLException
 	 *             in case of I/O error (i.e., the data is not what you assumed
 	 *             it was)
 	 */
-	public byte[] encrypt(byte[] data) throws IOException {
+	public byte[] encrypt(byte[] data) throws SSLException {
 		try {
 			return ecipher.doFinal(data);
 		} catch (IllegalBlockSizeException e) {
-			throw new IOException(e);
+			throw new SSLException(e);
 		} catch (BadPaddingException e) {
-			throw new IOException(e);
+			throw new SSLException(e);
 		}
 	}
 
@@ -126,12 +128,18 @@ public class CryptUtils {
 	 * 
 	 * @return the encrypted data
 	 * 
-	 * @throws IOException
+	 * @throws SSLException
 	 *             in case of I/O error (i.e., the data is not what you assumed
 	 *             it was)
 	 */
-	public byte[] encrypt(String data) throws IOException {
-		return encrypt(data.getBytes("UTF8"));
+	public byte[] encrypt(String data) throws SSLException {
+		try {
+			return encrypt(data.getBytes("UTF8"));
+		} catch (UnsupportedEncodingException e) {
+			// UTF-8 is required in all confirm JVMs
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	/**
@@ -146,12 +154,18 @@ public class CryptUtils {
 	 * 
 	 * @return the encrypted data, encoded in Base64
 	 * 
-	 * @throws IOException
+	 * @throws SSLException
 	 *             in case of I/O error (i.e., the data is not what you assumed
 	 *             it was)
 	 */
-	public String encrypt64(String data, boolean zip) throws IOException {
-		return encrypt64(data.getBytes("UTF8"), zip);
+	public String encrypt64(String data, boolean zip) throws SSLException {
+		try {
+			return encrypt64(data.getBytes("UTF8"), zip);
+		} catch (UnsupportedEncodingException e) {
+			// UTF-8 is required in all confirm JVMs
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	/**
@@ -166,12 +180,18 @@ public class CryptUtils {
 	 * 
 	 * @return the encrypted data, encoded in Base64
 	 * 
-	 * @throws IOException
+	 * @throws SSLException
 	 *             in case of I/O error (i.e., the data is not what you assumed
 	 *             it was)
 	 */
-	public String encrypt64(byte[] data, boolean zip) throws IOException {
-		return StringUtils.base64(encrypt(data), zip);
+	public String encrypt64(byte[] data, boolean zip) throws SSLException {
+		try {
+			return StringUtils.base64(encrypt(data), zip);
+		} catch (IOException e) {
+			// not exactly true, but we consider here that this error is a crypt
+			// error, not a normal I/O error
+			throw new SSLException(e);
+		}
 	}
 
 	/**
@@ -182,16 +202,16 @@ public class CryptUtils {
 	 * 
 	 * @return the original, decoded data
 	 * 
-	 * @throws IOException
+	 * @throws SSLException
 	 *             in case of I/O error
 	 */
-	public byte[] decrypt(byte[] data) throws IOException {
+	public byte[] decrypt(byte[] data) throws SSLException {
 		try {
 			return dcipher.doFinal(data);
 		} catch (IllegalBlockSizeException e) {
-			throw new IOException(e);
+			throw new SSLException(e);
 		} catch (BadPaddingException e) {
-			throw new IOException(e);
+			throw new SSLException(e);
 		}
 	}
 
@@ -207,11 +227,17 @@ public class CryptUtils {
 	 * 
 	 * @return the original, decoded data
 	 * 
-	 * @throws IOException
+	 * @throws SSLException
 	 *             in case of I/O error
 	 */
-	public byte[] decrypt64(String data, boolean zip) throws IOException {
-		return decrypt(StringUtils.unbase64(data, zip));
+	public byte[] decrypt64(String data, boolean zip) throws SSLException {
+		try {
+			return decrypt(StringUtils.unbase64(data, zip));
+		} catch (IOException e) {
+			// not exactly true, but we consider here that this error is a crypt
+			// error, not a normal I/O error
+			throw new SSLException(e);
+		}
 	}
 
 	/**
@@ -227,11 +253,21 @@ public class CryptUtils {
 	 * 
 	 * @return the original, decoded data
 	 * 
-	 * @throws IOException
+	 * @throws SSLException
 	 *             in case of I/O error
 	 */
-	public String decrypt64s(String data, boolean zip) throws IOException {
-		return new String(decrypt(StringUtils.unbase64(data, zip)), "UTF-8");
+	public String decrypt64s(String data, boolean zip) throws SSLException {
+		try {
+			return new String(decrypt(StringUtils.unbase64(data, zip)), "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// UTF-8 is required in all confirm JVMs
+			e.printStackTrace();
+			return null;
+		} catch (IOException e) {
+			// not exactly true, but we consider here that this error is a crypt
+			// error, not a normal I/O error
+			throw new SSLException(e);
+		}
 	}
 
 	/**

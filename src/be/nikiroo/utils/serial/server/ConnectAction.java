@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 
+import javax.net.ssl.SSLException;
+
 import be.nikiroo.utils.CryptUtils;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.Exporter;
@@ -66,7 +68,8 @@ abstract class ConnectAction {
 	 * Handler called when an unexpected error occurs in the code.
 	 * 
 	 * @param e
-	 *            the exception that occurred
+	 *            the exception that occurred, SSLException usually denotes a
+	 *            crypt error
 	 */
 	abstract protected void onError(Exception e);
 
@@ -139,7 +142,14 @@ abstract class ConnectAction {
 				out = new OutputStreamWriter(s.getOutputStream(), "UTF-8");
 				try {
 					if (server) {
-						String line = readLine(in);
+						String line;
+						try {
+							line = readLine(in);
+						} catch (SSLException e) {
+							out.write("Unauthorized\n");
+							throw e;
+						}
+
 						if (line != null && line.startsWith("VERSION ")) {
 							// "VERSION client-version" (VERSION 1.0.0)
 							Version clientVersion = new Version(
@@ -263,6 +273,8 @@ abstract class ConnectAction {
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
+	 * @throws SSLException
+	 *             in case of crypt error
 	 */
 	protected String sendString(String line) throws IOException {
 		synchronized (lock) {
@@ -291,6 +303,8 @@ abstract class ConnectAction {
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
+	 * @throws SSLException
+	 *             in case of crypt error
 	 */
 	protected String recString() throws IOException {
 		synchronized (lock) {
@@ -307,6 +321,19 @@ abstract class ConnectAction {
 		}
 	}
 
+	/**
+	 * Read a possibly encrypted line.
+	 * 
+	 * @param in
+	 *            the stream to read from
+	 * @return the unencrypted line
+	 * 
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 * @throws SSLException
+	 *             in case of crypt error
+	 */
 	private String readLine(BufferedReader in) throws IOException {
 		String line = in.readLine();
 		if (line != null) {
@@ -319,6 +346,18 @@ abstract class ConnectAction {
 		return line;
 	}
 
+	/**
+	 * Write a line, possible encrypted.
+	 * 
+	 * @param out
+	 *            the stream to write to
+	 * @param line
+	 *            the line to write
+	 * @throws IOException
+	 *             in case of I/O error
+	 * @throws SSLException
+	 *             in case of crypt error
+	 */
 	private void writeLine(OutputStreamWriter out, String line)
 			throws IOException {
 		if (crypt == null) {
