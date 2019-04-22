@@ -24,14 +24,6 @@ import be.nikiroo.utils.serial.server.ServerObject;
  * The available commands are given as arrays of objects (first item is the
  * command, the rest are the arguments).
  * <p>
- * All commands, including PING, will first return a random value to you that
- * you must hash with your key and return before processing the rest; if the
- * value not correct, the connection will be closed.
- * <p>
- * BTW: this system <b>is by no means secure</b>. It is just slightly
- * obfuscated, and operate on clear text (because Google decided not to support
- * anonymous SSL exchanges on Android, and the main use case for this server is
- * Android).
  * <ul>
  * <li>PING: will return PONG if the key is accepted</li>
  * <li>GET_METADATA *: will return the metadata of all the stories in the
@@ -57,8 +49,6 @@ import be.nikiroo.utils.serial.server.ServerObject;
  * @author niki
  */
 public class RemoteLibraryServer extends ServerObject {
-	private final String key;
-
 	/**
 	 * Create a new remote server (will not be active until
 	 * {@link RemoteLibraryServer#start()} is called).
@@ -73,7 +63,6 @@ public class RemoteLibraryServer extends ServerObject {
 	 */
 	public RemoteLibraryServer(String key, int port) throws IOException {
 		super("Fanfix remote library", port, key);
-		this.key = key;
 
 		setTraceHandler(Instance.getTraceHandler());
 	}
@@ -102,18 +91,6 @@ public class RemoteLibraryServer extends ServerObject {
 			trace += arg + " ";
 		}
 		System.out.println(trace);
-
-		// Authentication:
-		String random = StringUtils.getMd5Hash(Double.toString(Math.random()));
-		action.send(random);
-		String answer = "" + action.rec();
-
-		if (!answer.equals(RemoteLibrary.hashKey(key, random))) {
-			System.out.println("Key rejected.");
-			action.close();
-			return null;
-		}
-		//
 
 		Object rep = doRequest(action, command, args);
 

@@ -12,7 +12,6 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
-import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.server.ConnectActionClientObject;
 
@@ -62,7 +61,7 @@ public class RemoteLibrary extends BasicLibrary {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					try {
-						Object rep = sendCmd(this, new Object[] { "PING" });
+						Object rep = send(new Object[] { "PING" });
 
 						if ("PONG".equals(rep)) {
 							result[0] = Status.READY;
@@ -99,8 +98,7 @@ public class RemoteLibrary extends BasicLibrary {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					Object rep = sendCmd(this,
-							new Object[] { "GET_COVER", luid });
+					Object rep = send(new Object[] { "GET_COVER", luid });
 					result[0] = (Image) rep;
 				}
 
@@ -134,8 +132,8 @@ public class RemoteLibrary extends BasicLibrary {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					Object rep = sendCmd(this, new Object[] {
-							"GET_CUSTOM_COVER", type, source });
+					Object rep = send(new Object[] { "GET_CUSTOM_COVER", type,
+							source });
 					result[0] = (Image) rep;
 				}
 
@@ -165,8 +163,7 @@ public class RemoteLibrary extends BasicLibrary {
 						pg = new Progress();
 					}
 
-					Object rep = sendCmd(this,
-							new Object[] { "GET_STORY", luid });
+					Object rep = send(new Object[] { "GET_STORY", luid });
 
 					MetaData meta = null;
 					if (rep instanceof MetaData) {
@@ -222,7 +219,7 @@ public class RemoteLibrary extends BasicLibrary {
 					pg.setMinMax(0, (int) story.getMeta().getWords());
 				}
 
-				sendCmd(this, new Object[] { "SAVE_STORY", luid });
+				send(new Object[] { "SAVE_STORY", luid });
 
 				List<Object> list = RemoteLibraryServer.breakStory(story);
 				for (Object obj : list) {
@@ -262,7 +259,7 @@ public class RemoteLibrary extends BasicLibrary {
 		new ConnectActionClientObject(host, port, key) {
 			@Override
 			public void action(Version serverVersion) throws Exception {
-				sendCmd(this, new Object[] { "DELETE_STORY", luid });
+				send(new Object[] { "DELETE_STORY", luid });
 			}
 
 			@Override
@@ -289,8 +286,7 @@ public class RemoteLibrary extends BasicLibrary {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					sendCmd(this,
-							new Object[] { "SET_COVER", type, value, luid });
+					send(new Object[] { "SET_COVER", type, value, luid });
 				}
 
 				@Override
@@ -332,8 +328,7 @@ public class RemoteLibrary extends BasicLibrary {
 				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
 
-					Object rep = sendCmd(this,
-							new Object[] { "IMPORT", url.toString() });
+					Object rep = send(new Object[] { "IMPORT", url.toString() });
 
 					while (true) {
 						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
@@ -380,8 +375,8 @@ public class RemoteLibrary extends BasicLibrary {
 				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
 
-					Object rep = sendCmd(this, new Object[] { "CHANGE_STA",
-							luid, newSource, newTitle, newAuthor });
+					Object rep = send(new Object[] { "CHANGE_STA", luid,
+							newSource, newTitle, newAuthor });
 					while (true) {
 						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
 							break;
@@ -415,7 +410,7 @@ public class RemoteLibrary extends BasicLibrary {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					sendCmd(this, new Object[] { "EXIT" });
+					send(new Object[] { "EXIT" });
 				}
 
 				@Override
@@ -499,8 +494,7 @@ public class RemoteLibrary extends BasicLibrary {
 						pg = new Progress();
 					}
 
-					Object rep = sendCmd(this, new Object[] { "GET_METADATA",
-							luid });
+					Object rep = send(new Object[] { "GET_METADATA", luid });
 
 					while (true) {
 						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
@@ -529,31 +523,5 @@ public class RemoteLibrary extends BasicLibrary {
 		}
 
 		return metas;
-	}
-
-	// IllegalArgumentException if key is bad
-	private Object sendCmd(ConnectActionClientObject action, Object[] params)
-			throws IOException, NoSuchFieldException, NoSuchMethodException,
-			ClassNotFoundException {
-		Object rep = action.send(params);
-
-		String hash = hashKey(key, "" + rep);
-		return action.send(hash);
-	}
-
-	/**
-	 * Return a hash that corresponds to the given key and the given random
-	 * value.
-	 * 
-	 * @param key
-	 *            the key (the secret)
-	 * 
-	 * @param random
-	 *            the random value
-	 * 
-	 * @return a hash that was computed using both
-	 */
-	static String hashKey(String key, String random) {
-		return StringUtils.getMd5Hash(key + " <==> " + random);
 	}
 }
