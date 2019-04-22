@@ -71,6 +71,9 @@ abstract public class ServerString extends Server {
 					String rep = null;
 					try {
 						rep = onRequest(this, clientVersion, data);
+						if (isClosing()) {
+							return;
+						}
 					} catch (Exception e) {
 						onError(e);
 					}

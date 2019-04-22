@@ -13,6 +13,8 @@ import be.nikiroo.utils.Version;
  * @author niki
  */
 abstract class ConnectActionServer {
+	private boolean closing;
+
 	/**
 	 * The underlying {@link ConnectAction}.
 	 * <p>
@@ -75,6 +77,32 @@ abstract class ConnectActionServer {
 				connect();
 			}
 		}).start();
+	}
+
+	/**
+	 * Stop the client/server connection on behalf of the server (usually, the
+	 * client connects then is allowed to send as many requests as it wants; in
+	 * some cases, though, the server may wish to forcefully close the
+	 * connection and can do via this value, when it is set to TRUE).
+	 * <p>
+	 * Example of usage: the client failed an authentication check, cut the
+	 * connection here and now.
+	 */
+	public boolean isClosing() {
+		return closing;
+	}
+
+	/**
+	 * Can be called to stop the client/server connection on behalf of the
+	 * server (usually, the client connects then is allowed to send as many
+	 * requests as it wants; in some cases, though, the server may wish to
+	 * forcefully close the connection and can do so by calling this method).
+	 * <p>
+	 * Example of usage: the client failed an authentication check, cut the
+	 * connection here and now.
+	 */
+	public void close() {
+		closing = true;
 	}
 
 	/**

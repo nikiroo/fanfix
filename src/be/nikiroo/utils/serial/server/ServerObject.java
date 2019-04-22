@@ -72,6 +72,9 @@ abstract public class ServerObject extends Server {
 						Object rep = null;
 						try {
 							rep = onRequest(this, clientVersion, data);
+							if (isClosing()) {
+								return;
+							}
 						} catch (Exception e) {
 							onError(e);
 						}
