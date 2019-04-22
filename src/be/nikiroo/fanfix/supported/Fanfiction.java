@@ -118,7 +118,7 @@ class Fanfiction extends BasicSupport_Deprecated {
 			}
 		}
 
-		return null;
+		return "";
 	}
 
 	private String getAuthor(InputStream in) {
