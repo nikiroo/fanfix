@@ -7,6 +7,8 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.net.ssl.SSLException;
+
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
@@ -60,22 +62,22 @@ public class RemoteLibrary extends BasicLibrary {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					try {
-						Object rep = send(new Object[] { "PING" });
+					Object rep = send(new Object[] { "PING" });
 
-						if ("PONG".equals(rep)) {
-							result[0] = Status.READY;
-						} else {
-							result[0] = Status.UNAUTORIZED;
-						}
-					} catch (IllegalArgumentException e) {
+					if ("PONG".equals(rep)) {
+						result[0] = Status.READY;
+					} else {
 						result[0] = Status.UNAUTORIZED;
 					}
 				}
 
 				@Override
 				protected void onError(Exception e) {
-					result[0] = Status.UNAVAILABLE;
+					if (e instanceof SSLException) {
+						result[0] = Status.UNAUTORIZED;
+					} else {
+						result[0] = Status.UNAVAILABLE;
+					}
 				}
 			}.connect();
 		} catch (UnknownHostException e) {
@@ -104,7 +106,12 @@ public class RemoteLibrary extends BasicLibrary {
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (Exception e) {
@@ -139,7 +146,12 @@ public class RemoteLibrary extends BasicLibrary {
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (Exception e) {
@@ -185,7 +197,12 @@ public class RemoteLibrary extends BasicLibrary {
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (Exception e) {
@@ -234,7 +251,12 @@ public class RemoteLibrary extends BasicLibrary {
 
 			@Override
 			protected void onError(Exception e) {
-				Instance.getTraceHandler().error(e);
+				if (e instanceof SSLException) {
+					Instance.getTraceHandler().error(
+							"Connection refused (bad key)");
+				} else {
+					Instance.getTraceHandler().error(e);
+				}
 			}
 		}.connect();
 
@@ -264,7 +286,12 @@ public class RemoteLibrary extends BasicLibrary {
 
 			@Override
 			protected void onError(Exception e) {
-				Instance.getTraceHandler().error(e);
+				if (e instanceof SSLException) {
+					Instance.getTraceHandler().error(
+							"Connection refused (bad key)");
+				} else {
+					Instance.getTraceHandler().error(e);
+				}
 			}
 		}.connect();
 	}
@@ -291,7 +318,12 @@ public class RemoteLibrary extends BasicLibrary {
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (IOException e) {
@@ -344,7 +376,12 @@ public class RemoteLibrary extends BasicLibrary {
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (IOException e) {
@@ -388,7 +425,12 @@ public class RemoteLibrary extends BasicLibrary {
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (IOException e) {
@@ -415,7 +457,12 @@ public class RemoteLibrary extends BasicLibrary {
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (IOException e) {
@@ -515,7 +562,12 @@ public class RemoteLibrary extends BasicLibrary {
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (Exception e) {

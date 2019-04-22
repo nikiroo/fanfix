@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.net.ssl.SSLException;
+
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
@@ -201,7 +203,11 @@ public class RemoteLibraryServer extends ServerObject {
 
 	@Override
 	protected void onError(Exception e) {
-		getTraceHandler().error(e);
+		if (e instanceof SSLException) {
+			System.out.println("[Client connection refused (bad key)]");
+		} else {
+			getTraceHandler().error(e);
+		}
 	}
 
 	/**
