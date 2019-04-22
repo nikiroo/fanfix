@@ -28,9 +28,12 @@ abstract class ConnectActionClient {
 	 * 
 	 * @param s
 	 *            the socket to bind to
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 */
-	public ConnectActionClient(Socket s) {
-		this(s, Version.getCurrentVersion());
+	public ConnectActionClient(Socket s, String key) {
+		this(s, key, Version.getCurrentVersion());
 	}
 
 	/**
@@ -41,8 +44,9 @@ abstract class ConnectActionClient {
 	 *            the host to bind to
 	 * @param port
 	 *            the port to bind to
-	 * @param ssl
-	 *            TRUE for an SSL connection, FALSE for plain text
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -52,9 +56,9 @@ abstract class ConnectActionClient {
 	 *             if the port parameter is outside the specified range of valid
 	 *             port values, which is between 0 and 65535, inclusive
 	 */
-	public ConnectActionClient(String host, int port, boolean ssl)
+	public ConnectActionClient(String host, int port, String key)
 			throws IOException {
-		this(Server.createSocket(host, port, ssl), Version.getCurrentVersion());
+		this(new Socket(host, port), key, Version.getCurrentVersion());
 	}
 
 	/**
@@ -64,8 +68,9 @@ abstract class ConnectActionClient {
 	 *            the host to bind to
 	 * @param port
 	 *            the port to bind to
-	 * @param ssl
-	 *            TRUE for an SSL connection, FALSE for plain text
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 * @param version
 	 *            the client version
 	 * 
@@ -77,9 +82,9 @@ abstract class ConnectActionClient {
 	 *             if the port parameter is outside the specified range of valid
 	 *             port values, which is between 0 and 65535, inclusive
 	 */
-	public ConnectActionClient(String host, int port, boolean ssl,
+	public ConnectActionClient(String host, int port, String key,
 			Version version) throws IOException {
-		this(Server.createSocket(host, port, ssl), version);
+		this(new Socket(host, port), key, version);
 	}
 
 	/**
@@ -87,11 +92,14 @@ abstract class ConnectActionClient {
 	 * 
 	 * @param s
 	 *            the socket to bind to
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 * @param version
 	 *            the client version
 	 */
-	public ConnectActionClient(Socket s, Version version) {
-		action = new ConnectAction(s, false, version) {
+	public ConnectActionClient(Socket s, String key, Version version) {
+		action = new ConnectAction(s, false, key, version) {
 			@Override
 			protected void action(Version serverVersion) throws Exception {
 				ConnectActionClient.this.action(serverVersion);

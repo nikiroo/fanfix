@@ -4,13 +4,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 
 import be.nikiroo.utils.TraceHandler;
 
@@ -24,10 +17,9 @@ import be.nikiroo.utils.TraceHandler;
  * @author niki
  */
 abstract class Server implements Runnable {
-	static private final String[] ANON_CIPHERS = getAnonCiphers();
+	protected final String key;
 
 	private final String name;
-	private final boolean ssl;
 	private final Object lock = new Object();
 	private final Object counterLock = new Object();
 
@@ -61,8 +53,9 @@ abstract class Server implements Runnable {
 	 *            the port to listen on, or 0 to assign any unallocated port
 	 *            found (which can later on be queried via
 	 *            {@link Server#getPort()}
-	 * @param ssl
-	 *            use a SSL connection (or not)
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -72,8 +65,31 @@ abstract class Server implements Runnable {
 	 *             if the port parameter is outside the specified range of valid
 	 *             port values, which is between 0 and 65535, inclusive
 	 */
-	public Server(int port, boolean ssl) throws IOException {
-		this((String) null, port, ssl);
+	public Server(int port, String key) throws IOException {
+		this((String) null, port, key);
+	}
+
+	/**
+	 * Create a new server that will start listening on the network when
+	 * {@link Server#start()} is called.
+	 * <p>
+	 * All the communications will happen in plain text.
+	 * 
+	 * @param name
+	 *            the server name (only used for debug info and traces)
+	 * @param port
+	 *            the port to listen on
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 * @throws UnknownHostException
+	 *             if the IP address of the host could not be determined
+	 * @throws IllegalArgumentException
+	 *             if the port parameter is outside the specified range of valid
+	 *             port values, which is between 0 and 65535, inclusive
+	 */
+	public Server(String name, int port) throws IOException {
+		this(name, port, null);
 	}
 
 	/**
@@ -84,8 +100,9 @@ abstract class Server implements Runnable {
 	 *            the server name (only used for debug info and traces)
 	 * @param port
 	 *            the port to listen on
-	 * @param ssl
-	 *            use a SSL connection (or not)
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -95,11 +112,11 @@ abstract class Server implements Runnable {
 	 *             if the port parameter is outside the specified range of valid
 	 *             port values, which is between 0 and 65535, inclusive
 	 */
-	public Server(String name, int port, boolean ssl) throws IOException {
+	public Server(String name, int port, String key) throws IOException {
 		this.name = name;
 		this.port = port;
-		this.ssl = ssl;
-		this.ss = createSocketServer(port, ssl);
+		this.key = key;
+		this.ss = new ServerSocket(port);
 
 		if (this.port == 0) {
 			this.port = this.ss.getLocalPort();
@@ -213,7 +230,7 @@ abstract class Server implements Runnable {
 
 		try {
 			tracer.trace(name + ": server starting on port " + port + " ("
-					+ (ssl ? "SSL" : "plain text") + ")");
+					+ (key != null ? "encrypted" : "plain text") + ")");
 
 			while (started && !exiting) {
 				count(1);
@@ -306,8 +323,8 @@ abstract class Server implements Runnable {
 				exiting = true;
 
 				try {
-					new ConnectActionClientObject(createSocket(null, port, ssl))
-							.connect();
+					new ConnectActionClientObject(new Socket((String) null,
+							port), key).connect();
 					long time = 0;
 					while (ss != null && timeout > 0 && timeout > time) {
 						Thread.sleep(10);
@@ -366,8 +383,6 @@ abstract class Server implements Runnable {
 	 *            the host to connect to
 	 * @param port
 	 *            the port to connect to
-	 * @param ssl
-	 *            TRUE for SSL mode (or FALSE for plain text mode)
 	 * 
 	 * @return the {@link Socket}
 	 * 
@@ -379,20 +394,9 @@ abstract class Server implements Runnable {
 	 *             if the port parameter is outside the specified range of valid
 	 *             port values, which is between 0 and 65535, inclusive
 	 */
-	static Socket createSocket(String host, int port, boolean ssl)
-			throws IOException {
-		Socket s;
-		if (ssl) {
-			s = SSLSocketFactory.getDefault().createSocket(host, port);
-			if (s instanceof SSLSocket) {
-				// Should always be the case
-				((SSLSocket) s).setEnabledCipherSuites(ANON_CIPHERS);
-			}
-		} else {
-			s = new Socket(host, port);
-		}
-
-		return s;
+	@Deprecated
+	static Socket createSocket(String host, int port) throws IOException {
+		return new Socket(host, port);
 	}
 
 	/**
@@ -400,8 +404,6 @@ abstract class Server implements Runnable {
 	 * 
 	 * @param port
 	 *            the port to accept connections on
-	 * @param ssl
-	 *            TRUE for SSL mode (or FALSE for plain text mode)
 	 * 
 	 * @return the {@link ServerSocket}
 	 * 
@@ -413,36 +415,8 @@ abstract class Server implements Runnable {
 	 *             if the port parameter is outside the specified range of valid
 	 *             port values, which is between 0 and 65535, inclusive
 	 */
-	static ServerSocket createSocketServer(int port, boolean ssl)
-			throws IOException {
-		ServerSocket ss;
-		if (ssl) {
-			ss = SSLServerSocketFactory.getDefault().createServerSocket(port);
-			if (ss instanceof SSLServerSocket) {
-				// Should always be the case
-				((SSLServerSocket) ss).setEnabledCipherSuites(ANON_CIPHERS);
-			}
-		} else {
-			ss = new ServerSocket(port);
-		}
-
-		return ss;
-	}
-
-	/**
-	 * Return all the supported ciphers that do not use authentication.
-	 * 
-	 * @return the list of such supported ciphers
-	 */
-	public static String[] getAnonCiphers() {
-		List<String> anonCiphers = new ArrayList<String>();
-		for (String cipher : ((SSLSocketFactory) SSLSocketFactory.getDefault())
-				.getSupportedCipherSuites()) {
-			if (cipher.contains("_anon_")) {
-				anonCiphers.add(cipher);
-			}
-		}
-
-		return anonCiphers.toArray(new String[] {});
+	@Deprecated
+	static ServerSocket createSocketServer(int port) throws IOException {
+		return new ServerSocket(port);
 	}
 }

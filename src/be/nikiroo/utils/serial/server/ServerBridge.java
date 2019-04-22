@@ -25,7 +25,7 @@ import be.nikiroo.utils.serial.Importer;
 public class ServerBridge extends Server {
 	private final String forwardToHost;
 	private final int forwardToPort;
-	private final boolean forwardToSsl;
+	private final String forwardToKey;
 
 	/**
 	 * Create a new server that will start listening on the network when
@@ -35,14 +35,16 @@ public class ServerBridge extends Server {
 	 *            the port to listen on, or 0 to assign any unallocated port
 	 *            found (which can later on be queried via
 	 *            {@link ServerBridge#getPort()}
-	 * @param ssl
-	 *            use an SSL connection (or not)
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 * @param forwardToHost
 	 *            the host server to forward the calls to
 	 * @param forwardToPort
 	 *            the host port to forward the calls to
-	 * @param forwardToSsl
-	 *            use an SSL connection for the forward server or not
+	 * @param forwardToKey
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -52,12 +54,12 @@ public class ServerBridge extends Server {
 	 *             if the port parameter is outside the specified range of valid
 	 *             port values, which is between 0 and 65535, inclusive
 	 */
-	public ServerBridge(int port, boolean ssl, String forwardToHost,
-			int forwardToPort, boolean forwardToSsl) throws IOException {
-		super(port, ssl);
+	public ServerBridge(int port, String key, String forwardToHost,
+			int forwardToPort, String forwardToKey) throws IOException {
+		super(port, key);
 		this.forwardToHost = forwardToHost;
 		this.forwardToPort = forwardToPort;
-		this.forwardToSsl = forwardToSsl;
+		this.forwardToKey = forwardToKey;
 	}
 
 	/**
@@ -68,14 +70,17 @@ public class ServerBridge extends Server {
 	 *            the server name (only used for debug info and traces)
 	 * @param port
 	 *            the port to listen on
-	 * @param ssl
-	 *            use an SSL connection (or not)
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 * @param forwardToHost
 	 *            the host server to forward the calls to
 	 * @param forwardToPort
 	 *            the host port to forward the calls to
-	 * @param forwardToSsl
-	 *            use an SSL connection for the forward server or not
+	 * @param forwardToKey
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text) use an SSL connection
+	 *            for the forward server or not
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -85,13 +90,13 @@ public class ServerBridge extends Server {
 	 *             if the port parameter is outside the specified range of valid
 	 *             port values, which is between 0 and 65535, inclusive
 	 */
-	public ServerBridge(String name, int port, boolean ssl,
-			String forwardToHost, int forwardToPort, boolean forwardToSsl)
+	public ServerBridge(String name, int port, String key,
+			String forwardToHost, int forwardToPort, String forwardToKey)
 			throws IOException {
-		super(name, port, ssl);
+		super(name, port, key);
 		this.forwardToHost = forwardToHost;
 		this.forwardToPort = forwardToPort;
-		this.forwardToSsl = forwardToSsl;
+		this.forwardToKey = forwardToKey;
 	}
 
 	/**
@@ -118,7 +123,7 @@ public class ServerBridge extends Server {
 
 	@Override
 	protected ConnectActionServer createConnectActionServer(Socket s) {
-		return new ConnectActionServerString(s) {
+		return new ConnectActionServerString(s, key) {
 			@Override
 			public void action(final Version clientVersion) throws Exception {
 				onClientContact(clientVersion);
@@ -126,7 +131,7 @@ public class ServerBridge extends Server {
 
 				try {
 					new ConnectActionClientString(forwardToHost, forwardToPort,
-							forwardToSsl, clientVersion) {
+							forwardToKey, clientVersion) {
 						@Override
 						public void action(final Version serverVersion)
 								throws Exception {
@@ -207,7 +212,8 @@ public class ServerBridge extends Server {
 		getTraceHandler().trace(
 				getName() + ": will forward to " + forwardToHost + ":"
 						+ forwardToPort + " ("
-						+ (forwardToSsl ? "SSL" : "plain text") + ")");
+						+ (forwardToKey != null ? "encrypted" : "plain text")
+						+ ")");
 		super.run();
 	}
 
@@ -221,18 +227,7 @@ public class ServerBridge extends Server {
 	 */
 	private void trace(String prefix, String data) {
 		int size = data == null ? 0 : data.length();
-		String ssize = size + " byte";
-		if (size > 1) {
-			ssize = size + " bytes";
-			if (size >= 1000) {
-				size = size / 1000;
-				ssize = size + " kb";
-				if (size > 1000) {
-					size = size / 1000;
-					ssize = size + " MB";
-				}
-			}
-		}
+		String ssize = StringUtils.formatNumber(size) + "bytes";
 
 		getTraceHandler().trace(prefix + ": " + ssize, 1);
 

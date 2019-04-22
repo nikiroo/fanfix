@@ -6,8 +6,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 
-import javax.net.ssl.SSLException;
-
+import be.nikiroo.utils.CryptUtils;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.Exporter;
 import be.nikiroo.utils.serial.Importer;
@@ -26,6 +25,8 @@ abstract class ConnectAction {
 	private boolean server;
 	private Version version;
 	private Version clientVersion;
+
+	private CryptUtils crypt;
 
 	private Object lock = new Object();
 	private BufferedReader in;
@@ -77,12 +78,19 @@ abstract class ConnectAction {
 	 * @param server
 	 *            TRUE for a server action, FALSE for a client action (will
 	 *            impact the process)
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 * @param version
 	 *            the version of this client-or-server
 	 */
-	protected ConnectAction(Socket s, boolean server, Version version) {
+	protected ConnectAction(Socket s, boolean server, String key,
+			Version version) {
 		this.s = s;
 		this.server = server;
+		if (key != null) {
+			crypt = new CryptUtils(key);
+		}
 
 		if (version == null) {
 			this.version = new Version();
@@ -131,7 +139,7 @@ abstract class ConnectAction {
 				out = new OutputStreamWriter(s.getOutputStream(), "UTF-8");
 				try {
 					if (server) {
-						String line = in.readLine();
+						String line = readLine(in);
 						if (line != null && line.startsWith("VERSION ")) {
 							// "VERSION client-version" (VERSION 1.0.0)
 							Version clientVersion = new Version(
@@ -163,19 +171,6 @@ abstract class ConnectAction {
 				in = null;
 			}
 		} catch (Exception e) {
-			if (e instanceof SSLException) {
-				String ciphers = "";
-				for (String cipher : Server.getAnonCiphers()) {
-					if (!ciphers.isEmpty()) {
-						ciphers += ", ";
-					}
-					ciphers += cipher;
-				}
-
-				e = new SSLException("SSL error (available SSL ciphers: "
-						+ ciphers + ")", e);
-			}
-
 			onError(e);
 		} finally {
 			try {
@@ -271,9 +266,7 @@ abstract class ConnectAction {
 	 */
 	protected String sendString(String line) throws IOException {
 		synchronized (lock) {
-			out.write(line);
-			out.write("\n");
-			bytesSent += line.length() + 1;
+			writeLine(out, line);
 
 			if (server) {
 				out.flush();
@@ -307,15 +300,37 @@ abstract class ConnectAction {
 					contentToSend = false;
 				}
 
-				String line = in.readLine();
-				if (line != null) {
-					bytesReceived += line.length();
-				}
-
-				return line;
+				return readLine(in);
 			}
 
 			return null;
 		}
+	}
+
+	private String readLine(BufferedReader in) throws IOException {
+		String line = in.readLine();
+		if (line != null) {
+			bytesReceived += line.length();
+			if (crypt != null) {
+				line = crypt.decrypt64s(line, false);
+			}
+		}
+
+		return line;
+	}
+
+	private void writeLine(OutputStreamWriter out, String line)
+			throws IOException {
+		if (crypt == null) {
+			out.write(line);
+			bytesSent += line.length();
+		} else {
+			// TODO: how NOT to create so many big Strings?
+			String b64 = crypt.encrypt64(line, false);
+			out.write(b64);
+			bytesSent += b64.length();
+		}
+		out.write("\n");
+		bytesSent++;
 	}
 }

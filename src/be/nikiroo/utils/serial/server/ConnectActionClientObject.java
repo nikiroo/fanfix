@@ -22,9 +22,12 @@ public class ConnectActionClientObject extends ConnectActionClient {
 	 * 
 	 * @param s
 	 *            the socket to bind to
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 */
-	public ConnectActionClientObject(Socket s) {
-		super(s);
+	public ConnectActionClientObject(Socket s, String key) {
+		super(s, key);
 	}
 
 	/**
@@ -36,8 +39,9 @@ public class ConnectActionClientObject extends ConnectActionClient {
 	 *            the host to bind to
 	 * @param port
 	 *            the port to bind to
-	 * @param ssl
-	 *            TRUE for an SSL connection, FALSE for plain text
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -47,9 +51,9 @@ public class ConnectActionClientObject extends ConnectActionClient {
 	 *             if the port parameter is outside the specified range of valid
 	 *             port values, which is between 0 and 65535, inclusive
 	 */
-	public ConnectActionClientObject(String host, int port, boolean ssl)
+	public ConnectActionClientObject(String host, int port, String key)
 			throws IOException {
-		super(host, port, ssl);
+		super(host, port, key);
 	}
 
 	/**
@@ -59,8 +63,9 @@ public class ConnectActionClientObject extends ConnectActionClient {
 	 *            the host to bind to
 	 * @param port
 	 *            the port to bind to
-	 * @param ssl
-	 *            TRUE for an SSL connection, FALSE for plain text
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 * @param version
 	 *            the client version
 	 * 
@@ -72,9 +77,9 @@ public class ConnectActionClientObject extends ConnectActionClient {
 	 *             if the port parameter is outside the specified range of valid
 	 *             port values, which is between 0 and 65535, inclusive
 	 */
-	public ConnectActionClientObject(String host, int port, boolean ssl,
+	public ConnectActionClientObject(String host, int port, String key,
 			Version version) throws IOException {
-		super(host, port, ssl, version);
+		super(host, port, key, version);
 	}
 
 	/**
@@ -84,9 +89,12 @@ public class ConnectActionClientObject extends ConnectActionClient {
 	 *            the socket to bind to
 	 * @param version
 	 *            the client version
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 */
-	public ConnectActionClientObject(Socket s, Version version) {
-		super(s, version);
+	public ConnectActionClientObject(Socket s, String key, Version version) {
+		super(s, key, version);
 	}
 
 	/**

@@ -28,9 +28,12 @@ abstract class ConnectActionServer {
 	 * 
 	 * @param s
 	 *            the socket to bind to
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 */
-	public ConnectActionServer(Socket s) {
-		this(s, Version.getCurrentVersion());
+	public ConnectActionServer(Socket s, String key) {
+		this(s, key, Version.getCurrentVersion());
 	}
 
 	/**
@@ -38,11 +41,14 @@ abstract class ConnectActionServer {
 	 * 
 	 * @param s
 	 *            the socket to bind to
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 * @param version
 	 *            the server version
 	 */
-	public ConnectActionServer(Socket s, Version version) {
-		action = new ConnectAction(s, true, version) {
+	public ConnectActionServer(Socket s, String key, Version version) {
+		action = new ConnectAction(s, true, key, version) {
 			@Override
 			protected void action(Version clientVersion) throws Exception {
 				ConnectActionServer.this.action(clientVersion);
@@ -87,6 +93,8 @@ abstract class ConnectActionServer {
 	 * <p>
 	 * Example of usage: the client failed an authentication check, cut the
 	 * connection here and now.
+	 * 
+	 * @return TRUE when it is
 	 */
 	public boolean isClosing() {
 		return closing;

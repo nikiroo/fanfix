@@ -13,18 +13,18 @@ import be.nikiroo.utils.serial.server.ServerString;
 
 class SerialServerTest extends TestLauncher {
 	private TestLauncher createServerStringTestCases(final String[] args,
-			final boolean ssl, final boolean bridge) {
-		final String ssls = (ssl ? "(ssl)" : "(plain text)");
+			final String key, final boolean bridge) {
+		final String skey = (key != null ? "(encrypted)" : "(plain text)");
 		final String bridges = (bridge ? " with bridge" : "");
 		TestLauncher series = new TestLauncher(
-				"ServerString " + ssls + bridges, args);
+				"ServerString " + skey + bridges, args);
 
-		series.addTest(new TestCase("Simple connection " + ssls) {
+		series.addTest(new TestCase("Simple connection " + skey) {
 			@Override
 			public void test() throws Exception {
 				final String[] rec = new String[1];
 
-				ServerString server = new ServerString(this.getName(), 0, ssl) {
+				ServerString server = new ServerString(this.getName(), 0, key) {
 					@Override
 					protected String onRequest(
 							ConnectActionServerString action,
@@ -45,7 +45,7 @@ class SerialServerTest extends TestLauncher {
 
 				ServerBridge br = null;
 				if (bridge) {
-					br = new ServerBridge(0, ssl, "", port, ssl);
+					br = new ServerBridge(0, key, "", port, key);
 					br.setTraceHandler(null);
 
 					port = br.getPort();
@@ -58,7 +58,7 @@ class SerialServerTest extends TestLauncher {
 
 				try {
 					try {
-						new ConnectActionClientObject(null, port, ssl) {
+						new ConnectActionClientObject(null, port, key) {
 							@Override
 							public void action(Version serverVersion)
 									throws Exception {
@@ -79,14 +79,14 @@ class SerialServerTest extends TestLauncher {
 			}
 		});
 
-		series.addTest(new TestCase("Simple exchange " + ssls) {
+		series.addTest(new TestCase("Simple exchange " + skey) {
 			final String[] sent = new String[1];
 			final String[] recd = new String[1];
 			final Exception[] err = new Exception[1];
 
 			@Override
 			public void test() throws Exception {
-				ServerString server = new ServerString(this.getName(), 0, ssl) {
+				ServerString server = new ServerString(this.getName(), 0, key) {
 					@Override
 					protected String onRequest(
 							ConnectActionServerString action,
@@ -108,7 +108,7 @@ class SerialServerTest extends TestLauncher {
 
 				ServerBridge br = null;
 				if (bridge) {
-					br = new ServerBridge(0, ssl, "", port, ssl);
+					br = new ServerBridge(0, key, "", port, key);
 					br.setTraceHandler(null);
 					port = br.getPort();
 					br.start();
@@ -116,7 +116,7 @@ class SerialServerTest extends TestLauncher {
 
 				try {
 					try {
-						new ConnectActionClientString(null, port, ssl) {
+						new ConnectActionClientString(null, port, key) {
 							@Override
 							public void action(Version serverVersion)
 									throws Exception {
@@ -141,14 +141,14 @@ class SerialServerTest extends TestLauncher {
 			}
 		});
 
-		series.addTest(new TestCase("Multiple exchanges " + ssls) {
+		series.addTest(new TestCase("Multiple exchanges " + skey) {
 			final String[] sent = new String[3];
 			final String[] recd = new String[3];
 			final Exception[] err = new Exception[1];
 
 			@Override
 			public void test() throws Exception {
-				ServerString server = new ServerString(this.getName(), 0, ssl) {
+				ServerString server = new ServerString(this.getName(), 0, key) {
 					@Override
 					protected String onRequest(
 							ConnectActionServerString action,
@@ -172,7 +172,7 @@ class SerialServerTest extends TestLauncher {
 
 				ServerBridge br = null;
 				if (bridge) {
-					br = new ServerBridge(0, ssl, "", port, ssl);
+					br = new ServerBridge(0, key, "", port, key);
 					br.setTraceHandler(null);
 					port = br.getPort();
 					br.start();
@@ -180,7 +180,7 @@ class SerialServerTest extends TestLauncher {
 
 				try {
 					try {
-						new ConnectActionClientString(null, port, ssl) {
+						new ConnectActionClientString(null, port, key) {
 							@Override
 							public void action(Version serverVersion)
 									throws Exception {
@@ -208,14 +208,14 @@ class SerialServerTest extends TestLauncher {
 			}
 		});
 
-		series.addTest(new TestCase("Multiple call from client " + ssls) {
+		series.addTest(new TestCase("Multiple call from client " + skey) {
 			final String[] sent = new String[3];
 			final String[] recd = new String[3];
 			final Exception[] err = new Exception[1];
 
 			@Override
 			public void test() throws Exception {
-				ServerString server = new ServerString(this.getName(), 0, ssl) {
+				ServerString server = new ServerString(this.getName(), 0, key) {
 					@Override
 					protected String onRequest(
 							ConnectActionServerString action,
@@ -237,7 +237,7 @@ class SerialServerTest extends TestLauncher {
 
 				ServerBridge br = null;
 				if (bridge) {
-					br = new ServerBridge(0, ssl, "", port, ssl);
+					br = new ServerBridge(0, key, "", port, key);
 					br.setTraceHandler(null);
 					port = br.getPort();
 					br.start();
@@ -245,7 +245,7 @@ class SerialServerTest extends TestLauncher {
 
 				try {
 					try {
-						new ConnectActionClientString(null, port, ssl) {
+						new ConnectActionClientString(null, port, key) {
 							@Override
 							public void action(Version serverVersion)
 									throws Exception {
@@ -280,18 +280,18 @@ class SerialServerTest extends TestLauncher {
 	}
 
 	private TestLauncher createServerObjectTestCases(final String[] args,
-			final boolean ssl, final boolean bridge) {
-		final String ssls = (ssl ? "(ssl)" : "(plain text)");
+			final String key, final boolean bridge) {
+		final String skey = (key != null ? "(encrypted)" : "(plain text)");
 		final String bridges = (bridge ? " with bridge" : "");
 		TestLauncher series = new TestLauncher(
-				"ServerObject " + ssls + bridges, args);
+				"ServerObject " + skey + bridges, args);
 
-		series.addTest(new TestCase("Simple connection " + ssls) {
+		series.addTest(new TestCase("Simple connection " + skey) {
 			@Override
 			public void test() throws Exception {
 				final Object[] rec = new Object[1];
 
-				ServerObject server = new ServerObject(this.getName(), 0, ssl) {
+				ServerObject server = new ServerObject(this.getName(), 0, key) {
 					@Override
 					protected Object onRequest(
 							ConnectActionServerObject action,
@@ -312,7 +312,7 @@ class SerialServerTest extends TestLauncher {
 
 				ServerBridge br = null;
 				if (bridge) {
-					br = new ServerBridge(0, ssl, "", port, ssl);
+					br = new ServerBridge(0, key, "", port, key);
 					br.setTraceHandler(null);
 					port = br.getPort();
 					br.start();
@@ -320,7 +320,7 @@ class SerialServerTest extends TestLauncher {
 
 				try {
 					try {
-						new ConnectActionClientObject(null, port, ssl) {
+						new ConnectActionClientObject(null, port, key) {
 							@Override
 							public void action(Version serverVersion)
 									throws Exception {
@@ -345,14 +345,14 @@ class SerialServerTest extends TestLauncher {
 			}
 		});
 
-		series.addTest(new TestCase("Simple exchange " + ssls) {
+		series.addTest(new TestCase("Simple exchange " + skey) {
 			final Object[] sent = new Object[1];
 			final Object[] recd = new Object[1];
 			final Exception[] err = new Exception[1];
 
 			@Override
 			public void test() throws Exception {
-				ServerObject server = new ServerObject(this.getName(), 0, ssl) {
+				ServerObject server = new ServerObject(this.getName(), 0, key) {
 					@Override
 					protected Object onRequest(
 							ConnectActionServerObject action,
@@ -374,7 +374,7 @@ class SerialServerTest extends TestLauncher {
 
 				ServerBridge br = null;
 				if (bridge) {
-					br = new ServerBridge(0, ssl, "", port, ssl);
+					br = new ServerBridge(0, key, "", port, key);
 					br.setTraceHandler(null);
 					port = br.getPort();
 					br.start();
@@ -382,7 +382,7 @@ class SerialServerTest extends TestLauncher {
 
 				try {
 					try {
-						new ConnectActionClientObject(null, port, ssl) {
+						new ConnectActionClientObject(null, port, key) {
 							@Override
 							public void action(Version serverVersion)
 									throws Exception {
@@ -407,14 +407,14 @@ class SerialServerTest extends TestLauncher {
 			}
 		});
 
-		series.addTest(new TestCase("Multiple exchanges " + ssls) {
+		series.addTest(new TestCase("Multiple exchanges " + skey) {
 			final Object[] sent = new Object[3];
 			final Object[] recd = new Object[3];
 			final Exception[] err = new Exception[1];
 
 			@Override
 			public void test() throws Exception {
-				ServerObject server = new ServerObject(this.getName(), 0, ssl) {
+				ServerObject server = new ServerObject(this.getName(), 0, key) {
 					@Override
 					protected Object onRequest(
 							ConnectActionServerObject action,
@@ -438,7 +438,7 @@ class SerialServerTest extends TestLauncher {
 
 				ServerBridge br = null;
 				if (bridge) {
-					br = new ServerBridge(0, ssl, "", port, ssl);
+					br = new ServerBridge(0, key, "", port, key);
 					br.setTraceHandler(null);
 					port = br.getPort();
 					br.start();
@@ -446,7 +446,7 @@ class SerialServerTest extends TestLauncher {
 
 				try {
 					try {
-						new ConnectActionClientObject(null, port, ssl) {
+						new ConnectActionClientObject(null, port, key) {
 							@Override
 							public void action(Version serverVersion)
 									throws Exception {
@@ -474,14 +474,14 @@ class SerialServerTest extends TestLauncher {
 			}
 		});
 
-		series.addTest(new TestCase("Object array of URLs " + ssls) {
+		series.addTest(new TestCase("Object array of URLs " + skey) {
 			final Object[] sent = new Object[1];
 			final Object[] recd = new Object[1];
 			final Exception[] err = new Exception[1];
 
 			@Override
 			public void test() throws Exception {
-				ServerObject server = new ServerObject(this.getName(), 0, ssl) {
+				ServerObject server = new ServerObject(this.getName(), 0, key) {
 					@Override
 					protected Object onRequest(
 							ConnectActionServerObject action,
@@ -503,7 +503,7 @@ class SerialServerTest extends TestLauncher {
 
 				ServerBridge br = null;
 				if (bridge) {
-					br = new ServerBridge(0, ssl, "", port, ssl);
+					br = new ServerBridge(0, key, "", port, key);
 					br.setTraceHandler(null);
 					port = br.getPort();
 					br.start();
@@ -511,7 +511,7 @@ class SerialServerTest extends TestLauncher {
 
 				try {
 					try {
-						new ConnectActionClientObject(null, port, ssl) {
+						new ConnectActionClientObject(null, port, key) {
 							@Override
 							public void action(Version serverVersion)
 									throws Exception {
@@ -546,14 +546,14 @@ class SerialServerTest extends TestLauncher {
 			}
 		});
 
-		series.addTest(new TestCase("Multiple call from client " + ssls) {
+		series.addTest(new TestCase("Multiple call from client " + skey) {
 			final Object[] sent = new Object[3];
 			final Object[] recd = new Object[3];
 			final Exception[] err = new Exception[1];
 
 			@Override
 			public void test() throws Exception {
-				ServerObject server = new ServerObject(this.getName(), 0, ssl) {
+				ServerObject server = new ServerObject(this.getName(), 0, key) {
 					@Override
 					protected Object onRequest(
 							ConnectActionServerObject action,
@@ -575,7 +575,7 @@ class SerialServerTest extends TestLauncher {
 
 				ServerBridge br = null;
 				if (bridge) {
-					br = new ServerBridge(0, ssl, "", port, ssl);
+					br = new ServerBridge(0, key, "", port, key);
 					br.setTraceHandler(null);
 					port = br.getPort();
 					br.start();
@@ -583,7 +583,7 @@ class SerialServerTest extends TestLauncher {
 
 				try {
 					try {
-						new ConnectActionClientObject(null, port, ssl) {
+						new ConnectActionClientObject(null, port, key) {
 							@Override
 							public void action(Version serverVersion)
 									throws Exception {
@@ -620,10 +620,10 @@ class SerialServerTest extends TestLauncher {
 	public SerialServerTest(String[] args) {
 		super("SerialServer test", args);
 
-		for (boolean ssl : new Boolean[] { false, true }) {
+		for (String key : new String[] { null, "" }) {
 			for (boolean bridge : new Boolean[] { false, true }) {
-				addSeries(createServerObjectTestCases(args, ssl, bridge));
-				addSeries(createServerStringTestCases(args, ssl, bridge));
+				addSeries(createServerObjectTestCases(args, key, bridge));
+				addSeries(createServerStringTestCases(args, key, bridge));
 			}
 		}
 	}

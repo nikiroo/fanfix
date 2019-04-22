@@ -18,10 +18,11 @@ public class bridge {
 	 *            <ul>
 	 *            <li>The bridge name</li>
 	 *            <li>The bridge port</li>
-	 *            <li>TRUE for an SSL bridge, FALSE for plain text</li>
+	 *            <li>a key for an encrypted bridge, PLAIN_TEXT for plain text</li>
 	 *            <li>The forward server host</li>
 	 *            <li>The forward server port</li>
-	 *            <li>TRUE for an SSL forward server, FALSE for plain text</li>
+	 *            <li>a key for an encrypted forward server, PLAIN_TEXT for
+	 *            plain text</li>
 	 *            <li>(optional) a trace level</li>
 	 *            <li>(optional) a truncate size for data</li>
 	 *            </ul>
@@ -34,10 +35,10 @@ public class bridge {
 						+ "Syntax: [name] [port] [ssl] [fhost] [fport] [fssl] ([trace level]) ([max])\n"
 						+ "\tname: the bridge name\n"
 						+ "\tport: the bridge port\n"
-						+ "\tssl: TRUE for an SSL bridge, FALSE for plain text\n"
+						+ "\tkey: a key for an encrypted bridge, PLAIN_TEXT for plain text\n"
 						+ "\tfhost: the forward server host\n"
 						+ "\tfport: the forward server port\n"
-						+ "\tfssl: TRUE for an SSL forward server, FALSE for plain text\n"
+						+ "\tfkey: a key for an encrypted forward server, PLAIN_TEXT for plain text\n"
 						+ "\ttrace level: the optional trace level (default is 1)\n"
 						+ "\tmax: the maximum size after which to truncate data\n");
 				return;
@@ -46,10 +47,18 @@ public class bridge {
 			int i = 0;
 			String name = args[i++];
 			int port = Integer.parseInt(args[i++]);
-			boolean ssl = Boolean.parseBoolean(args[i++]);
+			String key = args[i++];
+			// TODO: bad
+			if ("PLAIN_TEXT".equals(key)) {
+				key = null;
+			}
 			String fhost = args[i++];
 			int fport = Integer.parseInt(args[i++]);
-			boolean fssl = Boolean.parseBoolean(args[i++]);
+			String fkey = args[i++];
+			// TODO: bad
+			if ("PLAIN_TEXT".equals(fkey)) {
+				fkey = null;
+			}
 
 			int traceLevel = 1;
 			if (args.length > 6) {
@@ -60,8 +69,8 @@ public class bridge {
 				maxPrintSize = Integer.parseInt(args[i++]);
 			}
 
-			ServerBridge bridge = new ServerBridge(name, port, ssl, fhost,
-					fport, fssl);
+			ServerBridge bridge = new ServerBridge(name, port, key, fhost,
+					fport, fkey);
 			bridge.setTraceHandler(new TraceHandler(true, true, traceLevel,
 					maxPrintSize));
 			bridge.run();

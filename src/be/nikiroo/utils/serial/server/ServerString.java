@@ -24,8 +24,9 @@ abstract public class ServerString extends Server {
 	 *            the port to listen on, or 0 to assign any unallocated port
 	 *            found (which can later on be queried via
 	 *            {@link ServerString#getPort()}
-	 * @param ssl
-	 *            use a SSL connection (or not)
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -35,8 +36,8 @@ abstract public class ServerString extends Server {
 	 *             if the port parameter is outside the specified range of valid
 	 *             port values, which is between 0 and 65535, inclusive
 	 */
-	public ServerString(int port, boolean ssl) throws IOException {
-		super(port, ssl);
+	public ServerString(int port, String key) throws IOException {
+		super(port, key);
 	}
 
 	/**
@@ -47,8 +48,9 @@ abstract public class ServerString extends Server {
 	 *            the server name (only used for debug info and traces)
 	 * @param port
 	 *            the port to listen on
-	 * @param ssl
-	 *            use a SSL connection (or not)
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -58,13 +60,13 @@ abstract public class ServerString extends Server {
 	 *             if the port parameter is outside the specified range of valid
 	 *             port values, which is between 0 and 65535, inclusive
 	 */
-	public ServerString(String name, int port, boolean ssl) throws IOException {
-		super(name, port, ssl);
+	public ServerString(String name, int port, String key) throws IOException {
+		super(name, port, key);
 	}
 
 	@Override
 	protected ConnectActionServer createConnectActionServer(Socket s) {
-		return new ConnectActionServerString(s) {
+		return new ConnectActionServerString(s, key) {
 			@Override
 			public void action(Version clientVersion) throws Exception {
 				for (String data = rec(); data != null; data = rec()) {

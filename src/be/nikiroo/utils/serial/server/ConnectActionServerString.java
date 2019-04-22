@@ -21,9 +21,12 @@ public class ConnectActionServerString extends ConnectActionServer {
 	 * 
 	 * @param s
 	 *            the socket to bind to
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 */
-	public ConnectActionServerString(Socket s) {
-		super(s);
+	public ConnectActionServerString(Socket s, String key) {
+		super(s, key);
 	}
 
 	/**
@@ -31,11 +34,14 @@ public class ConnectActionServerString extends ConnectActionServer {
 	 * 
 	 * @param s
 	 *            the socket to bind to
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
 	 * @param version
 	 *            the server version
 	 */
-	public ConnectActionServerString(Socket s, Version version) {
-		super(s, version);
+	public ConnectActionServerString(Socket s, String key, Version version) {
+		super(s, key, version);
 	}
 
 	/**
