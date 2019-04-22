@@ -87,7 +87,7 @@ public class RemoteLibraryServer extends ServerObject {
 		Object[] args = new Object[0];
 		if (data instanceof Object[]) {
 			Object[] dataArray = (Object[]) data;
-			if (dataArray.length >= 2) {
+			if (dataArray.length > 0) {
 				command = "" + dataArray[0];
 
 				args = new Object[dataArray.length - 1];

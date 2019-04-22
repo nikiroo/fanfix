@@ -134,8 +134,8 @@ public class RemoteLibrary extends BasicLibrary {
 			new ConnectActionClientObject(host, port, false) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					Object rep = sendCmd(this,
-							new Object[] { "GET_CUSTOM_COVER", type, source });
+					Object rep = sendCmd(this, new Object[] {
+							"GET_CUSTOM_COVER", type, source });
 					result[0] = (Image) rep;
 				}
 
@@ -177,8 +177,7 @@ public class RemoteLibrary extends BasicLibrary {
 					}
 
 					List<Object> list = new ArrayList<Object>();
-					for (Object obj = send(null); obj != null; obj = send(
-							null)) {
+					for (Object obj = send(null); obj != null; obj = send(null)) {
 						list.add(obj);
 						pg.add(1);
 					}
@@ -500,9 +499,8 @@ public class RemoteLibrary extends BasicLibrary {
 						pg = new Progress();
 					}
 
-					
-					Object rep = sendCmd(this,
-							new Object[] { "GET_METADATA", luid });
+					Object rep = sendCmd(this, new Object[] { "GET_METADATA",
+							luid });
 
 					while (true) {
 						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
@@ -540,11 +538,6 @@ public class RemoteLibrary extends BasicLibrary {
 		Object rep = action.send(params);
 
 		String hash = hashKey(key, "" + rep);
-		rep = action.send(hash);
-		if (rep == null) {
-			throw new java.lang.IllegalArgumentException();
-		}
-
 		return action.send(hash);
 	}
 
