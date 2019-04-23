@@ -2,8 +2,9 @@ package be.nikiroo.utils.serial.server;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.OutputStream;
 import java.net.Socket;
 
 import javax.net.ssl.SSLException;
@@ -31,8 +32,8 @@ abstract class ConnectAction {
 	private CryptUtils crypt;
 
 	private Object lock = new Object();
-	private BufferedReader in;
-	private OutputStreamWriter out;
+	private InputStream in;
+	private OutputStream out;
 	private boolean contentToSend;
 
 	private long bytesReceived;
@@ -136,17 +137,16 @@ abstract class ConnectAction {
 	 */
 	public void connect() {
 		try {
-			in = new BufferedReader(new InputStreamReader(s.getInputStream(),
-					"UTF-8"));
+			in = s.getInputStream();
 			try {
-				out = new OutputStreamWriter(s.getOutputStream(), "UTF-8");
+				out = s.getOutputStream();
 				try {
 					if (server) {
 						String line;
 						try {
 							line = readLine(in);
 						} catch (SSLException e) {
-							out.write("Unauthorized\n");
+							out.write("Unauthorized\n".getBytes());
 							throw e;
 						}
 
@@ -334,8 +334,11 @@ abstract class ConnectAction {
 	 * @throws SSLException
 	 *             in case of crypt error
 	 */
-	private String readLine(BufferedReader in) throws IOException {
-		String line = in.readLine();
+	private String readLine(InputStream in) throws IOException {
+		if (inReader == null) {
+			inReader = new BufferedReader(new InputStreamReader(in));
+		}
+		String line = inReader.readLine();
 		if (line != null) {
 			bytesReceived += line.length();
 			if (crypt != null) {
@@ -345,6 +348,8 @@ abstract class ConnectAction {
 
 		return line;
 	}
+
+	private BufferedReader inReader;
 
 	/**
 	 * Write a line, possible encrypted.
@@ -358,18 +363,17 @@ abstract class ConnectAction {
 	 * @throws SSLException
 	 *             in case of crypt error
 	 */
-	private void writeLine(OutputStreamWriter out, String line)
-			throws IOException {
+	private void writeLine(OutputStream out, String line) throws IOException {
 		if (crypt == null) {
-			out.write(line);
+			out.write(line.getBytes());
 			bytesSent += line.length();
 		} else {
 			// TODO: how NOT to create so many big Strings?
 			String b64 = crypt.encrypt64(line, false);
-			out.write(b64);
+			out.write(b64.getBytes());
 			bytesSent += b64.length();
 		}
-		out.write("\n");
+		out.write("\n".getBytes());
 		bytesSent++;
 	}
 }
