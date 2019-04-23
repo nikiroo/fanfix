@@ -1,6 +1,11 @@
 package be.nikiroo.utils.test_code;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+
 import be.nikiroo.utils.CryptUtils;
+import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.test.TestCase;
 import be.nikiroo.utils.test.TestLauncher;
 
@@ -127,9 +132,21 @@ class CryptUtilsTest extends TestLauncher {
 		super(title, args);
 		this.key = key;
 
-		addTest(new TestCase("TODO: Make some tests with the Streams") {
+		addTest(new TestCase("Simple test") {
 			@Override
 			public void test() throws Exception {
+				InputStream in = new ByteArrayInputStream(new byte[] {42, 127, 12});
+				crypt.encryptInputStream(in);
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				IOUtils.write(in, out);
+				byte[] result = out.toByteArray();
+				
+				assertEquals("We wrote 3 bytes, we expected 3 bytes back but got: "
+						+ result.length, result.length, result.length);
+				
+				assertEquals(42, result[0]);
+				assertEquals(127, result[1]);
+				assertEquals(12, result[2]);
 			}
 		});
 	}
