@@ -1,4 +1,4 @@
-package be.nikiroo.utils.test;
+package be.nikiroo.utils.test_code;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -9,6 +9,8 @@ import java.util.Map.Entry;
 
 import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.StringUtils.Alignment;
+import be.nikiroo.utils.test.TestCase;
+import be.nikiroo.utils.test.TestLauncher;
 
 class StringUtilsTest extends TestLauncher {
 	public StringUtilsTest(String[] args) {

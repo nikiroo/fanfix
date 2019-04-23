@@ -1,4 +1,4 @@
-package be.nikiroo.utils.test;
+package be.nikiroo.utils.test_code;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -8,6 +8,8 @@ import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.resources.Bundle;
 import be.nikiroo.utils.resources.Bundles;
 import be.nikiroo.utils.resources.Meta;
+import be.nikiroo.utils.test.TestCase;
+import be.nikiroo.utils.test.TestLauncher;
 
 class BundleTest extends TestLauncher {
 	private File tmp;

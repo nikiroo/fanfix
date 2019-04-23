@@ -1,4 +1,4 @@
-package be.nikiroo.utils.test;
+package be.nikiroo.utils.test_code;
 
 import java.net.URL;
 
@@ -10,16 +10,41 @@ import be.nikiroo.utils.serial.server.ConnectActionServerString;
 import be.nikiroo.utils.serial.server.ServerBridge;
 import be.nikiroo.utils.serial.server.ServerObject;
 import be.nikiroo.utils.serial.server.ServerString;
+import be.nikiroo.utils.test.TestCase;
+import be.nikiroo.utils.test.TestLauncher;
 
 class SerialServerTest extends TestLauncher {
-	private TestLauncher createServerStringTestCases(final String[] args,
-			final String key, final boolean bridge) {
-		final String skey = (key != null ? "(encrypted)" : "(plain text)");
-		final String bridges = (bridge ? " with bridge" : "");
-		TestLauncher series = new TestLauncher(
-				"ServerString " + skey + bridges, args);
+	public SerialServerTest(String[] args) {
+		super("SerialServer test", args);
 
-		series.addTest(new TestCase("Simple connection " + skey) {
+		for (String key : new String[] { null, "",
+				"some real key with a few bytes in it" }) {
+			for (boolean bridge : new Boolean[] { false, true }) {
+				final String skey = (key != null ? "(encrypted)"
+						: "(plain text)");
+				final String sbridge = (bridge ? " with bridge" : "");
+
+				addSeries(new SerialServerTest(args, key, skey, bridge,
+						sbridge, "ServerString"));
+
+				addSeries(new SerialServerTest(args, key, skey, bridge,
+						sbridge, new Object() {
+							@Override
+							public String toString() {
+								return "ServerObject";
+							}
+						}));
+			}
+		}
+	}
+
+	private SerialServerTest(final String[] args, final String key,
+			final String skey, final boolean bridge, final String sbridge,
+			final String title) {
+
+		super(title + " " + skey + sbridge, args);
+
+		addTest(new TestCase("Simple connection " + skey) {
 			@Override
 			public void test() throws Exception {
 				final String[] rec = new String[1];
@@ -79,7 +104,7 @@ class SerialServerTest extends TestLauncher {
 			}
 		});
 
-		series.addTest(new TestCase("Simple exchange " + skey) {
+		addTest(new TestCase("Simple exchange " + skey) {
 			final String[] sent = new String[1];
 			final String[] recd = new String[1];
 			final Exception[] err = new Exception[1];
@@ -141,7 +166,7 @@ class SerialServerTest extends TestLauncher {
 			}
 		});
 
-		series.addTest(new TestCase("Multiple exchanges " + skey) {
+		addTest(new TestCase("Multiple exchanges " + skey) {
 			final String[] sent = new String[3];
 			final String[] recd = new String[3];
 			final Exception[] err = new Exception[1];
@@ -208,7 +233,7 @@ class SerialServerTest extends TestLauncher {
 			}
 		});
 
-		series.addTest(new TestCase("Multiple call from client " + skey) {
+		addTest(new TestCase("Multiple call from client " + skey) {
 			final String[] sent = new String[3];
 			final String[] recd = new String[3];
 			final Exception[] err = new Exception[1];
@@ -275,18 +300,15 @@ class SerialServerTest extends TestLauncher {
 				assertEquals("4", recd[2]);
 			}
 		});
-
-		return series;
 	}
 
-	private TestLauncher createServerObjectTestCases(final String[] args,
-			final String key, final boolean bridge) {
-		final String skey = (key != null ? "(encrypted)" : "(plain text)");
-		final String bridges = (bridge ? " with bridge" : "");
-		TestLauncher series = new TestLauncher(
-				"ServerObject " + skey + bridges, args);
+	private SerialServerTest(final String[] args, final String key,
+			final String skey, final boolean bridge, final String sbridge,
+			final Object title) {
 
-		series.addTest(new TestCase("Simple connection " + skey) {
+		super(title + " " + skey + sbridge, args);
+
+		addTest(new TestCase("Simple connection " + skey) {
 			@Override
 			public void test() throws Exception {
 				final Object[] rec = new Object[1];
@@ -345,7 +367,7 @@ class SerialServerTest extends TestLauncher {
 			}
 		});
 
-		series.addTest(new TestCase("Simple exchange " + skey) {
+		addTest(new TestCase("Simple exchange " + skey) {
 			final Object[] sent = new Object[1];
 			final Object[] recd = new Object[1];
 			final Exception[] err = new Exception[1];
@@ -407,7 +429,7 @@ class SerialServerTest extends TestLauncher {
 			}
 		});
 
-		series.addTest(new TestCase("Multiple exchanges " + skey) {
+		addTest(new TestCase("Multiple exchanges " + skey) {
 			final Object[] sent = new Object[3];
 			final Object[] recd = new Object[3];
 			final Exception[] err = new Exception[1];
@@ -474,7 +496,7 @@ class SerialServerTest extends TestLauncher {
 			}
 		});
 
-		series.addTest(new TestCase("Object array of URLs " + skey) {
+		addTest(new TestCase("Object array of URLs " + skey) {
 			final Object[] sent = new Object[1];
 			final Object[] recd = new Object[1];
 			final Exception[] err = new Exception[1];
@@ -546,7 +568,7 @@ class SerialServerTest extends TestLauncher {
 			}
 		});
 
-		series.addTest(new TestCase("Multiple call from client " + skey) {
+		addTest(new TestCase("Multiple call from client " + skey) {
 			final Object[] sent = new Object[3];
 			final Object[] recd = new Object[3];
 			final Exception[] err = new Exception[1];
@@ -613,18 +635,5 @@ class SerialServerTest extends TestLauncher {
 				assertEquals(4, recd[2]);
 			}
 		});
-
-		return series;
-	}
-
-	public SerialServerTest(String[] args) {
-		super("SerialServer test", args);
-
-		for (String key : new String[] { null, "" }) {
-			for (boolean bridge : new Boolean[] { false, true }) {
-				addSeries(createServerObjectTestCases(args, key, bridge));
-				addSeries(createServerStringTestCases(args, key, bridge));
-			}
-		}
 	}
 }

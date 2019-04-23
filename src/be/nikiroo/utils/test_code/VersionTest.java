@@ -1,6 +1,8 @@
-package be.nikiroo.utils.test;
+package be.nikiroo.utils.test_code;
 
 import be.nikiroo.utils.Version;
+import be.nikiroo.utils.test.TestCase;
+import be.nikiroo.utils.test.TestLauncher;
 
 class VersionTest extends TestLauncher {
 	public VersionTest(String[] args) {

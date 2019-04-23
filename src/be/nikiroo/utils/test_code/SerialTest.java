@@ -1,9 +1,11 @@
-package be.nikiroo.utils.test;
+package be.nikiroo.utils.test_code;
 
 import java.net.URL;
 
 import be.nikiroo.utils.serial.Exporter;
 import be.nikiroo.utils.serial.Importer;
+import be.nikiroo.utils.test.TestCase;
+import be.nikiroo.utils.test.TestLauncher;
 
 class SerialTest extends TestLauncher {
 	/**

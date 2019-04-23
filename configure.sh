@@ -71,9 +71,9 @@ else
 fi;
 
 
-echo "MAIN = be/nikiroo/utils/test/Test" > Makefile
+echo "MAIN = be/nikiroo/utils/test_code/Test" > Makefile
 echo "MORE = $UI $ANDROID" >> Makefile
-echo "TEST = be/nikiroo/utils/test/Test" >> Makefile
+echo "TEST = be/nikiroo/utils/test_code/Test" >> Makefile
 echo "TEST_PARAMS = $cols $ok $ko" >> Makefile
 echo "NAME = nikiroo-utils" >> Makefile
 echo "PREFIX = $PREFIX" >> Makefile

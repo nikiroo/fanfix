@@ -1,9 +1,11 @@
-package be.nikiroo.utils.test;
+package be.nikiroo.utils.test_code;
 
 import java.io.File;
 import java.io.IOException;
 
 import be.nikiroo.utils.TempFiles;
+import be.nikiroo.utils.test.TestCase;
+import be.nikiroo.utils.test.TestLauncher;
 
 class TempFilesTest extends TestLauncher {
 	public TempFilesTest(String[] args) {

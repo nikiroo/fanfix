@@ -96,7 +96,6 @@ public class TestLauncher {
 	 * @throws Exception
 	 *             in case of error
 	 */
-	@SuppressWarnings("unused")
 	protected void start() throws Exception {
 	}
 
@@ -106,7 +105,6 @@ public class TestLauncher {
 	 * @throws Exception
 	 *             in case of error
 	 */
-	@SuppressWarnings("unused")
 	protected void stop() throws Exception {
 	}
 

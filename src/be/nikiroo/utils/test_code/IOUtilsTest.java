@@ -1,8 +1,10 @@
-package be.nikiroo.utils.test;
+package be.nikiroo.utils.test_code;
 
 import java.io.InputStream;
 
 import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.test.TestCase;
+import be.nikiroo.utils.test.TestLauncher;
 
 class IOUtilsTest extends TestLauncher {
 	public IOUtilsTest(String[] args) {

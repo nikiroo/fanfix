@@ -1,4 +1,4 @@
-package be.nikiroo.utils.test;
+package be.nikiroo.utils.test_code;
 
 import be.nikiroo.utils.Cache;
 import be.nikiroo.utils.CacheMemory;
@@ -6,6 +6,7 @@ import be.nikiroo.utils.Downloader;
 import be.nikiroo.utils.main.bridge;
 import be.nikiroo.utils.main.img2aa;
 import be.nikiroo.utils.main.justify;
+import be.nikiroo.utils.test.TestLauncher;
 
 /**
  * Tests for nikiroo-utils.
