@@ -20,16 +20,25 @@ import javax.net.ssl.SSLException;
 /**
  * Small utility class to do AES encryption/decryption.
  * <p>
+ * For the moment, it is multi-thread compatible, but beware:
+ * <ul>
+ * <li>The encrypt/decrypt calls are serialized</li>
+ * <li>The streams are independent and thus parallel</li>
+ * </ul>
+ * <p>
  * Do not assume it is actually secure until you checked the code...
  * 
  * @author niki
  */
 public class CryptUtils {
+	static private final String AES_NAME = "AES/ECB/PKCS5Padding";
+	
 	private Cipher ecipher;
 	private Cipher dcipher;
+	private SecretKey key;
 
 	/**
-	 * Small and leazy way to initialize a 128 bits key with {@link CryptUtils}.
+	 * Small and lazy-easy way to initialize a 128 bits key with {@link CryptUtils}.
 	 * <p>
 	 * <b>Some</b> part of the key will be used to generate a 128 bits key and
 	 * initialize the {@link CryptUtils}; even NULL will generate something.
@@ -42,11 +51,7 @@ public class CryptUtils {
 	 */
 	public CryptUtils(String key) {
 		try {
-			byte[] bytes32 = key2key(key);
-			init(bytes32);
-			for (int i = 0 ; i < bytes32.length ; i++) {
-				bytes32[i] = 0;
-			}
+			init(key2key(key));
 		} catch (InvalidKeyException e) {
 			// We made sure that the key is correct, so nothing here
 			e.printStackTrace();
@@ -66,9 +71,6 @@ public class CryptUtils {
 	 */
 	public CryptUtils(byte[] bytes32) throws InvalidKeyException {
 		init(bytes32);
-		for (int i = 0 ; i < bytes32.length ; i++) {
-			bytes32[i] = 0;
-		}
 	}
 
 	/**
@@ -80,6 +82,7 @@ public class CryptUtils {
 	 * @return the auto-encode {@link InputStream}
 	 */
 	public InputStream encryptInputStream(InputStream in) {
+		Cipher ecipher = newCipher(Cipher.ENCRYPT_MODE);
 		return new CipherInputStream(in, ecipher);
 	}
 
@@ -92,6 +95,7 @@ public class CryptUtils {
 	 * @return the auto-encode {@link OutputStream}
 	 */
 	public OutputStream encryptOutpuStream(OutputStream out) {
+		Cipher ecipher = newCipher(Cipher.ENCRYPT_MODE);
 		return new CipherOutputStream(out, ecipher);
 	}
 
@@ -104,6 +108,7 @@ public class CryptUtils {
 	 * @return the auto-decode {@link InputStream}
 	 */
 	public InputStream decryptInputStream(InputStream in) {
+		Cipher dcipher = newCipher(Cipher.DECRYPT_MODE);
 		return new CipherInputStream(in, dcipher);
 	}
 
@@ -116,6 +121,7 @@ public class CryptUtils {
 	 * @return the auto-decode {@link OutputStream}
 	 */
 	public OutputStream decryptOutputStream(OutputStream out) {
+		Cipher dcipher = newCipher(Cipher.DECRYPT_MODE);
 		return new CipherOutputStream(out, dcipher);
 	}
 
@@ -136,12 +142,26 @@ public class CryptUtils {
 							+ " bytes");
 		}
 
-		SecretKey key = new SecretKeySpec(bytes32, "AES");
+		key = new SecretKeySpec(bytes32, "AES");
+		ecipher = newCipher(Cipher.ENCRYPT_MODE);
+		dcipher = newCipher(Cipher.DECRYPT_MODE);
+	}
+	
+	/**
+	 * Create a new {@link Cipher}of the given mode (see
+	 * {@link Cipher#ENCRYPT_MODE} and {@link Cipher#ENCRYPT_MODE}).
+	 * 
+	 * @param mode
+	 *            the mode ({@link Cipher#ENCRYPT_MODE} or
+	 *            {@link Cipher#ENCRYPT_MODE})
+	 * 
+	 * @return the new {@link Cipher}
+	 */
+	private Cipher newCipher(int mode) {
 		try {
-			ecipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-			dcipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-			ecipher.init(Cipher.ENCRYPT_MODE, key);
-			dcipher.init(Cipher.DECRYPT_MODE, key);
+			Cipher cipher = Cipher.getInstance(AES_NAME);
+			cipher.init(mode, key);
+			return cipher;
 		} catch (NoSuchAlgorithmException e) {
 			// Every implementation of the Java platform is required to support
 			// this standard Cipher transformation with 128 bits keys
@@ -155,6 +175,8 @@ public class CryptUtils {
 			// this standard Cipher transformation with 128 bits keys
 			e.printStackTrace();
 		}
+		
+		return null;
 	}
 
 	/**
@@ -170,12 +192,14 @@ public class CryptUtils {
 	 *             it was)
 	 */
 	public byte[] encrypt(byte[] data) throws SSLException {
-		try {
-			return ecipher.doFinal(data);
-		} catch (IllegalBlockSizeException e) {
-			throw new SSLException(e);
-		} catch (BadPaddingException e) {
-			throw new SSLException(e);
+		synchronized (ecipher) {
+			try {
+				return ecipher.doFinal(data);
+			} catch (IllegalBlockSizeException e) {
+				throw new SSLException(e);
+			} catch (BadPaddingException e) {
+				throw new SSLException(e);
+			}
 		}
 	}
 
@@ -265,12 +289,14 @@ public class CryptUtils {
 	 *             in case of I/O error
 	 */
 	public byte[] decrypt(byte[] data) throws SSLException {
-		try {
-			return dcipher.doFinal(data);
-		} catch (IllegalBlockSizeException e) {
-			throw new SSLException(e);
-		} catch (BadPaddingException e) {
-			throw new SSLException(e);
+		synchronized (dcipher) {
+			try {
+				return dcipher.doFinal(data);
+			} catch (IllegalBlockSizeException e) {
+				throw new SSLException(e);
+			} catch (BadPaddingException e) {
+				throw new SSLException(e);
+			}
 		}
 	}
 
