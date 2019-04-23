@@ -1,12 +1,16 @@
 package be.nikiroo.utils;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
@@ -58,6 +62,54 @@ public class CryptUtils {
 	 */
 	public CryptUtils(byte[] bytes32) throws InvalidKeyException {
 		init(bytes32);
+	}
+
+	/**
+	 * Wrap the given {@link InputStream} so it is transparently encrypted by
+	 * the current {@link CryptUtils}.
+	 * 
+	 * @param in
+	 *            the {@link InputStream} to wrap
+	 * @return the auto-encode {@link InputStream}
+	 */
+	public InputStream encryptInputStream(InputStream in) {
+		return new CipherInputStream(in, ecipher);
+	}
+
+	/**
+	 * Wrap the given {@link OutputStream} so it is transparently encrypted by
+	 * the current {@link CryptUtils}.
+	 * 
+	 * @param in
+	 *            the {@link OutputStream} to wrap
+	 * @return the auto-encode {@link OutputStream}
+	 */
+	public OutputStream encryptOutpuStream(OutputStream out) {
+		return new CipherOutputStream(out, ecipher);
+	}
+
+	/**
+	 * Wrap the given {@link OutStream} so it is transparently decoded by the
+	 * current {@link CryptUtils}.
+	 * 
+	 * @param in
+	 *            the {@link InputStream} to wrap
+	 * @return the auto-decode {@link InputStream}
+	 */
+	public InputStream decryptInputStream(InputStream in) {
+		return new CipherInputStream(in, dcipher);
+	}
+
+	/**
+	 * Wrap the given {@link OutStream} so it is transparently decoded by the
+	 * current {@link CryptUtils}.
+	 * 
+	 * @param out
+	 *            the {@link OutputStream} to wrap
+	 * @return the auto-decode {@link OutputStream}
+	 */
+	public OutputStream decryptOutputStream(OutputStream out) {
+		return new CipherOutputStream(out, dcipher);
 	}
 
 	/**
