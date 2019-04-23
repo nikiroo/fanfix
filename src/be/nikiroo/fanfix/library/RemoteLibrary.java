@@ -7,12 +7,13 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.net.ssl.SSLException;
+
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
-import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.server.ConnectActionClientObject;
 
@@ -58,25 +59,25 @@ public class RemoteLibrary extends BasicLibrary {
 
 		try {
 			Instance.getTraceHandler().trace("Getting remote lib status...");
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					try {
-						Object rep = sendCmd(this, new Object[] { "PING" });
+					Object rep = send(new Object[] { "PING" });
 
-						if ("PONG".equals(rep)) {
-							result[0] = Status.READY;
-						} else {
-							result[0] = Status.UNAUTORIZED;
-						}
-					} catch (IllegalArgumentException e) {
+					if ("PONG".equals(rep)) {
+						result[0] = Status.READY;
+					} else {
 						result[0] = Status.UNAUTORIZED;
 					}
 				}
 
 				@Override
 				protected void onError(Exception e) {
-					result[0] = Status.UNAVAILABLE;
+					if (e instanceof SSLException) {
+						result[0] = Status.UNAUTORIZED;
+					} else {
+						result[0] = Status.UNAVAILABLE;
+					}
 				}
 			}.connect();
 		} catch (UnknownHostException e) {
@@ -96,17 +97,21 @@ public class RemoteLibrary extends BasicLibrary {
 		final Image[] result = new Image[1];
 
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					Object rep = sendCmd(this,
-							new Object[] { "GET_COVER", luid });
+					Object rep = send(new Object[] { "GET_COVER", luid });
 					result[0] = (Image) rep;
 				}
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (Exception e) {
@@ -131,17 +136,22 @@ public class RemoteLibrary extends BasicLibrary {
 		final Image[] result = new Image[1];
 
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					Object rep = sendCmd(this, new Object[] {
-							"GET_CUSTOM_COVER", type, source });
+					Object rep = send(new Object[] { "GET_CUSTOM_COVER", type,
+							source });
 					result[0] = (Image) rep;
 				}
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (Exception e) {
@@ -157,7 +167,7 @@ public class RemoteLibrary extends BasicLibrary {
 		final Story[] result = new Story[1];
 
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
@@ -165,8 +175,7 @@ public class RemoteLibrary extends BasicLibrary {
 						pg = new Progress();
 					}
 
-					Object rep = sendCmd(this,
-							new Object[] { "GET_STORY", luid });
+					Object rep = send(new Object[] { "GET_STORY", luid });
 
 					MetaData meta = null;
 					if (rep instanceof MetaData) {
@@ -188,7 +197,12 @@ public class RemoteLibrary extends BasicLibrary {
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (Exception e) {
@@ -214,7 +228,7 @@ public class RemoteLibrary extends BasicLibrary {
 
 		final Progress pgF = pgSave;
 
-		new ConnectActionClientObject(host, port, false) {
+		new ConnectActionClientObject(host, port, key) {
 			@Override
 			public void action(Version serverVersion) throws Exception {
 				Progress pg = pgF;
@@ -222,7 +236,7 @@ public class RemoteLibrary extends BasicLibrary {
 					pg.setMinMax(0, (int) story.getMeta().getWords());
 				}
 
-				sendCmd(this, new Object[] { "SAVE_STORY", luid });
+				send(new Object[] { "SAVE_STORY", luid });
 
 				List<Object> list = RemoteLibraryServer.breakStory(story);
 				for (Object obj : list) {
@@ -237,7 +251,12 @@ public class RemoteLibrary extends BasicLibrary {
 
 			@Override
 			protected void onError(Exception e) {
-				Instance.getTraceHandler().error(e);
+				if (e instanceof SSLException) {
+					Instance.getTraceHandler().error(
+							"Connection refused (bad key)");
+				} else {
+					Instance.getTraceHandler().error(e);
+				}
 			}
 		}.connect();
 
@@ -259,15 +278,20 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public synchronized void delete(final String luid) throws IOException {
-		new ConnectActionClientObject(host, port, false) {
+		new ConnectActionClientObject(host, port, key) {
 			@Override
 			public void action(Version serverVersion) throws Exception {
-				sendCmd(this, new Object[] { "DELETE_STORY", luid });
+				send(new Object[] { "DELETE_STORY", luid });
 			}
 
 			@Override
 			protected void onError(Exception e) {
-				Instance.getTraceHandler().error(e);
+				if (e instanceof SSLException) {
+					Instance.getTraceHandler().error(
+							"Connection refused (bad key)");
+				} else {
+					Instance.getTraceHandler().error(e);
+				}
 			}
 		}.connect();
 	}
@@ -286,16 +310,20 @@ public class RemoteLibrary extends BasicLibrary {
 	private void setCover(final String value, final String luid,
 			final String type) {
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					sendCmd(this,
-							new Object[] { "SET_COVER", type, value, luid });
+					send(new Object[] { "SET_COVER", type, value, luid });
 				}
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (IOException e) {
@@ -327,13 +355,12 @@ public class RemoteLibrary extends BasicLibrary {
 		final String[] luid = new String[1];
 
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
 
-					Object rep = sendCmd(this,
-							new Object[] { "IMPORT", url.toString() });
+					Object rep = send(new Object[] { "IMPORT", url.toString() });
 
 					while (true) {
 						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
@@ -349,7 +376,12 @@ public class RemoteLibrary extends BasicLibrary {
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (IOException e) {
@@ -375,13 +407,13 @@ public class RemoteLibrary extends BasicLibrary {
 		final Progress pgF = pg == null ? new Progress() : pg;
 
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
 
-					Object rep = sendCmd(this, new Object[] { "CHANGE_STA",
-							luid, newSource, newTitle, newAuthor });
+					Object rep = send(new Object[] { "CHANGE_STA", luid,
+							newSource, newTitle, newAuthor });
 					while (true) {
 						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
 							break;
@@ -393,7 +425,12 @@ public class RemoteLibrary extends BasicLibrary {
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (IOException e) {
@@ -412,15 +449,20 @@ public class RemoteLibrary extends BasicLibrary {
 	 */
 	public void exit() {
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
-					sendCmd(this, new Object[] { "EXIT" });
+					send(new Object[] { "EXIT" });
 				}
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (IOException e) {
@@ -491,7 +533,7 @@ public class RemoteLibrary extends BasicLibrary {
 		final List<MetaData> metas = new ArrayList<MetaData>();
 
 		try {
-			new ConnectActionClientObject(host, port, false) {
+			new ConnectActionClientObject(host, port, key) {
 				@Override
 				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
@@ -499,8 +541,7 @@ public class RemoteLibrary extends BasicLibrary {
 						pg = new Progress();
 					}
 
-					Object rep = sendCmd(this, new Object[] { "GET_METADATA",
-							luid });
+					Object rep = send(new Object[] { "GET_METADATA", luid });
 
 					while (true) {
 						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
@@ -521,7 +562,12 @@ public class RemoteLibrary extends BasicLibrary {
 
 				@Override
 				protected void onError(Exception e) {
-					Instance.getTraceHandler().error(e);
+					if (e instanceof SSLException) {
+						Instance.getTraceHandler().error(
+								"Connection refused (bad key)");
+					} else {
+						Instance.getTraceHandler().error(e);
+					}
 				}
 			}.connect();
 		} catch (Exception e) {
@@ -529,31 +575,5 @@ public class RemoteLibrary extends BasicLibrary {
 		}
 
 		return metas;
-	}
-
-	// IllegalArgumentException if key is bad
-	private Object sendCmd(ConnectActionClientObject action, Object[] params)
-			throws IOException, NoSuchFieldException, NoSuchMethodException,
-			ClassNotFoundException {
-		Object rep = action.send(params);
-
-		String hash = hashKey(key, "" + rep);
-		return action.send(hash);
-	}
-
-	/**
-	 * Return a hash that corresponds to the given key and the given random
-	 * value.
-	 * 
-	 * @param key
-	 *            the key (the secret)
-	 * 
-	 * @param random
-	 *            the random value
-	 * 
-	 * @return a hash that was computed using both
-	 */
-	static String hashKey(String key, String random) {
-		return StringUtils.getMd5Hash(key + " <==> " + random);
 	}
 }
