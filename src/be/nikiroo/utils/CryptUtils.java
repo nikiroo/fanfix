@@ -269,6 +269,28 @@ public class CryptUtils {
 
 	/**
 	 * Decode the data which is assumed to be encrypted with the same utilities
+	 * and to be a {@link String}.
+	 * 
+	 * @param data
+	 *            the encrypted data to decode
+	 * 
+	 * @return the original, decoded data,as a {@link String}
+	 * 
+	 * @throws SSLException
+	 *             in case of I/O error
+	 */
+	public String decrypts(byte[] data) throws SSLException {
+		try {
+			return new String(decrypt(data), "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// UTF-8 is required in all confirm JVMs
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * Decode the data which is assumed to be encrypted with the same utilities
 	 * and is a Base64 encoded value.
 	 * 
 	 * @param data
