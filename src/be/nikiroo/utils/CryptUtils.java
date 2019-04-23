@@ -42,7 +42,11 @@ public class CryptUtils {
 	 */
 	public CryptUtils(String key) {
 		try {
-			init(key2key(key));
+			byte[] bytes32 = key2key(key);
+			init(bytes32);
+			for (int i = 0 ; i < bytes32.length ; i++) {
+				bytes32[i] = 0;
+			}
 		} catch (InvalidKeyException e) {
 			// We made sure that the key is correct, so nothing here
 			e.printStackTrace();
@@ -62,6 +66,9 @@ public class CryptUtils {
 	 */
 	public CryptUtils(byte[] bytes32) throws InvalidKeyException {
 		init(bytes32);
+		for (int i = 0 ; i < bytes32.length ; i++) {
+			bytes32[i] = 0;
+		}
 	}
 
 	/**
