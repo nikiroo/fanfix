@@ -77,13 +77,34 @@ public class Image implements Closeable {
 	}
 
 	/**
+	 * Generate an {@link InputStream} for this {@link Image}.
+	 * <p>
+	 * This {@link InputStream} will (always) be a new one, and <b>you</b> are
+	 * responsible for it.
+	 * <p>
+	 * Note: take care that the {@link InputStream} <b>must not</b> live past
+	 * the {@link Image} life time!
+	 * 
+	 * @return the stream
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public InputStream newInputStream() throws IOException {
+		return new FileInputStream(data);
+	}
+
+	/**
 	 * <b>Read</b> the actual image data, as a byte array.
+	 * <p>
+	 * Note: if possible, prefer the {@link Image#newInputStream()} method, as
+	 * it can be more efficient.
 	 * 
 	 * @return the image data
 	 */
 	public byte[] getData() {
 		try {
-			FileInputStream in = new FileInputStream(data);
+			InputStream in = newInputStream();
 			try {
 				return IOUtils.toByteArray(in);
 			} finally {
@@ -97,11 +118,18 @@ public class Image implements Closeable {
 	/**
 	 * Convert the given {@link Image} object into a Base64 representation of
 	 * the same {@link Image} object.
+	 * <p>
+	 * Note: if possible, prefer the {@link Image#newInputStream()} method, as
+	 * it can be more efficient.
 	 * 
 	 * @return the Base64 representation
 	 */
 	public String toBase64() {
-		return Base64.encodeBytes(getData());
+		try {
+			return StringUtils.base64(getData(), false);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**

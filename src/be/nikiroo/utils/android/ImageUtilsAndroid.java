@@ -62,8 +62,9 @@ public class ImageUtilsAndroid extends ImageUtils {
 	 *             in case of IO error
 	 */
 	static public Bitmap fromImage(Image img) throws IOException {
-		int size = img.getData().length;
-		Bitmap image = BitmapFactory.decodeByteArray(img.getData(), 0, size);
+		byte[] array = img.getData();
+		int size = array.length;
+		Bitmap image = BitmapFactory.decodeByteArray(array, 0, size);
 		if (image == null) {
 			String ssize = StringUtils.formatNumber(size);
 			throw new IOException(
