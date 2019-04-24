@@ -71,8 +71,24 @@ public class NextableInputStreamTest extends TestLauncher {
 
 				assertEquals("The subIn still has some data", false,
 						subIn12.next());
-				
-				checkNext(this, true, "MAIN LAST", in4, new byte[] { 127, 12, 5 });
+
+				checkNext(this, true, "MAIN LAST", in4,
+						new byte[] { 127, 12, 5 });
+			}
+		});
+
+		addTest(new TestCase("UTF-8 text lines test") {
+			@Override
+			public void test() throws Exception {
+				String ln1 = "Ligne première";
+				String ln2 = "Ligne la deuxième du nom";
+				byte[] data = (ln1 + "\n" + ln2).getBytes("UTF-8");
+				NextableInputStream in = new NextableInputStream(
+						new ByteArrayInputStream(data),
+						new NextableInputStreamStep('\n'));
+
+				checkNext(this, false, "FIRST", in, ln1.getBytes("UTF-8"));
+				checkNext(this, true, "SECOND", in, ln2.getBytes("UTF-8"));
 			}
 		});
 	}
