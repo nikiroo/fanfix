@@ -1,7 +1,6 @@
 package be.nikiroo.utils.test_code;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.NextableInputStream;
@@ -17,8 +16,8 @@ public class NextableInputStreamTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				byte[] expected = new byte[] { 42, 12, 0, 127 };
-				InputStream bin = new ByteArrayInputStream(expected);
-				NextableInputStream in = new NextableInputStream(bin);
+				NextableInputStream in = new NextableInputStream(
+						new ByteArrayInputStream(expected), null);
 				byte[] actual = IOUtils.toByteArray(in);
 
 				assertEquals(
@@ -35,61 +34,62 @@ public class NextableInputStreamTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				byte[] expected = new byte[] { 42, 12, 0, 127 };
-				InputStream bin = new ByteArrayInputStream(expected);
-				NextableInputStream in = new NextableInputStream(bin);
-				in.addStep(new NextableInputStreamStep(12));
-				byte[] actual = IOUtils.toByteArray(in);
+				NextableInputStream in = new NextableInputStream(
+						new ByteArrayInputStream(expected),
+						new NextableInputStreamStep(12));
 
-				assertEquals(
-						"The resulting array has not the correct number of items",
-						1, actual.length);
-				for (int i = 0; i < actual.length; i++) {
-					assertEquals("Item " + i + " (0-based) is not the same",
-							expected[i], actual[i]);
-				}
+				checkNext(this, false, "FIRST", in, new byte[] { 42 });
 			}
 		});
 
 		addTest(new TestCase("Stop at 12, resume, stop again, resume") {
 			@Override
 			public void test() throws Exception {
-				byte[] expected = new byte[] { 42, 12, 0, 127, 12, 51, 11, 12 };
+				byte[] data = new byte[] { 42, 12, 0, 127, 12, 51, 11, 12 };
 				NextableInputStream in = new NextableInputStream(
-						new ByteArrayInputStream(expected));
-				in.addStep(new NextableInputStreamStep(12));
+						new ByteArrayInputStream(data),
+						new NextableInputStreamStep(12));
 
-				byte[] actual1 = IOUtils.toByteArray(in);
-				byte[] expected1 = new byte[] { 42 };
-				assertEquals(
-						"The FIRST resulting array has not the correct number of items",
-						expected1.length, actual1.length);
-				for (int i = 0; i < actual1.length; i++) {
-					assertEquals("Item " + i + " (0-based) is not the same",
-							expected1[i], actual1[i]);
-				}
-
-				assertEquals("Cannot get SECOND entry", true, in.next());
-				byte[] actual2 = IOUtils.toByteArray(in);
-				byte[] expected2 = new byte[] { 0, 127 };
-				assertEquals(
-						"The SECOND resulting array has not the correct number of items",
-						expected2.length, actual2.length);
-				for (int i = 0; i < actual2.length; i++) {
-					assertEquals("Item " + i + " (0-based) is not the same",
-							expected2[i], actual2[i]);
-				}
-
-				assertEquals("Cannot get next THIRD entry", true, in.next());
-				byte[] actual3 = IOUtils.toByteArray(in);
-				byte[] expected3 = new byte[] { 51, 11 };
-				assertEquals(
-						"The THIRD resulting array has not the correct number of items",
-						expected3.length, actual3.length);
-				for (int i = 0; i < actual3.length; i++) {
-					assertEquals("Item " + i + " (0-based) is not the same",
-							expected3[i], actual3[i]);
-				}
+				checkNext(this, false, "FIRST", in, new byte[] { 42 });
+				checkNext(this, true, "SECOND", in, new byte[] { 0, 127 });
+				checkNext(this, true, "THIRD", in, new byte[] { 51, 11 });
 			}
 		});
+
+		addTest(new TestCase("Encapsulation") {
+			@Override
+			public void test() throws Exception {
+				byte[] data = new byte[] { 42, 12, 0, 4, 127, 12, 5 };
+				NextableInputStream in4 = new NextableInputStream(
+						new ByteArrayInputStream(data),
+						new NextableInputStreamStep(4));
+				NextableInputStream subIn12 = new NextableInputStream(in4,
+						new NextableInputStreamStep(12));
+
+				checkNext(this, false, "SUB FIRST", subIn12, new byte[] { 42 });
+				checkNext(this, true, "SUB SECOND", subIn12, new byte[] { 0 });
+
+				assertEquals("The subIn still has some data", false,
+						subIn12.next());
+				
+				checkNext(this, true, "MAIN LAST", in4, new byte[] { 127, 12, 5 });
+			}
+		});
+	}
+
+	static void checkNext(TestCase test, boolean callNext, String prefix,
+			NextableInputStream in, byte[] expected) throws Exception {
+		if (callNext) {
+			test.assertEquals("Cannot get " + prefix + " entry", true,
+					in.next());
+		}
+		byte[] actual = IOUtils.toByteArray(in);
+		test.assertEquals("The " + prefix
+				+ " resulting array has not the correct number of items",
+				expected.length, actual.length);
+		for (int i = 0; i < actual.length; i++) {
+			test.assertEquals("Item " + i + " (0-based) is not the same",
+					expected[i], actual[i]);
+		}
 	}
 }
