@@ -55,7 +55,7 @@ public class IOUtils {
 	 */
 	public static void write(InputStream in, OutputStream out)
 			throws IOException {
-		byte buffer[] = new byte[4069];
+		byte buffer[] = new byte[4096];
 		for (int len = 0; (len = in.read(buffer)) > 0;) {
 			out.write(buffer, 0, len);
 		}
