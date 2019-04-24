@@ -33,6 +33,7 @@ public class Test extends TestLauncher {
 		addSeries(new StringUtilsTest(args));
 		addSeries(new TempFilesTest(args));
 		addSeries(new CryptUtilsTest(args));
+		addSeries(new NextableInputStreamTest(args));
 
 		// TODO: test cache and downloader
 		Cache cache = null;
