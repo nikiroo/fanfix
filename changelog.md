@@ -4,7 +4,8 @@
 
 - new: server: count the bytes we rec/send
 - new: CryptUtils
-- serial: SSL -> CryptUtils
+- fix: IOUtils.readSmallStream and \n at the end
+- change: serial: SSL -> CryptUtils
 
 ## Version 4.7.2
 
