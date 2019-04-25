@@ -2,6 +2,7 @@ package be.nikiroo.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 /**
  * This {@link InputStream} can be separated into sub-streams (you can process
@@ -25,6 +26,12 @@ public class NextableInputStream extends InputStream {
 	private int len;
 	private byte[] buffer;
 
+	// special use, prefetched next buffer
+	private byte[] buffer2;
+	private int pos2;
+	private int len2;
+	private byte[] originalBuffer;
+
 	private long bytesRead;
 
 	/**
@@ -42,6 +49,7 @@ public class NextableInputStream extends InputStream {
 		this.step = step;
 
 		this.buffer = new byte[4096];
+		this.originalBuffer = this.buffer;
 		this.pos = 0;
 		this.len = 0;
 	}
@@ -92,6 +100,7 @@ public class NextableInputStream extends InputStream {
 		this.step = step;
 
 		this.buffer = in;
+		this.originalBuffer = this.buffer;
 		this.pos = offset;
 		this.len = length;
 
@@ -158,13 +167,48 @@ public class NextableInputStream extends InputStream {
 		return next(true);
 	}
 
-	public boolean startWith() {
-		// TODO
-		return false;
+	// max is buffer.size !
+	public boolean startsWiths(String search) throws IOException {
+		return startsWith(search.getBytes("UTF-8"));
 	}
 
-	public boolean startWiths() {
-		// TODO
+	// max is buffer.size !
+	public boolean startsWith(byte[] search) throws IOException {
+		if (search.length > originalBuffer.length) {
+			throw new IOException(
+					"This stream does not support searching for more than "
+							+ buffer.length + " bytes");
+		}
+
+		checkClose();
+
+		if (available() < search.length) {
+			preRead();
+		}
+
+		if (available() >= search.length) {
+			// Easy path
+			return startsWith(search, buffer, pos);
+		} else if (!eof) {
+			// Harder path
+			if (buffer2 == null && buffer.length == originalBuffer.length) {
+				buffer2 = Arrays.copyOf(buffer, buffer.length * 2);
+
+				pos2 = buffer.length;
+				len2 = in.read(buffer2, pos2, buffer.length);
+				if (len2 > 0) {
+					bytesRead += len2;
+				}
+
+				// Note: here, len/len2 = INDEX of last good byte
+				len2 += pos2;
+			}
+
+			if (available() + (len2 - pos2) >= search.length) {
+				return startsWith(search, buffer2, pos2);
+			}
+		}
+
 		return false;
 	}
 
@@ -312,9 +356,20 @@ public class NextableInputStream extends InputStream {
 		boolean hasRead = false;
 		if (!eof && in != null && pos >= len && !stopped) {
 			pos = 0;
-			len = in.read(buffer);
-			if (len > 0) {
-				bytesRead += len;
+			if (buffer2 != null) {
+				buffer = buffer2;
+				pos = pos2;
+				len = len2;
+
+				buffer2 = null;
+				pos2 = 0;
+				len2 = 0;
+			} else {
+				buffer = originalBuffer;
+				len = in.read(buffer);
+				if (len > 0) {
+					bytesRead += len;
+				}
 			}
 
 			checkBuffer(true);
@@ -423,5 +478,19 @@ public class NextableInputStream extends InputStream {
 			throw new IOException(
 					"This NextableInputStream was closed, you cannot use it anymore.");
 		}
+	}
+
+	// buffer must be > search
+	static private boolean startsWith(byte[] search, byte[] buffer,
+			int offset) {
+		boolean same = true;
+		for (int i = 0; i < search.length; i++) {
+			if (search[i] != buffer[offset + i]) {
+				same = false;
+				break;
+			}
+		}
+
+		return same;
 	}
 }
