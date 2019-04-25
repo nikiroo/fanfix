@@ -18,6 +18,7 @@ public class NextableInputStreamTest extends TestLauncher {
 				byte[] expected = new byte[] { 42, 12, 0, 127 };
 				NextableInputStream in = new NextableInputStream(
 						new ByteArrayInputStream(expected), null);
+				in.next();
 				byte[] actual = IOUtils.toByteArray(in);
 
 				assertEquals(
@@ -38,7 +39,7 @@ public class NextableInputStreamTest extends TestLauncher {
 						new ByteArrayInputStream(expected),
 						new NextableInputStreamStep(12));
 
-				checkNext(this, false, "FIRST", in, new byte[] { 42 });
+				checkNext(this, "FIRST", in, new byte[] { 42 });
 			}
 		});
 
@@ -50,9 +51,9 @@ public class NextableInputStreamTest extends TestLauncher {
 						new ByteArrayInputStream(data),
 						new NextableInputStreamStep(12));
 
-				checkNext(this, false, "FIRST", in, new byte[] { 42 });
-				checkNext(this, true, "SECOND", in, new byte[] { 0, 127 });
-				checkNext(this, true, "THIRD", in, new byte[] { 51, 11 });
+				checkNext(this, "FIRST", in, new byte[] { 42 });
+				checkNext(this, "SECOND", in, new byte[] { 0, 127 });
+				checkNext(this, "THIRD", in, new byte[] { 51, 11 });
 			}
 		});
 
@@ -66,14 +67,14 @@ public class NextableInputStreamTest extends TestLauncher {
 				NextableInputStream subIn12 = new NextableInputStream(in4,
 						new NextableInputStreamStep(12));
 
-				checkNext(this, false, "SUB FIRST", subIn12, new byte[] { 42 });
-				checkNext(this, true, "SUB SECOND", subIn12, new byte[] { 0 });
+				in4.next();
+				checkNext(this, "SUB FIRST", subIn12, new byte[] { 42 });
+				checkNext(this, "SUB SECOND", subIn12, new byte[] { 0 });
 
 				assertEquals("The subIn still has some data", false,
 						subIn12.next());
 
-				checkNext(this, true, "MAIN LAST", in4,
-						new byte[] { 127, 12, 5 });
+				checkNext(this, "MAIN LAST", in4, new byte[] { 127, 12, 5 });
 			}
 		});
 
@@ -87,18 +88,73 @@ public class NextableInputStreamTest extends TestLauncher {
 						new ByteArrayInputStream(data),
 						new NextableInputStreamStep('\n'));
 
-				checkNext(this, false, "FIRST", in, ln1.getBytes("UTF-8"));
-				checkNext(this, true, "SECOND", in, ln2.getBytes("UTF-8"));
+				checkNext(this, "FIRST", in, ln1.getBytes("UTF-8"));
+				checkNext(this, "SECOND", in, ln2.getBytes("UTF-8"));
+			}
+		});
+
+		addTest(new TestCase("nextAll()") {
+			@Override
+			public void test() throws Exception {
+				byte[] data = new byte[] { 42, 12, 0, 127, 12, 51, 11, 12 };
+				NextableInputStream in = new NextableInputStream(
+						new ByteArrayInputStream(data),
+						new NextableInputStreamStep(12));
+
+				checkNext(this, "FIRST", in, new byte[] { 42 });
+				checkNextAll(this, "REST", in, new byte[] { 0, 127, 12, 51, 11,
+						12 });
+				assertEquals("The stream still has some data", false, in.next());
+			}
+		});
+
+		addTest(new TestCase("getBytesRead()") {
+			@Override
+			public void test() throws Exception {
+				byte[] data = new byte[] { 42, 12, 0, 127, 12, 51, 11, 12 };
+				NextableInputStream in = new NextableInputStream(
+						new ByteArrayInputStream(data),
+						new NextableInputStreamStep(12));
+
+				in.nextAll();
+				IOUtils.toByteArray(in);
+
+				assertEquals("The number of bytes read is not correct",
+						data.length, in.getBytesRead());
+			}
+		});
+
+		addTest(new TestCase("bytes array input") {
+			@Override
+			public void test() throws Exception {
+				byte[] data = new byte[] { 42, 12, 0, 127, 12, 51, 11, 12 };
+				NextableInputStream in = new NextableInputStream(data,
+						new NextableInputStreamStep(12));
+
+				checkNext(this, "FIRST", in, new byte[] { 42 });
+				checkNext(this, "SECOND", in, new byte[] { 0, 127 });
+				checkNext(this, "THIRD", in, new byte[] { 51, 11 });
 			}
 		});
 	}
 
-	static void checkNext(TestCase test, boolean callNext, String prefix,
-			NextableInputStream in, byte[] expected) throws Exception {
-		if (callNext) {
-			test.assertEquals("Cannot get " + prefix + " entry", true,
-					in.next());
+	static void checkNext(TestCase test, String prefix, NextableInputStream in,
+			byte[] expected) throws Exception {
+		test.assertEquals("Cannot get " + prefix + " entry", true, in.next());
+		byte[] actual = IOUtils.toByteArray(in);
+		test.assertEquals("The " + prefix
+				+ " resulting array has not the correct number of items",
+				expected.length, actual.length);
+		for (int i = 0; i < actual.length; i++) {
+			test.assertEquals("Item " + i + " (0-based) is not the same",
+					expected[i], actual[i]);
 		}
+	}
+
+	static void checkNextAll(TestCase test, String prefix,
+			NextableInputStream in, byte[] expected) throws Exception {
+		test.assertEquals("Cannot get " + prefix + " entries", true,
+				in.nextAll());
 		byte[] actual = IOUtils.toByteArray(in);
 		test.assertEquals("The " + prefix
 				+ " resulting array has not the correct number of items",

@@ -14,13 +14,18 @@ import java.io.InputStream;
  */
 public class NextableInputStream extends InputStream {
 	private NextableInputStreamStep step;
+	private boolean started;
 	private boolean stopped;
+	private boolean closed;
 
 	private InputStream in;
+	private int openCounter;
 	private boolean eof;
-	private int pos = 0;
-	private int len = 0;
-	private byte[] buffer = new byte[4096];
+	private int pos;
+	private int len;
+	private byte[] buffer;
+
+	private long bytesRead;
 
 	/**
 	 * Create a new {@link NextableInputStream} that wraps the given
@@ -35,6 +40,84 @@ public class NextableInputStream extends InputStream {
 	public NextableInputStream(InputStream in, NextableInputStreamStep step) {
 		this.in = in;
 		this.step = step;
+
+		this.buffer = new byte[4096];
+		this.pos = 0;
+		this.len = 0;
+	}
+
+	/**
+	 * Create a new {@link NextableInputStream} that wraps the given bytes array
+	 * as a data source.
+	 * 
+	 * @param in
+	 *            the array to wrap, cannot be NULL
+	 * @param step
+	 *            how to separate it into sub-streams (can be NULL, but in that
+	 *            case it will behave as a normal {@link InputStream})
+	 */
+	public NextableInputStream(byte[] in, NextableInputStreamStep step) {
+		this(in, step, 0, in.length);
+	}
+
+	/**
+	 * Create a new {@link NextableInputStream} that wraps the given bytes array
+	 * as a data source.
+	 * 
+	 * @param in
+	 *            the array to wrap, cannot be NULL
+	 * @param step
+	 *            how to separate it into sub-streams (can be NULL, but in that
+	 *            case it will behave as a normal {@link InputStream})
+	 * @param offset
+	 *            the offset to start the reading at
+	 * @param length
+	 *            the number of bytes to take into account in the array,
+	 *            starting from the offset
+	 * 
+	 * @throws NullPointerException
+	 *             if the array is NULL
+	 * @throws IndexOutOfBoundsException
+	 *             if the offset and length do not correspond to the given array
+	 */
+	public NextableInputStream(byte[] in, NextableInputStreamStep step,
+			int offset, int length) {
+		if (in == null) {
+			throw new NullPointerException();
+		} else if (offset < 0 || length < 0 || length > in.length - offset) {
+			throw new IndexOutOfBoundsException();
+		}
+
+		this.in = null;
+		this.step = step;
+
+		this.buffer = in;
+		this.pos = offset;
+		this.len = length;
+
+		checkBuffer(true);
+	}
+
+	/**
+	 * Return this very same {@link NextableInputStream}, but keep a counter of
+	 * how many streams were open this way. When calling
+	 * {@link NextableInputStream#close()}, decrease this counter if it is not
+	 * already zero instead of actually closing the stream.
+	 * <p>
+	 * You are now responsible for it &mdash; you <b>must</b> close it.
+	 * <p>
+	 * This method allows you to use a wrapping stream around this one and still
+	 * close the wrapping stream.
+	 * 
+	 * @return the same stream, but you are now responsible for closing it
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error or if the stream is closed
+	 */
+	public synchronized InputStream open() throws IOException {
+		checkClose();
+		openCounter++;
+		return this;
 	}
 
 	/**
@@ -53,27 +136,61 @@ public class NextableInputStream extends InputStream {
 	 * @return TRUE if we unblocked the next sub-stream, FALSE if not
 	 * 
 	 * @throws IOException
-	 *             in case of I/O error
+	 *             in case of I/O error or if the stream is closed
 	 */
 	public boolean next() throws IOException {
-		if (!hasMoreData() && stopped) {
-			len = step.getResumeLen();
-			pos += step.getResumeSkip();
-			eof = false;
+		return next(false);
+	}
 
-			if (!preRead()) {
-				checkBuffer(false);
-			}
+	/**
+	 * Unblock the next sub-stream as would have done
+	 * {@link NextableInputStream#next()}, but disable the sub-stream systems.
+	 * <p>
+	 * That is, the next stream, if any, will be the last one and will not be
+	 * subject to the {@link NextableInputStreamStep}.
+	 * 
+	 * @return TRUE if we unblocked the next sub-stream, FALSE if not
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error or if the stream is closed
+	 */
+	public boolean nextAll() throws IOException {
+		return next(true);
+	}
 
-			// consider that if EOF, there is no next
-			return hasMoreData();
-		}
-
+	public boolean startWith() {
+		// TODO
 		return false;
+	}
+
+	public boolean startWiths() {
+		// TODO
+		return false;
+	}
+
+	/**
+	 * The number of bytes read from the under-laying {@link InputStream}.
+	 * 
+	 * @return the number of bytes
+	 */
+	public long getBytesRead() {
+		return bytesRead;
+	}
+
+	/**
+	 * Check if this stream is totally spent (no more data to read or to
+	 * process).
+	 * 
+	 * @return TRUE if it is
+	 */
+	public boolean eof() {
+		return closed || (len < 0 && !hasMoreData());
 	}
 
 	@Override
 	public int read() throws IOException {
+		checkClose();
+
 		preRead();
 		if (eof) {
 			return -1;
@@ -89,6 +206,8 @@ public class NextableInputStream extends InputStream {
 
 	@Override
 	public int read(byte[] b, int boff, int blen) throws IOException {
+		checkClose();
+
 		if (b == null) {
 			throw new NullPointerException();
 		} else if (boff < 0 || blen < 0 || blen > b.length - boff) {
@@ -113,8 +232,71 @@ public class NextableInputStream extends InputStream {
 	}
 
 	@Override
-	public int available() throws IOException {
+	public long skip(long n) throws IOException {
+		// TODO Auto-generated method stub
+		return super.skip(n);
+	}
+
+	@Override
+	public int available() {
+		if (closed) {
+			return 0;
+		}
+
 		return Math.max(0, len - pos);
+	}
+
+	/**
+	 * Closes this stream and releases any system resources associated with the
+	 * stream.
+	 * <p>
+	 * Including the under-laying {@link InputStream}.
+	 * <p>
+	 * <b>Note:</b> if you called the {@link NextableInputStream#open()} method
+	 * prior to this one, it will just decrease the internal count of how many
+	 * open streams it held and do nothing else. The stream will actually be
+	 * closed when you have called {@link NextableInputStream#close()} once more
+	 * than {@link NextableInputStream#open()}.
+	 * 
+	 * @exception IOException
+	 *                in case of I/O error
+	 */
+	@Override
+	public synchronized void close() throws IOException {
+		close(true);
+	}
+
+	/**
+	 * Closes this stream and releases any system resources associated with the
+	 * stream.
+	 * <p>
+	 * Including the under-laying {@link InputStream} if
+	 * <tt>incudingSubStream</tt> is true.
+	 * <p>
+	 * You can call this method multiple times, it will not cause an
+	 * {@link IOException} for subsequent calls.
+	 * <p>
+	 * <b>Note:</b> if you called the {@link NextableInputStream#open()} method
+	 * prior to this one, it will just decrease the internal count of how many
+	 * open streams it held and do nothing else. The stream will actually be
+	 * closed when you have called {@link NextableInputStream#close()} once more
+	 * than {@link NextableInputStream#open()}.
+	 * 
+	 * @exception IOException
+	 *                in case of I/O error
+	 */
+	public synchronized void close(boolean includingSubStream)
+			throws IOException {
+		if (!closed) {
+			if (openCounter > 0) {
+				openCounter--;
+			} else {
+				closed = true;
+				if (includingSubStream && in != null) {
+					in.close();
+				}
+			}
+		}
 	}
 
 	/**
@@ -131,6 +313,10 @@ public class NextableInputStream extends InputStream {
 		if (!eof && in != null && pos >= len && !stopped) {
 			pos = 0;
 			len = in.read(buffer);
+			if (len > 0) {
+				bytesRead += len;
+			}
+
 			checkBuffer(true);
 			hasRead = true;
 		}
@@ -148,7 +334,7 @@ public class NextableInputStream extends InputStream {
 	 * @return TRUE if it is the case, FALSE if not
 	 */
 	private boolean hasMoreData() {
-		return !(eof && pos >= len);
+		return !closed && started && !(eof && pos >= len);
 	}
 
 	/**
@@ -164,7 +350,7 @@ public class NextableInputStream extends InputStream {
 	 *            the {@link NextableInputStreamStep}
 	 */
 	private void checkBuffer(boolean newBuffer) {
-		if (step != null) {
+		if (step != null && len > 0) {
 			if (newBuffer) {
 				step.clearBuffer();
 			}
@@ -175,6 +361,67 @@ public class NextableInputStream extends InputStream {
 				eof = true;
 				stopped = true;
 			}
+		}
+	}
+
+	/**
+	 * The implementation of {@link NextableInputStream#next()} and
+	 * {@link NextableInputStream#nextAll()}.
+	 * 
+	 * @param all
+	 *            TRUE for {@link NextableInputStream#nextAll()}, FALSE for
+	 *            {@link NextableInputStream#next()}
+	 * 
+	 * @return TRUE if we unblocked the next sub-stream, FALSE if not
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error or if the stream is closed
+	 */
+	private boolean next(boolean all) throws IOException {
+		checkClose();
+
+		if (!started) {
+			// First call before being allowed to read
+			started = true;
+
+			if (all) {
+				step = null;
+			}
+
+			return true;
+		}
+
+		if (step != null && !hasMoreData() && stopped) {
+			len = step.getResumeLen();
+			pos += step.getResumeSkip();
+			eof = false;
+
+			if (all) {
+				step = null;
+			}
+
+			if (!preRead()) {
+				checkBuffer(false);
+			}
+
+			// consider that if EOF, there is no next
+			return hasMoreData();
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check that the stream was not closed, and throw an {@link IOException} if
+	 * it was.
+	 * 
+	 * @throws IOException
+	 *             if it was closed
+	 */
+	private void checkClose() throws IOException {
+		if (closed) {
+			throw new IOException(
+					"This NextableInputStream was closed, you cannot use it anymore.");
 		}
 	}
 }
