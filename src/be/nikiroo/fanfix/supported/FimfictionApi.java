@@ -145,10 +145,11 @@ class FimfictionApi extends BasicSupport {
 		String coverImageLink = getKeyJson(json, 0, "type", "story",
 				"cover_image", "full");
 		if (!coverImageLink.trim().isEmpty()) {
-			InputStream in = null;
+			URL coverImageUrl = new URL(coverImageLink.trim());
+
+			InputStream in = Instance.getCache()
+					.open(coverImageUrl, this, true);
 			try {
-				URL coverImageUrl = new URL(coverImageLink.trim());
-				in = Instance.getCache().open(coverImageUrl, this, true);
 				meta.setCover(new Image(in));
 			} finally {
 				in.close();
