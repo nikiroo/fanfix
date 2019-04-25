@@ -277,8 +277,21 @@ public class NextableInputStream extends InputStream {
 
 	@Override
 	public long skip(long n) throws IOException {
-		// TODO Auto-generated method stub
-		return super.skip(n);
+		if (n <= 0) {
+			return 0;
+		}
+
+		long skipped = 0;
+		while (hasMoreData() && n > 0) {
+			preRead();
+
+			long inBuffer = Math.min(n, available());
+			pos += inBuffer;
+			n -= inBuffer;
+			skipped += inBuffer;
+		}
+
+		return skipped;
 	}
 
 	@Override
