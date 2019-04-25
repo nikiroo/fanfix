@@ -1,14 +1,11 @@
 package be.nikiroo.utils;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,8 +53,10 @@ public class IOUtils {
 	public static void write(InputStream in, OutputStream out)
 			throws IOException {
 		byte buffer[] = new byte[4096];
-		for (int len = 0; (len = in.read(buffer)) > 0;) {
+		int len = in.read(buffer);
+		while (len > 0) {
 			out.write(buffer, 0, len);
+			len = in.read(buffer);
 		}
 	}
 
@@ -229,11 +228,11 @@ public class IOUtils {
 	 */
 	public static void writeSmallFile(File file, String content)
 			throws IOException {
-		FileWriter writerVersion = new FileWriter(file);
+		FileOutputStream out = new FileOutputStream(file);
 		try {
-			writerVersion.write(content);
+			out.write(content.getBytes("UTF-8"));
 		} finally {
-			writerVersion.close();
+			out.close();
 		}
 	}
 
@@ -269,19 +268,14 @@ public class IOUtils {
 	 *             in case of I/O error
 	 */
 	public static String readSmallStream(InputStream stream) throws IOException {
-		// do NOT close the reader, or the related stream will be closed, too
-		// reader.close();
-		BufferedReader reader = new BufferedReader(
-				new InputStreamReader(stream));
-
-		StringBuilder builder = new StringBuilder();
-		for (String line = reader.readLine(); line != null; line = reader
-				.readLine()) {
-			builder.append(line);
-			builder.append("\n");
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		try {
+			write(stream, out);
+			return out.toString("UTF-8");
+		} finally {
+			// do NOT close, or the related stream will be closed, too
+			// out.close();
 		}
-
-		return builder.toString();
 	}
 
 	/**
@@ -451,12 +445,12 @@ public class IOUtils {
 	 */
 	public static byte[] toByteArray(InputStream in) throws IOException {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		write(in, out);
-
-		byte[] array = out.toByteArray();
-		out.close();
-
-		return array;
+		try {
+			write(in, out);
+			return out.toByteArray();
+		} finally {
+			out.close();
+		}
 	}
 
 	/**
