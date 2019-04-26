@@ -844,15 +844,15 @@ public class StringUtils {
 		if (value >= 1000000000l) {
 			mult = 1000000000l;
 			userValue = value / 1000000000l;
-			suffix = "G";
+			suffix = " G";
 		} else if (value >= 1000000l) {
 			mult = 1000000l;
 			userValue = value / 1000000l;
-			suffix = "M";
+			suffix = " M";
 		} else if (value >= 1000l) {
 			mult = 1000l;
 			userValue = value / 1000l;
-			suffix = "k";
+			suffix = " k";
 		}
 
 		String deci = "";
