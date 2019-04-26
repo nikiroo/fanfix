@@ -386,7 +386,7 @@ public class BufferedInputStream extends InputStream {
 	}
 
 	// buffer must be > search
-	static private boolean startsWith(byte[] search, byte[] buffer, int offset) {
+	static protected boolean startsWith(byte[] search, byte[] buffer, int offset) {
 		boolean same = true;
 		for (int i = 0; i < search.length; i++) {
 			if (search[i] != buffer[offset + i]) {
