@@ -224,6 +224,9 @@ public class NextableInputStream extends InputStream {
 	/**
 	 * Check if this stream is totally spent (no more data to read or to
 	 * process).
+	 * <p>
+	 * Note: an empty stream that is still not started will return FALSE, as we
+	 * don't know yet if it is empty.
 	 * 
 	 * @return TRUE if it is
 	 */
@@ -264,10 +267,11 @@ public class NextableInputStream extends InputStream {
 		while (hasMoreData() && done < blen) {
 			preRead();
 			if (hasMoreData()) {
-				for (int i = pos; i < blen && i < len; i++) {
-					b[boff + done] = buffer[i];
-					pos++;
-					done++;
+				int now = Math.min(blen, len) - pos;
+				if (now > 0) {
+					System.arraycopy(buffer, pos, b, boff, now);
+					pos += now;
+					done += now;
 				}
 			}
 		}
@@ -494,8 +498,7 @@ public class NextableInputStream extends InputStream {
 	}
 
 	// buffer must be > search
-	static private boolean startsWith(byte[] search, byte[] buffer,
-			int offset) {
+	static private boolean startsWith(byte[] search, byte[] buffer, int offset) {
 		boolean same = true;
 		for (int i = 0; i < search.length; i++) {
 			if (search[i] != buffer[offset + i]) {
