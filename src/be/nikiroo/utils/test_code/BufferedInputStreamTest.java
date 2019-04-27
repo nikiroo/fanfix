@@ -8,7 +8,7 @@ import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.test.TestCase;
 import be.nikiroo.utils.test.TestLauncher;
 
-public class BufferedInputStreamTest extends TestLauncher {
+class BufferedInputStreamTest extends TestLauncher {
 	public BufferedInputStreamTest(String[] args) {
 		super("BufferedInputStream test", args);
 
@@ -39,8 +39,8 @@ public class BufferedInputStreamTest extends TestLauncher {
 				+ " resulting array has not the correct number of items",
 				expected.length, actual.length);
 		for (int i = 0; i < actual.length; i++) {
-			test.assertEquals("Item " + i + " (0-based) is not the same",
-					expected[i], actual[i]);
+			test.assertEquals(prefix + ": item " + i
+					+ " (0-based) is not the same", expected[i], actual[i]);
 		}
 	}
 }

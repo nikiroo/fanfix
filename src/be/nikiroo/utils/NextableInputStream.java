@@ -142,7 +142,7 @@ public class NextableInputStream extends BufferedInputStream {
 			return bufferChanged;
 		}
 
-		if (pos >= len) {
+		if (start >= stop) {
 			eof = true;
 		}
 
@@ -161,9 +161,9 @@ public class NextableInputStream extends BufferedInputStream {
 
 	/**
 	 * Check that the buffer didn't overshot to the next item, and fix
-	 * {@link NextableInputStream#len} if needed.
+	 * {@link NextableInputStream#stop} if needed.
 	 * <p>
-	 * If {@link NextableInputStream#len} is fixed,
+	 * If {@link NextableInputStream#stop} is fixed,
 	 * {@link NextableInputStream#eof} and {@link NextableInputStream#stopped}
 	 * are set to TRUE.
 	 * 
@@ -172,14 +172,14 @@ public class NextableInputStream extends BufferedInputStream {
 	 *            the {@link NextableInputStreamStep}
 	 */
 	private void checkBuffer(boolean newBuffer) {
-		if (step != null && len > 0) {
+		if (step != null && stop > 0) {
 			if (newBuffer) {
 				step.clearBuffer();
 			}
 
-			int stopAt = step.stop(buffer, pos, len);
+			int stopAt = step.stop(buffer, start, stop);
 			if (stopAt >= 0) {
-				len = stopAt;
+				stop = stopAt;
 				eof = true;
 				stopped = true;
 			}
@@ -214,8 +214,8 @@ public class NextableInputStream extends BufferedInputStream {
 		}
 
 		if (step != null && !hasMoreData() && stopped) {
-			len = step.getResumeLen();
-			pos += step.getResumeSkip();
+			stop = step.getResumeLen();
+			start += step.getResumeSkip();
 			eof = false;
 
 			if (all) {

@@ -15,9 +15,9 @@ import java.util.Arrays;
  */
 public class BufferedInputStream extends InputStream {
 	/** The current position in the buffer. */
-	protected int pos;
+	protected int start;
 	/** The index of the last usable position of the buffer. */
-	protected int len;
+	protected int stop;
 	/** The buffer itself. */
 	protected byte[] buffer;
 	/** An End-Of-File (or buffer, here) marker. */
@@ -47,8 +47,8 @@ public class BufferedInputStream extends InputStream {
 
 		this.buffer = new byte[4096];
 		this.originalBuffer = this.buffer;
-		this.pos = 0;
-		this.len = 0;
+		this.start = 0;
+		this.stop = 0;
 	}
 
 	/**
@@ -90,8 +90,8 @@ public class BufferedInputStream extends InputStream {
 
 		this.buffer = in;
 		this.originalBuffer = this.buffer;
-		this.pos = offset;
-		this.len = length;
+		this.start = offset;
+		this.stop = length;
 	}
 
 	/**
@@ -167,7 +167,7 @@ public class BufferedInputStream extends InputStream {
 
 		if (available() >= search.length) {
 			// Easy path
-			return startsWith(search, buffer, pos, len);
+			return startsWith(search, buffer, start, stop);
 		} else if (!eof) {
 			// Harder path
 			if (buffer2 == null && buffer.length == originalBuffer.length) {
@@ -205,7 +205,7 @@ public class BufferedInputStream extends InputStream {
 	 * @return TRUE if it is
 	 */
 	public boolean eof() {
-		return closed || (len < 0 && !hasMoreData());
+		return closed || (stop < 0 && !hasMoreData());
 	}
 
 	@Override
@@ -217,7 +217,7 @@ public class BufferedInputStream extends InputStream {
 			return -1;
 		}
 
-		return buffer[pos++];
+		return buffer[start++];
 	}
 
 	@Override
@@ -241,10 +241,10 @@ public class BufferedInputStream extends InputStream {
 		while (hasMoreData() && done < blen) {
 			preRead();
 			if (hasMoreData()) {
-				int now = Math.min(blen, len) - pos;
+				int now = Math.min(blen, stop) - start;
 				if (now > 0) {
-					System.arraycopy(buffer, pos, b, boff + done, now);
-					pos += now;
+					System.arraycopy(buffer, start, b, boff + done, now);
+					start += now;
 					done += now;
 				}
 			}
@@ -264,7 +264,7 @@ public class BufferedInputStream extends InputStream {
 			preRead();
 
 			long inBuffer = Math.min(n, available());
-			pos += inBuffer;
+			start += inBuffer;
 			n -= inBuffer;
 			skipped += inBuffer;
 		}
@@ -278,7 +278,7 @@ public class BufferedInputStream extends InputStream {
 			return 0;
 		}
 
-		return Math.max(0, len - pos);
+		return Math.max(0, stop - start);
 	}
 
 	/**
@@ -348,12 +348,12 @@ public class BufferedInputStream extends InputStream {
 	 */
 	protected boolean preRead() throws IOException {
 		boolean hasRead = false;
-		if (!eof && in != null && pos >= len) {
-			pos = 0;
+		if (!eof && in != null && start >= stop) {
+			start = 0;
 			if (buffer2 != null) {
 				buffer = buffer2;
-				pos = pos2;
-				len = len2;
+				start = pos2;
+				stop = len2;
 
 				buffer2 = null;
 				pos2 = 0;
@@ -361,16 +361,16 @@ public class BufferedInputStream extends InputStream {
 			} else {
 				buffer = originalBuffer;
 
-				len = read(in, buffer);
-				if (len > 0) {
-					bytesRead += len;
+				stop = read(in, buffer);
+				if (stop > 0) {
+					bytesRead += stop;
 				}
 			}
 
 			hasRead = true;
 		}
 
-		if (pos >= len) {
+		if (start >= stop) {
 			eof = true;
 		}
 
@@ -400,7 +400,7 @@ public class BufferedInputStream extends InputStream {
 	 * @return TRUE if it is the case, FALSE if not
 	 */
 	protected boolean hasMoreData() {
-		return !closed && !(eof && pos >= len);
+		return !closed && !(eof && start >= stop);
 	}
 
 	/**

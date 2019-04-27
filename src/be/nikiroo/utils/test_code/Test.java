@@ -36,6 +36,7 @@ public class Test extends TestLauncher {
 		addSeries(new BufferedInputStreamTest(args));
 		addSeries(new NextableInputStreamTest(args));
 		addSeries(new ReplaceInputStreamTest(args));
+		addSeries(new BufferedOutputStreamTest(args));
 
 		// TODO: test cache and downloader
 		Cache cache = null;
