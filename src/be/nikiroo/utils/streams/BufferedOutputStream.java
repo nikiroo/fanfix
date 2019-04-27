@@ -37,6 +37,7 @@ public class BufferedOutputStream extends OutputStream {
 
 	private boolean closed;
 	private int openCounter;
+	private byte[] b1;
 
 	/**
 	 * Create a new {@link BufferedInputStream} that wraps the given
@@ -49,19 +50,15 @@ public class BufferedOutputStream extends OutputStream {
 		this.out = out;
 
 		this.buffer = new byte[4096];
+		this.b1 = new byte[1];
 		this.start = 0;
 		this.stop = 0;
 	}
 
 	@Override
 	public void write(int b) throws IOException {
-		checkClose();
-
-		if (available() <= 0) {
-			flush(false);
-		}
-
-		buffer[start++] = (byte) b;
+		b1[0] = (byte) b;
+		write(b1, 0, 1);
 	}
 
 	@Override
@@ -86,7 +83,7 @@ public class BufferedOutputStream extends OutputStream {
 			return;
 		}
 
-		if (sourceLength >= buffer.length) {
+		if (bypassFlush && sourceLength >= buffer.length) {
 			/*
 			 * If the request length exceeds the size of the output buffer,
 			 * flush the output buffer and then write the data directly. In this
@@ -94,6 +91,7 @@ public class BufferedOutputStream extends OutputStream {
 			 */
 			flush(false);
 			out.write(source, sourceOffset, sourceLength);
+			bytesWritten += (sourceLength - sourceOffset);
 			return;
 		}
 
@@ -103,7 +101,7 @@ public class BufferedOutputStream extends OutputStream {
 				flush(false);
 			}
 
-			int now = Math.min(sourceLength, available());
+			int now = Math.min(sourceLength - done, available());
 			System.arraycopy(source, sourceOffset + done, buffer, stop, now);
 			stop += now;
 			done += now;
@@ -245,7 +243,7 @@ public class BufferedOutputStream extends OutputStream {
 				openCounter--;
 			} else {
 				closed = true;
-				flush(true);
+				flush(includingSubStream);
 				if (includingSubStream && out != null) {
 					out.close();
 				}

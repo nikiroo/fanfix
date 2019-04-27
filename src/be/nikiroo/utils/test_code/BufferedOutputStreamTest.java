@@ -1,6 +1,8 @@
 package be.nikiroo.utils.test_code;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import be.nikiroo.utils.streams.BufferedOutputStream;
 import be.nikiroo.utils.test.TestCase;
@@ -17,6 +19,24 @@ class BufferedOutputStreamTest extends TestLauncher {
 				BufferedOutputStream out = new BufferedOutputStream(bout);
 
 				byte[] data = new byte[] { 42, 12, 0, 127 };
+
+				out.write(data);
+				out.close();
+
+				checkArrays(this, "FIRST", bout, data);
+			}
+		});
+
+		addTest(new TestCase("Single write of 5000 bytes") {
+			@Override
+			public void test() throws Exception {
+				ByteArrayOutputStream bout = new ByteArrayOutputStream();
+				BufferedOutputStream out = new BufferedOutputStream(bout);
+
+				byte[] data = new byte[5000];
+				for (int i = 0; i < data.length; i++) {
+					data[i] = (byte) (i % 255);
+				}
 
 				out.write(data);
 				out.close();
@@ -43,6 +63,42 @@ class BufferedOutputStreamTest extends TestLauncher {
 				out.close();
 
 				checkArrays(this, "FIRST", bout, dataAll);
+			}
+		});
+
+		addTest(new TestCase("Multiple writes for a 5000 bytes total") {
+			@Override
+			public void test() throws Exception {
+				ByteArrayOutputStream bout = new ByteArrayOutputStream();
+				BufferedOutputStream out = new BufferedOutputStream(bout);
+
+				byte[] data = new byte[] { 42, 12, 0, 127, 51, 2, 32, 66, 7, 87 };
+
+				List<Byte> bytes = new ArrayList<Byte>();
+
+				// write 400 * 10 + 1000 bytes = 5000
+				for (int i = 0; i < 400; i++) {
+					for (int j = 0; j < data.length; j++) {
+						bytes.add(data[j]);
+					}
+					out.write(data);
+				}
+
+				for (int i = 0; i < 1000; i++) {
+					for (int j = 0; j < data.length; j++) {
+						bytes.add(data[j]);
+					}
+					out.write(data);
+				}
+
+				out.close();
+
+				byte[] abytes = new byte[bytes.size()];
+				for (int i = 0; i < bytes.size(); i++) {
+					abytes[i] = bytes.get(i);
+				}
+
+				checkArrays(this, "FIRST", bout, abytes);
 			}
 		});
 	}
