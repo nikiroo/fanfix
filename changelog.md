@@ -4,8 +4,10 @@
 
 - new: server: count the bytes we rec/send
 - new: CryptUtils
+- new: streams classes
 - fix: IOUtils.readSmallStream and \n at the end
 - change: serial: SSL -> CryptUtils
+- change: MarkableFileInputStream moved to nikiroo.utils.streams
 
 ## Version 4.7.2
 
