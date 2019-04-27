@@ -112,6 +112,20 @@ public class NextableInputStream extends BufferedInputStream {
 	}
 
 	/**
+	 * Check if this stream is totally spent (no more data to read or to
+	 * process).
+	 * <p>
+	 * Note: an empty stream that is still not started will return FALSE, as we
+	 * don't know yet if it is empty.
+	 * 
+	 * @return TRUE if it is
+	 */
+	@Override
+	public boolean eof() {
+		return super.eof();
+	}
+	
+	/**
 	 * Check if we still have some data in the buffer and, if not, fetch some.
 	 * 
 	 * @return TRUE if we fetched some data, FALSE if there are still some in

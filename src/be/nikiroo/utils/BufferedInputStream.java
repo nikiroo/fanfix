@@ -201,9 +201,6 @@ public class BufferedInputStream extends InputStream {
 	/**
 	 * Check if this stream is totally spent (no more data to read or to
 	 * process).
-	 * <p>
-	 * Note: an empty stream that is still not started will return FALSE, as we
-	 * don't know yet if it is empty.
 	 * 
 	 * @return TRUE if it is
 	 */
@@ -246,7 +243,7 @@ public class BufferedInputStream extends InputStream {
 			if (hasMoreData()) {
 				int now = Math.min(blen, len) - pos;
 				if (now > 0) {
-					System.arraycopy(buffer, pos, b, boff, now);
+					System.arraycopy(buffer, pos, b, boff + done, now);
 					pos += now;
 					done += now;
 				}
