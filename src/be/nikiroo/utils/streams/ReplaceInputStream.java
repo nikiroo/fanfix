@@ -2,11 +2,10 @@ package be.nikiroo.utils.streams;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 
 /**
- * This {@link InputStream} will replace some of its content by replacing it
- * with something else.
+ * This {@link InputStream} will change some of its content by replacing it with
+ * something else.
  * 
  * @author niki
  */
@@ -30,7 +29,7 @@ public class ReplaceInputStream extends BufferedInputStream {
 	 *            the {@link String} to replace with
 	 */
 	public ReplaceInputStream(InputStream in, String from, String to) {
-		this(in, bytes(from), bytes(to));
+		this(in, StreamUtils.bytes(from), StreamUtils.bytes(to));
 	}
 
 	/**
@@ -69,7 +68,8 @@ public class ReplaceInputStream extends BufferedInputStream {
 		// Note: very simple, not efficient implementation, sorry.
 		int count = 0;
 		while (spos < slen && count < buffer.length - to.length) {
-			if (from.length > 0 && startsWith(from, source, spos, slen)) {
+			if (from.length > 0
+					&& StreamUtils.startsWith(from, source, spos, slen)) {
 				System.arraycopy(to, 0, buffer, spos, to.length);
 				count += to.length;
 				spos += from.length;
@@ -79,23 +79,5 @@ public class ReplaceInputStream extends BufferedInputStream {
 		}
 
 		return count;
-	}
-
-	/**
-	 * Return the bytes array representation of the given {@link String} in
-	 * UTF-8.
-	 * 
-	 * @param str
-	 *            the string to transform into bytes
-	 * @return the content in bytes
-	 */
-	static private byte[] bytes(String str) {
-		try {
-			return str.getBytes("UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			// All conforming JVM must support UTF-8
-			e.printStackTrace();
-			return null;
-		}
 	}
 }

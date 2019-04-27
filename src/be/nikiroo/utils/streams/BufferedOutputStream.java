@@ -22,12 +22,21 @@ public class BufferedOutputStream extends OutputStream {
 	protected byte[] buffer;
 	/** An End-Of-File (or buffer, here) marker. */
 	protected boolean eof;
+	/** The actual under-laying stream. */
+	protected OutputStream out;
+	/** The number of bytes written to the under-laying stream. */
+	protected long bytesWritten;
+	/**
+	 * Can bypass the flush process for big writes (will directly write to the
+	 * under-laying buffer if the array to write is &gt; the internal buffer
+	 * size).
+	 * <p>
+	 * By default, this is true.
+	 */
+	protected boolean bypassFlush = true;
 
 	private boolean closed;
-	private OutputStream out;
 	private int openCounter;
-
-	private long bytesWritten;
 
 	/**
 	 * Create a new {@link BufferedInputStream} that wraps the given
@@ -165,19 +174,23 @@ public class BufferedOutputStream extends OutputStream {
 	}
 
 	/**
-	 * Flush the {@link BufferedOutputStream}, and optionally the under-laying
-	 * stream, too.
+	 * Flush the {@link BufferedOutputStream}, write the current buffered data
+	 * to (and optionally also flush) the under-laying stream.
+	 * <p>
+	 * If {@link BufferedOutputStream#bypassFlush} is false, all writes to the
+	 * under-laying stream are done in this method.
 	 * 
 	 * @param includingSubStream
 	 *            also flush the under-laying stream
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	private void flush(boolean includingSubStream) throws IOException {
+	protected void flush(boolean includingSubStream) throws IOException {
 		out.write(buffer, start, stop - start);
 		bytesWritten += (stop - start);
 		start = 0;
 		stop = 0;
+
 		if (includingSubStream) {
 			out.flush();
 		}

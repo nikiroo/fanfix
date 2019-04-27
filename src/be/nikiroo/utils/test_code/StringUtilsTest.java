@@ -238,7 +238,7 @@ class StringUtilsTest extends TestLauncher {
 				assertEquals(21200l, StringUtils.toNumber("21200"));
 				assertEquals(0l, StringUtils.toNumber("0"));
 				assertEquals("263", StringUtils.formatNumber(263l));
-				assertEquals("21k", StringUtils.formatNumber(21000l));
+				assertEquals("21 k", StringUtils.formatNumber(21000l));
 				assertEquals("0", StringUtils.formatNumber(0l));
 			}
 		});
@@ -246,31 +246,31 @@ class StringUtilsTest extends TestLauncher {
 		addTest(new TestCase("format/toNumber not 000") {
 			@Override
 			public void test() throws Exception {
-				assertEquals(263200l, StringUtils.toNumber("263.2k"));
-				assertEquals(42000l, StringUtils.toNumber("42.0k"));
-				assertEquals(12000000l, StringUtils.toNumber("12M"));
-				assertEquals(2000000000l, StringUtils.toNumber("2G"));
-				assertEquals("263k", StringUtils.formatNumber(263012l));
-				assertEquals("42k", StringUtils.formatNumber(42012l));
-				assertEquals("12M", StringUtils.formatNumber(12012121l));
-				assertEquals("7G", StringUtils.formatNumber(7364635928l));
+				assertEquals(263200l, StringUtils.toNumber("263.2 k"));
+				assertEquals(42000l, StringUtils.toNumber("42.0 k"));
+				assertEquals(12000000l, StringUtils.toNumber("12 M"));
+				assertEquals(2000000000l, StringUtils.toNumber("2 G"));
+				assertEquals("263 k", StringUtils.formatNumber(263012l));
+				assertEquals("42 k", StringUtils.formatNumber(42012l));
+				assertEquals("12 M", StringUtils.formatNumber(12012121l));
+				assertEquals("7 G", StringUtils.formatNumber(7364635928l));
 			}
 		});
 
 		addTest(new TestCase("format/toNumber decimals") {
 			@Override
 			public void test() throws Exception {
-				assertEquals(263200l, StringUtils.toNumber("263.2k"));
-				assertEquals(1200l, StringUtils.toNumber("1.2k"));
-				assertEquals(42700000l, StringUtils.toNumber("42.7M"));
-				assertEquals(1220l, StringUtils.toNumber("1.22k"));
-				assertEquals(1432l, StringUtils.toNumber("1.432k"));
-				assertEquals(6938l, StringUtils.toNumber("6.938k"));
-				assertEquals("1.3k", StringUtils.formatNumber(1300l, 1));
-				assertEquals("263.2020k", StringUtils.formatNumber(263202l, 4));
-				assertEquals("1.26k", StringUtils.formatNumber(1267l, 2));
-				assertEquals("42.7M", StringUtils.formatNumber(42712121l, 1));
-				assertEquals("5.09G", StringUtils.formatNumber(5094837485l, 2));
+				assertEquals(263200l, StringUtils.toNumber("263.2 k"));
+				assertEquals(1200l, StringUtils.toNumber("1.2 k"));
+				assertEquals(42700000l, StringUtils.toNumber("42.7 M"));
+				assertEquals(1220l, StringUtils.toNumber("1.22 k"));
+				assertEquals(1432l, StringUtils.toNumber("1.432 k"));
+				assertEquals(6938l, StringUtils.toNumber("6.938 k"));
+				assertEquals("1.3 k", StringUtils.formatNumber(1300l, 1));
+				assertEquals("263.2020 k", StringUtils.formatNumber(263202l, 4));
+				assertEquals("1.26 k", StringUtils.formatNumber(1267l, 2));
+				assertEquals("42.7 M", StringUtils.formatNumber(42712121l, 1));
+				assertEquals("5.09 G", StringUtils.formatNumber(5094837485l, 2));
 			}
 		});
 	}

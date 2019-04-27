@@ -167,7 +167,7 @@ public class BufferedInputStream extends InputStream {
 
 		if (available() >= search.length) {
 			// Easy path
-			return startsWith(search, buffer, start, stop);
+			return StreamUtils.startsWith(search, buffer, start, stop);
 		} else if (!eof) {
 			// Harder path
 			if (buffer2 == null && buffer.length == originalBuffer.length) {
@@ -183,7 +183,7 @@ public class BufferedInputStream extends InputStream {
 				len2 += pos2;
 			}
 
-			return startsWith(search, buffer2, pos2, len2);
+			return StreamUtils.startsWith(search, buffer2, pos2, len2);
 		}
 
 		return false;
@@ -415,47 +415,5 @@ public class BufferedInputStream extends InputStream {
 			throw new IOException(
 					"This BufferedInputStream was closed, you cannot use it anymore.");
 		}
-	}
-
-	/**
-	 * Check if the buffer starts with the given search term (given as an array,
-	 * a start position and a end position).
-	 * <p>
-	 * Note: the parameter <tt>len</tt> is the <b>index</b> of the last
-	 * position, <b>not</b> the length.
-	 * <p>
-	 * Note: the search term size <b>must</b> be smaller or equal the internal
-	 * buffer size.
-	 * 
-	 * @param search
-	 *            the term to search for
-	 * @param buffer
-	 *            the buffer to look into
-	 * @param offset
-	 *            the offset at which to start the search
-	 * @param len
-	 *            the maximum index of the data to check (this is <b>not</b> a
-	 *            length, but an index)
-	 * 
-	 * @return TRUE if the search content is present at the given location and
-	 *         does not exceed the <tt>len</tt> index
-	 */
-	static protected boolean startsWith(byte[] search, byte[] buffer,
-			int offset, int len) {
-
-		// Check if there even is enough space for it
-		if (search.length > (len - offset)) {
-			return false;
-		}
-
-		boolean same = true;
-		for (int i = 0; i < search.length; i++) {
-			if (search[i] != buffer[offset + i]) {
-				same = false;
-				break;
-			}
-		}
-
-		return same;
 	}
 }

@@ -53,7 +53,7 @@ class BufferedOutputStreamTest extends TestLauncher {
 
 		if (false) {
 			System.out.print("\nExpected data: [ ");
-			for (int i = 0; i < actual.length; i++) {
+			for (int i = 0; i < expected.length; i++) {
 				if (i > 0)
 					System.out.print(", ");
 				System.out.print(expected[i]);
