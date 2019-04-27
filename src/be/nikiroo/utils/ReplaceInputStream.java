@@ -69,7 +69,7 @@ public class ReplaceInputStream extends BufferedInputStream {
 		// Note: very simple, not efficient implementation, sorry.
 		int count = 0;
 		while (spos < slen && count < buffer.length - to.length) {
-			if (from.length > 0 && startsWith(from, source, spos)) {
+			if (from.length > 0 && startsWith(from, source, spos, slen)) {
 				System.arraycopy(to, 0, buffer, spos, to.length);
 				count += to.length;
 				spos += from.length;
