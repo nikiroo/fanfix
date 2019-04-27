@@ -10,8 +10,8 @@ import java.io.OutputStream;
  * @author niki
  */
 public class ReplaceOutputStream extends BufferedOutputStream {
-	private byte[] from;
-	private byte[] to;
+	private byte[][] froms;
+	private byte[][] tos;
 
 	/**
 	 * Create a {@link ReplaceOutputStream} that will replace <tt>from</tt> with
@@ -40,23 +40,76 @@ public class ReplaceOutputStream extends BufferedOutputStream {
 	 *            the value to replace with
 	 */
 	public ReplaceOutputStream(OutputStream out, byte[] from, byte[] to) {
+		this(out, new byte[][] { from }, new byte[][] { to });
+	}
+
+	/**
+	 * Create a {@link ReplaceOutputStream} that will replace all <tt>froms</tt>
+	 * with <tt>tos</tt>.
+	 * <p>
+	 * Note that they will be replaced in order, and that for each <tt>from</tt>
+	 * a <tt>to</tt> must correspond.
+	 * 
+	 * @param out
+	 *            the under-laying {@link OutputStream}
+	 * @param froms
+	 *            the values to replace
+	 * @param tos
+	 *            the values to replace with
+	 */
+	public ReplaceOutputStream(OutputStream out, String[] froms, String[] tos) {
+		this(out, StreamUtils.bytes(froms), StreamUtils.bytes(tos));
+	}
+
+	/**
+	 * Create a {@link ReplaceOutputStream} that will replace all <tt>froms</tt>
+	 * with <tt>tos</tt>.
+	 * <p>
+	 * Note that they will be replaced in order, and that for each <tt>from</tt>
+	 * a <tt>to</tt> must correspond.
+	 * 
+	 * @param out
+	 *            the under-laying {@link OutputStream}
+	 * @param froms
+	 *            the values to replace
+	 * @param tos
+	 *            the values to replace with
+	 */
+	public ReplaceOutputStream(OutputStream out, byte[][] froms, byte[][] tos) {
 		super(out);
 		bypassFlush = false;
 
-		this.from = from;
-		this.to = to;
+		if (froms.length != tos.length) {
+			throw new IllegalArgumentException(
+					"For replacing, each FROM must have a corresponding TO");
+		}
+
+		this.froms = froms;
+		this.tos = tos;
 	}
 
 	@Override
 	protected void flush(boolean includingSubStream) throws IOException {
 		// Note: very simple, not efficient implementation, sorry.
 		while (start < stop) {
-			if (from.length > 0
-					&& StreamUtils.startsWith(from, buffer, start, stop)) {
-				out.write(to);
-				bytesWritten += to.length;
-				start += from.length;
-			} else {
+			boolean replaced = false;
+			for (int i = 0; i < froms.length; i++) {
+				if (froms[i] != null
+						&& froms[i].length > 0
+						&& StreamUtils
+								.startsWith(froms[i], buffer, start, stop)) {
+					if (tos[i] != null && tos[i].length > 0) {
+						out.write(tos[i]);
+						bytesWritten += tos[i].length;
+					}
+
+					start += froms[i].length;
+					replaced = true;
+					break;
+				}
+			}
+
+			if (!replaced) {
 				out.write(buffer[start++]);
 				bytesWritten++;
 			}

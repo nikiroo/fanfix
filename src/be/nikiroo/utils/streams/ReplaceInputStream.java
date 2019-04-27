@@ -10,8 +10,9 @@ import java.io.InputStream;
  * @author niki
  */
 public class ReplaceInputStream extends BufferedInputStream {
-	private byte[] from;
-	private byte[] to;
+	private byte[][] froms;
+	private byte[][] tos;
+	private int maxToSize;
 
 	private byte[] source;
 	private int spos;
@@ -44,9 +45,55 @@ public class ReplaceInputStream extends BufferedInputStream {
 	 *            the value to replace with
 	 */
 	public ReplaceInputStream(InputStream in, byte[] from, byte[] to) {
+		this(in, new byte[][] { from }, new byte[][] { to });
+	}
+
+	/**
+	 * Create a {@link ReplaceInputStream} that will replace all <tt>froms</tt>
+	 * with <tt>tos</tt>.
+	 * <p>
+	 * Note that they will be replaced in order, and that for each <tt>from</tt>
+	 * a <tt>to</tt> must correspond.
+	 * 
+	 * @param in
+	 *            the under-laying {@link InputStream}
+	 * @param froms
+	 *            the values to replace
+	 * @param tos
+	 *            the values to replace with
+	 */
+	public ReplaceInputStream(InputStream in, String[] froms, String[] tos) {
+		this(in, StreamUtils.bytes(froms), StreamUtils.bytes(tos));
+	}
+
+	/**
+	 * Create a {@link ReplaceInputStream} that will replace all <tt>froms</tt>
+	 * with <tt>tos</tt>.
+	 * <p>
+	 * Note that they will be replaced in order, and that for each <tt>from</tt>
+	 * a <tt>to</tt> must correspond.
+	 * 
+	 * @param in
+	 *            the under-laying {@link InputStream}
+	 * @param froms
+	 *            the values to replace
+	 * @param tos
+	 *            the values to replace with
+	 */
+	public ReplaceInputStream(InputStream in, byte[][] froms, byte[][] tos) {
 		super(in);
-		this.from = from;
-		this.to = to;
+
+		if (froms.length != tos.length) {
+			throw new IllegalArgumentException(
+					"For replacing, each FROM must have a corresponding TO");
+		}
+
+		this.froms = froms;
+		this.tos = tos;
+
+		for (int i = 0; i < tos.length; i++) {
+			maxToSize = Math.max(maxToSize, tos[i].length);
+		}
 
 		source = new byte[4096];
 		spos = 0;
@@ -55,9 +102,9 @@ public class ReplaceInputStream extends BufferedInputStream {
 
 	@Override
 	protected int read(InputStream in, byte[] buffer) throws IOException {
-		if (buffer.length < to.length || source.length < to.length * 2) {
+		if (buffer.length < maxToSize || source.length < maxToSize * 2) {
 			throw new IOException(
-					"An underlaying buffer is too small for this replace value");
+					"An underlaying buffer is too small for these replace values");
 		}
 
 		if (spos >= slen) {
@@ -67,13 +114,23 @@ public class ReplaceInputStream extends BufferedInputStream {
 
 		// Note: very simple, not efficient implementation, sorry.
 		int count = 0;
-		while (spos < slen && count < buffer.length - to.length) {
-			if (from.length > 0
-					&& StreamUtils.startsWith(from, source, spos, slen)) {
-				System.arraycopy(to, 0, buffer, spos, to.length);
-				count += to.length;
-				spos += from.length;
-			} else {
+		while (spos < slen && count < buffer.length - maxToSize) {
+			boolean replaced = false;
+			for (int i = 0; i < froms.length; i++) {
+				if (froms[i] != null && froms[i].length > 0
+						&& StreamUtils.startsWith(froms[i], source, spos, slen)) {
+					if (tos[i] != null && tos[i].length > 0) {
+						System.arraycopy(tos[i], 0, buffer, spos, tos[i].length);
+						count += tos[i].length;
+					}
+
+					spos += froms[i].length;
+					replaced = true;
+					break;
+				}
+			}
+
+			if (!replaced) {
 				buffer[count++] = source[spos++];
 			}
 		}
