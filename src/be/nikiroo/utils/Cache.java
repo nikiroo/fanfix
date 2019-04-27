@@ -8,6 +8,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Date;
 
+import be.nikiroo.utils.streams.MarkableFileInputStream;
+
 /**
  * A generic cache system, with special support for {@link URL}s.
  * <p>

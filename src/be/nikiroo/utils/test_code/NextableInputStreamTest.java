@@ -4,8 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import be.nikiroo.utils.IOUtils;
-import be.nikiroo.utils.NextableInputStream;
-import be.nikiroo.utils.NextableInputStreamStep;
+import be.nikiroo.utils.streams.NextableInputStream;
+import be.nikiroo.utils.streams.NextableInputStreamStep;
 import be.nikiroo.utils.test.TestCase;
 import be.nikiroo.utils.test.TestLauncher;
 

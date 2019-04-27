@@ -2,7 +2,7 @@ package be.nikiroo.utils.test_code;
 
 import java.io.ByteArrayOutputStream;
 
-import be.nikiroo.utils.BufferedOutputStream;
+import be.nikiroo.utils.streams.BufferedOutputStream;
 import be.nikiroo.utils.test.TestCase;
 import be.nikiroo.utils.test.TestLauncher;
 

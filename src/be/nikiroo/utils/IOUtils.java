@@ -13,6 +13,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import be.nikiroo.utils.streams.MarkableFileInputStream;
+
 /**
  * This class offer some utilities based around Streams and Files.
  * 

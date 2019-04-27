@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import be.nikiroo.utils.IOUtils;
-import be.nikiroo.utils.ReplaceInputStream;
+import be.nikiroo.utils.streams.ReplaceInputStream;
 import be.nikiroo.utils.test.TestCase;
 import be.nikiroo.utils.test.TestLauncher;
 

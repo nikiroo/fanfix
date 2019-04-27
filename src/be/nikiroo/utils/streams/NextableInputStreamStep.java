@@ -1,4 +1,4 @@
-package be.nikiroo.utils;
+package be.nikiroo.utils.streams;
 
 import java.io.InputStream;
 
