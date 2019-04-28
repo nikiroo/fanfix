@@ -136,7 +136,7 @@ class CryptUtilsTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				InputStream in = new ByteArrayInputStream(new byte[] {42, 127, 12});
-				crypt.encryptInputStream(in);
+				crypt.encrypt(in);
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				IOUtils.write(in, out);
 				byte[] result = out.toByteArray();

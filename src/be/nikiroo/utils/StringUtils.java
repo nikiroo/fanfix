@@ -21,6 +21,9 @@ import org.unbescape.html.HtmlEscape;
 import org.unbescape.html.HtmlEscapeLevel;
 import org.unbescape.html.HtmlEscapeType;
 
+import be.nikiroo.utils.streams.Base64InputStream;
+import be.nikiroo.utils.streams.Base64OutputStream;
+
 /**
  * This class offer some utilities based around {@link String}s.
  * 
@@ -604,12 +607,11 @@ public class StringUtils {
 	 * @throws IOException
 	 *             in case of I/O errors
 	 */
+	@Deprecated
 	public static OutputStream base64(OutputStream data, boolean zip,
 			boolean breakLines) throws IOException {
-		OutputStream out = new Base64.OutputStream(data,
-				breakLines ? Base64.DO_BREAK_LINES & Base64.ENCODE
-						: Base64.ENCODE);
-
+		OutputStream out = new Base64OutputStream(data, true);
+		
 		if (zip) {
 			out = new java.util.zip.GZIPOutputStream(out);
 		}
@@ -634,14 +636,14 @@ public class StringUtils {
 	 * @throws IOException
 	 *             in case of I/O errors
 	 */
+	@Deprecated
 	public static InputStream base64(InputStream data, boolean zip,
 			boolean breakLines) throws IOException {
 		if (zip) {
 			data = new java.util.zip.GZIPInputStream(data);
 		}
 
-		return new Base64.InputStream(data, breakLines ? Base64.DO_BREAK_LINES
-				& Base64.ENCODE : Base64.ENCODE);
+		return new Base64InputStream(data, true);
 	}
 
 	/**
@@ -682,9 +684,11 @@ public class StringUtils {
 	 * @throws IOException
 	 *             in case of I/O errors
 	 */
+	@Deprecated
 	public static OutputStream unbase64(OutputStream data, boolean zip)
 			throws IOException {
-		OutputStream out = new Base64.OutputStream(data, Base64.DECODE);
+		OutputStream out = new Base64OutputStream(data, false);
+		
 
 		if (zip) {
 			out = new java.util.zip.GZIPOutputStream(out);
@@ -708,13 +712,14 @@ public class StringUtils {
 	 * @throws IOException
 	 *             in case of I/O errors
 	 */
+	@Deprecated
 	public static InputStream unbase64(InputStream data, boolean zip)
 			throws IOException {
 		if (zip) {
 			data = new java.util.zip.GZIPInputStream(data);
 		}
 
-		return new Base64.InputStream(data, Base64.DECODE);
+		return new Base64InputStream(data, false);
 	}
 
 	/**
