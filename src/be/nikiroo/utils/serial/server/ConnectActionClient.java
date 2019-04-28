@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import be.nikiroo.utils.Version;
-
 /**
  * Base class used for the client basic handling.
  * <p>
@@ -23,22 +21,7 @@ abstract class ConnectActionClient {
 	protected ConnectAction action;
 
 	/**
-	 * Create a new {@link ConnectActionClient} with the current application
-	 * version (see {@link Version#getCurrentVersion()}) as the client version.
-	 * 
-	 * @param s
-	 *            the socket to bind to
-	 * @param key
-	 *            an optional key to encrypt all the communications (if NULL,
-	 *            everything will be sent in clear text)
-	 */
-	public ConnectActionClient(Socket s, String key) {
-		this(s, key, Version.getCurrentVersion());
-	}
-
-	/**
-	 * Create a new {@link ConnectActionClient} with the current application
-	 * version (see {@link Version#getCurrentVersion()}) as the client version.
+	 * Create a new {@link ConnectActionClient}.
 	 * 
 	 * @param host
 	 *            the host to bind to
@@ -58,33 +41,7 @@ abstract class ConnectActionClient {
 	 */
 	public ConnectActionClient(String host, int port, String key)
 			throws IOException {
-		this(new Socket(host, port), key, Version.getCurrentVersion());
-	}
-
-	/**
-	 * Create a new {@link ConnectActionClient}.
-	 * 
-	 * @param host
-	 *            the host to bind to
-	 * @param port
-	 *            the port to bind to
-	 * @param key
-	 *            an optional key to encrypt all the communications (if NULL,
-	 *            everything will be sent in clear text)
-	 * @param version
-	 *            the client version
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 * @throws UnknownHostException
-	 *             if the host is not known
-	 * @throws IllegalArgumentException
-	 *             if the port parameter is outside the specified range of valid
-	 *             port values, which is between 0 and 65535, inclusive
-	 */
-	public ConnectActionClient(String host, int port, String key,
-			Version version) throws IOException {
-		this(new Socket(host, port), key, version);
+		this(new Socket(host, port), key);
 	}
 
 	/**
@@ -95,26 +52,17 @@ abstract class ConnectActionClient {
 	 * @param key
 	 *            an optional key to encrypt all the communications (if NULL,
 	 *            everything will be sent in clear text)
-	 * @param version
-	 *            the client version
 	 */
-	public ConnectActionClient(Socket s, String key, Version version) {
-		action = new ConnectAction(s, false, key, version) {
+	public ConnectActionClient(Socket s, String key) {
+		action = new ConnectAction(s, false, key) {
 			@Override
-			protected void action(Version serverVersion) throws Exception {
-				ConnectActionClient.this.action(serverVersion);
+			protected void action() throws Exception {
+				ConnectActionClient.this.action();
 			}
 
 			@Override
 			protected void onError(Exception e) {
 				ConnectActionClient.this.onError(e);
-			}
-
-			@Override
-			protected Version negotiateVersion(Version clientVersion) {
-				new Exception("Should never be called on a client")
-						.printStackTrace();
-				return null;
 			}
 		};
 	}
@@ -141,14 +89,11 @@ abstract class ConnectActionClient {
 	/**
 	 * Method that will be called when an action is performed on the client.
 	 * 
-	 * @param serverVersion
-	 *            the server version
-	 * 
 	 * @throws Exception
 	 *             in case of I/O error
 	 */
 	@SuppressWarnings("unused")
-	public void action(Version serverVersion) throws Exception {
+	public void action() throws Exception {
 	}
 
 	/**

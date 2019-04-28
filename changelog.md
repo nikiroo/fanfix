@@ -6,8 +6,10 @@
 - new: CryptUtils
 - new: streams classes
 - fix: IOUtils.readSmallStream and \n at the end
+- fix: Base64 implementation changed
 - change: serial: SSL -> CryptUtils
 - change: MarkableFileInputStream moved to nikiroo.utils.streams
+- change: Break compat with package utils.server (Version not used anymore)
 
 ## Version 4.7.2
 

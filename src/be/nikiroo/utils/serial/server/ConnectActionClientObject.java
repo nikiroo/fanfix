@@ -57,47 +57,6 @@ public class ConnectActionClientObject extends ConnectActionClient {
 	}
 
 	/**
-	 * Create a new {@link ConnectActionClientObject}.
-	 * 
-	 * @param host
-	 *            the host to bind to
-	 * @param port
-	 *            the port to bind to
-	 * @param key
-	 *            an optional key to encrypt all the communications (if NULL,
-	 *            everything will be sent in clear text)
-	 * @param version
-	 *            the client version
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 * @throws UnknownHostException
-	 *             if the IP address of the host could not be determined
-	 * @throws IllegalArgumentException
-	 *             if the port parameter is outside the specified range of valid
-	 *             port values, which is between 0 and 65535, inclusive
-	 */
-	public ConnectActionClientObject(String host, int port, String key,
-			Version version) throws IOException {
-		super(host, port, key, version);
-	}
-
-	/**
-	 * Create a new {@link ConnectActionClientObject}.
-	 * 
-	 * @param s
-	 *            the socket to bind to
-	 * @param version
-	 *            the client version
-	 * @param key
-	 *            an optional key to encrypt all the communications (if NULL,
-	 *            everything will be sent in clear text)
-	 */
-	public ConnectActionClientObject(Socket s, String key, Version version) {
-		super(s, key, version);
-	}
-
-	/**
 	 * Serialise and send the given object to the server (and return the
 	 * deserialised answer).
 	 * 

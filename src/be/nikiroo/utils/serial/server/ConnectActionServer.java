@@ -2,8 +2,6 @@ package be.nikiroo.utils.serial.server;
 
 import java.net.Socket;
 
-import be.nikiroo.utils.Version;
-
 /**
  * Base class used for the server basic handling.
  * <p>
@@ -23,8 +21,7 @@ abstract class ConnectActionServer {
 	protected ConnectAction action;
 
 	/**
-	 * Create a new {@link ConnectActionServer} with the current application
-	 * version (see {@link Version#getCurrentVersion()}) as the server version.
+	 * Create a new {@link ConnectActionServer}.
 	 * 
 	 * @param s
 	 *            the socket to bind to
@@ -33,35 +30,15 @@ abstract class ConnectActionServer {
 	 *            everything will be sent in clear text)
 	 */
 	public ConnectActionServer(Socket s, String key) {
-		this(s, key, Version.getCurrentVersion());
-	}
-
-	/**
-	 * Create a new {@link ConnectActionServer}.
-	 * 
-	 * @param s
-	 *            the socket to bind to
-	 * @param key
-	 *            an optional key to encrypt all the communications (if NULL,
-	 *            everything will be sent in clear text)
-	 * @param version
-	 *            the server version
-	 */
-	public ConnectActionServer(Socket s, String key, Version version) {
-		action = new ConnectAction(s, true, key, version) {
+		action = new ConnectAction(s, true, key) {
 			@Override
-			protected void action(Version clientVersion) throws Exception {
-				ConnectActionServer.this.action(clientVersion);
+			protected void action() throws Exception {
+				ConnectActionServer.this.action();
 			}
 
 			@Override
 			protected void onError(Exception e) {
 				ConnectActionServer.this.onError(e);
-			}
-
-			@Override
-			protected Version negotiateVersion(Version clientVersion) {
-				return ConnectActionServer.this.negotiateVersion(clientVersion);
 			}
 		};
 	}
@@ -128,20 +105,17 @@ abstract class ConnectActionServer {
 	 * @return the amount of bytes sent
 	 */
 	public long getBytesSent() {
-		return action.getBytesSent();
+		return action.getBytesWritten();
 	}
 
 	/**
 	 * Method that will be called when an action is performed on the server.
 	 * 
-	 * @param clientVersion
-	 *            the client version
-	 * 
 	 * @throws Exception
 	 *             in case of I/O error
 	 */
 	@SuppressWarnings("unused")
-	public void action(Version clientVersion) throws Exception {
+	public void action() throws Exception {
 	}
 
 	/**
@@ -153,20 +127,5 @@ abstract class ConnectActionServer {
 	 *            the exception that occurred
 	 */
 	protected void onError(@SuppressWarnings("unused") Exception e) {
-	}
-
-	/**
-	 * Method called when we negotiate the version with the client.
-	 * <p>
-	 * Will return the actual server version by default.
-	 * 
-	 * @param clientVersion
-	 *            the client version
-	 * 
-	 * @return the version to send to the client
-	 */
-	protected Version negotiateVersion(
-			@SuppressWarnings("unused") Version clientVersion) {
-		return action.getVersion();
 	}
 }

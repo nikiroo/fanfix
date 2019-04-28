@@ -30,21 +30,6 @@ public class ConnectActionServerString extends ConnectActionServer {
 	}
 
 	/**
-	 * Create a new {@link ConnectActionServerString}.
-	 * 
-	 * @param s
-	 *            the socket to bind to
-	 * @param key
-	 *            an optional key to encrypt all the communications (if NULL,
-	 *            everything will be sent in clear text)
-	 * @param version
-	 *            the server version
-	 */
-	public ConnectActionServerString(Socket s, String key, Version version) {
-		super(s, key, version);
-	}
-
-	/**
 	 * Serialise and send the given object to the client.
 	 * 
 	 * @param data

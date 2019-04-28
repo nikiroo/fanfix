@@ -2,7 +2,6 @@ package be.nikiroo.utils.test_code;
 
 import java.net.URL;
 
-import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.server.ConnectActionClientObject;
 import be.nikiroo.utils.serial.server.ConnectActionClientString;
 import be.nikiroo.utils.serial.server.ConnectActionServerObject;
@@ -17,8 +16,8 @@ class SerialServerTest extends TestLauncher {
 	public SerialServerTest(String[] args) {
 		super("SerialServer test", args);
 
-		for (String key : new String[] { null, "",
-				"some real key with a few bytes in it" }) {
+		for (String key : new String[] { null,
+				"some super secret encryption key" }) {
 			for (boolean bridge : new Boolean[] { false, true }) {
 				final String skey = (key != null ? "(encrypted)"
 						: "(plain text)");
@@ -52,8 +51,7 @@ class SerialServerTest extends TestLauncher {
 				ServerString server = new ServerString(this.getName(), 0, key) {
 					@Override
 					protected String onRequest(
-							ConnectActionServerString action,
-							Version clientVersion, String data)
+							ConnectActionServerString action, String data)
 							throws Exception {
 						return null;
 					}
@@ -85,8 +83,7 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientObject(null, port, key) {
 							@Override
-							public void action(Version serverVersion)
-									throws Exception {
+							public void action() throws Exception {
 								rec[0] = "ok";
 							}
 						}.connect();
@@ -114,8 +111,7 @@ class SerialServerTest extends TestLauncher {
 				ServerString server = new ServerString(this.getName(), 0, key) {
 					@Override
 					protected String onRequest(
-							ConnectActionServerString action,
-							Version clientVersion, String data)
+							ConnectActionServerString action, String data)
 							throws Exception {
 						sent[0] = data;
 						return "pong";
@@ -143,8 +139,7 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientString(null, port, key) {
 							@Override
-							public void action(Version serverVersion)
-									throws Exception {
+							public void action() throws Exception {
 								recd[0] = send("ping");
 							}
 						}.connect();
@@ -158,7 +153,8 @@ class SerialServerTest extends TestLauncher {
 				}
 
 				if (err[0] != null) {
-					fail("An exception was thrown: " + err[0].getMessage());
+					fail("An exception was thrown: " + err[0].getMessage(),
+							err[0]);
 				}
 
 				assertEquals("ping", sent[0]);
@@ -176,8 +172,7 @@ class SerialServerTest extends TestLauncher {
 				ServerString server = new ServerString(this.getName(), 0, key) {
 					@Override
 					protected String onRequest(
-							ConnectActionServerString action,
-							Version clientVersion, String data)
+							ConnectActionServerString action, String data)
 							throws Exception {
 						sent[0] = data;
 						action.send("pong");
@@ -207,8 +202,7 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientString(null, port, key) {
 							@Override
-							public void action(Version serverVersion)
-									throws Exception {
+							public void action() throws Exception {
 								recd[0] = send("ping");
 								recd[1] = send("ping2");
 							}
@@ -223,7 +217,8 @@ class SerialServerTest extends TestLauncher {
 				}
 
 				if (err[0] != null) {
-					fail("An exception was thrown: " + err[0].getMessage());
+					fail("An exception was thrown: " + err[0].getMessage(),
+							err[0]);
 				}
 
 				assertEquals("ping", sent[0]);
@@ -243,8 +238,7 @@ class SerialServerTest extends TestLauncher {
 				ServerString server = new ServerString(this.getName(), 0, key) {
 					@Override
 					protected String onRequest(
-							ConnectActionServerString action,
-							Version clientVersion, String data)
+							ConnectActionServerString action, String data)
 							throws Exception {
 						sent[Integer.parseInt(data)] = data;
 						return "" + (Integer.parseInt(data) * 2);
@@ -272,8 +266,7 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientString(null, port, key) {
 							@Override
-							public void action(Version serverVersion)
-									throws Exception {
+							public void action() throws Exception {
 								for (int i = 0; i < 3; i++) {
 									recd[i] = send("" + i);
 								}
@@ -289,7 +282,8 @@ class SerialServerTest extends TestLauncher {
 				}
 
 				if (err[0] != null) {
-					fail("An exception was thrown: " + err[0].getMessage());
+					fail("An exception was thrown: " + err[0].getMessage(),
+							err[0]);
 				}
 
 				assertEquals("0", sent[0]);
@@ -316,8 +310,7 @@ class SerialServerTest extends TestLauncher {
 				ServerObject server = new ServerObject(this.getName(), 0, key) {
 					@Override
 					protected Object onRequest(
-							ConnectActionServerObject action,
-							Version clientVersion, Object data)
+							ConnectActionServerObject action, Object data)
 							throws Exception {
 						return null;
 					}
@@ -344,8 +337,7 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientObject(null, port, key) {
 							@Override
-							public void action(Version serverVersion)
-									throws Exception {
+							public void action() throws Exception {
 								rec[0] = true;
 							}
 
@@ -377,8 +369,7 @@ class SerialServerTest extends TestLauncher {
 				ServerObject server = new ServerObject(this.getName(), 0, key) {
 					@Override
 					protected Object onRequest(
-							ConnectActionServerObject action,
-							Version clientVersion, Object data)
+							ConnectActionServerObject action, Object data)
 							throws Exception {
 						sent[0] = data;
 						return "pong";
@@ -406,8 +397,7 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientObject(null, port, key) {
 							@Override
-							public void action(Version serverVersion)
-									throws Exception {
+							public void action() throws Exception {
 								recd[0] = send("ping");
 							}
 						}.connect();
@@ -421,7 +411,8 @@ class SerialServerTest extends TestLauncher {
 				}
 
 				if (err[0] != null) {
-					fail("An exception was thrown: " + err[0].getMessage());
+					fail("An exception was thrown: " + err[0].getMessage(),
+							err[0]);
 				}
 
 				assertEquals("ping", sent[0]);
@@ -439,8 +430,7 @@ class SerialServerTest extends TestLauncher {
 				ServerObject server = new ServerObject(this.getName(), 0, key) {
 					@Override
 					protected Object onRequest(
-							ConnectActionServerObject action,
-							Version clientVersion, Object data)
+							ConnectActionServerObject action, Object data)
 							throws Exception {
 						sent[0] = data;
 						action.send("pong");
@@ -470,8 +460,7 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientObject(null, port, key) {
 							@Override
-							public void action(Version serverVersion)
-									throws Exception {
+							public void action() throws Exception {
 								recd[0] = send("ping");
 								recd[1] = send("ping2");
 							}
@@ -486,7 +475,8 @@ class SerialServerTest extends TestLauncher {
 				}
 
 				if (err[0] != null) {
-					fail("An exception was thrown: " + err[0].getMessage());
+					fail("An exception was thrown: " + err[0].getMessage(),
+							err[0]);
 				}
 
 				assertEquals("ping", sent[0]);
@@ -506,8 +496,7 @@ class SerialServerTest extends TestLauncher {
 				ServerObject server = new ServerObject(this.getName(), 0, key) {
 					@Override
 					protected Object onRequest(
-							ConnectActionServerObject action,
-							Version clientVersion, Object data)
+							ConnectActionServerObject action, Object data)
 							throws Exception {
 						sent[0] = data;
 						return new Object[] { "ACK" };
@@ -535,8 +524,7 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientObject(null, port, key) {
 							@Override
-							public void action(Version serverVersion)
-									throws Exception {
+							public void action() throws Exception {
 								recd[0] = send(new Object[] {
 										"key",
 										new URL(
@@ -554,7 +542,8 @@ class SerialServerTest extends TestLauncher {
 				}
 
 				if (err[0] != null) {
-					fail("An exception was thrown: " + err[0].getMessage());
+					fail("An exception was thrown: " + err[0].getMessage(),
+							err[0]);
 				}
 
 				Object[] sento = (Object[]) (sent[0]);
@@ -578,8 +567,7 @@ class SerialServerTest extends TestLauncher {
 				ServerObject server = new ServerObject(this.getName(), 0, key) {
 					@Override
 					protected Object onRequest(
-							ConnectActionServerObject action,
-							Version clientVersion, Object data)
+							ConnectActionServerObject action, Object data)
 							throws Exception {
 						sent[(Integer) data] = data;
 						return ((Integer) data) * 2;
@@ -607,8 +595,7 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientObject(null, port, key) {
 							@Override
-							public void action(Version serverVersion)
-									throws Exception {
+							public void action() throws Exception {
 								for (int i = 0; i < 3; i++) {
 									recd[i] = send(i);
 								}
@@ -624,7 +611,8 @@ class SerialServerTest extends TestLauncher {
 				}
 
 				if (err[0] != null) {
-					fail("An exception was thrown: " + err[0].getMessage());
+					fail("An exception was thrown: " + err[0].getMessage(),
+							err[0]);
 				}
 
 				assertEquals(0, sent[0]);

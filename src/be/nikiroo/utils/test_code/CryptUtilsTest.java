@@ -135,15 +135,17 @@ class CryptUtilsTest extends TestLauncher {
 		addTest(new TestCase("Simple test") {
 			@Override
 			public void test() throws Exception {
-				InputStream in = new ByteArrayInputStream(new byte[] {42, 127, 12});
+				InputStream in = new ByteArrayInputStream(new byte[] { 42, 127,
+						12 });
 				crypt.encrypt(in);
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				IOUtils.write(in, out);
 				byte[] result = out.toByteArray();
-				
-				assertEquals("We wrote 3 bytes, we expected 3 bytes back but got: "
-						+ result.length, result.length, result.length);
-				
+
+				assertEquals(
+						"We wrote 3 bytes, we expected 3 bytes back but got: "
+								+ result.length, result.length, result.length);
+
 				assertEquals(42, result[0]);
 				assertEquals(127, result[1]);
 				assertEquals(12, result[2]);

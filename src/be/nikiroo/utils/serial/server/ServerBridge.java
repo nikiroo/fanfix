@@ -1,13 +1,14 @@
 package be.nikiroo.utils.serial.server;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.TraceHandler;
-import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.Importer;
 
 /**
@@ -123,25 +124,25 @@ public class ServerBridge extends Server {
 
 	@Override
 	protected ConnectActionServer createConnectActionServer(Socket s) {
+		// Bad impl, not up to date (should work, but not efficient)
 		return new ConnectActionServerString(s, key) {
 			@Override
-			public void action(final Version clientVersion) throws Exception {
-				onClientContact(clientVersion);
+			public void action() throws Exception {
+				onClientContact();
 				final ConnectActionServerString bridge = this;
 
 				try {
 					new ConnectActionClientString(forwardToHost, forwardToPort,
-							forwardToKey, clientVersion) {
+							forwardToKey) {
 						@Override
-						public void action(final Version serverVersion)
-								throws Exception {
-							onServerContact(serverVersion);
+						public void action() throws Exception {
+							onServerContact();
 
 							for (String fromClient = bridge.rec(); fromClient != null; fromClient = bridge
 									.rec()) {
-								onRec(clientVersion, fromClient);
+								onRec(fromClient);
 								String fromServer = send(fromClient);
-								onSend(serverVersion, fromServer);
+								onSend(fromServer);
 								bridge.send(fromServer);
 							}
 
@@ -163,48 +164,38 @@ public class ServerBridge extends Server {
 
 	/**
 	 * This is the method that is called each time a client contact us.
-	 * 
-	 * @param clientVersion
-	 *            the client version
 	 */
-	protected void onClientContact(Version clientVersion) {
-		getTraceHandler().trace(">>> CLIENT " + clientVersion);
+	protected void onClientContact() {
+		getTraceHandler().trace(">>> CLIENT ");
 	}
 
 	/**
 	 * This is the method that is called each time a client contact us.
-	 * 
-	 * @param serverVersion
-	 *            the server version
 	 */
-	protected void onServerContact(Version serverVersion) {
-		getTraceHandler().trace("<<< SERVER " + serverVersion);
+	protected void onServerContact() {
+		getTraceHandler().trace("<<< SERVER");
 		getTraceHandler().trace("");
 	}
 
 	/**
 	 * This is the method that is called each time a client contact us.
 	 * 
-	 * @param clientVersion
-	 *            the client version
 	 * @param data
 	 *            the data sent by the client
 	 */
-	protected void onRec(Version clientVersion, String data) {
-		trace(">>> CLIENT (" + clientVersion + ")", data);
+	protected void onRec(String data) {
+		trace(">>> CLIENT", data);
 	}
 
 	/**
 	 * This is the method that is called each time the forwarded server contact
 	 * us.
 	 * 
-	 * @param serverVersion
-	 *            the client version
 	 * @param data
 	 *            the data sent by the client
 	 */
-	protected void onSend(Version serverVersion, String data) {
-		trace("<<< SERVER (" + serverVersion + ")", data);
+	protected void onSend(String data) {
+		trace("<<< SERVER", data);
 	}
 
 	@Override
@@ -226,6 +217,7 @@ public class ServerBridge extends Server {
 	 *            the data to trace
 	 */
 	private void trace(String prefix, String data) {
+		// TODO: we convert to string and back
 		int size = data == null ? 0 : data.length();
 		String ssize = StringUtils.formatNumber(size) + "bytes";
 
@@ -241,22 +233,29 @@ public class ServerBridge extends Server {
 					}
 				}
 
-				Object obj = new Importer().read(data).getValue();
-				if (obj == null) {
-					getTraceHandler().trace("NULL", 2);
-					getTraceHandler().trace("NULL", 3);
-					getTraceHandler().trace("NULL", 4);
-				} else {
-					if (obj.getClass().isArray()) {
-						getTraceHandler().trace(
-								"(" + obj.getClass() + ") with "
-										+ Array.getLength(obj) + "element(s)",
-								3);
+				InputStream stream = new ByteArrayInputStream(
+						data.getBytes("UTF-8"));
+				try {
+					Object obj = new Importer().read(stream).getValue();
+					if (obj == null) {
+						getTraceHandler().trace("NULL", 2);
+						getTraceHandler().trace("NULL", 3);
+						getTraceHandler().trace("NULL", 4);
 					} else {
-						getTraceHandler().trace("(" + obj.getClass() + ")", 2);
+						if (obj.getClass().isArray()) {
+							getTraceHandler().trace(
+									"(" + obj.getClass() + ") with "
+											+ Array.getLength(obj)
+											+ "element(s)", 3);
+						} else {
+							getTraceHandler().trace("(" + obj.getClass() + ")",
+									2);
+						}
+						getTraceHandler().trace("" + obj.toString(), 3);
+						getTraceHandler().trace(data, 4);
 					}
-					getTraceHandler().trace("" + obj.toString(), 3);
-					getTraceHandler().trace(data, 4);
+				} finally {
+					stream.close();
 				}
 			} catch (NoSuchMethodException e) {
 				getTraceHandler().trace("(not an object)", 2);
