@@ -9,9 +9,10 @@ import java.io.InputStream;
  */
 public class NextableInputStreamStep {
 	private int stopAt;
-	private int resumeLen;
 	private int last = -1;
-	private int skip;
+	private int resumeLen;
+	private int resumeSkip;
+	private boolean resumeEof;
 
 	/**
 	 * Create a new divider that will separate the sub-streams each time it sees
@@ -43,17 +44,20 @@ public class NextableInputStreamStep {
 	 * @param len
 	 *            the maximum index to use in the buffer (anything above that is
 	 *            not to be used)
+	 * @param eof
+	 *            the current state of the under-laying stream
 	 * 
 	 * @return the index at which to stop, or -1
 	 */
-	public int stop(byte[] buffer, int pos, int len) {
+	public int stop(byte[] buffer, int pos, int len, boolean eof) {
 		for (int i = pos; i < len; i++) {
 			if (buffer[i] == stopAt) {
 				if (i > this.last) {
 					// we skip the sep
-					this.skip = 1;
+					this.resumeSkip = 1;
 
 					this.resumeLen = len;
+					this.resumeEof = eof;
 					this.last = i;
 					return i;
 				}
@@ -65,7 +69,8 @@ public class NextableInputStreamStep {
 
 	/**
 	 * Get the maximum index to use in the buffer used in
-	 * {@link NextableInputStreamStep#stop(byte[], int, int)} at resume time.
+	 * {@link NextableInputStreamStep#stop(byte[], int, int, boolean)} at resume
+	 * time.
 	 * 
 	 * @return the index
 	 */
@@ -79,18 +84,29 @@ public class NextableInputStreamStep {
 	 * @return the number of bytes to skip
 	 */
 	public int getResumeSkip() {
-		return skip;
+		return resumeSkip;
+	}
+
+	/**
+	 * Get the under-laying stream state at resume time.
+	 * 
+	 * @return the EOF state
+	 */
+	public boolean getResumeEof() {
+		return resumeEof;
 	}
 
 	/**
 	 * Clear the information we may have kept about the current buffer
 	 * <p>
 	 * You should call this method each time you change the content of the
-	 * buffer used in {@link NextableInputStreamStep#stop(byte[], int, int)}.
+	 * buffer used in
+	 * {@link NextableInputStreamStep#stop(byte[], int, int, boolean)}.
 	 */
 	public void clearBuffer() {
 		this.last = -1;
-		this.skip = 0;
+		this.resumeSkip = 0;
 		this.resumeLen = 0;
+		this.resumeEof = false;
 	}
 }

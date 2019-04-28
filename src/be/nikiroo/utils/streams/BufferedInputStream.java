@@ -174,7 +174,7 @@ public class BufferedInputStream extends InputStream {
 				buffer2 = Arrays.copyOf(buffer, buffer.length * 2);
 
 				pos2 = buffer.length;
-				len2 = in.read(buffer2, pos2, buffer.length);
+				len2 = read(in, buffer2, pos2, buffer.length);
 				if (len2 > 0) {
 					bytesRead += len2;
 				}
@@ -203,9 +203,17 @@ public class BufferedInputStream extends InputStream {
 	 * process).
 	 * 
 	 * @return TRUE if it is
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
 	 */
-	public boolean eof() {
-		return closed || (stop < 0 && !hasMoreData());
+	public boolean eof() throws IOException {
+		if (closed) {
+			return true;
+		}
+
+		preRead();
+		return !hasMoreData();
 	}
 
 	@Override
@@ -348,7 +356,7 @@ public class BufferedInputStream extends InputStream {
 	 */
 	protected boolean preRead() throws IOException {
 		boolean hasRead = false;
-		if (!eof && in != null && start >= stop) {
+		if (in != null && !eof && start >= stop) {
 			start = 0;
 			if (buffer2 != null) {
 				buffer = buffer2;
@@ -361,7 +369,7 @@ public class BufferedInputStream extends InputStream {
 			} else {
 				buffer = originalBuffer;
 
-				stop = read(in, buffer);
+				stop = read(in, buffer, 0, buffer.length);
 				if (stop > 0) {
 					bytesRead += stop;
 				}
@@ -384,23 +392,33 @@ public class BufferedInputStream extends InputStream {
 	 *            the under-laying {@link InputStream}
 	 * @param buffer
 	 *            the buffer we use in this {@link BufferedInputStream}
+	 * @param off
+	 *            the offset
+	 * @param len
+	 *            the length in bytes
 	 * 
 	 * @return the number of bytes read
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	protected int read(InputStream in, byte[] buffer) throws IOException {
-		return in.read(buffer);
+	protected int read(InputStream in, byte[] buffer, int off, int len)
+			throws IOException {
+		return in.read(buffer, off, len);
 	}
 
 	/**
-	 * We have more data available in the buffer or we can fetch more.
+	 * We have more data available in the buffer <b>or</b> we can, maybe, fetch
+	 * more.
 	 * 
 	 * @return TRUE if it is the case, FALSE if not
 	 */
 	protected boolean hasMoreData() {
-		return !closed && !(eof && start >= stop);
+		if (closed) {
+			return false;
+		}
+
+		return (start < stop) || !eof;
 	}
 
 	/**

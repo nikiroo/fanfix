@@ -184,8 +184,10 @@ public class BufferedOutputStream extends OutputStream {
 	 *             in case of I/O error
 	 */
 	protected void flush(boolean includingSubStream) throws IOException {
-		out.write(buffer, start, stop - start);
-		bytesWritten += (stop - start);
+		if (stop > start) {
+			out.write(buffer, start, stop - start);
+			bytesWritten += (stop - start);
+		}
 		start = 0;
 		stop = 0;
 

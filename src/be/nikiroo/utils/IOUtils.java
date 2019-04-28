@@ -56,7 +56,7 @@ public class IOUtils {
 			throws IOException {
 		byte buffer[] = new byte[4096];
 		int len = in.read(buffer);
-		while (len > 0) {
+		while (len > -1) {
 			out.write(buffer, 0, len);
 			len = in.read(buffer);
 		}

@@ -115,16 +115,19 @@ public class NextableInputStream extends BufferedInputStream {
 	 * Check if this stream is totally spent (no more data to read or to
 	 * process).
 	 * <p>
-	 * Note: an empty stream that is still not started will return FALSE, as we
-	 * don't know yet if it is empty.
+	 * Note: when the stream is divided into sub-streams, each sub-stream will
+	 * report it is eof when emptied.
 	 * 
 	 * @return TRUE if it is
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
 	 */
 	@Override
-	public boolean eof() {
+	public boolean eof() throws IOException {
 		return super.eof();
 	}
-	
+
 	/**
 	 * Check if we still have some data in the buffer and, if not, fetch some.
 	 * 
@@ -138,7 +141,7 @@ public class NextableInputStream extends BufferedInputStream {
 	protected boolean preRead() throws IOException {
 		if (!stopped) {
 			boolean bufferChanged = super.preRead();
-			checkBuffer(true);
+			checkBuffer(bufferChanged);
 			return bufferChanged;
 		}
 
@@ -172,12 +175,12 @@ public class NextableInputStream extends BufferedInputStream {
 	 *            the {@link NextableInputStreamStep}
 	 */
 	private void checkBuffer(boolean newBuffer) {
-		if (step != null && stop > 0) {
+		if (step != null && stop >= 0) {
 			if (newBuffer) {
 				step.clearBuffer();
 			}
 
-			int stopAt = step.stop(buffer, start, stop);
+			int stopAt = step.stop(buffer, start, stop, eof);
 			if (stopAt >= 0) {
 				stop = stopAt;
 				eof = true;
@@ -216,15 +219,14 @@ public class NextableInputStream extends BufferedInputStream {
 		if (step != null && !hasMoreData() && stopped) {
 			stop = step.getResumeLen();
 			start += step.getResumeSkip();
-			eof = false;
+			eof = step.getResumeEof();
+			stopped = false;
 
 			if (all) {
 				step = null;
 			}
 
-			if (!preRead()) {
-				checkBuffer(false);
-			}
+			checkBuffer(false);
 
 			// consider that if EOF, there is no next
 			return hasMoreData();

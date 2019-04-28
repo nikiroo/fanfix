@@ -101,8 +101,9 @@ public class ReplaceInputStream extends BufferedInputStream {
 	}
 
 	@Override
-	protected int read(InputStream in, byte[] buffer) throws IOException {
-		if (buffer.length < maxToSize || source.length < maxToSize * 2) {
+	protected int read(InputStream in, byte[] buffer, int off, int len)
+			throws IOException {
+		if (len < maxToSize || source.length < maxToSize * 2) {
 			throw new IOException(
 					"An underlaying buffer is too small for these replace values");
 		}
@@ -114,13 +115,14 @@ public class ReplaceInputStream extends BufferedInputStream {
 
 		// Note: very simple, not efficient implementation, sorry.
 		int count = 0;
-		while (spos < slen && count < buffer.length - maxToSize) {
+		while (spos < slen && count < len - maxToSize) {
 			boolean replaced = false;
 			for (int i = 0; i < froms.length; i++) {
 				if (froms[i] != null && froms[i].length > 0
 						&& StreamUtils.startsWith(froms[i], source, spos, slen)) {
 					if (tos[i] != null && tos[i].length > 0) {
-						System.arraycopy(tos[i], 0, buffer, spos, tos[i].length);
+						System.arraycopy(tos[i], 0, buffer, off + spos,
+								tos[i].length);
 						count += tos[i].length;
 					}
 
@@ -131,7 +133,7 @@ public class ReplaceInputStream extends BufferedInputStream {
 			}
 
 			if (!replaced) {
-				buffer[count++] = source[spos++];
+				buffer[off + count++] = source[spos++];
 			}
 		}
 
