@@ -85,6 +85,8 @@ public class NextableInputStream extends BufferedInputStream {
 	 * {@link IOException}s can happen when we have no data available in the
 	 * buffer; in that case, we fetch more data to know if we can have a next
 	 * sub-stream or not.
+	 * <p>
+	 * This is can be a blocking call when data need to be fetched.
 	 * 
 	 * @return TRUE if we unblocked the next sub-stream, FALSE if not
 	 * 
@@ -101,6 +103,8 @@ public class NextableInputStream extends BufferedInputStream {
 	 * <p>
 	 * That is, the next stream, if any, will be the last one and will not be
 	 * subject to the {@link NextableInputStreamStep}.
+	 * <p>
+	 * This is can be a blocking call when data need to be fetched.
 	 * 
 	 * @return TRUE if we unblocked the next sub-stream, FALSE if not
 	 * 
@@ -192,6 +196,8 @@ public class NextableInputStream extends BufferedInputStream {
 	/**
 	 * The implementation of {@link NextableInputStream#next()} and
 	 * {@link NextableInputStream#nextAll()}.
+	 * <p>
+	 * This is can be a blocking call when data need to be fetched.
 	 * 
 	 * @param all
 	 *            TRUE for {@link NextableInputStream#nextAll()}, FALSE for
@@ -212,8 +218,6 @@ public class NextableInputStream extends BufferedInputStream {
 			if (all) {
 				step = null;
 			}
-
-			return true;
 		}
 
 		if (step != null && !hasMoreData() && stopped) {
@@ -227,11 +231,25 @@ public class NextableInputStream extends BufferedInputStream {
 			}
 
 			checkBuffer(false);
+		}
 
-			// consider that if EOF, there is no next
+		// consider that if EOF, there is no next
+		if (start >= stop) {
+			// Make sure, block if necessary
+			preRead();
+
 			return hasMoreData();
 		}
 
-		return false;
+		return true;
+	}
+
+	public String DEBUG() {
+		String rep = String.format(
+				"Nextable %s: %d -> %d [eof: %s] [more data: %s]",
+				(stopped ? "stopped" : "running"), start, stop, "" + eof, ""
+						+ hasMoreData());
+
+		return rep;
 	}
 }
