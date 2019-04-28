@@ -249,7 +249,7 @@ public class BufferedInputStream extends InputStream {
 		while (hasMoreData() && done < blen) {
 			preRead();
 			if (hasMoreData()) {
-				int now = Math.min(blen, stop) - start;
+				int now = Math.min(blen - done, stop - start);
 				if (now > 0) {
 					System.arraycopy(buffer, start, b, boff + done, now);
 					start += now;

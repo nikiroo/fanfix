@@ -7,6 +7,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import be.nikiroo.utils.streams.MarkableFileInputStream;
+
 /**
  * This class represents an image data.
  * 
@@ -91,7 +93,7 @@ public class Image implements Closeable {
 	 *             in case of I/O error
 	 */
 	public InputStream newInputStream() throws IOException {
-		return new FileInputStream(data);
+		return new MarkableFileInputStream(new FileInputStream(data));
 	}
 
 	/**
