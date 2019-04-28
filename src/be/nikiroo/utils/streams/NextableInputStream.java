@@ -2,6 +2,8 @@ package be.nikiroo.utils.streams;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 /**
  * This {@link InputStream} can be separated into sub-streams (you can process
@@ -245,10 +247,20 @@ public class NextableInputStream extends BufferedInputStream {
 	}
 
 	public String DEBUG() {
+		String data = "";
+		if (stop > 0) {
+			try {
+				data = new String(Arrays.copyOfRange(buffer, 0, stop), "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+			}
+			if (data.length() > 50) {
+				data = data.substring(0, 47) + "...";
+			}
+		}
 		String rep = String.format(
-				"Nextable %s: %d -> %d [eof: %s] [more data: %s]",
+				"Nextable %s: %d -> %d [eof: %s] [more data: %s]: %s",
 				(stopped ? "stopped" : "running"), start, stop, "" + eof, ""
-						+ hasMoreData());
+						+ hasMoreData(), data);
 
 		return rep;
 	}

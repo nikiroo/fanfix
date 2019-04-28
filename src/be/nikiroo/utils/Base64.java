@@ -1,5 +1,7 @@
 package be.nikiroo.utils;
 
+import java.io.IOException;
+
 /**
  * <p>Encodes and decodes to and from Base64 notation.</p>
  * <p>Homepage: <a href="http://iharder.net/base64">http://iharder.net/base64</a>.</p>
@@ -2029,7 +2031,9 @@ class Base64
         @Override
         public void close() throws java.io.IOException {
             // 1. Ensure that pending characters are written
-            flushBase64();
+            
+        	// niki: removed since it is now in flush()
+        	//flushBase64();
 
             // 2. Actually close the stream
             // Base class both flushes and closes.
@@ -2066,7 +2070,12 @@ class Base64
             this.suspendEncoding = false;
         }   // end resumeEncoding
         
-        
+        @Override
+        // added by niki
+        public void flush() throws IOException {
+        	flushBase64();
+        	super.flush();
+        }
         
     }   // end inner class OutputStream
     

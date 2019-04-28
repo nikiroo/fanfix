@@ -177,13 +177,18 @@ public class BufferedOutputStream extends OutputStream {
 	 * <p>
 	 * If {@link BufferedOutputStream#bypassFlush} is false, all writes to the
 	 * under-laying stream are done in this method.
+	 * <p>
+	 * This can be used if you want to write some data in the under-laying
+	 * stream yourself (in that case, flush this {@link BufferedOutputStream}
+	 * with or without flushing the under-laying stream, then you can write to
+	 * the under-laying stream).
 	 * 
 	 * @param includingSubStream
 	 *            also flush the under-laying stream
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	protected void flush(boolean includingSubStream) throws IOException {
+	public void flush(boolean includingSubStream) throws IOException {
 		if (stop > start) {
 			out.write(buffer, start, stop - start);
 			bytesWritten += (stop - start);

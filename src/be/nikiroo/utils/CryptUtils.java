@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -14,6 +15,7 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.SSLException;
 
@@ -31,14 +33,15 @@ import javax.net.ssl.SSLException;
  * @author niki
  */
 public class CryptUtils {
-	static private final String AES_NAME = "AES/ECB/PKCS5Padding";
-	
+	static private final String AES_NAME = "AES/CFB8/NoPadding";
+
 	private Cipher ecipher;
 	private Cipher dcipher;
 	private SecretKey key;
 
 	/**
-	 * Small and lazy-easy way to initialize a 128 bits key with {@link CryptUtils}.
+	 * Small and lazy-easy way to initialize a 128 bits key with
+	 * {@link CryptUtils}.
 	 * <p>
 	 * <b>Some</b> part of the key will be used to generate a 128 bits key and
 	 * initialize the {@link CryptUtils}; even NULL will generate something.
@@ -81,48 +84,134 @@ public class CryptUtils {
 	 *            the {@link InputStream} to wrap
 	 * @return the auto-encode {@link InputStream}
 	 */
-	public InputStream encryptInputStream(InputStream in) {
+	public InputStream encrypt(InputStream in) {
 		Cipher ecipher = newCipher(Cipher.ENCRYPT_MODE);
 		return new CipherInputStream(in, ecipher);
+	}
+
+	/**
+	 * Wrap the given {@link InputStream} so it is transparently encrypted by
+	 * the current {@link CryptUtils} and encoded in base64.
+	 * 
+	 * @param in
+	 *            the {@link InputStream} to wrap
+	 * @param zip
+	 *            TRUE to also uncompress the data from a GZIP format; take care
+	 *            about this flag, as it could easily cause errors in the
+	 *            returned content or an {@link IOException}
+	 * 
+	 * @return the auto-encode {@link InputStream}
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public InputStream encrypt64(InputStream in, boolean zip)
+			throws IOException {
+		return StringUtils.base64(encrypt(in), zip, false);
 	}
 
 	/**
 	 * Wrap the given {@link OutputStream} so it is transparently encrypted by
 	 * the current {@link CryptUtils}.
 	 * 
-	 * @param in
+	 * @param out
 	 *            the {@link OutputStream} to wrap
+	 * 
 	 * @return the auto-encode {@link OutputStream}
 	 */
-	public OutputStream encryptOutpuStream(OutputStream out) {
+	public OutputStream encrypt(OutputStream out) {
 		Cipher ecipher = newCipher(Cipher.ENCRYPT_MODE);
 		return new CipherOutputStream(out, ecipher);
 	}
 
 	/**
-	 * Wrap the given {@link OutStream} so it is transparently decoded by the
+	 * Wrap the given {@link OutputStream} so it is transparently encrypted by
+	 * the current {@link CryptUtils} and encoded in base64.
+	 * 
+	 * @param out
+	 *            the {@link OutputStream} to wrap
+	 * @param zip
+	 *            TRUE to also uncompress the data from a GZIP format; take care
+	 *            about this flag, as it could easily cause errors in the
+	 *            returned content or an {@link IOException}
+	 * 
+	 * @return the auto-encode {@link OutputStream}
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public OutputStream encrypt64(OutputStream out, boolean zip)
+			throws IOException {
+		return encrypt(StringUtils.base64(out, zip, false));
+	}
+
+	/**
+	 * Wrap the given {@link OutputStream} so it is transparently decoded by the
 	 * current {@link CryptUtils}.
 	 * 
 	 * @param in
 	 *            the {@link InputStream} to wrap
+	 * 
 	 * @return the auto-decode {@link InputStream}
 	 */
-	public InputStream decryptInputStream(InputStream in) {
+	public InputStream decrypt(InputStream in) {
 		Cipher dcipher = newCipher(Cipher.DECRYPT_MODE);
 		return new CipherInputStream(in, dcipher);
 	}
 
 	/**
-	 * Wrap the given {@link OutStream} so it is transparently decoded by the
+	 * Wrap the given {@link OutputStream} so it is transparently decoded by the
+	 * current {@link CryptUtils} and decoded from base64.
+	 * 
+	 * @param in
+	 *            the {@link InputStream} to wrap
+	 * @param zip
+	 *            TRUE to also uncompress the data from a GZIP format; take care
+	 *            about this flag, as it could easily cause errors in the
+	 *            returned content or an {@link IOException}
+	 * 
+	 * @return the auto-decode {@link InputStream}
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public InputStream decrypt64(InputStream in, boolean zip)
+			throws IOException {
+		return decrypt(StringUtils.unbase64(in, zip));
+	}
+
+	/**
+	 * Wrap the given {@link OutputStream} so it is transparently decoded by the
 	 * current {@link CryptUtils}.
 	 * 
 	 * @param out
 	 *            the {@link OutputStream} to wrap
 	 * @return the auto-decode {@link OutputStream}
 	 */
-	public OutputStream decryptOutputStream(OutputStream out) {
+	public OutputStream decrypt(OutputStream out) {
 		Cipher dcipher = newCipher(Cipher.DECRYPT_MODE);
 		return new CipherOutputStream(out, dcipher);
+	}
+
+	/**
+	 * Wrap the given {@link OutputStream} so it is transparently decoded by the
+	 * current {@link CryptUtils} and decoded from base64.
+	 * 
+	 * @param out
+	 *            the {@link OutputStream} to wrap
+	 * @param zip
+	 *            TRUE to also uncompress the data from a GZIP format; take care
+	 *            about this flag, as it could easily cause errors in the
+	 *            returned content or an {@link IOException}
+	 * 
+	 * @return the auto-decode {@link OutputStream}
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public OutputStream decrypt64(OutputStream out, boolean zip)
+			throws IOException {
+		return StringUtils.unbase64(decrypt(out), zip);
 	}
 
 	/**
@@ -146,7 +235,7 @@ public class CryptUtils {
 		ecipher = newCipher(Cipher.ENCRYPT_MODE);
 		dcipher = newCipher(Cipher.DECRYPT_MODE);
 	}
-	
+
 	/**
 	 * Create a new {@link Cipher}of the given mode (see
 	 * {@link Cipher#ENCRYPT_MODE} and {@link Cipher#ENCRYPT_MODE}).
@@ -159,8 +248,10 @@ public class CryptUtils {
 	 */
 	private Cipher newCipher(int mode) {
 		try {
+			byte[] iv = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+			IvParameterSpec ivspec = new IvParameterSpec(iv);
 			Cipher cipher = Cipher.getInstance(AES_NAME);
-			cipher.init(mode, key);
+			cipher.init(mode, key, ivspec);
 			return cipher;
 		} catch (NoSuchAlgorithmException e) {
 			// Every implementation of the Java platform is required to support
@@ -174,8 +265,11 @@ public class CryptUtils {
 			// Every implementation of the Java platform is required to support
 			// this standard Cipher transformation with 128 bits keys
 			e.printStackTrace();
+		} catch (InvalidAlgorithmParameterException e) {
+			// Woops?
+			e.printStackTrace();
 		}
-		
+
 		return null;
 	}
 

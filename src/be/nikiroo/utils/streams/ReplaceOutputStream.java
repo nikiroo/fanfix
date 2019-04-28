@@ -89,7 +89,7 @@ public class ReplaceOutputStream extends BufferedOutputStream {
 	}
 
 	@Override
-	protected void flush(boolean includingSubStream) throws IOException {
+	public void flush(boolean includingSubStream) throws IOException {
 		// Note: very simple, not efficient implementation, sorry.
 		while (start < stop) {
 			boolean replaced = false;
