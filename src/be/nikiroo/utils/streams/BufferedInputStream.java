@@ -106,6 +106,15 @@ public class BufferedInputStream extends InputStream {
 	}
 
 	/**
+	 * The internal buffer size (can be useful to know for search methods).
+	 * 
+	 * @return the size of the internal buffer, in bytes.
+	 */
+	public int getInternalBufferSize() {
+		return originalBuffer.length;
+	}
+
+	/**
 	 * Return this very same {@link BufferedInputStream}, but keep a counter of
 	 * how many streams were open this way. When calling
 	 * {@link BufferedInputStream#close()}, decrease this counter if it is not
@@ -125,6 +134,50 @@ public class BufferedInputStream extends InputStream {
 		checkClose();
 		openCounter++;
 		return this;
+	}
+
+	/**
+	 * Check if the current content (until eof) is equal to the given search
+	 * term.
+	 * <p>
+	 * Note: the search term size <b>must</b> be smaller or equal the internal
+	 * buffer size.
+	 * 
+	 * @param search
+	 *            the term to search for
+	 * 
+	 * @return TRUE if the content that will be read starts with it
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error or if the size of the search term is
+	 *             greater than the internal buffer
+	 */
+	public boolean is(String search) throws IOException {
+		return is(StringUtils.getBytes(search));
+	}
+
+	/**
+	 * Check if the current content (until eof) is equal to the given search
+	 * term.
+	 * <p>
+	 * Note: the search term size <b>must</b> be smaller or equal the internal
+	 * buffer size.
+	 * 
+	 * @param search
+	 *            the term to search for
+	 * 
+	 * @return TRUE if the content that will be read starts with it
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error or if the size of the search term is
+	 *             greater than the internal buffer
+	 */
+	public boolean is(byte[] search) throws IOException {
+		if (startsWith(search)) {
+			return stop == search.length;
+		}
+
+		return false;
 	}
 
 	/**

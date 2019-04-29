@@ -9,6 +9,7 @@ import java.util.zip.GZIPInputStream;
 
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.streams.Base64InputStream;
+import be.nikiroo.utils.streams.BufferedInputStream;
 import be.nikiroo.utils.streams.NextableInputStream;
 import be.nikiroo.utils.streams.NextableInputStreamStep;
 
@@ -136,7 +137,7 @@ public class Importer {
 	 * @throws IOException
 	 *             if the content cannot be read (for instance, corrupt data)
 	 */
-	private boolean processLine(InputStream in) throws NoSuchFieldException,
+	private boolean processLine(BufferedInputStream in) throws NoSuchFieldException,
 			NoSuchMethodException, ClassNotFoundException, IOException {
 
 		// Defer to latest child if any
@@ -154,10 +155,6 @@ public class Importer {
 
 		// TODO use the stream, Luke
 		String line = IOUtils.readSmallStream(in);
-
-		if (line.isEmpty()) {
-			return false;
-		}
 
 		if (line.equals("{")) { // START: new child if needed
 			if (link != null) {

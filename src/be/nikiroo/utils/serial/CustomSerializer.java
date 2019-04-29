@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.streams.BufferedInputStream;
 import be.nikiroo.utils.streams.NextableInputStream;
 import be.nikiroo.utils.streams.NextableInputStreamStep;
 import be.nikiroo.utils.streams.ReplaceInputStream;
@@ -160,11 +161,17 @@ public abstract class CustomSerializer {
 		}
 	}
 
+	/** Use {@link CustomSerializer#isCustom(BufferedInputStream)}. */
+	@Deprecated
 	public static boolean isCustom(String encodedValue) {
 		int pos1 = encodedValue.indexOf('^');
 		int pos2 = encodedValue.indexOf('^', pos1 + 1);
 
 		return pos1 >= 0 && pos2 >= 0 && encodedValue.startsWith("custom^");
+	}
+
+	public static boolean isCustom(BufferedInputStream in) throws IOException {
+		return in.startsWiths("custom^");
 	}
 
 	public static String typeOf(String encodedValue) {
@@ -173,13 +180,5 @@ public abstract class CustomSerializer {
 		String type = encodedValue.substring(pos1 + 1, pos2);
 
 		return type;
-	}
-
-	public static String contentOf(String encodedValue) {
-		int pos1 = encodedValue.indexOf('^');
-		int pos2 = encodedValue.indexOf('^', pos1 + 1);
-		String encodedContent = encodedValue.substring(pos2 + 1);
-
-		return encodedContent;
 	}
 }

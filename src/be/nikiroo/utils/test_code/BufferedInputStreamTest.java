@@ -30,6 +30,75 @@ class BufferedInputStreamTest extends TestLauncher {
 				checkArrays(this, "FIRST", in, expected);
 			}
 		});
+
+		addTest(new TestCase("Byte array is(byte[])") {
+			@Override
+			public void test() throws Exception {
+				byte[] expected = new byte[] { 42, 12, 0, 127 };
+				BufferedInputStream in = new BufferedInputStream(expected);
+				assertEquals(
+						"The array should be considered identical to its source",
+						true, in.is(expected));
+				assertEquals(
+						"The array should be considered different to that one",
+						false, in.is(new byte[] { 42, 12, 0, 121 }));
+				in.close();
+			}
+		});
+
+		addTest(new TestCase("InputStream is(byte[])") {
+			@Override
+			public void test() throws Exception {
+				byte[] expected = new byte[] { 42, 12, 0, 127 };
+				BufferedInputStream in = new BufferedInputStream(
+						new ByteArrayInputStream(expected));
+				assertEquals(
+						"The array should be considered identical to its source",
+						true, in.is(expected));
+				assertEquals(
+						"The array should be considered different to that one",
+						false, in.is(new byte[] { 42, 12, 0, 121 }));
+				in.close();
+			}
+		});
+
+		addTest(new TestCase("Byte array is(String)") {
+			@Override
+			public void test() throws Exception {
+				String expected = "Testy";
+				BufferedInputStream in = new BufferedInputStream(
+						expected.getBytes("UTF-8"));
+				assertEquals(
+						"The array should be considered identical to its source",
+						true, in.is(expected));
+				assertEquals(
+						"The array should be considered different to that one",
+						false, in.is("Autre"));
+				assertEquals(
+						"The array should be considered different to that one",
+						false, in.is("Test"));
+				in.close();
+			}
+		});
+
+		addTest(new TestCase("InputStream is(String)") {
+			@Override
+			public void test() throws Exception {
+				String expected = "Testy";
+				BufferedInputStream in = new BufferedInputStream(
+						new ByteArrayInputStream(expected.getBytes("UTF-8")));
+				assertEquals(
+						"The array should be considered identical to its source",
+						true, in.is(expected));
+				assertEquals(
+						"The array should be considered different to that one",
+						false, in.is("Autre"));
+				assertEquals(
+						"The array should be considered different to that one",
+						false, in.is("Testy."));
+				in.close();
+			}
+		});
 	}
 
 	static void checkArrays(TestCase test, String prefix, InputStream in,
