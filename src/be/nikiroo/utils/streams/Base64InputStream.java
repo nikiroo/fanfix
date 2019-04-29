@@ -70,28 +70,36 @@ public class Base64InputStream extends FilterInputStream {
         outputEnd = 0;
     }
 
-    public boolean markSupported() {
+    @Override
+	public boolean markSupported() {
         return false;
     }
 
-    public void mark(int readlimit) {
+    @SuppressWarnings("sync-override")
+	@Override
+	public void mark(int readlimit) {
         throw new UnsupportedOperationException();
     }
 
-    public void reset() {
+    @SuppressWarnings("sync-override")
+	@Override
+	public void reset() {
         throw new UnsupportedOperationException();
     }
 
-    public void close() throws IOException {
+    @Override
+	public void close() throws IOException {
         in.close();
         inputBuffer = null;
     }
 
-    public int available() {
+    @Override
+	public int available() {
         return outputEnd - outputStart;
     }
 
-    public long skip(long n) throws IOException {
+    @Override
+	public long skip(long n) throws IOException {
         if (outputStart >= outputEnd) {
             refill();
         }
@@ -103,18 +111,20 @@ public class Base64InputStream extends FilterInputStream {
         return bytes;
     }
 
-    public int read() throws IOException {
+    @Override
+	public int read() throws IOException {
         if (outputStart >= outputEnd) {
             refill();
         }
         if (outputStart >= outputEnd) {
             return -1;
-        } else {
-            return coder.output[outputStart++] & 0xff;
         }
+        
+        return coder.output[outputStart++] & 0xff;
     }
 
-    public int read(byte[] b, int off, int len) throws IOException {
+    @Override
+	public int read(byte[] b, int off, int len) throws IOException {
         if (outputStart >= outputEnd) {
             refill();
         }

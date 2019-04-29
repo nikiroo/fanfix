@@ -410,19 +410,11 @@ public class IOUtils {
 			write(in, tmp);
 			in.close();
 
-			final FileInputStream fis = new FileInputStream(tmp);
-			return new MarkableFileInputStream(fis) {
+			return new MarkableFileInputStream(tmp) {
 				@Override
 				public void close() throws IOException {
 					try {
-						try {
-							super.close();
-						} finally {
-							try {
-								fis.close();
-							} catch (IOException e) {
-							}
-						}
+						super.close();
 					} finally {
 						tmp.delete();
 					}

@@ -1,7 +1,6 @@
 package be.nikiroo.utils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -265,7 +264,7 @@ public class Cache {
 		if (cached.exists() && cached.isFile()
 				&& (allowTooOld || !isOld(cached, stable))) {
 			try {
-				return new MarkableFileInputStream(new FileInputStream(cached));
+				return new MarkableFileInputStream(cached);
 			} catch (FileNotFoundException e) {
 				return null;
 			}

@@ -260,7 +260,8 @@ class Base64 {
          * @return an overestimate for the number of bytes {@code
          * len} bytes could decode to.
          */
-        public int maxOutputSize(int len) {
+        @Override
+		public int maxOutputSize(int len) {
             return len * 3/4 + 10;
         }
 
@@ -270,7 +271,8 @@ class Base64 {
          * @return true if the state machine is still healthy.  false if
          *         bad base-64 data has been detected in the input stream.
          */
-        public boolean process(byte[] input, int offset, int len, boolean finish) {
+        @Override
+		public boolean process(byte[] input, int offset, int len, boolean finish) {
             if (this.state == 6) return false;
 
             int p = offset;
@@ -606,11 +608,13 @@ class Base64 {
          * @return an overestimate for the number of bytes {@code
          * len} bytes could encode to.
          */
-        public int maxOutputSize(int len) {
+        @Override
+		public int maxOutputSize(int len) {
             return len * 8/5 + 10;
         }
 
-        public boolean process(byte[] input, int offset, int len, boolean finish) {
+        @Override
+		public boolean process(byte[] input, int offset, int len, boolean finish) {
             // Using local variables makes the encoder about 9% faster.
             final byte[] alphabet = this.alphabet;
             final byte[] output = this.output;
@@ -638,7 +642,7 @@ class Base64 {
                             ((input[p++] & 0xff) << 8) |
                             (input[p++] & 0xff);
                         tailLen = 0;
-                    };
+                    }
                     break;
 
                 case 2:

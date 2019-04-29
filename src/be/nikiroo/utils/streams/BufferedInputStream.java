@@ -14,13 +14,22 @@ import java.util.Arrays;
  * @author niki
  */
 public class BufferedInputStream extends InputStream {
+	/**
+	 * The size of the internal buffer (can be different if you pass your own
+	 * buffer, of course).
+	 * <p>
+	 * A second buffer of twice the size can sometimes be created as needed for
+	 * the {@link BufferedInputStream#startsWith(byte[])} search operation.
+	 */
+	static private final int BUFFER_SIZE = 4096;
+
 	/** The current position in the buffer. */
 	protected int start;
 	/** The index of the last usable position of the buffer. */
 	protected int stop;
 	/** The buffer itself. */
 	protected byte[] buffer;
-	/** An End-Of-File (or buffer, here) marker. */
+	/** An End-Of-File (or {@link InputStream}, here) marker. */
 	protected boolean eof;
 
 	private boolean closed;
@@ -45,7 +54,7 @@ public class BufferedInputStream extends InputStream {
 	public BufferedInputStream(InputStream in) {
 		this.in = in;
 
-		this.buffer = new byte[4096];
+		this.buffer = new byte[BUFFER_SIZE];
 		this.originalBuffer = this.buffer;
 		this.start = 0;
 		this.stop = 0;

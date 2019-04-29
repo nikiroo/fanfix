@@ -10,8 +10,18 @@ import java.io.InputStream;
  * @author niki
  */
 public class ReplaceInputStream extends BufferedInputStream {
+	/**
+	 * The minimum size of the internal buffer (could be more if at least one of
+	 * the 'FROM' bytes arrays is &gt; 2048 bytes &mdash; in that case the
+	 * buffer will be twice the largest size of the 'FROM' bytes arrays).
+	 * <p>
+	 * This is a different buffer than the one from the inherited class.
+	 */
+	static private final int MIN_BUFFER_SIZE = 4096;
+
 	private byte[][] froms;
 	private byte[][] tos;
+	private int maxFromSize;
 	private int maxToSize;
 
 	private byte[] source;
@@ -91,11 +101,18 @@ public class ReplaceInputStream extends BufferedInputStream {
 		this.froms = froms;
 		this.tos = tos;
 
+		maxFromSize = 0;
+		for (int i = 0; i < froms.length; i++) {
+			maxFromSize = Math.max(maxFromSize, froms[i].length);
+		}
+
+		maxToSize = 0;
 		for (int i = 0; i < tos.length; i++) {
 			maxToSize = Math.max(maxToSize, tos[i].length);
 		}
 
-		source = new byte[4096];
+		// We need at least maxFromSize so we can iterate and replace
+		source = new byte[Math.max(2 * maxFromSize, MIN_BUFFER_SIZE)];
 		spos = 0;
 		slen = 0;
 	}
@@ -108,12 +125,13 @@ public class ReplaceInputStream extends BufferedInputStream {
 					"An underlaying buffer is too small for these replace values");
 		}
 
-		if (spos >= slen) {
+		// We need at least one byte of data to process
+		if (available() < Math.max(maxFromSize, 1) && !eof) {
 			spos = 0;
 			slen = in.read(source);
 		}
 
-		// Note: very simple, not efficient implementation, sorry.
+		// Note: very simple, not efficient implementation; sorry.
 		int count = 0;
 		while (spos < slen && count < len - maxToSize) {
 			boolean replaced = false;

@@ -3,7 +3,6 @@ package be.nikiroo.utils;
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -81,7 +80,7 @@ public class Image implements Closeable {
 	 *             in case of I/O error
 	 */
 	public InputStream newInputStream() throws IOException {
-		return new MarkableFileInputStream(new FileInputStream(data));
+		return new MarkableFileInputStream(data);
 	}
 
 	/**

@@ -246,7 +246,13 @@ public class NextableInputStream extends BufferedInputStream {
 		return true;
 	}
 
-	public String DEBUG() {
+	/**
+	 * Display a DEBUG {@link String} representation of this object.
+	 * <p>
+	 * Do <b>not</b> use for release code.
+	 */
+	@Override
+	public String toString() {
 		String data = "";
 		if (stop > 0) {
 			try {

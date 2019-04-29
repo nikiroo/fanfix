@@ -1,6 +1,8 @@
 package be.nikiroo.utils.streams;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -14,6 +16,19 @@ import java.nio.channels.FileChannel;
 public class MarkableFileInputStream extends FilterInputStream {
 	private FileChannel channel;
 	private long mark = 0;
+
+	/**
+	 * Create a new {@link MarkableFileInputStream} from this file.
+	 * 
+	 * @param file
+	 *            the {@link File} to wrap
+	 * 
+	 * @throws FileNotFoundException
+	 *             if the {@link File} cannot be found
+	 */
+	public MarkableFileInputStream(File file) throws FileNotFoundException {
+		this(new FileInputStream(file));
+	}
 
 	/**
 	 * Create a new {@link MarkableFileInputStream} from this stream.

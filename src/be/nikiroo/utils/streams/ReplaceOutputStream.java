@@ -88,9 +88,30 @@ public class ReplaceOutputStream extends BufferedOutputStream {
 		this.tos = tos;
 	}
 
+	/**
+	 * Flush the {@link BufferedOutputStream}, write the current buffered data
+	 * to (and optionally also flush) the under-laying stream.
+	 * <p>
+	 * If {@link BufferedOutputStream#bypassFlush} is false, all writes to the
+	 * under-laying stream are done in this method.
+	 * <p>
+	 * This can be used if you want to write some data in the under-laying
+	 * stream yourself (in that case, flush this {@link BufferedOutputStream}
+	 * with or without flushing the under-laying stream, then you can write to
+	 * the under-laying stream).
+	 * <p>
+	 * <b>But be careful!</b> If a replacement could be done with the end o the
+	 * currently buffered data and the start of the data to come, we obviously
+	 * will not be able to do it.
+	 * 
+	 * @param includingSubStream
+	 *            also flush the under-laying stream
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
 	@Override
 	public void flush(boolean includingSubStream) throws IOException {
-		// Note: very simple, not efficient implementation, sorry.
+		// Note: very simple, not efficient implementation; sorry.
 		while (start < stop) {
 			boolean replaced = false;
 			for (int i = 0; i < froms.length; i++) {
