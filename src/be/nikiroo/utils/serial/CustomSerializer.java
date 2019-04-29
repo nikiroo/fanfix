@@ -171,7 +171,7 @@ public abstract class CustomSerializer {
 	}
 
 	public static boolean isCustom(BufferedInputStream in) throws IOException {
-		return in.startsWiths("custom^");
+		return in.startsWith("custom^");
 	}
 
 	public static String typeOf(String encodedValue) {

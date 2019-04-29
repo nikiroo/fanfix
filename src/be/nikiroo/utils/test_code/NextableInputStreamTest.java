@@ -103,10 +103,9 @@ public class NextableInputStreamTest extends TestLauncher {
 						new NextableInputStreamStep(12));
 
 				checkNext(this, "FIRST", in, new byte[] { 42 });
-				checkNextAll(this, "REST", in,
-						new byte[] { 0, 127, 12, 51, 11, 12 });
-				assertEquals("The stream still has some data", false,
-						in.next());
+				checkNextAll(this, "REST", in, new byte[] { 0, 127, 12, 51, 11,
+						12 });
+				assertEquals("The stream still has some data", false, in.next());
 			}
 		});
 
@@ -146,8 +145,19 @@ public class NextableInputStreamTest extends TestLauncher {
 				NextableInputStream in = new NextableInputStream(data, null);
 				in.next();
 
+				byte[] rest = new byte[] { 12, 51, 11, 12 };
+
 				in.skip(4);
-				checkArrays(this, "ONLY", in, new byte[] { 12, 51, 11, 12 });
+				assertEquals("STARTS_WITH OK_1", true, in.startsWith(rest));
+				assertEquals("STARTS_WITH KO_1", false,
+						in.startsWith(new byte[] { 0 }));
+				assertEquals("STARTS_WITH KO_2", false, in.startsWith(data));
+				assertEquals("STARTS_WITH KO_3", false,
+						in.startsWith(new byte[] { 1, 2, 3 }));
+				assertEquals("STARTS_WITH OK_2", true, in.startsWith(rest));
+				assertEquals("READ REST", IOUtils.readSmallStream(in),
+						new String(rest));
+				in.close();
 			}
 		});
 
@@ -169,17 +179,21 @@ public class NextableInputStreamTest extends TestLauncher {
 				// no
 				assertEquals("It actually does not start with that", false,
 						in.startsWith(new byte[] { 12 }));
-				assertEquals("It actually does not start with that", false,
-						in.startsWith(
-								new byte[] { 42, 12, 0, 127, 12, 51, 11, 11 }));
+				assertEquals(
+						"It actually does not start with that",
+						false,
+						in.startsWith(new byte[] { 42, 12, 0, 127, 12, 51, 11,
+								11 }));
 
 				// too big
 				try {
-					in.startsWith(
-							new byte[] { 42, 12, 0, 127, 12, 51, 11, 12, 0 });
+					in.startsWith(new byte[] { 42, 12, 0, 127, 12, 51, 11, 12,
+							0 });
 					fail("Searching a prefix bigger than the array should throw an IOException");
 				} catch (IOException e) {
 				}
+
+				in.close();
 			}
 		});
 
@@ -193,24 +207,69 @@ public class NextableInputStreamTest extends TestLauncher {
 
 				// yes
 				assertEquals("It actually starts with that", true,
-						in.startsWiths("F"));
+						in.startsWith("F"));
 				assertEquals("It actually starts with that", true,
-						in.startsWiths("Fanfan et"));
+						in.startsWith("Fanfan et"));
 				assertEquals("It actually is the same text", true,
-						in.startsWiths(text));
+						in.startsWith(text));
 
 				// no
 				assertEquals("It actually does not start with that", false,
-						in.startsWiths("Toto"));
+						in.startsWith("Toto"));
 				assertEquals("It actually does not start with that", false,
-						in.startsWiths("Fanfan et Toto vont à la mee"));
+						in.startsWith("Fanfan et Toto vont à la mee"));
 
 				// too big
 				try {
-					in.startsWiths("Fanfan et Toto vont à la mer.");
+					in.startsWith("Fanfan et Toto vont à la mer.");
 					fail("Searching a prefix bigger than the array should throw an IOException");
 				} catch (IOException e) {
 				}
+
+				in.close();
+			}
+		});
+
+		addTest(new TestCase("Starts With strings + steps") {
+			@Override
+			public void test() throws Exception {
+				String data = "{\nREF: fanfan\n}";
+				NextableInputStream in = new NextableInputStream(
+						data.getBytes("UTF-8"), new NextableInputStreamStep(
+								'\n'));
+				in.next();
+
+				assertEquals("STARTS_WITH OK", true, in.startsWith("{"));
+				in.skip(1);
+				assertEquals("STARTS_WITH WHEN SPENT", false,
+						in.startsWith("{"));
+
+				checkNext(this, "PARTIAL CONTENT", in,
+						"REF: fanfan".getBytes("UTF-8"));
+			}
+		});
+
+		addTest(new TestCase("InputStream is(String)") {
+			@Override
+			public void test() throws Exception {
+				String data = "{\nREF: fanfan\n}";
+				NextableInputStream in = new NextableInputStream(
+						new ByteArrayInputStream(data.getBytes("UTF-8")),
+						new NextableInputStreamStep('\n'));
+
+				in.next();
+				assertEquals("Item 1 OK", true, in.is("{"));
+				assertEquals("Item 1 KO_1", false, in.is("|"));
+				assertEquals("Item 1 KO_2", false, in.is("{}"));
+				in.skip(1);
+				in.next();
+				assertEquals("Item 2 OK", true, in.is("REF: fanfan"));
+				assertEquals("Item 2 KO", false, in.is("REF: fanfan."));
+				IOUtils.readSmallStream(in);
+				in.next();
+				assertEquals("Item 3 OK", true, in.is("}"));
+
+				in.close();
 			}
 		});
 	}

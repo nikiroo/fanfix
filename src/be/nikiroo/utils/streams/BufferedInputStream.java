@@ -174,7 +174,7 @@ public class BufferedInputStream extends InputStream {
 	 */
 	public boolean is(byte[] search) throws IOException {
 		if (startsWith(search)) {
-			return stop == search.length;
+			return (stop - start) == search.length;
 		}
 
 		return false;
@@ -196,13 +196,16 @@ public class BufferedInputStream extends InputStream {
 	 *             in case of I/O error or if the size of the search term is
 	 *             greater than the internal buffer
 	 */
-	public boolean startsWiths(String search) throws IOException {
+	public boolean startsWith(String search) throws IOException {
 		return startsWith(StringUtils.getBytes(search));
 	}
 
 	/**
 	 * Check if the current content (what will be read next) starts with the
 	 * given search term.
+	 * <p>
+	 * An empty string will always return true (unless the stream is closed,
+	 * which would throw an {@link IOException}).
 	 * <p>
 	 * Note: the search term size <b>must</b> be smaller or equal the internal
 	 * buffer size.
@@ -232,7 +235,7 @@ public class BufferedInputStream extends InputStream {
 		if (available() >= search.length) {
 			// Easy path
 			return StreamUtils.startsWith(search, buffer, start, stop);
-		} else if (!eof) {
+		} else if (in != null && !eof) {
 			// Harder path
 			if (buffer2 == null && buffer.length == originalBuffer.length) {
 				buffer2 = Arrays.copyOf(buffer, buffer.length * 2);
@@ -278,6 +281,24 @@ public class BufferedInputStream extends InputStream {
 
 		preRead();
 		return !hasMoreData();
+	}
+
+	/**
+	 * Read the whole {@link InputStream} until the end and return the number of
+	 * bytes read.
+	 * 
+	 * @return the number of bytes read
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public long end() throws IOException {
+		long skipped = 0;
+		while (hasMoreData()) {
+			skipped += skip(buffer.length);
+		}
+
+		return skipped;
 	}
 
 	@Override

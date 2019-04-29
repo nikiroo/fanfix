@@ -89,8 +89,8 @@ public class Importer {
 				}
 				first = false;
 
-				boolean zip = stream.startsWiths("ZIP:");
-				boolean b64 = stream.startsWiths("B64:");
+				boolean zip = stream.startsWith("ZIP:");
+				boolean b64 = stream.startsWith("B64:");
 
 				if (zip || b64) {
 					stream.skip("XXX:".length());
@@ -137,8 +137,9 @@ public class Importer {
 	 * @throws IOException
 	 *             if the content cannot be read (for instance, corrupt data)
 	 */
-	private boolean processLine(BufferedInputStream in) throws NoSuchFieldException,
-			NoSuchMethodException, ClassNotFoundException, IOException {
+	private boolean processLine(BufferedInputStream in)
+			throws NoSuchFieldException, NoSuchMethodException,
+			ClassNotFoundException, IOException {
 
 		// Defer to latest child if any
 		if (child != null) {
@@ -153,16 +154,34 @@ public class Importer {
 			return false;
 		}
 
-		// TODO use the stream, Luke
-		String line = IOUtils.readSmallStream(in);
-
-		if (line.equals("{")) { // START: new child if needed
+		// Start/Stop object
+		if (in.is("{")) { // START: new child if needed
 			if (link != null) {
 				child = new Importer(map);
 			}
-		} else if (line.equals("}")) { // STOP: report self to parent
+			in.end();
+			return false;
+		} else if (in.is("}")) { // STOP: report self to parent
+			in.end();
 			return true;
-		} else if (line.startsWith("REF ")) { // REF: create/link self
+		}
+
+		// Custom objects
+		if (CustomSerializer.isCustom(in)) {
+			// not a field value but a direct value
+			String line = IOUtils.readSmallStream(in);
+			me = SerialUtils.decode(line);
+			return false;
+		}
+
+		// TODO use the stream, Luke
+		// .. at least for REF
+		String line = IOUtils.readSmallStream(in);
+
+		if (line.startsWith("REF ")) { // REF: create/link self
+			// TODO: here, line is REF type@999:xxx
+			// xxx is optional
+			// note: use .end() when containsKey(ref)
 			String[] tab = line.substring("REF ".length()).split("@");
 			String type = tab[0];
 			tab = tab[1].split(":");
@@ -188,7 +207,7 @@ public class Importer {
 				// field value is compound
 				currentFieldName = line.substring(0, line.length() - 1);
 			} else if (line.startsWith(":") || !line.contains(":")
-					|| line.startsWith("\"") || CustomSerializer.isCustom(line)) {
+					|| line.startsWith("\"")) {
 				// not a field value but a direct value
 				me = SerialUtils.decode(line);
 			} else {
