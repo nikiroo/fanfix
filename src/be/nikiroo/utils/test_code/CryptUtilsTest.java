@@ -75,8 +75,8 @@ class CryptUtilsTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				String orig = "data";
-				String encrypted = crypt.encrypt64(orig, false);
-				String decrypted = crypt.decrypt64s(encrypted, false);
+				String encrypted = crypt.encrypt64(orig);
+				String decrypted = crypt.decrypt64s(encrypted);
 
 				assertEquals(orig, decrypted);
 			}
@@ -97,8 +97,8 @@ class CryptUtilsTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				String orig = "";
-				String encrypted = crypt.encrypt64(orig, false);
-				String decrypted = crypt.decrypt64s(encrypted, false);
+				String encrypted = crypt.encrypt64(orig);
+				String decrypted = crypt.decrypt64s(encrypted);
 
 				assertEquals(orig, decrypted);
 			}
@@ -119,8 +119,8 @@ class CryptUtilsTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				String orig = longData;
-				String encrypted = crypt.encrypt64(orig, false);
-				String decrypted = crypt.decrypt64s(encrypted, false);
+				String encrypted = crypt.encrypt64(orig);
+				String decrypted = crypt.decrypt64s(encrypted);
 
 				assertEquals(orig, decrypted);
 			}

@@ -20,6 +20,8 @@ import java.util.UnknownFormatConversionException;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.StringUtils;
+import be.nikiroo.utils.streams.Base64InputStream;
+import be.nikiroo.utils.streams.Base64OutputStream;
 import be.nikiroo.utils.streams.NextableInputStream;
 import be.nikiroo.utils.streams.NextableInputStreamStep;
 
@@ -80,9 +82,9 @@ public class SerialUtils {
 							try {
 								// TODO: bad escaping?
 								write(out, "B64:");
-								OutputStream bout = StringUtils.base64(out,
-										false, false);
-								new Exporter(bout).append(item);
+								OutputStream out64 = new Base64OutputStream(
+										out, true);
+								new Exporter(out64).append(item);
 							} catch (NotSerializableException e) {
 								throw new UnknownFormatConversionException(e
 										.getMessage());
@@ -165,7 +167,7 @@ public class SerialUtils {
 			protected void toStream(OutputStream out, Object value)
 					throws IOException {
 				Image img = (Image) value;
-				OutputStream encoded = StringUtils.base64(out, false, false);
+				OutputStream encoded = new Base64OutputStream(out, true);
 				try {
 					InputStream in = img.newInputStream();
 					try {
@@ -188,7 +190,7 @@ public class SerialUtils {
 			protected Object fromStream(InputStream in) throws IOException {
 				try {
 					// Cannot close it!
-					InputStream decoded = StringUtils.unbase64(in, false);
+					InputStream decoded = new Base64InputStream(in, false);
 					return new Image(decoded);
 				} catch (IOException e) {
 					throw new UnknownFormatConversionException(e.getMessage());

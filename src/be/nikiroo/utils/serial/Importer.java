@@ -5,9 +5,10 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 import be.nikiroo.utils.IOUtils;
-import be.nikiroo.utils.StringUtils;
+import be.nikiroo.utils.streams.Base64InputStream;
 import be.nikiroo.utils.streams.NextableInputStream;
 import be.nikiroo.utils.streams.NextableInputStreamStep;
 
@@ -92,8 +93,13 @@ public class Importer {
 
 				if (zip || b64) {
 					stream.skip("XXX:".length());
-					InputStream decoded = StringUtils.unbase64(stream.open(),
-							zip);
+
+					InputStream decoded = stream.open();
+					if (zip) {
+						decoded = new GZIPInputStream(decoded);
+					}
+					decoded = new Base64InputStream(decoded, false);
+
 					try {
 						read(decoded);
 					} finally {

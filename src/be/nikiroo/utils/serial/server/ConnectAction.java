@@ -288,7 +288,7 @@ abstract class ConnectAction {
 		synchronized (lock) {
 			OutputStream sub;
 			if (crypt != null) {
-				sub = crypt.encrypt64(out.open(), false);
+				sub = crypt.encrypt64(out.open());
 			} else {
 				sub = out.open();
 			}
@@ -383,7 +383,7 @@ abstract class ConnectAction {
 
 					try {
 						if (crypt != null) {
-							read = crypt.decrypt64(read, false);
+							read = crypt.decrypt64(read);
 						}
 
 						if (asString) {

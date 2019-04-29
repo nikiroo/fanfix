@@ -19,6 +19,9 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.SSLException;
 
+import be.nikiroo.utils.streams.Base64InputStream;
+import be.nikiroo.utils.streams.Base64OutputStream;
+
 /**
  * Small utility class to do AES encryption/decryption.
  * <p>
@@ -95,19 +98,14 @@ public class CryptUtils {
 	 * 
 	 * @param in
 	 *            the {@link InputStream} to wrap
-	 * @param zip
-	 *            TRUE to also uncompress the data from a GZIP format; take care
-	 *            about this flag, as it could easily cause errors in the
-	 *            returned content or an {@link IOException}
 	 * 
 	 * @return the auto-encode {@link InputStream}
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public InputStream encrypt64(InputStream in, boolean zip)
-			throws IOException {
-		return StringUtils.base64(encrypt(in), zip, false);
+	public InputStream encrypt64(InputStream in) throws IOException {
+		return new Base64InputStream(encrypt(in), true);
 	}
 
 	/**
@@ -130,19 +128,14 @@ public class CryptUtils {
 	 * 
 	 * @param out
 	 *            the {@link OutputStream} to wrap
-	 * @param zip
-	 *            TRUE to also uncompress the data from a GZIP format; take care
-	 *            about this flag, as it could easily cause errors in the
-	 *            returned content or an {@link IOException}
 	 * 
 	 * @return the auto-encode {@link OutputStream}
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public OutputStream encrypt64(OutputStream out, boolean zip)
-			throws IOException {
-		return encrypt(StringUtils.base64(out, zip, false));
+	public OutputStream encrypt64(OutputStream out) throws IOException {
+		return encrypt(new Base64OutputStream(out, true));
 	}
 
 	/**
@@ -165,19 +158,14 @@ public class CryptUtils {
 	 * 
 	 * @param in
 	 *            the {@link InputStream} to wrap
-	 * @param zip
-	 *            TRUE to also uncompress the data from a GZIP format; take care
-	 *            about this flag, as it could easily cause errors in the
-	 *            returned content or an {@link IOException}
 	 * 
 	 * @return the auto-decode {@link InputStream}
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public InputStream decrypt64(InputStream in, boolean zip)
-			throws IOException {
-		return decrypt(StringUtils.unbase64(in, zip));
+	public InputStream decrypt64(InputStream in) throws IOException {
+		return decrypt(new Base64InputStream(in, false));
 	}
 
 	/**
@@ -199,19 +187,14 @@ public class CryptUtils {
 	 * 
 	 * @param out
 	 *            the {@link OutputStream} to wrap
-	 * @param zip
-	 *            TRUE to also uncompress the data from a GZIP format; take care
-	 *            about this flag, as it could easily cause errors in the
-	 *            returned content or an {@link IOException}
 	 * 
 	 * @return the auto-decode {@link OutputStream}
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public OutputStream decrypt64(OutputStream out, boolean zip)
-			throws IOException {
-		return StringUtils.unbase64(decrypt(out), zip);
+	public OutputStream decrypt64(OutputStream out) throws IOException {
+		return new Base64OutputStream(decrypt(out), false);
 	}
 
 	/**
@@ -335,9 +318,9 @@ public class CryptUtils {
 	 *             in case of I/O error (i.e., the data is not what you assumed
 	 *             it was)
 	 */
-	public String encrypt64(String data, boolean zip) throws SSLException {
+	public String encrypt64(String data) throws SSLException {
 		try {
-			return encrypt64(data.getBytes("UTF8"), zip);
+			return encrypt64(data.getBytes("UTF8"));
 		} catch (UnsupportedEncodingException e) {
 			// UTF-8 is required in all confirm JVMs
 			e.printStackTrace();
@@ -350,10 +333,6 @@ public class CryptUtils {
 	 * 
 	 * @param data
 	 *            the data to encrypt
-	 * @param zip
-	 *            TRUE to also compress the data in GZIP format; remember that
-	 *            compressed and not-compressed content are different; you need
-	 *            to know which is which when decoding
 	 * 
 	 * @return the encrypted data, encoded in Base64
 	 * 
@@ -361,9 +340,9 @@ public class CryptUtils {
 	 *             in case of I/O error (i.e., the data is not what you assumed
 	 *             it was)
 	 */
-	public String encrypt64(byte[] data, boolean zip) throws SSLException {
+	public String encrypt64(byte[] data) throws SSLException {
 		try {
-			return StringUtils.base64(encrypt(data), zip);
+			return StringUtils.base64(encrypt(data));
 		} catch (IOException e) {
 			// not exactly true, but we consider here that this error is a crypt
 			// error, not a normal I/O error
@@ -431,9 +410,9 @@ public class CryptUtils {
 	 * @throws SSLException
 	 *             in case of I/O error
 	 */
-	public byte[] decrypt64(String data, boolean zip) throws SSLException {
+	public byte[] decrypt64(String data) throws SSLException {
 		try {
-			return decrypt(StringUtils.unbase64(data, zip));
+			return decrypt(StringUtils.unbase64(data));
 		} catch (IOException e) {
 			// not exactly true, but we consider here that this error is a crypt
 			// error, not a normal I/O error
@@ -457,9 +436,9 @@ public class CryptUtils {
 	 * @throws SSLException
 	 *             in case of I/O error
 	 */
-	public String decrypt64s(String data, boolean zip) throws SSLException {
+	public String decrypt64s(String data) throws SSLException {
 		try {
-			return new String(decrypt(StringUtils.unbase64(data, zip)), "UTF-8");
+			return new String(decrypt(StringUtils.unbase64(data)), "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			// UTF-8 is required in all confirm JVMs
 			e.printStackTrace();

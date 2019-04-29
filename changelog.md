@@ -9,7 +9,8 @@
 - fix: Base64 implementation changed
 - change: serial: SSL -> CryptUtils
 - change: MarkableFileInputStream moved to nikiroo.utils.streams
-- change: Break compat with package utils.server (Version not used anymore)
+- change: Break compat with package utils.server (small change, Version not used anymore)
+- change: Break compat with base64 methods in StringUtils (now it works correctly, too)
 
 ## Version 4.7.2
 

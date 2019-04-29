@@ -227,9 +227,9 @@ public class ServerBridge extends Server {
 			try {
 				while (data.startsWith("ZIP:") || data.startsWith("B64:")) {
 					if (data.startsWith("ZIP:")) {
-						data = StringUtils.unbase64s(data.substring(4), true);
+						data = StringUtils.unzip64s(data.substring(4));
 					} else if (data.startsWith("B64:")) {
-						data = StringUtils.unbase64s(data.substring(4), false);
+						data = StringUtils.unzip64s(data.substring(4));
 					}
 				}
 

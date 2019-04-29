@@ -52,19 +52,6 @@ public class Image implements Closeable {
 	}
 
 	/**
-	 * Create a new {@link Image} from its Base64 representation.
-	 * 
-	 * @param base64
-	 *            the {@link Image} in Base64 format
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
-	public Image(String base64) throws IOException {
-		this(Base64.decode(base64));
-	}
-
-	/**
 	 * Create a new {@link Image} from a stream.
 	 * 
 	 * @param in
@@ -79,7 +66,8 @@ public class Image implements Closeable {
 	}
 
 	/**
-	 * Generate an {@link InputStream} for this {@link Image}.
+	 * Generate an {@link InputStream} that you can {@link InputStream#reset()}
+	 * for this {@link Image}.
 	 * <p>
 	 * This {@link InputStream} will (always) be a new one, and <b>you</b> are
 	 * responsible for it.
@@ -112,23 +100,6 @@ public class Image implements Closeable {
 			} finally {
 				in.close();
 			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
-	 * Convert the given {@link Image} object into a Base64 representation of
-	 * the same {@link Image} object.
-	 * <p>
-	 * Note: if possible, prefer the {@link Image#newInputStream()} method, as
-	 * it can be more efficient.
-	 * 
-	 * @return the Base64 representation
-	 */
-	public String toBase64() {
-		try {
-			return StringUtils.base64(getData(), false);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

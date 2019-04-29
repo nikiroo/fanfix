@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+/*
+ * Changes (@author niki):
+ * - default charset -> UTF-8
+ */
+
 package be.nikiroo.utils.streams;
 
 import java.io.UnsupportedEncodingException;
@@ -115,7 +120,12 @@ class Base64 {
      * incorrect padding
      */
     public static byte[] decode(String str, int flags) {
-        return decode(str.getBytes(), flags);
+    	try{
+    		return decode(str.getBytes("UTF-8"), flags);
+    	} catch (UnsupportedEncodingException e) {
+    		// All conforming JVM are expected to support UTF-8
+    		return null;
+    	}
     }
 
     /**

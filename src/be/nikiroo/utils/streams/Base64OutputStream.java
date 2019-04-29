@@ -63,7 +63,8 @@ public class Base64OutputStream extends FilterOutputStream {
         }
     }
 
-    public void write(int b) throws IOException {
+    @Override
+	public void write(int b) throws IOException {
         // To avoid invoking the encoder/decoder routines for single
         // bytes, we buffer up calls to write(int) in an internal
         // byte array to transform them into writes of decently-sized
@@ -91,13 +92,15 @@ public class Base64OutputStream extends FilterOutputStream {
         }
     }
 
-    public void write(byte[] b, int off, int len) throws IOException {
+    @Override
+	public void write(byte[] b, int off, int len) throws IOException {
         if (len <= 0) return;
         flushBuffer();
         internalWrite(b, off, len, false);
     }
 
-    public void close() throws IOException {
+    @Override
+	public void close() throws IOException {
         IOException thrown = null;
         try {
             flushBuffer();
@@ -144,8 +147,7 @@ public class Base64OutputStream extends FilterOutputStream {
     private byte[] embiggen(byte[] b, int len) {
         if (b == null || b.length < len) {
             return new byte[len];
-        } else {
-            return b;
         }
+        return b;
     }
 }
