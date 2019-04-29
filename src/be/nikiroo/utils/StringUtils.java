@@ -432,7 +432,7 @@ public class StringUtils {
 	static public String getMd5Hash(String input) {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
-			md.update(input.getBytes("UTF-8"));
+			md.update(getBytes(input));
 			byte byteData[] = md.digest();
 
 			StringBuffer hexString = new StringBuffer();
@@ -445,8 +445,6 @@ public class StringUtils {
 
 			return hexString.toString();
 		} catch (NoSuchAlgorithmException e) {
-			return input;
-		} catch (UnsupportedEncodingException e) {
 			return input;
 		}
 	}
@@ -528,7 +526,7 @@ public class StringUtils {
 	 */
 	public static String zip64s(String data) throws IOException {
 		try {
-			return zip64(data.getBytes("UTF-8"));
+			return zip64(getBytes(data));
 		} catch (UnsupportedEncodingException e) {
 			// All conforming JVM are required to support UTF-8
 			e.printStackTrace();
@@ -601,7 +599,7 @@ public class StringUtils {
 	 */
 	public static byte[] unzip64(String data) throws IOException {
 		InputStream in = new Base64InputStream(new ByteArrayInputStream(
-				data.getBytes("UTF-8")), false);
+				getBytes(data)), false);
 		try {
 			in = new GZIPInputStream(in);
 			return IOUtils.toByteArray(in);
@@ -622,7 +620,7 @@ public class StringUtils {
 	 *             in case of I/O errors
 	 */
 	public static String base64(String data) throws IOException {
-		return base64(data.getBytes("UTF-8"));
+		return base64(getBytes(data));
 	}
 
 	/**
@@ -659,7 +657,7 @@ public class StringUtils {
 	 */
 	public static byte[] unbase64(String data) throws IOException {
 		Base64InputStream in = new Base64InputStream(new ByteArrayInputStream(
-				data.getBytes("UTF-8")), false);
+				getBytes(data)), false);
 		try {
 			return IOUtils.toByteArray(in);
 		} finally {
@@ -830,6 +828,24 @@ public class StringUtils {
 		}
 
 		return count;
+	}
+
+	/**
+	 * Return the bytes array representation of the given {@link String} in
+	 * UTF-8.
+	 * 
+	 * @param str
+	 *            the {@link String} to transform into bytes
+	 * @return the content in bytes
+	 */
+	static public byte[] getBytes(String str) {
+		try {
+			return str.getBytes("UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// All conforming JVM must support UTF-8
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	/**

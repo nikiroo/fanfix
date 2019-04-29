@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.NotSerializableException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -142,7 +141,7 @@ public class SerialUtils {
 					val = ((URL) value).toString();
 				}
 
-				out.write(val.getBytes("UTF-8"));
+				out.write(StringUtils.getBytes(val));
 			}
 
 			@Override
@@ -481,7 +480,7 @@ public class SerialUtils {
 				if (customTypes.containsKey(type)) {
 					// TODO: we should start with a stream
 					InputStream streamEncodedValue = new ByteArrayInputStream(
-							encodedValue.getBytes("UTF-8"));
+							StringUtils.getBytes(encodedValue));
 					try {
 						return customTypes.get(type).decode(streamEncodedValue);
 					} finally {
@@ -536,12 +535,7 @@ public class SerialUtils {
 	 *             in case of I/O error
 	 */
 	static void write(OutputStream out, Object data) throws IOException {
-		try {
-			out.write(data.toString().getBytes("UTF-8"));
-		} catch (UnsupportedEncodingException e) {
-			// A conforming JVM is required to support UTF-8
-			e.printStackTrace();
-		}
+		out.write(StringUtils.getBytes(data.toString()));
 	}
 
 	/**

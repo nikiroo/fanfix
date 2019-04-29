@@ -232,7 +232,7 @@ public class IOUtils {
 			throws IOException {
 		FileOutputStream out = new FileOutputStream(file);
 		try {
-			out.write(content.getBytes("UTF-8"));
+			out.write(StringUtils.getBytes(content));
 		} finally {
 			out.close();
 		}

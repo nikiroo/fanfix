@@ -234,7 +234,7 @@ public class ServerBridge extends Server {
 				}
 
 				InputStream stream = new ByteArrayInputStream(
-						data.getBytes("UTF-8"));
+						StringUtils.getBytes(data));
 				try {
 					Object obj = new Importer().read(stream).getValue();
 					if (obj == null) {

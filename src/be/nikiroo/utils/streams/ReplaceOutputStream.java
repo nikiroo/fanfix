@@ -3,6 +3,8 @@ package be.nikiroo.utils.streams;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import be.nikiroo.utils.StringUtils;
+
 /**
  * This {@link OutputStream} will change some of its content by replacing it
  * with something else.
@@ -25,7 +27,7 @@ public class ReplaceOutputStream extends BufferedOutputStream {
 	 *            the {@link String} to replace with
 	 */
 	public ReplaceOutputStream(OutputStream out, String from, String to) {
-		this(out, StreamUtils.bytes(from), StreamUtils.bytes(to));
+		this(out, StringUtils.getBytes(from), StringUtils.getBytes(to));
 	}
 
 	/**
@@ -58,7 +60,7 @@ public class ReplaceOutputStream extends BufferedOutputStream {
 	 *            the values to replace with
 	 */
 	public ReplaceOutputStream(OutputStream out, String[] froms, String[] tos) {
-		this(out, StreamUtils.bytes(froms), StreamUtils.bytes(tos));
+		this(out, StreamUtils.getBytes(froms), StreamUtils.getBytes(tos));
 	}
 
 	/**

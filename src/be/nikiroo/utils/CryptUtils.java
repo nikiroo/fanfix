@@ -293,13 +293,7 @@ public class CryptUtils {
 	 *             it was)
 	 */
 	public byte[] encrypt(String data) throws SSLException {
-		try {
-			return encrypt(data.getBytes("UTF8"));
-		} catch (UnsupportedEncodingException e) {
-			// UTF-8 is required in all confirm JVMs
-			e.printStackTrace();
-			return null;
-		}
+		return encrypt(StringUtils.getBytes(data));
 	}
 
 	/**
@@ -319,13 +313,7 @@ public class CryptUtils {
 	 *             it was)
 	 */
 	public String encrypt64(String data) throws SSLException {
-		try {
-			return encrypt64(data.getBytes("UTF8"));
-		} catch (UnsupportedEncodingException e) {
-			// UTF-8 is required in all confirm JVMs
-			e.printStackTrace();
-			return null;
-		}
+		return encrypt64(StringUtils.getBytes(data));
 	}
 
 	/**

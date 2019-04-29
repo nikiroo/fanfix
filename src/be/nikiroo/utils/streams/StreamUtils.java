@@ -1,6 +1,6 @@
 package be.nikiroo.utils.streams;
 
-import java.io.UnsupportedEncodingException;
+import be.nikiroo.utils.StringUtils;
 
 /**
  * Some non-public utilities used in the stream classes.
@@ -54,39 +54,16 @@ class StreamUtils {
 	 * Return the bytes array representation of the given {@link String} in
 	 * UTF-8.
 	 * 
-	 * @param str
-	 *            the {@link String} to transform into bytes
-	 * @return the content in bytes
-	 */
-	static public byte[] bytes(String str) {
-		try {
-			return str.getBytes("UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			// All conforming JVM must support UTF-8
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	/**
-	 * Return the bytes array representation of the given {@link String} in
-	 * UTF-8.
-	 * 
 	 * @param strs
 	 *            the {@link String}s to transform into bytes
 	 * @return the content in bytes
 	 */
-	static public byte[][] bytes(String[] strs) {
-		try {
-			byte[][] bytes = new byte[strs.length][];
-			for (int i = 0; i < strs.length; i++) {
-				bytes[i] = strs[i].getBytes("UTF-8");
-			}
-			return bytes;
-		} catch (UnsupportedEncodingException e) {
-			// All conforming JVM must support UTF-8
-			e.printStackTrace();
-			return null;
+	static public byte[][] getBytes(String[] strs) {
+		byte[][] bytes = new byte[strs.length][];
+		for (int i = 0; i < strs.length; i++) {
+			bytes[i] = StringUtils.getBytes(strs[i]);
 		}
+
+		return bytes;
 	}
 }

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 
+import be.nikiroo.utils.StringUtils;
+
 /**
  * A simple {@link InputStream} that is buffered with a bytes array.
  * <p>
@@ -142,7 +144,7 @@ public class BufferedInputStream extends InputStream {
 	 *             greater than the internal buffer
 	 */
 	public boolean startsWiths(String search) throws IOException {
-		return startsWith(search.getBytes("UTF-8"));
+		return startsWith(StringUtils.getBytes(search));
 	}
 
 	/**

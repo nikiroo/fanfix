@@ -23,6 +23,8 @@ package be.nikiroo.utils.streams;
 
 import java.io.UnsupportedEncodingException;
 
+import be.nikiroo.utils.StringUtils;
+
 /**
  * Utilities for encoding and decoding the Base64 representation of
  * binary data.  See RFCs <a
@@ -120,12 +122,7 @@ class Base64 {
      * incorrect padding
      */
     public static byte[] decode(String str, int flags) {
-    	try{
-    		return decode(str.getBytes("UTF-8"), flags);
-    	} catch (UnsupportedEncodingException e) {
-    		// All conforming JVM are expected to support UTF-8
-    		return null;
-    	}
+		return decode(StringUtils.getBytes(str), flags);
     }
 
     /**

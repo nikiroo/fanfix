@@ -3,6 +3,8 @@ package be.nikiroo.utils.streams;
 import java.io.IOException;
 import java.io.InputStream;
 
+import be.nikiroo.utils.StringUtils;
+
 /**
  * This {@link InputStream} will change some of its content by replacing it with
  * something else.
@@ -40,7 +42,7 @@ public class ReplaceInputStream extends BufferedInputStream {
 	 *            the {@link String} to replace with
 	 */
 	public ReplaceInputStream(InputStream in, String from, String to) {
-		this(in, StreamUtils.bytes(from), StreamUtils.bytes(to));
+		this(in, StringUtils.getBytes(from), StringUtils.getBytes(to));
 	}
 
 	/**
@@ -73,7 +75,7 @@ public class ReplaceInputStream extends BufferedInputStream {
 	 *            the values to replace with
 	 */
 	public ReplaceInputStream(InputStream in, String[] froms, String[] tos) {
-		this(in, StreamUtils.bytes(froms), StreamUtils.bytes(tos));
+		this(in, StreamUtils.getBytes(froms), StreamUtils.getBytes(tos));
 	}
 
 	/**

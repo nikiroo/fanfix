@@ -9,6 +9,7 @@ import javax.net.ssl.SSLException;
 
 import be.nikiroo.utils.CryptUtils;
 import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.serial.Exporter;
 import be.nikiroo.utils.serial.Importer;
 import be.nikiroo.utils.streams.BufferedOutputStream;
@@ -301,7 +302,7 @@ abstract class ConnectAction {
 
 			try {
 				if (asString) {
-					sub.write(data.toString().getBytes("UTF-8"));
+					sub.write(StringUtils.getBytes(data.toString()));
 				} else {
 					new Exporter(sub).append(data);
 				}
