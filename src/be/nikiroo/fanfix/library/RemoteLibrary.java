@@ -14,7 +14,6 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
-import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.server.ConnectActionClientObject;
 
 /**
@@ -61,7 +60,7 @@ public class RemoteLibrary extends BasicLibrary {
 			Instance.getTraceHandler().trace("Getting remote lib status...");
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action(Version serverVersion) throws Exception {
+				public void action() throws Exception {
 					Object rep = send(new Object[] { "PING" });
 
 					if ("PONG".equals(rep)) {
@@ -99,7 +98,7 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action(Version serverVersion) throws Exception {
+				public void action() throws Exception {
 					Object rep = send(new Object[] { "GET_COVER", luid });
 					result[0] = (Image) rep;
 				}
@@ -138,7 +137,7 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action(Version serverVersion) throws Exception {
+				public void action() throws Exception {
 					Object rep = send(new Object[] { "GET_CUSTOM_COVER", type,
 							source });
 					result[0] = (Image) rep;
@@ -169,7 +168,7 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action(Version serverVersion) throws Exception {
+				public void action() throws Exception {
 					Progress pg = pgF;
 					if (pg == null) {
 						pg = new Progress();
@@ -230,7 +229,7 @@ public class RemoteLibrary extends BasicLibrary {
 
 		new ConnectActionClientObject(host, port, key) {
 			@Override
-			public void action(Version serverVersion) throws Exception {
+			public void action() throws Exception {
 				Progress pg = pgF;
 				if (story.getMeta().getWords() <= Integer.MAX_VALUE) {
 					pg.setMinMax(0, (int) story.getMeta().getWords());
@@ -280,7 +279,7 @@ public class RemoteLibrary extends BasicLibrary {
 	public synchronized void delete(final String luid) throws IOException {
 		new ConnectActionClientObject(host, port, key) {
 			@Override
-			public void action(Version serverVersion) throws Exception {
+			public void action() throws Exception {
 				send(new Object[] { "DELETE_STORY", luid });
 			}
 
@@ -312,7 +311,7 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action(Version serverVersion) throws Exception {
+				public void action() throws Exception {
 					send(new Object[] { "SET_COVER", type, value, luid });
 				}
 
@@ -357,7 +356,7 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action(Version serverVersion) throws Exception {
+				public void action() throws Exception {
 					Progress pg = pgF;
 
 					Object rep = send(new Object[] { "IMPORT", url.toString() });
@@ -409,7 +408,7 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action(Version serverVersion) throws Exception {
+				public void action() throws Exception {
 					Progress pg = pgF;
 
 					Object rep = send(new Object[] { "CHANGE_STA", luid,
@@ -451,7 +450,7 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action(Version serverVersion) throws Exception {
+				public void action() throws Exception {
 					send(new Object[] { "EXIT" });
 				}
 
@@ -535,7 +534,7 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action(Version serverVersion) throws Exception {
+				public void action() throws Exception {
 					Progress pg = pgF;
 					if (pg == null) {
 						pg = new Progress();

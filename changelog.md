@@ -9,8 +9,9 @@
 - gui: focus fix
 - MangaLEL: website has changed
 - search: MangaLEL support
-- remote: go CLEAR TEXT because Google and Android don't like anonymous SSL
+- remote: encryption mode changed because Google
 - remote: not compatible with 2.x
+- remote: better perfs and memory usage
 
 # Version 2.0.2
 

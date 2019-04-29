@@ -16,7 +16,6 @@ import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Progress.ProgressListener;
 import be.nikiroo.utils.StringUtils;
-import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.server.ConnectActionServerObject;
 import be.nikiroo.utils.serial.server.ServerObject;
 
@@ -70,8 +69,8 @@ public class RemoteLibraryServer extends ServerObject {
 	}
 
 	@Override
-	protected Object onRequest(ConnectActionServerObject action,
-			Version clientVersion, Object data) throws Exception {
+	protected Object onRequest(ConnectActionServerObject action, Object data)
+			throws Exception {
 		long start = new Date().getTime();
 
 		String command = "";
