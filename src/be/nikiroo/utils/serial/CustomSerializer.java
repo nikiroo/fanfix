@@ -10,17 +10,74 @@ import be.nikiroo.utils.streams.NextableInputStreamStep;
 import be.nikiroo.utils.streams.ReplaceInputStream;
 import be.nikiroo.utils.streams.ReplaceOutputStream;
 
+/**
+ * A {@link CustomSerializer} supports and generates values in the form:
+ * <ul>
+ * <li><tt>custom^<i>TYPE</i>^<i>ENCODED_VALUE</i></tt></li>
+ * </ul>
+ * <p>
+ * In this scheme, the values are:
+ * <ul>
+ * <li><tt>custom</tt>: a fixed keyword</li>
+ * <li><tt>^</tt>: a fixed separator character (the
+ * <tt><i>ENCODED_VALUE</i></tt> can still use it inside its content, though</li>
+ * <li><tt><i>TYPE</i></tt>: the object type of this value</li>
+ * <li><tt><i>ENCODED_VALUE</i></tt>: the custom encoded value</li>
+ * </ul>
+ * <p>
+ * To create a new {@link CustomSerializer}, you are expected to implement the
+ * abstract methods of this class. The rest should be taken care of bythe
+ * system.
+ * 
+ * @author niki
+ */
 public abstract class CustomSerializer {
-
+	/**
+	 * Generate the custom <tt><i>ENCODED_VALUE</i></tt> from this
+	 * <tt>value</tt>.
+	 * <p>
+	 * The <tt>value</tt> will always be of the supported type.
+	 * 
+	 * @param out
+	 *            the {@link OutputStream} to write the value to
+	 * @param value
+	 *            the value to serialize
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
 	protected abstract void toStream(OutputStream out, Object value)
 			throws IOException;
 
+	/**
+	 * Regenerate the value from the custom <tt><i>ENCODED_VALUE</i></tt>.
+	 * <p>
+	 * The value in the {@link InputStream} <tt>in</tt> will always be of the
+	 * supported type.
+	 * 
+	 * @param in
+	 *            the {@link InputStream} containing the
+	 *            <tt><i>ENCODED_VALUE</i></tt>
+	 * 
+	 * @return the regenerated object
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
 	protected abstract Object fromStream(InputStream in) throws IOException;
 
+	/**
+	 * Return the supported type name.
+	 * <p>
+	 * It <b>must</b> be the name returned by {@link Object#getClass()
+	 * #getCanonicalName()}.
+	 * 
+	 * @return the supported class name
+	 */
 	protected abstract String getType();
 
 	/**
-	 * Encode the object into the given {@link OutputStream} if supported.
+	 * Encode the object into the given {@link OutputStream}.
 	 * 
 	 * @param out
 	 *            the builder to append to
@@ -45,6 +102,17 @@ public abstract class CustomSerializer {
 		}
 	}
 
+	/**
+	 * Decode the value back into the supported object type.
+	 * 
+	 * @param in
+	 *            the encoded value
+	 * 
+	 * @return the object
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
 	public Object decode(InputStream in) throws IOException {
 		ReplaceInputStream replace = new ReplaceInputStream(in, //
 				new String[] { "\\\\", "\\n" }, //

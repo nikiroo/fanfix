@@ -364,6 +364,7 @@ abstract class ConnectAction {
 	 * @throws java.lang.NullPointerException
 	 *             for Objects only: if the counter part has no data to send
 	 */
+	@SuppressWarnings("resource")
 	private Object rec(boolean asString) throws IOException,
 			NoSuchFieldException, NoSuchMethodException,
 			ClassNotFoundException, java.lang.NullPointerException {
