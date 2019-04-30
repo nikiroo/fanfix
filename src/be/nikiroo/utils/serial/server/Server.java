@@ -18,6 +18,7 @@ import be.nikiroo.utils.TraceHandler;
  */
 abstract class Server implements Runnable {
 	protected final String key;
+	protected long id = 0;
 
 	private final String name;
 	private final Object lock = new Object();
@@ -374,6 +375,33 @@ abstract class Server implements Runnable {
 	 */
 	protected void onError(Exception e) {
 		tracer.error(e);
+	}
+
+	/**
+	 * Return the next ID to use.
+	 * 
+	 * @return the next ID
+	 */
+	protected synchronized long getNextId() {
+		return id++;
+	}
+
+	/**
+	 * Method called when
+	 * {@link ServerObject#onRequest(ConnectActionServerObject, Object, long)}
+	 * has successfully finished.
+	 * <p>
+	 * Can be used to know how much data was transmitted.
+	 * 
+	 * @param id
+	 *            the ID used to identify the request
+	 * @param bytesReceived
+	 *            the bytes received during the request
+	 * @param bytesSent
+	 *            the bytes sent during the request
+	 */
+	@SuppressWarnings("unused")
+	protected void onRequestDone(long id, long bytesReceived, long bytesSent) {
 	}
 
 	/**

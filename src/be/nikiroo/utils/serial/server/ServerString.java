@@ -67,10 +67,11 @@ abstract public class ServerString extends Server {
 		return new ConnectActionServerString(s, key) {
 			@Override
 			public void action() throws Exception {
+				long id = getNextId();
 				for (String data = rec(); data != null; data = rec()) {
 					String rep = null;
 					try {
-						rep = onRequest(this, data);
+						rep = onRequest(this, data, id);
 						if (isClosing()) {
 							return;
 						}
@@ -81,9 +82,10 @@ abstract public class ServerString extends Server {
 					if (rep == null) {
 						rep = "";
 					}
-
 					send(rep);
 				}
+
+				onRequestDone(id, getBytesReceived(), getBytesSent());
 			}
 
 			@Override
@@ -103,6 +105,9 @@ abstract public class ServerString extends Server {
 	 *            the client action
 	 * @param data
 	 *            the data sent by the client
+	 * @param id
+	 *            an ID to identify this request (will also be re-used for
+	 *            {@link ServerObject#onRequestDone(long, long, long)}.
 	 * 
 	 * @return the answer to return to the client
 	 * 
@@ -110,5 +115,5 @@ abstract public class ServerString extends Server {
 	 *             in case of an exception, the error will only be logged
 	 */
 	abstract protected String onRequest(ConnectActionServerString action,
-			String data) throws Exception;
+			String data, long id) throws Exception;
 }

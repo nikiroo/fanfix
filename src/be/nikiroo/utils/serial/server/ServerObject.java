@@ -67,11 +67,12 @@ abstract public class ServerObject extends Server {
 		return new ConnectActionServerObject(s, key) {
 			@Override
 			public void action() throws Exception {
+				long id = getNextId();
 				try {
 					for (Object data = rec(); true; data = rec()) {
 						Object rep = null;
 						try {
-							rep = onRequest(this, data);
+							rep = onRequest(this, data, id);
 							if (isClosing()) {
 								return;
 							}
@@ -83,6 +84,7 @@ abstract public class ServerObject extends Server {
 					}
 				} catch (NullPointerException e) {
 					// Client has no data any more, we quit
+					onRequestDone(id, getBytesReceived(), getBytesSent());
 				}
 			}
 
@@ -102,6 +104,9 @@ abstract public class ServerObject extends Server {
 	 *            the client action
 	 * @param data
 	 *            the data sent by the client (which can be NULL)
+	 * @param id
+	 *            an ID to identify this request (will also be re-used for
+	 *            {@link ServerObject#onRequestDone(long, long, long)}.
 	 * 
 	 * @return the answer to return to the client (which can be NULL)
 	 * 
@@ -109,5 +114,5 @@ abstract public class ServerObject extends Server {
 	 *             in case of an exception, the error will only be logged
 	 */
 	abstract protected Object onRequest(ConnectActionServerObject action,
-			Object data) throws Exception;
+			Object data, long id) throws Exception;
 }
