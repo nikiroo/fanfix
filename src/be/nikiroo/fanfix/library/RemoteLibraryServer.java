@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.SSLException;
 
@@ -50,6 +52,9 @@ import be.nikiroo.utils.serial.server.ServerObject;
  * @author niki
  */
 public class RemoteLibraryServer extends ServerObject {
+	private Map<Long, String> commands = new HashMap<Long, String>();
+	private Map<Long, Long> times = new HashMap<Long, Long>();
+
 	/**
 	 * Create a new remote server (will not be active until
 	 * {@link RemoteLibraryServer#start()} is called).
@@ -68,8 +73,8 @@ public class RemoteLibraryServer extends ServerObject {
 	}
 
 	@Override
-	protected Object onRequest(ConnectActionServerObject action, Object data)
-			throws Exception {
+	protected Object onRequest(ConnectActionServerObject action, Object data,
+			long id) throws Exception {
 		long start = new Date().getTime();
 
 		String command = "";
@@ -94,12 +99,20 @@ public class RemoteLibraryServer extends ServerObject {
 
 		Object rep = doRequest(action, command, args);
 
-		String rec = StringUtils.formatNumber(action.getBytesReceived()) + "b";
-		String sent = StringUtils.formatNumber(action.getBytesSent()) + "b";
-		System.out.println(String.format("[>%s]: (%s sent, %s rec) in %d ms",
-				command, sent, rec, (new Date().getTime() - start)));
+		commands.put(id, command);
+		times.put(id, (new Date().getTime() - start));
 
 		return rep;
+	}
+
+	@Override
+	protected void onRequestDone(long id, long bytesReceived, long bytesSent) {
+		String rec = StringUtils.formatNumber(bytesReceived) + "b";
+		String sent = StringUtils.formatNumber(bytesSent) + "b";
+		System.out.println(String.format("[>%s]: (%s sent, %s rec) in %d ms",
+				commands.get(id), sent, rec, times.get(id)));
+		commands.remove(id);
+		times.remove(id);
 	}
 
 	private Object doRequest(ConnectActionServerObject action, String command,
