@@ -81,16 +81,14 @@ public class NextableInputStream extends BufferedInputStream {
 	 * It can only be called when the "current" stream is spent (i.e., you must
 	 * first process the stream until it is spent).
 	 * <p>
-	 * We consider that when the under-laying {@link InputStream} is also spent,
-	 * we cannot have a next sub-stream (it will thus return FALSE).
-	 * <p>
 	 * {@link IOException}s can happen when we have no data available in the
 	 * buffer; in that case, we fetch more data to know if we can have a next
 	 * sub-stream or not.
 	 * <p>
 	 * This is can be a blocking call when data need to be fetched.
 	 * 
-	 * @return TRUE if we unblocked the next sub-stream, FALSE if not
+	 * @return TRUE if we unblocked the next sub-stream, FALSE if not (i.e.,
+	 *         FALSE when there are no more sub-streams to fetch)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error or if the stream is closed
@@ -122,7 +120,7 @@ public class NextableInputStream extends BufferedInputStream {
 	 * process).
 	 * <p>
 	 * Note: when the stream is divided into sub-streams, each sub-stream will
-	 * report it is eof when emptied.
+	 * report its own eof when spent.
 	 * 
 	 * @return TRUE if it is
 	 * 
@@ -158,11 +156,6 @@ public class NextableInputStream extends BufferedInputStream {
 		return false;
 	}
 
-	/**
-	 * We have more data available in the buffer or we can fetch more.
-	 * 
-	 * @return TRUE if it is the case, FALSE if not
-	 */
 	@Override
 	protected boolean hasMoreData() {
 		return started && super.hasMoreData();
@@ -205,7 +198,8 @@ public class NextableInputStream extends BufferedInputStream {
 	 *            TRUE for {@link NextableInputStream#nextAll()}, FALSE for
 	 *            {@link NextableInputStream#next()}
 	 * 
-	 * @return TRUE if we unblocked the next sub-stream, FALSE if not
+	 * @return TRUE if we unblocked the next sub-stream, FALSE if not (i.e.,
+	 *         FALSE when there are no more sub-streams to fetch)
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error or if the stream is closed
@@ -220,9 +214,17 @@ public class NextableInputStream extends BufferedInputStream {
 			if (all) {
 				step = null;
 			}
+
+			return true;
 		}
 
-		if (step != null && !hasMoreData() && stopped) {
+		// If started, must be stopped an no more data to continue
+		// i.e., sub-stream must be spent
+		if (!stopped || hasMoreData()) {
+			return false;
+		}
+
+		if (step != null) {
 			stop = step.getResumeLen();
 			start += step.getResumeSkip();
 			eof = step.getResumeEof();
@@ -233,17 +235,21 @@ public class NextableInputStream extends BufferedInputStream {
 			}
 
 			checkBuffer(false);
+
+			return true;
 		}
 
-		// consider that if EOF, there is no next
-		if (start >= stop) {
-			// Make sure, block if necessary
-			preRead();
+		return false;
 
-			return hasMoreData();
-		}
-
-		return true;
+		// // consider that if EOF, there is no next
+		// if (start >= stop) {
+		// // Make sure, block if necessary
+		// preRead();
+		//
+		// return hasMoreData();
+		// }
+		//
+		// return true;
 	}
 
 	/**

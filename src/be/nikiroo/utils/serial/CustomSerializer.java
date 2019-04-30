@@ -4,10 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.streams.BufferedInputStream;
-import be.nikiroo.utils.streams.NextableInputStream;
-import be.nikiroo.utils.streams.NextableInputStreamStep;
 import be.nikiroo.utils.streams.ReplaceInputStream;
 import be.nikiroo.utils.streams.ReplaceOutputStream;
 
@@ -78,7 +75,12 @@ public abstract class CustomSerializer {
 	protected abstract String getType();
 
 	/**
-	 * Encode the object into the given {@link OutputStream}.
+	 * Encode the object into the given {@link OutputStream}, i.e., generate the
+	 * <tt><i>ENCODED_VALUE</i></tt> part.
+	 * <p>
+	 * Use whatever scheme you wish, the system shall ensure that the content is
+	 * correctly encoded and that you will receive the same content at decode
+	 * time.
 	 * 
 	 * @param out
 	 *            the builder to append to
@@ -105,6 +107,14 @@ public abstract class CustomSerializer {
 
 	/**
 	 * Decode the value back into the supported object type.
+	 * <p>
+	 * We do <b>not</b> expect the full content here but only:
+	 * <ul>
+	 * <li>ENCODED_VALUE
+	 * <li>
+	 * </ul>
+	 * That is, we do not expect the "<tt>custom</tt>^<tt><i>TYPE</i></tt>^"
+	 * part.
 	 * 
 	 * @param in
 	 *            the encoded value
@@ -120,54 +130,10 @@ public abstract class CustomSerializer {
 				new String[] { "\\", "\n" });
 
 		try {
-			NextableInputStream stream = new NextableInputStream(
-					replace.open(), new NextableInputStreamStep('^'));
-			try {
-				if (!stream.next()) {
-					throw new IOException(
-							"Cannot find the first custom^ element");
-				}
-
-				String custom = IOUtils.readSmallStream(stream);
-				if (!"custom".equals(custom)) {
-					throw new IOException(
-							"Cannot find the first custom^ element, it is: "
-									+ custom + "^");
-				}
-
-				if (!stream.next()) {
-					throw new IOException("Cannot find the second custom^"
-							+ getType() + " element");
-				}
-
-				String type = IOUtils.readSmallStream(stream);
-				if (!getType().equals(type)) {
-					throw new IOException("Cannot find the second custom^"
-							+ getType() + " element, it is: custom^" + type
-							+ "^");
-				}
-
-				if (!stream.nextAll()) {
-					throw new IOException("Cannot find the third custom^"
-							+ getType() + "^value element");
-				}
-
-				return fromStream(stream);
-			} finally {
-				stream.close();
-			}
+			return fromStream(replace);
 		} finally {
 			replace.close(false);
 		}
-	}
-
-	/** Use {@link CustomSerializer#isCustom(BufferedInputStream)}. */
-	@Deprecated
-	public static boolean isCustom(String encodedValue) {
-		int pos1 = encodedValue.indexOf('^');
-		int pos2 = encodedValue.indexOf('^', pos1 + 1);
-
-		return pos1 >= 0 && pos2 >= 0 && encodedValue.startsWith("custom^");
 	}
 
 	public static boolean isCustom(BufferedInputStream in) throws IOException {

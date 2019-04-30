@@ -376,7 +376,7 @@ abstract class ConnectAction {
 					contentToSend = false;
 				}
 
-				if (in.next()) {
+				if (in.next() && !in.eof()) {
 					// TODO: could be possible to check for non-crypt and only
 					// do it for crypt
 					InputStream read = new ReplaceInputStream(in.open(), //

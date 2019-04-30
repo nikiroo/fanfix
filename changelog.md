@@ -8,9 +8,10 @@
 - fix: IOUtils.readSmallStream and \n at the end
 - fix: Base64 implementation changed
 - change: serial: SSL -> CryptUtils
-- change: MarkableFileInputStream moved to nikiroo.utils.streams
-- change: Break compat with package utils.server (small change, Version not used anymore)
-- change: Break compat with base64 methods in StringUtils (now it works correctly, too)
+- change: markableFileInputStream moved to nikiroo.utils.streams
+- change: break compat with package utils.server 
+- change: break compat with base64 methods in StringUtils (now it works correctly, too)
+- change: TestLauncher is now "silent" by default (no exception details, see setDetails(true))
 
 ## Version 4.7.2
 

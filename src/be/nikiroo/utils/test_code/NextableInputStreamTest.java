@@ -19,16 +19,7 @@ public class NextableInputStreamTest extends TestLauncher {
 				byte[] expected = new byte[] { 42, 12, 0, 127 };
 				NextableInputStream in = new NextableInputStream(
 						new ByteArrayInputStream(expected), null);
-				in.next();
-				byte[] actual = IOUtils.toByteArray(in);
-
-				assertEquals(
-						"The resulting array has not the same number of items",
-						expected.length, actual.length);
-				for (int i = 0; i < expected.length; i++) {
-					assertEquals("Item " + i + " (0-based) is not the same",
-							expected[i], actual[i]);
-				}
+				checkNext(this, "READ", in, expected);
 			}
 		});
 

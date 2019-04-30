@@ -1,6 +1,5 @@
 package be.nikiroo.utils.serial;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.NotSerializableException;
@@ -21,6 +20,7 @@ import be.nikiroo.utils.Image;
 import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.streams.Base64InputStream;
 import be.nikiroo.utils.streams.Base64OutputStream;
+import be.nikiroo.utils.streams.BufferedInputStream;
 import be.nikiroo.utils.streams.NextableInputStream;
 import be.nikiroo.utils.streams.NextableInputStreamStep;
 
@@ -359,7 +359,7 @@ public class SerialUtils {
 						continue;
 					}
 
-					write(out, "\n");
+					write(out, "\n^");
 					write(out, field.getName());
 					write(out, ":");
 
@@ -418,26 +418,28 @@ public class SerialUtils {
 		} else if (value instanceof Boolean) {
 			write(out, value);
 		} else if (value instanceof Byte) {
-			write(out, value);
 			write(out, "b");
-		} else if (value instanceof Character) {
-			encodeString(out, "" + value);
-			write(out, "c");
-		} else if (value instanceof Short) {
 			write(out, value);
+		} else if (value instanceof Character) {
+			write(out, "c");
+			encodeString(out, "" + value);
+		} else if (value instanceof Short) {
 			write(out, "s");
+			write(out, value);
 		} else if (value instanceof Integer) {
+			write(out, "i");
 			write(out, value);
 		} else if (value instanceof Long) {
+			write(out, "l");
 			write(out, value);
-			write(out, "L");
 		} else if (value instanceof Float) {
+			write(out, "f");
 			write(out, value);
-			write(out, "F");
 		} else if (value instanceof Double) {
-			write(out, value);
 			write(out, "d");
+			write(out, value);
 		} else if (value instanceof Enum) {
+			write(out, "E:");
 			String type = value.getClass().getCanonicalName();
 			write(out, type);
 			write(out, ".");
@@ -450,12 +452,85 @@ public class SerialUtils {
 		return true;
 	}
 
+	static boolean isDirectValue(BufferedInputStream encodedValue)
+			throws IOException {
+		if (CustomSerializer.isCustom(encodedValue)) {
+			return false;
+		}
+
+		for (String fullValue : new String[] { "NULL", "null", "true", "false" }) {
+			if (encodedValue.is(fullValue)) {
+				return true;
+			}
+		}
+
+		// TODO: Not efficient
+		for (String prefix : new String[] { "c\"", "\"", "b", "s", "i", "l",
+				"f", "d", "E:" }) {
+			if (encodedValue.startsWith(prefix)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * Decode the data into an equivalent supported source object.
 	 * <p>
 	 * A supported object in this context means an object we can directly
-	 * encode, like an Integer or a String. Custom objects and arrays are also
-	 * considered supported, but <b>compound objects are not supported here</b>.
+	 * encode, like an Integer or a String (see
+	 * {@link SerialUtils#decode(String)}.
+	 * <p>
+	 * Custom objects and arrays are also considered supported here, but
+	 * <b>compound objects are not</b>.
+	 * <p>
+	 * For compound objects, you should use {@link Importer}.
+	 * 
+	 * @param encodedValue
+	 *            the encoded data, cannot be NULL
+	 * 
+	 * @return the object (can be NULL for NULL encoded values)
+	 * 
+	 * @throws IOException
+	 *             if the content cannot be converted
+	 */
+	static Object decode(BufferedInputStream encodedValue) throws IOException {
+		if (CustomSerializer.isCustom(encodedValue)) {
+			// custom^TYPE^ENCODED_VALUE
+			NextableInputStream content = new NextableInputStream(encodedValue,
+					new NextableInputStreamStep('^'));
+			try {
+				content.next();
+				@SuppressWarnings("unused")
+				String custom = IOUtils.readSmallStream(content);
+				content.next();
+				String type = IOUtils.readSmallStream(content);
+				content.nextAll();
+				if (customTypes.containsKey(type)) {
+					return customTypes.get(type).decode(content);
+				}
+				content.end();
+				throw new IOException("Unknown custom type: " + type);
+			} finally {
+				content.close(false);
+				// TODO: check what happens with thrown Exception in finally
+				encodedValue.end();
+			}
+		}
+
+		String encodedString = IOUtils.readSmallStream(encodedValue);
+		return decode(encodedString);
+	}
+
+	/**
+	 * Decode the data into an equivalent supported source object.
+	 * <p>
+	 * A supported object in this context means an object we can directly
+	 * encode, like an Integer or a String.
+	 * <p>
+	 * For custom objects and arrays, you should use
+	 * {@link SerialUtils#decode(InputStream)} or directly {@link Importer}.
 	 * <p>
 	 * For compound objects, you should use {@link Importer}.
 	 * 
@@ -471,48 +546,36 @@ public class SerialUtils {
 		try {
 			String cut = "";
 			if (encodedValue.length() > 1) {
-				cut = encodedValue.substring(0, encodedValue.length() - 1);
+				cut = encodedValue.substring(1);
 			}
 
-			if (CustomSerializer.isCustom(encodedValue)) {
-				// custom:TYPE_NAME:"content is String-encoded"
-				String type = CustomSerializer.typeOf(encodedValue);
-				if (customTypes.containsKey(type)) {
-					// TODO: we should start with a stream
-					InputStream streamEncodedValue = new ByteArrayInputStream(
-							StringUtils.getBytes(encodedValue));
-					try {
-						return customTypes.get(type).decode(streamEncodedValue);
-					} finally {
-						streamEncodedValue.close();
-					}
-				}
-				throw new IOException("Unknown custom type: " + type);
-			} else if (encodedValue.equals("NULL")
-					|| encodedValue.equals("null")) {
+			if (encodedValue.equals("NULL") || encodedValue.equals("null")) {
 				return null;
-			} else if (encodedValue.endsWith("\"")) {
+			} else if (encodedValue.startsWith("\"")) {
 				return decodeString(encodedValue);
 			} else if (encodedValue.equals("true")) {
 				return true;
 			} else if (encodedValue.equals("false")) {
 				return false;
-			} else if (encodedValue.endsWith("b")) {
+			} else if (encodedValue.startsWith("b")) {
 				return Byte.parseByte(cut);
-			} else if (encodedValue.endsWith("c")) {
+			} else if (encodedValue.startsWith("c")) {
 				return decodeString(cut).charAt(0);
-			} else if (encodedValue.endsWith("s")) {
+			} else if (encodedValue.startsWith("s")) {
 				return Short.parseShort(cut);
-			} else if (encodedValue.endsWith("L")) {
+			} else if (encodedValue.startsWith("l")) {
 				return Long.parseLong(cut);
-			} else if (encodedValue.endsWith("F")) {
+			} else if (encodedValue.startsWith("f")) {
 				return Float.parseFloat(cut);
-			} else if (encodedValue.endsWith("d")) {
+			} else if (encodedValue.startsWith("d")) {
 				return Double.parseDouble(cut);
-			} else if (encodedValue.endsWith(";")) {
-				return decodeEnum(encodedValue);
+			} else if (encodedValue.startsWith("i")) {
+				return Integer.parseInt(cut);
+			} else if (encodedValue.startsWith("E:")) {
+				cut = cut.substring(1);
+				return decodeEnum(cut);
 			} else {
-				return Integer.parseInt(encodedValue);
+				throw new IOException("Unrecognized value: " + encodedValue);
 			}
 		} catch (Exception e) {
 			if (e instanceof IOException) {

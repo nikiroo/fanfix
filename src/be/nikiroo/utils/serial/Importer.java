@@ -169,65 +169,93 @@ public class Importer {
 		// Custom objects
 		if (CustomSerializer.isCustom(in)) {
 			// not a field value but a direct value
-			String line = IOUtils.readSmallStream(in);
-			me = SerialUtils.decode(line);
+			me = SerialUtils.decode(in);
 			return false;
 		}
 
-		// TODO use the stream, Luke
-		// .. at least for REF
-		String line = IOUtils.readSmallStream(in);
-
-		if (line.startsWith("REF ")) { // REF: create/link self
-			// TODO: here, line is REF type@999:xxx
+		// REF: (object)
+		if (in.startsWith("REF ")) { // REF: create/link self
+			// here, line is REF type@999:xxx
 			// xxx is optional
-			// note: use .end() when containsKey(ref)
-			String[] tab = line.substring("REF ".length()).split("@");
-			String type = tab[0];
-			tab = tab[1].split(":");
-			String ref = tab[0];
 
-			link = map.containsKey(ref);
-			if (link) {
-				me = map.get(ref);
-			} else {
-				if (line.endsWith(":")) {
-					// construct
-					me = SerialUtils.createObject(type);
-				} else {
-					// direct value
-					int pos = line.indexOf(":");
-					String encodedValue = line.substring(pos + 1);
-					me = SerialUtils.decode(encodedValue);
-				}
-				map.put(ref, me);
-			}
-		} else { // FIELD: new field *or* direct simple value
-			if (line.endsWith(":")) {
-				// field value is compound
-				currentFieldName = line.substring(0, line.length() - 1);
-			} else if (line.startsWith(":") || !line.contains(":")
-					|| line.startsWith("\"")) {
-				// not a field value but a direct value
-				me = SerialUtils.decode(line);
-			} else {
-				// field value is direct
-				int pos = line.indexOf(":");
-				String fieldName = line.substring(0, pos);
-				String encodedValue = line.substring(pos + 1);
-				Object value = null;
-				value = SerialUtils.decode(encodedValue);
+			NextableInputStream stream = new NextableInputStream(in,
+					new NextableInputStreamStep(':'));
+			try {
+				stream.next();
 
-				// To support simple types directly:
-				if (me == null) {
-					me = value;
-				} else {
-					setField(fieldName, value);
+				stream.skip("REF ".length());
+				String header = IOUtils.readSmallStream(stream);
+
+				String[] tab = header.split("@");
+				if (tab.length != 2) {
+					throw new IOException("Bad import header line: " + header);
 				}
+				String type = tab[0];
+				String ref = tab[1];
+
+				stream.nextAll();
+
+				link = map.containsKey(ref);
+				if (link) {
+					me = map.get(ref);
+					stream.end();
+				} else {
+					if (stream.eof()) {
+						// construct
+						me = SerialUtils.createObject(type);
+					} else {
+						// direct value
+						me = SerialUtils.decode(stream);
+					}
+					map.put(ref, me);
+				}
+			} finally {
+				stream.close(false);
 			}
+
+			return false;
 		}
 
-		return false;
+		if (SerialUtils.isDirectValue(in)) {
+			// not a field value but a direct value
+			me = SerialUtils.decode(in);
+			return false;
+		}
+
+		if (in.startsWith("^")) {
+			in.skip(1);
+
+			NextableInputStream nameThenContent = new NextableInputStream(in,
+					new NextableInputStreamStep(':'));
+
+			try {
+				nameThenContent.next();
+				String fieldName = IOUtils.readSmallStream(nameThenContent);
+
+				if (nameThenContent.next() && !nameThenContent.eof()) {
+					// field value is direct or custom
+					Object value = null;
+					value = SerialUtils.decode(nameThenContent);
+
+					// To support simple types directly:
+					if (me == null) {
+						me = value;
+					} else {
+						setField(fieldName, value);
+					}
+				} else {
+					// field value is compound
+					currentFieldName = fieldName;
+				}
+			} finally {
+				nameThenContent.close(false);
+			}
+
+			return false;
+		}
+
+		String line = IOUtils.readSmallStream(in);
+		throw new IOException("Line cannot be processed: <" + line + ">");
 	}
 
 	private void setField(String name, Object value)

@@ -40,6 +40,8 @@ public class TestLauncher {
 
 	private List<TestLauncher> series;
 	private List<TestCase> tests;
+	private TestLauncher parent;
+
 	private int columns;
 	private String okString;
 	private String koString;
@@ -50,6 +52,7 @@ public class TestLauncher {
 	protected int total;
 
 	private int currentSeries = 0;
+	private boolean details = false;
 
 	/**
 	 * Create a new {@link TestLauncher} with default parameters.
@@ -91,6 +94,33 @@ public class TestLauncher {
 	}
 
 	/**
+	 * Display the details of the errors
+	 * 
+	 * @return TRUE to display them, false to simply mark the test as failed
+	 */
+	public boolean isDetails() {
+		if (parent != null) {
+			return parent.isDetails();
+		}
+
+		return details;
+	}
+
+	/**
+	 * Display the details of the errors
+	 * 
+	 * @param details
+	 *            TRUE to display them, false to simply mark the test as failed
+	 */
+	public void setDetails(boolean details) {
+		if (parent != null) {
+			parent.setDetails(details);
+		}
+
+		this.details = details;
+	}
+
+	/**
 	 * Called before actually starting the tests themselves.
 	 * 
 	 * @throws Exception
@@ -114,6 +144,7 @@ public class TestLauncher {
 
 	protected void addSeries(TestLauncher series) {
 		this.series.add(series);
+		series.parent = this;
 	}
 
 	/**
@@ -304,12 +335,14 @@ public class TestLauncher {
 	private void print(int depth, Throwable error) {
 		if (error != null) {
 			System.out.println(" " + koString);
-			StringWriter sw = new StringWriter();
-			PrintWriter pw = new PrintWriter(sw);
-			error.printStackTrace(pw);
-			String lines = sw.toString();
-			for (String line : lines.split("\n")) {
-				System.out.println(prefix(depth, false) + "\t\t" + line);
+			if (isDetails()) {
+				StringWriter sw = new StringWriter();
+				PrintWriter pw = new PrintWriter(sw);
+				error.printStackTrace(pw);
+				String lines = sw.toString();
+				for (String line : lines.split("\n")) {
+					System.out.println(prefix(depth, false) + "\t\t" + line);
+				}
 			}
 		} else {
 			System.out.println(" " + okString);

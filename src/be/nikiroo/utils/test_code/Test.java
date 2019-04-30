@@ -24,6 +24,8 @@ public class Test extends TestLauncher {
 	public Test(String[] args) {
 		super("Nikiroo-utils", args);
 
+		// setDetails(true);
+
 		addSeries(new ProgressTest(args));
 		addSeries(new BundleTest(args));
 		addSeries(new IOUtilsTest(args));

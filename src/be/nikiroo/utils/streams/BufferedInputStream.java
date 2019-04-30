@@ -266,7 +266,7 @@ public class BufferedInputStream extends InputStream {
 	}
 
 	/**
-	 * Check if this stream is totally spent (no more data to read or to
+	 * Check if this stream is spent (no more data to read or to
 	 * process).
 	 * 
 	 * @return TRUE if it is
