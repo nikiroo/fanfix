@@ -549,7 +549,7 @@ public class Instance {
 	private static String getLang() {
 		String lang = config.getString(Config.LANG);
 
-		if (lang == null | lang.isEmpty()) {
+		if (lang == null || lang.isEmpty()) {
 			if (System.getenv("LANG") != null
 					&& !System.getenv("LANG").isEmpty()) {
 				lang = System.getenv("LANG");
