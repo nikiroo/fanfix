@@ -44,7 +44,7 @@ abstract public class BasicLibrary {
 		/** The library is invalid (not correctly set up). */
 		INVALID,
 		/** You are not allowed to access this library. */
-		UNAUTORIZED,
+		UNAUTHORIZED,
 		/** The library is currently out of commission. */
 		UNAVAILABLE,
 	}

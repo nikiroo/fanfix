@@ -64,7 +64,6 @@ public class RemoteLibraryServer extends ServerObject {
 	 */
 	public RemoteLibraryServer(String key, int port) throws IOException {
 		super("Fanfix remote library", port, key);
-
 		setTraceHandler(Instance.getTraceHandler());
 	}
 
