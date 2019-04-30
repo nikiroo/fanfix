@@ -43,63 +43,63 @@ class SerialServerTest extends TestLauncher {
 
 		super(title + " " + skey + sbridge, args);
 
-		// addTest(new TestCase("Simple connection " + skey) {
-		// @Override
-		// public void test() throws Exception {
-		// final String[] rec = new String[1];
-		//
-		// ServerString server = new ServerString(this.getName(), 0, key) {
-		// @Override
-		// protected String onRequest(
-		// ConnectActionServerString action, String data)
-		// throws Exception {
-		// return null;
-		// }
-		//
-		// @Override
-		// protected void onError(Exception e) {
-		// }
-		// };
-		//
-		// int port = server.getPort();
-		// assertEquals("A port should have been assigned", true, port > 0);
-		//
-		// server.start();
-		//
-		// ServerBridge br = null;
-		// if (bridge) {
-		// br = new ServerBridge(0, key, "", port, key);
-		// br.setTraceHandler(null);
-		//
-		// port = br.getPort();
-		// assertEquals(
-		// "A port should have been assigned to the bridge",
-		// true, port > 0);
-		//
-		// br.start();
-		// }
-		//
-		// try {
-		// try {
-		// new ConnectActionClientObject(null, port, key) {
-		// @Override
-		// public void action() throws Exception {
-		// rec[0] = "ok";
-		// }
-		// }.connect();
-		// } finally {
-		// server.stop();
-		// }
-		// } finally {
-		// if (br != null) {
-		// br.stop();
-		// }
-		// }
-		//
-		// assertNotNull("The client action was not run", rec[0]);
-		// assertEquals("ok", rec[0]);
-		// }
-		// });
+		addTest(new TestCase("Simple connection " + skey) {
+			@Override
+			public void test() throws Exception {
+				final String[] rec = new String[1];
+
+				ServerString server = new ServerString(this.getName(), 0, key) {
+					@Override
+					protected String onRequest(
+							ConnectActionServerString action, String data)
+							throws Exception {
+						return null;
+					}
+
+					@Override
+					protected void onError(Exception e) {
+					}
+				};
+
+				int port = server.getPort();
+				assertEquals("A port should have been assigned", true, port > 0);
+
+				server.start();
+
+				ServerBridge br = null;
+				if (bridge) {
+					br = new ServerBridge(0, key, "", port, key);
+					br.setTraceHandler(null);
+
+					port = br.getPort();
+					assertEquals(
+							"A port should have been assigned to the bridge",
+							true, port > 0);
+
+					br.start();
+				}
+
+				try {
+					try {
+						new ConnectActionClientObject(null, port, key) {
+							@Override
+							public void action() throws Exception {
+								rec[0] = "ok";
+							}
+						}.connect();
+					} finally {
+						server.stop();
+					}
+				} finally {
+					if (br != null) {
+						br.stop();
+					}
+				}
+
+				assertNotNull("The client action was not run", rec[0]);
+				assertEquals("ok", rec[0]);
+			}
+		});
 
 		addTest(new TestCase("Simple exchange " + skey) {
 			final String[] sent = new String[1];
