@@ -5,6 +5,8 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
 
 import be.nikiroo.utils.streams.MarkableFileInputStream;
 
@@ -13,7 +15,9 @@ import be.nikiroo.utils.streams.MarkableFileInputStream;
  * 
  * @author niki
  */
-public class Image implements Closeable {
+public class Image implements Closeable, Serializable {
+	static private final long serialVersionUID = 1L;
+
 	static private File tempRoot;
 	static private TempFiles tmpRepository;
 	static private long count = 0;
@@ -152,6 +156,44 @@ public class Image implements Closeable {
 
 			return tmpRepository.createTempFile("image");
 		}
+	}
+
+	/**
+	 * Write this {@link Image} for serialization purposes; that is, write the
+	 * content of the backing temporary file.
+	 * 
+	 * @param out
+	 *            the {@link OutputStream} to write to
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+		InputStream in = newInputStream();
+		try {
+			IOUtils.write(in, out);
+		} finally {
+			in.close();
+		}
+	}
+
+	/**
+	 * Read an {@link Image} written by
+	 * {@link Image#writeObject(java.io.ObjectOutputStream)}; that is, create a
+	 * new temporary file with the saved content.
+	 * 
+	 * @param in
+	 *            the {@link InputStream} to read from
+	 * @throws IOException
+	 *             in case of I/O error
+	 * @throws ClassNotFoundException
+	 *             will not be thrown by this method
+	 */
+	@SuppressWarnings("unused")
+	private void readObject(java.io.ObjectInputStream in) throws IOException,
+			ClassNotFoundException {
+		data = getTemporaryFile();
+		IOUtils.write(in, data);
 	}
 
 	/**
