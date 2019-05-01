@@ -1,5 +1,7 @@
 package be.nikiroo.fanfix.data;
 
+import java.io.Serializable;
+
 import be.nikiroo.utils.Image;
 
 /**
@@ -7,7 +9,9 @@ import be.nikiroo.utils.Image;
  * 
  * @author niki
  */
-public class Paragraph implements Cloneable {
+public class Paragraph implements Cloneable, Serializable {
+	private static final long serialVersionUID = 1L;
+
 	/**
 	 * A paragraph type, that will dictate how the paragraph will be handled.
 	 * 

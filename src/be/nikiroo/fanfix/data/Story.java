@@ -1,5 +1,6 @@
 package be.nikiroo.fanfix.data;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -9,7 +10,9 @@ import java.util.List;
  * 
  * @author niki
  */
-public class Story implements Iterable<Chapter>, Cloneable {
+public class Story implements Iterable<Chapter>, Cloneable, Serializable {
+	private static final long serialVersionUID = 1L;
+	
 	private MetaData meta;
 	private List<Chapter> chapters = new ArrayList<Chapter>();
 	private List<Chapter> empty = new ArrayList<Chapter>();

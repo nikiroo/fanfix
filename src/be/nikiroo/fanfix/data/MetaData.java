@@ -1,5 +1,6 @@
 package be.nikiroo.fanfix.data;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +11,9 @@ import be.nikiroo.utils.Image;
  * 
  * @author niki
  */
-public class MetaData implements Cloneable, Comparable<MetaData> {
+public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
+	private static final long serialVersionUID = 1L;
+
 	private String title;
 	private String author;
 	private String date;
