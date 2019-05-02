@@ -28,6 +28,12 @@ import be.nikiroo.utils.streams.ReplaceOutputStream;
  * @author niki
  */
 abstract class ConnectAction {
+	// We separate each "packet" we send with this character and make sure it
+	// does not occurs in the message itself.
+	static private char STREAM_SEP = '\b';
+	static private String[] STREAM_RAW = new String[] { "\\", "\b" };
+	static private String[] STREAM_CODED = new String[] { "\\\\", "\\b" };
+
 	private Socket s;
 	private boolean server;
 
@@ -99,13 +105,10 @@ abstract class ConnectAction {
 	 */
 	public void connect() {
 		try {
-			// TODO: assure that \b is never used, make sure \n usage is OK
 			in = new NextableInputStream(s.getInputStream(),
-					new NextableInputStreamStep('\b'));
-
+					new NextableInputStreamStep(STREAM_SEP));
 			try {
 				out = new BufferedOutputStream(s.getOutputStream());
-
 				try {
 					action();
 				} finally {
@@ -294,12 +297,7 @@ abstract class ConnectAction {
 				sub = out.open();
 			}
 
-			// TODO: could be possible to check for non-crypt and only
-			// do it for crypt
-			sub = new ReplaceOutputStream(sub, //
-					new String[] { "\\", "\b" }, //
-					new String[] { "\\\\", "\\b" });
-
+			sub = new ReplaceOutputStream(sub, STREAM_RAW, STREAM_CODED);
 			try {
 				if (asString) {
 					sub.write(StringUtils.getBytes(data.toString()));
@@ -310,7 +308,7 @@ abstract class ConnectAction {
 				sub.close();
 			}
 
-			out.write('\b');
+			out.write(STREAM_SEP);
 
 			if (server) {
 				out.flush();
@@ -377,12 +375,8 @@ abstract class ConnectAction {
 				}
 
 				if (in.next() && !in.eof()) {
-					// TODO: could be possible to check for non-crypt and only
-					// do it for crypt
-					InputStream read = new ReplaceInputStream(in.open(), //
-							new String[] { "\\\\", "\\b" }, //
-							new String[] { "\\", "\b" });
-
+					InputStream read = new ReplaceInputStream(in.open(),
+							STREAM_CODED, STREAM_RAW);
 					try {
 						if (crypt != null) {
 							read = crypt.decrypt64(read);
