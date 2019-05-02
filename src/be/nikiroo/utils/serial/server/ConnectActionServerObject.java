@@ -3,8 +3,6 @@ package be.nikiroo.utils.serial.server;
 import java.io.IOException;
 import java.net.Socket;
 
-import be.nikiroo.utils.Version;
-
 /**
  * Class used for the server basic handling.
  * <p>
@@ -15,9 +13,7 @@ import be.nikiroo.utils.Version;
  */
 public class ConnectActionServerObject extends ConnectActionServer {
 	/**
-	 * Create a new {@link ConnectActionServerObject} with the current
-	 * application version (see {@link Version#getCurrentVersion()}) as the
-	 * server version.
+	 * Create a new {@link ConnectActionServerObject} as the server version.
 	 * 
 	 * @param s
 	 *            the socket to bind to

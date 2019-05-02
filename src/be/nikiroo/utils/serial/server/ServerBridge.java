@@ -199,6 +199,13 @@ public class ServerBridge extends Server {
 	}
 
 	@Override
+	protected ConnectActionClient getConnectionToMe()
+			throws UnknownHostException, IOException {
+		return new ConnectActionClientString(new Socket((String) null,
+				getPort()), key);
+	}
+
+	@Override
 	public void run() {
 		getTraceHandler().trace(
 				getName() + ": will forward to " + forwardToHost + ":"

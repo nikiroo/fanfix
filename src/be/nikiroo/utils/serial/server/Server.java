@@ -324,8 +324,7 @@ abstract class Server implements Runnable {
 				exiting = true;
 
 				try {
-					new ConnectActionClientObject(new Socket((String) null,
-							port), key).connect();
+					getConnectionToMe().connect();
 					long time = 0;
 					while (ss != null && timeout > 0 && timeout > time) {
 						Thread.sleep(10);
@@ -348,6 +347,20 @@ abstract class Server implements Runnable {
 			}
 		}
 	}
+
+	/**
+	 * Return a connection to this server (used by the Exit code to send an exit
+	 * message).
+	 * 
+	 * @return the connection
+	 * 
+	 * @throws UnknownHostException
+	 *             the host should always be NULL (localhost)
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	abstract protected ConnectActionClient getConnectionToMe()
+			throws UnknownHostException, IOException;
 
 	/**
 	 * Change the number of currently serviced actions.
@@ -402,49 +415,5 @@ abstract class Server implements Runnable {
 	 */
 	@SuppressWarnings("unused")
 	protected void onRequestDone(long id, long bytesReceived, long bytesSent) {
-	}
-
-	/**
-	 * Create a {@link Socket}.
-	 * 
-	 * @param host
-	 *            the host to connect to
-	 * @param port
-	 *            the port to connect to
-	 * 
-	 * @return the {@link Socket}
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 * @throws UnknownHostException
-	 *             if the host is not known
-	 * @throws IllegalArgumentException
-	 *             if the port parameter is outside the specified range of valid
-	 *             port values, which is between 0 and 65535, inclusive
-	 */
-	@Deprecated
-	static Socket createSocket(String host, int port) throws IOException {
-		return new Socket(host, port);
-	}
-
-	/**
-	 * Create a {@link ServerSocket}.
-	 * 
-	 * @param port
-	 *            the port to accept connections on
-	 * 
-	 * @return the {@link ServerSocket}
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 * @throws UnknownHostException
-	 *             if the IP address of the host could not be determined
-	 * @throws IllegalArgumentException
-	 *             if the port parameter is outside the specified range of valid
-	 *             port values, which is between 0 and 65535, inclusive
-	 */
-	@Deprecated
-	static ServerSocket createSocketServer(int port) throws IOException {
-		return new ServerSocket(port);
 	}
 }

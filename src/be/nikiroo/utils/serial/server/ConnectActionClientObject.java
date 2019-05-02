@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import be.nikiroo.utils.Version;
-
 /**
  * Class used for the client basic handling.
  * <p>
@@ -16,9 +14,7 @@ import be.nikiroo.utils.Version;
  */
 public class ConnectActionClientObject extends ConnectActionClient {
 	/**
-	 * Create a new {@link ConnectActionClientObject} with the current
-	 * application version (see {@link Version#getCurrentVersion()}) as the
-	 * client version.
+	 * Create a new {@link ConnectActionClientObject} .
 	 * 
 	 * @param s
 	 *            the socket to bind to
@@ -31,9 +27,7 @@ public class ConnectActionClientObject extends ConnectActionClient {
 	}
 
 	/**
-	 * Create a new {@link ConnectActionClientObject} with the current
-	 * application version (see {@link Version#getCurrentVersion()}) as the
-	 * client version.
+	 * Create a new {@link ConnectActionClientObject}.
 	 * 
 	 * @param host
 	 *            the host to bind to

@@ -2,6 +2,7 @@ package be.nikiroo.utils.test_code;
 
 import java.net.URL;
 
+import be.nikiroo.utils.TraceHandler;
 import be.nikiroo.utils.serial.server.ConnectActionClientObject;
 import be.nikiroo.utils.serial.server.ConnectActionClientString;
 import be.nikiroo.utils.serial.server.ConnectActionServerObject;
@@ -81,7 +82,7 @@ class SerialServerTest extends TestLauncher {
 
 				try {
 					try {
-						new ConnectActionClientObject(null, port, key) {
+						new ConnectActionClientString(null, port, key) {
 							@Override
 							public void action() throws Exception {
 								rec[0] = "ok";

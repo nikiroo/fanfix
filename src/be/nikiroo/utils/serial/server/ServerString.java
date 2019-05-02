@@ -95,6 +95,13 @@ abstract public class ServerString extends Server {
 		};
 	}
 
+	@Override
+	protected ConnectActionClient getConnectionToMe()
+			throws UnknownHostException, IOException {
+		return new ConnectActionClientString(new Socket((String) null,
+				getPort()), key);
+	}
+
 	/**
 	 * This is the method that is called on each client request.
 	 * <p>

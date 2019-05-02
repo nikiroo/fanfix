@@ -1,6 +1,9 @@
 package be.nikiroo.utils.serial.server;
 
+import java.io.IOException;
 import java.net.Socket;
+
+import javax.net.ssl.SSLException;
 
 /**
  * Base class used for the server basic handling.
@@ -33,6 +36,7 @@ abstract class ConnectActionServer {
 		action = new ConnectAction(s, true, key) {
 			@Override
 			protected void action() throws Exception {
+				ConnectActionServer.this.serverHello();
 				ConnectActionServer.this.action();
 			}
 
@@ -41,6 +45,23 @@ abstract class ConnectActionServer {
 				ConnectActionServer.this.onError(e);
 			}
 		};
+	}
+
+	/**
+	 * Send the HELLO message (check that the client sends a String "HELLO" and
+	 * send it back, to check I/O and encryption modes).
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 * @throws SSLException
+	 *             in case of encryption error
+	 */
+	protected void serverHello() throws IOException, SSLException {
+		String HELLO = action.recString();
+		if (!"HELLO".equals(HELLO)) {
+			throw new SSLException("Server did not accept the encryption key");
+		}
+		action.sendString(HELLO);
 	}
 
 	/**

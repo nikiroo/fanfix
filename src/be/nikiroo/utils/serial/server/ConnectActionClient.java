@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import javax.net.ssl.SSLException;
+
 /**
  * Base class used for the client basic handling.
  * <p>
@@ -57,6 +59,7 @@ abstract class ConnectActionClient {
 		action = new ConnectAction(s, false, key) {
 			@Override
 			protected void action() throws Exception {
+				ConnectActionClient.this.clientHello();
 				ConnectActionClient.this.action();
 			}
 
@@ -65,6 +68,25 @@ abstract class ConnectActionClient {
 				ConnectActionClient.this.onError(e);
 			}
 		};
+	}
+
+	/**
+	 * Send the HELLO message (send a String "HELLO" to the server, to check I/O
+	 * and encryption modes).
+	 * <p>
+	 * Will automatically handle the answer (the server must answer "HELLO" in
+	 * kind).
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 * @throws SSLException
+	 *             in case of encryption error
+	 */
+	protected void clientHello() throws IOException {
+		String HELLO = action.sendString("HELLO");
+		if (!"HELLO".equals(HELLO)) {
+			throw new SSLException("Server did not accept the encryption key");
+		}
 	}
 
 	/**
