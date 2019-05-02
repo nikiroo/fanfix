@@ -19,7 +19,7 @@ import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.ImageUtils;
-import be.nikiroo.utils.MarkableFileInputStream;
+import be.nikiroo.utils.streams.MarkableFileInputStream;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -71,7 +71,7 @@ class Text extends BasicSupport {
 	protected Document loadDocument(URL source) throws IOException {
 		try {
 			sourceFile = new File(source.toURI());
-			in = new MarkableFileInputStream(new FileInputStream(sourceFile));
+			in = new MarkableFileInputStream(sourceFile);
 		} catch (URISyntaxException e) {
 			throw new IOException("Cannot load the text document: " + source);
 		}

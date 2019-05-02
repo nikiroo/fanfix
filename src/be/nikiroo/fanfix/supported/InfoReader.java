@@ -14,7 +14,7 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.Image;
-import be.nikiroo.utils.MarkableFileInputStream;
+import be.nikiroo.utils.streams.MarkableFileInputStream;
 
 // not complete: no "description" tag
 public class InfoReader {
@@ -25,8 +25,7 @@ public class InfoReader {
 		}
 
 		if (infoFile.exists()) {
-			InputStream in = new MarkableFileInputStream(new FileInputStream(
-					infoFile));
+			InputStream in = new MarkableFileInputStream(infoFile);
 			try {
 				return createMeta(infoFile.toURI().toURL(), in, withCover);
 			} finally {

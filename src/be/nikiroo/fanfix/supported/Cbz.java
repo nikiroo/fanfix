@@ -21,7 +21,7 @@ import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
-import be.nikiroo.utils.MarkableFileInputStream;
+import be.nikiroo.utils.streams.MarkableFileInputStream;
 import be.nikiroo.utils.Progress;
 
 /**
@@ -78,8 +78,7 @@ class Cbz extends Epub {
 		InputStream cbzIn = null;
 		ZipInputStream zipIn = null;
 		try {
-			cbzIn = new MarkableFileInputStream(new FileInputStream(
-					getSourceFileOriginal()));
+			cbzIn = new MarkableFileInputStream(getSourceFileOriginal());
 			zipIn = new ZipInputStream(cbzIn);
 			for (ZipEntry entry = zipIn.getNextEntry(); entry != null; entry = zipIn
 					.getNextEntry()) {

@@ -150,7 +150,7 @@ public enum StringIdGui {
 	@Meta(def = "An error occured when contacting the library", format = Format.STRING, description = "default description if the error is not known")
 	ERROR_LIB_STATUS, //
 	@Meta(def = "You are not allowed to access this library", format = Format.STRING, description = "library access not allowed")
-	ERROR_LIB_STATUS_UNAUTORIZED, //
+	ERROR_LIB_STATUS_UNAUTHORIZED, //
 	@Meta(def = "Library not valid", format = Format.STRING, description = "the library is invalid (not correctly set up)")
 	ERROR_LIB_STATUS_INVALID, //
 	@Meta(def = "Library currently unavailable", format = Format.STRING, description = "the library is out of commission")

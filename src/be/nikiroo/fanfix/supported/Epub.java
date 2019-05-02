@@ -17,7 +17,7 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
-import be.nikiroo.utils.MarkableFileInputStream;
+import be.nikiroo.utils.streams.MarkableFileInputStream;
 import be.nikiroo.utils.StringUtils;
 
 /**
@@ -174,8 +174,7 @@ class Epub extends InfoText {
 			}
 
 			if (tmp.exists()) {
-				this.fakeIn = new MarkableFileInputStream(new FileInputStream(
-						tmp));
+				this.fakeIn = new MarkableFileInputStream(tmp);
 			}
 
 			if (tmpInfo.exists()) {
