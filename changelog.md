@@ -9,10 +9,9 @@
 - fix: Base64 implementation changed, no strange errors anymore
 - change: StringUtils.unzip64(String) now returns a byte[] (StringUtils.unzip64s(String) can be used instead)
 - change: be.nikiroo.utils.markableFileInputStream moved to be.nikiroo.utils.streams (old class still present in @Deprecated state for now)
-- change: serial: SSL -> CryptUtils (both are incompatible)
-- change: break compat with package utils.serial (Objects) -- ServerString should still be compatible
 - change: TestLauncher is now "silent" by default (no exception details, see setDetails(true))
-
+- runtime: serial: SSL -> CryptUtils (both are **runtime** incompatible)
+- runtime: break **runtime** compat with package utils.serial (Objects) -- ServerString should still be compatible
 
 ## Version 4.7.2
 
