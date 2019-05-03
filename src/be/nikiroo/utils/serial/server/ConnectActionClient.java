@@ -6,6 +6,8 @@ import java.net.UnknownHostException;
 
 import javax.net.ssl.SSLException;
 
+import be.nikiroo.utils.Version;
+
 /**
  * Base class used for the client basic handling.
  * <p>
@@ -23,7 +25,8 @@ abstract class ConnectActionClient {
 	protected ConnectAction action;
 
 	/**
-	 * Create a new {@link ConnectActionClient}.
+	 * Create a new {@link ConnectActionClient}, using the current version of
+	 * the program.
 	 * 
 	 * @param host
 	 *            the host to bind to
@@ -32,6 +35,7 @@ abstract class ConnectActionClient {
 	 * @param key
 	 *            an optional key to encrypt all the communications (if NULL,
 	 *            everything will be sent in clear text)
+	 * 
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
@@ -43,7 +47,48 @@ abstract class ConnectActionClient {
 	 */
 	public ConnectActionClient(String host, int port, String key)
 			throws IOException {
-		this(new Socket(host, port), key);
+		this(host, port, key, Version.getCurrentVersion());
+	}
+
+	/**
+	 * Create a new {@link ConnectActionClient}.
+	 * 
+	 * @param host
+	 *            the host to bind to
+	 * @param port
+	 *            the port to bind to
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
+	 * @param clientVersion
+	 *            the client version
+	 * 
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 * @throws UnknownHostException
+	 *             if the host is not known
+	 * @throws IllegalArgumentException
+	 *             if the port parameter is outside the specified range of valid
+	 *             port values, which is between 0 and 65535, inclusive
+	 */
+	public ConnectActionClient(String host, int port, String key,
+			Version clientVersion) throws IOException {
+		this(new Socket(host, port), key, clientVersion);
+	}
+
+	/**
+	 * Create a new {@link ConnectActionClient}, using the current version of
+	 * the program.
+	 * 
+	 * @param s
+	 *            the socket to bind to
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
+	 */
+	public ConnectActionClient(Socket s, String key) {
+		this(s, key, Version.getCurrentVersion());
 	}
 
 	/**
@@ -54,18 +99,27 @@ abstract class ConnectActionClient {
 	 * @param key
 	 *            an optional key to encrypt all the communications (if NULL,
 	 *            everything will be sent in clear text)
+	 * @param clientVersion
+	 *            the client version
 	 */
-	public ConnectActionClient(Socket s, String key) {
-		action = new ConnectAction(s, false, key) {
+	public ConnectActionClient(Socket s, String key, Version clientVersion) {
+		action = new ConnectAction(s, false, key, clientVersion) {
 			@Override
-			protected void action() throws Exception {
+			protected void action(Version serverVersion) throws Exception {
 				ConnectActionClient.this.clientHello();
-				ConnectActionClient.this.action();
+				ConnectActionClient.this.action(serverVersion);
 			}
 
 			@Override
 			protected void onError(Exception e) {
 				ConnectActionClient.this.onError(e);
+			}
+
+			@Override
+			protected Version negotiateVersion(Version clientVersion) {
+				new Exception("Should never be called on a client")
+						.printStackTrace();
+				return null;
 			}
 		};
 	}
@@ -111,11 +165,14 @@ abstract class ConnectActionClient {
 	/**
 	 * Method that will be called when an action is performed on the client.
 	 * 
+	 * @param serverVersion
+	 *            the version of the server connected to this client
+	 * 
 	 * @throws Exception
 	 *             in case of I/O error
 	 */
 	@SuppressWarnings("unused")
-	public void action() throws Exception {
+	public void action(Version serverVersion) throws Exception {
 	}
 
 	/**

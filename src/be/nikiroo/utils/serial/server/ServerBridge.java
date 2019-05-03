@@ -9,6 +9,7 @@ import java.net.UnknownHostException;
 
 import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.TraceHandler;
+import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.Importer;
 
 /**
@@ -127,16 +128,17 @@ public class ServerBridge extends Server {
 		// Bad impl, not up to date (should work, but not efficient)
 		return new ConnectActionServerString(s, key) {
 			@Override
-			public void action() throws Exception {
-				onClientContact();
+			public void action(Version clientVersion) throws Exception {
+				onClientContact(clientVersion);
 				final ConnectActionServerString bridge = this;
 
 				try {
 					new ConnectActionClientString(forwardToHost, forwardToPort,
 							forwardToKey) {
 						@Override
-						public void action() throws Exception {
-							onServerContact();
+						public void action(Version serverVersion)
+								throws Exception {
+							onServerContact(serverVersion);
 
 							for (String fromClient = bridge.rec(); fromClient != null; fromClient = bridge
 									.rec()) {
@@ -165,15 +167,15 @@ public class ServerBridge extends Server {
 	/**
 	 * This is the method that is called each time a client contact us.
 	 */
-	protected void onClientContact() {
-		getTraceHandler().trace(">>> CLIENT ");
+	protected void onClientContact(Version clientVersion) {
+		getTraceHandler().trace(">>> CLIENT " + clientVersion);
 	}
 
 	/**
 	 * This is the method that is called each time a client contact us.
 	 */
-	protected void onServerContact() {
-		getTraceHandler().trace("<<< SERVER");
+	protected void onServerContact(Version serverVersion) {
+		getTraceHandler().trace("<<< SERVER " + serverVersion);
 		getTraceHandler().trace("");
 	}
 

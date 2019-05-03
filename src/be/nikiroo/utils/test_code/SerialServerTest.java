@@ -2,7 +2,7 @@ package be.nikiroo.utils.test_code;
 
 import java.net.URL;
 
-import be.nikiroo.utils.TraceHandler;
+import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.server.ConnectActionClientObject;
 import be.nikiroo.utils.serial.server.ConnectActionClientString;
 import be.nikiroo.utils.serial.server.ConnectActionServerObject;
@@ -84,7 +84,8 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientString(null, port, key) {
 							@Override
-							public void action() throws Exception {
+							public void action(Version version)
+									throws Exception {
 								rec[0] = "ok";
 							}
 						}.connect();
@@ -140,7 +141,8 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientString(null, port, key) {
 							@Override
-							public void action() throws Exception {
+							public void action(Version version)
+									throws Exception {
 								recd[0] = send("ping");
 							}
 						}.connect();
@@ -203,7 +205,8 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientString(null, port, key) {
 							@Override
-							public void action() throws Exception {
+							public void action(Version version)
+									throws Exception {
 								recd[0] = send("ping");
 								recd[1] = send("ping2");
 							}
@@ -267,7 +270,8 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientString(null, port, key) {
 							@Override
-							public void action() throws Exception {
+							public void action(Version version)
+									throws Exception {
 								for (int i = 0; i < 3; i++) {
 									recd[i] = send("" + i);
 								}
@@ -338,7 +342,8 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientObject(null, port, key) {
 							@Override
-							public void action() throws Exception {
+							public void action(Version version)
+									throws Exception {
 								rec[0] = true;
 							}
 
@@ -398,7 +403,8 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientObject(null, port, key) {
 							@Override
-							public void action() throws Exception {
+							public void action(Version version)
+									throws Exception {
 								recd[0] = send("ping");
 							}
 						}.connect();
@@ -461,7 +467,8 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientObject(null, port, key) {
 							@Override
-							public void action() throws Exception {
+							public void action(Version version)
+									throws Exception {
 								recd[0] = send("ping");
 								recd[1] = send("ping2");
 							}
@@ -525,7 +532,8 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientObject(null, port, key) {
 							@Override
-							public void action() throws Exception {
+							public void action(Version version)
+									throws Exception {
 								recd[0] = send(new Object[] {
 										"key",
 										new URL(
@@ -596,7 +604,8 @@ class SerialServerTest extends TestLauncher {
 					try {
 						new ConnectActionClientObject(null, port, key) {
 							@Override
-							public void action() throws Exception {
+							public void action(Version version)
+									throws Exception {
 								for (int i = 0; i < 3; i++) {
 									recd[i] = send(i);
 								}

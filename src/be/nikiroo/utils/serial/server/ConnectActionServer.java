@@ -5,6 +5,8 @@ import java.net.Socket;
 
 import javax.net.ssl.SSLException;
 
+import be.nikiroo.utils.Version;
+
 /**
  * Base class used for the server basic handling.
  * <p>
@@ -24,7 +26,7 @@ abstract class ConnectActionServer {
 	protected ConnectAction action;
 
 	/**
-	 * Create a new {@link ConnectActionServer}.
+	 * Create a new {@link ConnectActionServer}, using the current version.
 	 * 
 	 * @param s
 	 *            the socket to bind to
@@ -33,16 +35,36 @@ abstract class ConnectActionServer {
 	 *            everything will be sent in clear text)
 	 */
 	public ConnectActionServer(Socket s, String key) {
-		action = new ConnectAction(s, true, key) {
+		this(s, key, Version.getCurrentVersion());
+	}
+
+	/**
+	 * Create a new {@link ConnectActionServer}.
+	 * 
+	 * @param s
+	 *            the socket to bind to
+	 * @param key
+	 *            an optional key to encrypt all the communications (if NULL,
+	 *            everything will be sent in clear text)
+	 * @param serverVersion
+	 *            the version of this server,that will be sent to the client
+	 */
+	public ConnectActionServer(Socket s, String key, Version serverVersion) {
+		action = new ConnectAction(s, true, key, serverVersion) {
 			@Override
-			protected void action() throws Exception {
+			protected void action(Version clientVersion) throws Exception {
 				ConnectActionServer.this.serverHello();
-				ConnectActionServer.this.action();
+				ConnectActionServer.this.action(clientVersion);
 			}
 
 			@Override
 			protected void onError(Exception e) {
 				ConnectActionServer.this.onError(e);
+			}
+
+			@Override
+			protected Version negotiateVersion(Version clientVersion) {
+				return ConnectActionServer.this.negotiateVersion(clientVersion);
 			}
 		};
 	}
@@ -132,11 +154,14 @@ abstract class ConnectActionServer {
 	/**
 	 * Method that will be called when an action is performed on the server.
 	 * 
+	 * @param clientVersion
+	 *            the version of the client connected to this server
+	 * 
 	 * @throws Exception
 	 *             in case of I/O error
 	 */
 	@SuppressWarnings("unused")
-	public void action() throws Exception {
+	public void action(Version clientVersion) throws Exception {
 	}
 
 	/**
@@ -148,5 +173,20 @@ abstract class ConnectActionServer {
 	 *            the exception that occurred
 	 */
 	protected void onError(@SuppressWarnings("unused") Exception e) {
+	}
+
+	/**
+	 * Method called when we negotiate the version with the client.
+	 * <p>
+	 * Will return the actual server version by default.
+	 * 
+	 * @param clientVersion
+	 *            the client version
+	 * 
+	 * @return the version to send to the client
+	 */
+	protected Version negotiateVersion(
+			@SuppressWarnings("unused") Version clientVersion) {
+		return action.getVersion();
 	}
 }

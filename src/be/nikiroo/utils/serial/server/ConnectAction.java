@@ -10,6 +10,7 @@ import javax.net.ssl.SSLException;
 import be.nikiroo.utils.CryptUtils;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.StringUtils;
+import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.Exporter;
 import be.nikiroo.utils.serial.Importer;
 import be.nikiroo.utils.streams.BufferedOutputStream;
@@ -37,6 +38,9 @@ abstract class ConnectAction {
 	private Socket s;
 	private boolean server;
 
+	private Version clientVersion;
+	private Version serverVersion;
+
 	private CryptUtils crypt;
 
 	private Object lock = new Object();
@@ -48,10 +52,28 @@ abstract class ConnectAction {
 	 * Method that will be called when an action is performed on either the
 	 * client or server this {@link ConnectAction} represent.
 	 * 
+	 * @param version
+	 *            the version on the other side of the communication (client or
+	 *            server)
+	 * 
 	 * @throws Exception
 	 *             in case of I/O error
 	 */
-	abstract protected void action() throws Exception;
+	abstract protected void action(Version version) throws Exception;
+
+	/**
+	 * Method called when we negotiate the version with the client.
+	 * <p>
+	 * Thus, it is only called on the server.
+	 * <p>
+	 * Will return the actual server version by default.
+	 * 
+	 * @param clientVersion
+	 *            the client version
+	 * 
+	 * @return the version to send to the client
+	 */
+	abstract protected Version negotiateVersion(Version clientVersion);
 
 	/**
 	 * Handler called when an unexpected error occurs in the code.
@@ -73,13 +95,40 @@ abstract class ConnectAction {
 	 * @param key
 	 *            an optional key to encrypt all the communications (if NULL,
 	 *            everything will be sent in clear text)
+	 * @param version
+	 *            the client-or-server version (depending upon the boolean
+	 *            parameter <tt>server</tt>)
 	 */
-	protected ConnectAction(Socket s, boolean server, String key) {
+	protected ConnectAction(Socket s, boolean server, String key,
+			Version version) {
 		this.s = s;
 		this.server = server;
 		if (key != null) {
 			crypt = new CryptUtils(key);
 		}
+
+		if (version == null) {
+			version = new Version();
+		}
+
+		if (server) {
+			serverVersion = version;
+		} else {
+			clientVersion = version;
+		}
+	}
+
+	/**
+	 * The version of this client-or-server.
+	 * 
+	 * @return the version
+	 */
+	public Version getVersion() {
+		if (server) {
+			return serverVersion;
+		}
+
+		return clientVersion;
 	}
 
 	/**
@@ -110,7 +159,7 @@ abstract class ConnectAction {
 			try {
 				out = new BufferedOutputStream(s.getOutputStream());
 				try {
-					action();
+					action(server ? serverVersion : clientVersion);
 				} finally {
 					out.close();
 				}
