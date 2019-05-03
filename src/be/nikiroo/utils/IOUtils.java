@@ -275,8 +275,7 @@ public class IOUtils {
 			write(stream, out);
 			return out.toString("UTF-8");
 		} finally {
-			// do NOT close, or the related stream will be closed, too
-			// out.close();
+			out.close();
 		}
 	}
 
