@@ -5,9 +5,12 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 
+import be.nikiroo.utils.streams.Base64InputStream;
 import be.nikiroo.utils.streams.MarkableFileInputStream;
 
 /**
@@ -55,6 +58,24 @@ public class Image implements Closeable, Serializable {
 	}
 
 	/**
+	 * Create an image from Base64 encoded data.
+	 * 
+	 * @deprecated Please use {@link Image#Image(InputStream)} instead, with a
+	 *             {@link Base64InputStream}
+	 * 
+	 * @param base64EncodedData
+	 *            the Base64 encoded data as a String
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error or badly formated Base64
+	 */
+	@Deprecated
+	public Image(String base64EncodedData) throws IOException {
+		this(new Base64InputStream(new ByteArrayInputStream(
+				StringUtils.getBytes(base64EncodedData)), false));
+	}
+
+	/**
 	 * Create a new {@link Image} from a stream.
 	 * 
 	 * @param in
@@ -89,12 +110,13 @@ public class Image implements Closeable, Serializable {
 
 	/**
 	 * <b>Read</b> the actual image data, as a byte array.
-	 * <p>
-	 * Note: if possible, prefer the {@link Image#newInputStream()} method, as
-	 * it can be more efficient.
+	 * 
+	 * @deprecated if possible, prefer the {@link Image#newInputStream()}
+	 *             method, as it can be more efficient
 	 * 
 	 * @return the image data
 	 */
+	@Deprecated
 	public byte[] getData() {
 		try {
 			InputStream in = newInputStream();
@@ -105,6 +127,30 @@ public class Image implements Closeable, Serializable {
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Convert the given {@link Image} object into a Base64 representation of
+	 * the same {@link Image} object.
+	 * 
+	 * @deprecated Please use {@link Image#newInputStream()} instead, it is more
+	 *             efficient
+	 * 
+	 * @return the Base64 representation
+	 */
+	@Deprecated
+	public String toBase64() {
+		try {
+			Base64InputStream stream = new Base64InputStream(newInputStream(),
+					true);
+			try {
+				return IOUtils.readSmallStream(stream);
+			} finally {
+				stream.close();
+			}
+		} catch (IOException e) {
+			return null;
 		}
 	}
 
@@ -168,7 +214,7 @@ public class Image implements Closeable, Serializable {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+	private void writeObject(ObjectOutputStream out) throws IOException {
 		InputStream in = newInputStream();
 		try {
 			IOUtils.write(in, out);
@@ -189,8 +235,7 @@ public class Image implements Closeable, Serializable {
 	 * @throws ClassNotFoundException
 	 *             will not be thrown by this method
 	 */
-	@SuppressWarnings("unused")
-	private void readObject(java.io.ObjectInputStream in) throws IOException,
+	private void readObject(ObjectInputStream in) throws IOException,
 			ClassNotFoundException {
 		data = getTemporaryFile();
 		IOUtils.write(in, data);

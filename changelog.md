@@ -6,12 +6,13 @@
 - new: CryptUtils
 - new: streams classes
 - fix: IOUtils.readSmallStream and \n at the end
-- fix: Base64 implementation changed
-- change: serial: SSL -> CryptUtils
-- change: markableFileInputStream moved to nikiroo.utils.streams
-- change: break compat with package utils.server 
-- change: break compat with base64 methods in StringUtils (now it works correctly, too)
+- fix: Base64 implementation changed, no strange errors anymore
+- change: StringUtils.unzip64(String) now returns a byte[] (StringUtils.unzip64s(String) can be used instead)
+- change: be.nikiroo.utils.markableFileInputStream moved to be.nikiroo.utils.streams (old class still present in @Deprecated state for now)
+- change: serial: SSL -> CryptUtils (both are incompatible)
+- change: break compat with package utils.serial (Objects) -- ServerString should still be compatible
 - change: TestLauncher is now "silent" by default (no exception details, see setDetails(true))
+
 
 ## Version 4.7.2
 

@@ -14,6 +14,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
@@ -26,6 +27,7 @@ import org.unbescape.html.HtmlEscapeLevel;
 import org.unbescape.html.HtmlEscapeType;
 
 import be.nikiroo.utils.streams.Base64InputStream;
+import be.nikiroo.utils.streams.Base64OutputStream;
 
 /**
  * This class offer some utilities based around {@link String}s.
@@ -524,7 +526,7 @@ public class StringUtils {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public static String zip64s(String data) throws IOException {
+	public static String zip64(String data) throws IOException {
 		try {
 			return zip64(getBytes(data));
 		} catch (UnsupportedEncodingException e) {
@@ -962,5 +964,175 @@ public class StringUtils {
 		}
 
 		return count > 2;
+	}
+
+	// Deprecated functions, please do not use //
+
+	/**
+	 * @deprecated please use {@link StringUtils#zip64(byte[])} or
+	 *             {@link StringUtils#base64(byte[])} instead.
+	 * 
+	 * @param data
+	 *            the data to encode
+	 * @param zip
+	 *            TRUE to zip it before Base64 encoding it, FALSE for Base64
+	 *            encoding only
+	 * 
+	 * @return the encoded data
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	@Deprecated
+	public static String base64(String data, boolean zip) throws IOException {
+		return base64(getBytes(data), zip);
+	}
+
+	/**
+	 * @deprecated please use {@link StringUtils#zip64(String)} or
+	 *             {@link StringUtils#base64(String)} instead.
+	 * 
+	 * @param data
+	 *            the data to encode
+	 * @param zip
+	 *            TRUE to zip it before Base64 encoding it, FALSE for Base64
+	 *            encoding only
+	 * 
+	 * @return the encoded data
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	@Deprecated
+	public static String base64(byte[] data, boolean zip) throws IOException {
+		if (zip) {
+			return zip64(data);
+		}
+
+		Base64InputStream b64 = new Base64InputStream(new ByteArrayInputStream(
+				data), true);
+		try {
+			return IOUtils.readSmallStream(b64);
+		} finally {
+			b64.close();
+		}
+	}
+
+	/**
+	 * @deprecated please use {@link Base64OutputStream} and
+	 *             {@link GZIPOutputStream} instead.
+	 * 
+	 * @param breakLines
+	 *            NOT USED ANYMORE, it is always considered FALSE now
+	 */
+	@Deprecated
+	public static OutputStream base64(OutputStream data, boolean zip,
+			boolean breakLines) throws IOException {
+		OutputStream out = new Base64OutputStream(data);
+		if (zip) {
+			out = new java.util.zip.GZIPOutputStream(out);
+		}
+
+		return out;
+	}
+
+	/**
+	 * Unconvert the given data from Base64 format back to a raw array of bytes.
+	 * <p>
+	 * Will automatically detect zipped data and also uncompress it before
+	 * returning, unless ZIP is false.
+	 * 
+	 * @deprecated DO NOT USE ANYMORE (bad perf, will be dropped)
+	 * 
+	 * @param data
+	 *            the data to unconvert
+	 * @param zip
+	 *            TRUE to also uncompress the data from a GZIP format
+	 *            automatically; if set to FALSE, zipped data can be returned
+	 * 
+	 * @return the raw data represented by the given Base64 {@link String},
+	 *         optionally compressed with GZIP
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
+	@Deprecated
+	public static byte[] unbase64(String data, boolean zip) throws IOException {
+		byte[] buffer = unbase64(data);
+		if (!zip) {
+			return buffer;
+		}
+
+		try {
+			GZIPInputStream zipped = new GZIPInputStream(
+					new ByteArrayInputStream(buffer));
+			try {
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				try {
+					IOUtils.write(zipped, out);
+					return out.toByteArray();
+				} finally {
+					out.close();
+				}
+			} finally {
+				zipped.close();
+			}
+		} catch (Exception e) {
+			return buffer;
+		}
+	}
+
+	/**
+	 * Unconvert the given data from Base64 format back to a raw array of bytes.
+	 * <p>
+	 * Will automatically detect zipped data and also uncompress it before
+	 * returning, unless ZIP is false.
+	 * 
+	 * @deprecated DO NOT USE ANYMORE (bad perf, will be dropped)
+	 * 
+	 * @param data
+	 *            the data to unconvert
+	 * @param zip
+	 *            TRUE to also uncompress the data from a GZIP format
+	 *            automatically; if set to FALSE, zipped data can be returned
+	 * 
+	 * @return the raw data represented by the given Base64 {@link String},
+	 *         optionally compressed with GZIP
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
+	@Deprecated
+	public static InputStream unbase64(InputStream data, boolean zip)
+			throws IOException {
+		return new ByteArrayInputStream(unbase64(IOUtils.readSmallStream(data),
+				zip));
+	}
+
+	/**
+	 * @deprecated DO NOT USE ANYMORE (bad perf, will be dropped)
+	 */
+	@Deprecated
+	public static byte[] unbase64(byte[] data, int offset, int count,
+			boolean zip) throws IOException {
+		byte[] dataPart = Arrays.copyOfRange(data, offset, offset + count);
+		return unbase64(new String(dataPart, "UTF-8"), zip);
+	}
+
+	/**
+	 * @deprecated DO NOT USE ANYMORE (bad perf, will be dropped)
+	 */
+	@Deprecated
+	public static String unbase64s(String data, boolean zip) throws IOException {
+		return new String(unbase64(data, zip), "UTF-8");
+	}
+
+	/**
+	 * @deprecated DO NOT USE ANYMORE (bad perf, will be dropped)
+	 */
+	@Deprecated
+	public static String unbase64s(byte[] data, int offset, int count,
+			boolean zip) throws IOException {
+		return new String(unbase64(data, offset, count, zip), "UTF-8");
 	}
 }
