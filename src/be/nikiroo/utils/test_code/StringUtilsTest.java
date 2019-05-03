@@ -225,7 +225,7 @@ class StringUtilsTest extends TestLauncher {
 			@Override
 			public void test() throws Exception {
 				String orig = "test";
-				String zipped = StringUtils.zip64s(orig);
+				String zipped = StringUtils.zip64(orig);
 				String unzipped = StringUtils.unzip64s(zipped);
 				assertEquals(orig, unzipped);
 			}
