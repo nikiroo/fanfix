@@ -159,7 +159,29 @@ abstract class ConnectAction {
 			try {
 				out = new BufferedOutputStream(s.getOutputStream());
 				try {
-					action(server ? serverVersion : clientVersion);
+					// Negotiate version
+					Version version;
+					if (server) {
+						String HELLO = recString();
+						if (HELLO == null || !HELLO.startsWith("VERSION ")) {
+							throw new SSLException(
+									"Client used bad encryption key");
+						}
+						version = negotiateVersion(new Version(
+								HELLO.substring("VERSION ".length())));
+						sendString("VERSION " + version);
+					} else {
+						String HELLO = sendString("VERSION " + clientVersion);
+						if (HELLO == null || !HELLO.startsWith("VERSION ")) {
+							throw new SSLException(
+									"Server did not accept the encryption key");
+						}
+						version = new Version(HELLO.substring("VERSION "
+								.length()));
+					}
+
+					// Actual code
+					action(version);
 				} finally {
 					out.close();
 				}
