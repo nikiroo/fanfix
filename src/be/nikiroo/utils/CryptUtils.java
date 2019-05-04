@@ -4,16 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -31,12 +28,16 @@ import be.nikiroo.utils.streams.Base64OutputStream;
  * <li>The streams are independent and thus parallel</li>
  * </ul>
  * <p>
- * Do not assume it is actually secure until you checked the code...
+ * Do not assume it is actually secure, it is actually not.
+ * <p>
+ * It just here to offer a more-or-less protected exchange of data because
+ * anonymous and self-signed certificates backed SSL is against Google wishes
+ * (so, don't even try, they own Internet).
  * 
  * @author niki
  */
 public class CryptUtils {
-	static private final String AES_NAME = "AES/CFB8/NoPadding";
+	static private final String AES_NAME = "AES/CFB128/NoPadding";
 
 	private Cipher ecipher;
 	private Cipher dcipher;
@@ -236,24 +237,11 @@ public class CryptUtils {
 			Cipher cipher = Cipher.getInstance(AES_NAME);
 			cipher.init(mode, key, ivspec);
 			return cipher;
-		} catch (NoSuchAlgorithmException e) {
-			// Every implementation of the Java platform is required to support
-			// this standard Cipher transformation with 128 bits keys
+		} catch (Exception e) {
 			e.printStackTrace();
-		} catch (NoSuchPaddingException e) {
-			// Every implementation of the Java platform is required to support
-			// this standard Cipher transformation with 128 bits keys
-			e.printStackTrace();
-		} catch (InvalidKeyException e) {
-			// Every implementation of the Java platform is required to support
-			// this standard Cipher transformation with 128 bits keys
-			e.printStackTrace();
-		} catch (InvalidAlgorithmParameterException e) {
-			// Woops?
-			e.printStackTrace();
+			throw new RuntimeException(
+					"Cannot initialize encryption sub-system", e);
 		}
-
-		return null;
 	}
 
 	/**
