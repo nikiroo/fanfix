@@ -73,7 +73,7 @@ abstract public class ServerString extends Server {
 				for (String data = rec(); data != null; data = rec()) {
 					String rep = null;
 					try {
-						rep = onRequest(this, data, id);
+						rep = onRequest(this, clientVersion, data, id);
 						if (isClosing()) {
 							return;
 						}
@@ -112,6 +112,8 @@ abstract public class ServerString extends Server {
 	 * 
 	 * @param action
 	 *            the client action
+	 * @param clientVersion
+	 *            the client version
 	 * @param data
 	 *            the data sent by the client
 	 * @param id
@@ -123,6 +125,59 @@ abstract public class ServerString extends Server {
 	 * @throws Exception
 	 *             in case of an exception, the error will only be logged
 	 */
-	abstract protected String onRequest(ConnectActionServerString action,
-			String data, long id) throws Exception;
+	protected String onRequest(ConnectActionServerString action,
+			Version clientVersion, String data,
+			@SuppressWarnings("unused") long id) throws Exception {
+		// TODO: change to abstract when deprecated method is removed
+		// Default implementation for compat
+		return onRequest(action, clientVersion, data);
+	}
+
+	// Deprecated //
+
+	/**
+	 * @deprecated SSL support has been replaced by key-based encryption.
+	 *             <p>
+	 *             Please use the version with key encryption (this deprecated
+	 *             version uses an empty key when <tt>ssl</tt> is TRUE and no
+	 *             key (NULL) when <tt>ssl</tt> is FALSE).
+	 */
+	@Deprecated
+	public ServerString(int port, boolean ssl) throws IOException {
+		this(port, ssl ? "" : null);
+	}
+
+	/**
+	 * @deprecated SSL support has been replaced by key-based encryption.
+	 *             <p>
+	 *             Please use the version with key encryption (this deprecated
+	 *             version uses an empty key when <tt>ssl</tt> is TRUE and no
+	 *             key (NULL) when <tt>ssl</tt> is FALSE).
+	 */
+	@Deprecated
+	public ServerString(String name, int port, boolean ssl) throws IOException {
+		this(name, port, ssl ? "" : null);
+	}
+
+	/**
+	 * Will be called if the correct version is not overrided.
+	 * 
+	 * @deprecated use the version with the id.
+	 * 
+	 * @param action
+	 *            the client action
+	 * @param data
+	 *            the data sent by the client
+	 * 
+	 * @return the answer to return to the client
+	 * 
+	 * @throws Exception
+	 *             in case of an exception, the error will only be logged
+	 */
+	@Deprecated
+	@SuppressWarnings("unused")
+	protected String onRequest(ConnectActionServerString action,
+			Version version, String data) throws Exception {
+		return null;
+	}
 }

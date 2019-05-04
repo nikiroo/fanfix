@@ -52,8 +52,8 @@ class SerialServerTest extends TestLauncher {
 				ServerString server = new ServerString(this.getName(), 0, key) {
 					@Override
 					protected String onRequest(
-							ConnectActionServerString action, String data,
-							long id) throws Exception {
+							ConnectActionServerString action, Version version,
+							String data, long id) throws Exception {
 						return null;
 					}
 
@@ -113,8 +113,8 @@ class SerialServerTest extends TestLauncher {
 				ServerString server = new ServerString(this.getName(), 0, key) {
 					@Override
 					protected String onRequest(
-							ConnectActionServerString action, String data,
-							long id) throws Exception {
+							ConnectActionServerString action, Version version,
+							String data, long id) throws Exception {
 						sent[0] = data;
 						return "pong";
 					}
@@ -175,8 +175,8 @@ class SerialServerTest extends TestLauncher {
 				ServerString server = new ServerString(this.getName(), 0, key) {
 					@Override
 					protected String onRequest(
-							ConnectActionServerString action, String data,
-							long id) throws Exception {
+							ConnectActionServerString action, Version version,
+							String data, long id) throws Exception {
 						sent[0] = data;
 						action.send("pong");
 						sent[1] = action.rec();
@@ -242,8 +242,8 @@ class SerialServerTest extends TestLauncher {
 				ServerString server = new ServerString(this.getName(), 0, key) {
 					@Override
 					protected String onRequest(
-							ConnectActionServerString action, String data,
-							long id) throws Exception {
+							ConnectActionServerString action, Version version,
+							String data, long id) throws Exception {
 						sent[Integer.parseInt(data)] = data;
 						return "" + (Integer.parseInt(data) * 2);
 					}
@@ -315,8 +315,8 @@ class SerialServerTest extends TestLauncher {
 				ServerObject server = new ServerObject(this.getName(), 0, key) {
 					@Override
 					protected Object onRequest(
-							ConnectActionServerObject action, Object data,
-							long id) throws Exception {
+							ConnectActionServerObject action, Version version,
+							Object data, long id) throws Exception {
 						return null;
 					}
 
@@ -375,8 +375,8 @@ class SerialServerTest extends TestLauncher {
 				ServerObject server = new ServerObject(this.getName(), 0, key) {
 					@Override
 					protected Object onRequest(
-							ConnectActionServerObject action, Object data,
-							long id) throws Exception {
+							ConnectActionServerObject action, Version version,
+							Object data, long id) throws Exception {
 						sent[0] = data;
 						return "pong";
 					}
@@ -437,8 +437,8 @@ class SerialServerTest extends TestLauncher {
 				ServerObject server = new ServerObject(this.getName(), 0, key) {
 					@Override
 					protected Object onRequest(
-							ConnectActionServerObject action, Object data,
-							long id) throws Exception {
+							ConnectActionServerObject action, Version version,
+							Object data, long id) throws Exception {
 						sent[0] = data;
 						action.send("pong");
 						sent[1] = action.rec();
@@ -504,8 +504,8 @@ class SerialServerTest extends TestLauncher {
 				ServerObject server = new ServerObject(this.getName(), 0, key) {
 					@Override
 					protected Object onRequest(
-							ConnectActionServerObject action, Object data,
-							long id) throws Exception {
+							ConnectActionServerObject action, Version version,
+							Object data, long id) throws Exception {
 						sent[0] = data;
 						return new Object[] { "ACK" };
 					}
@@ -576,8 +576,8 @@ class SerialServerTest extends TestLauncher {
 				ServerObject server = new ServerObject(this.getName(), 0, key) {
 					@Override
 					protected Object onRequest(
-							ConnectActionServerObject action, Object data,
-							long id) throws Exception {
+							ConnectActionServerObject action, Version version,
+							Object data, long id) throws Exception {
 						sent[(Integer) data] = data;
 						return ((Integer) data) * 2;
 					}
