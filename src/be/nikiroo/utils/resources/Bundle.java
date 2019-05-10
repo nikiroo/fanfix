@@ -388,6 +388,101 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
+	 * Return the value associated to the given id as a list of values if it is
+	 * found and can be parsed.
+	 * 
+	 * @param id
+	 *            the id of the value to get
+	 * 
+	 * @return the associated list, empty if the value is empty, NULL if it is
+	 *         not found or cannot be parsed as a list
+	 */
+	public List<String> getList(E id) {
+		List<String> list = new ArrayList<String>();
+		String raw = getString(id);
+		try {
+			boolean inQuote = false;
+			boolean prevIsBackSlash = false;
+			StringBuilder builder = new StringBuilder();
+			for (int i = 0; i < raw.length(); i++) {
+				char car = raw.charAt(i);
+
+				if (prevIsBackSlash) {
+					builder.append(car);
+					prevIsBackSlash = false;
+				} else {
+					switch (car) {
+					case '"':
+						if (inQuote) {
+							list.add(builder.toString());
+							builder.setLength(0);
+						}
+
+						inQuote = !inQuote;
+						break;
+					case '\\':
+						prevIsBackSlash = true;
+						break;
+					case ' ':
+					case '\n':
+					case '\r':
+						if (inQuote) {
+							builder.append(car);
+						}
+						break;
+
+					case ',':
+						if (!inQuote) {
+							break;
+						}
+						// continue to default
+					default:
+						if (!inQuote) {
+							// Bad format!
+							return null;
+						}
+
+						builder.append(car);
+						break;
+					}
+				}
+			}
+
+			if (inQuote || prevIsBackSlash) {
+				// Bad format!
+				return null;
+			}
+
+		} catch (Exception e) {
+			return null;
+		}
+
+		return list;
+	}
+
+	/**
+	 * Set the value associated to the given id as a list of values.
+	 * 
+	 * @param id
+	 *            the id of the value to set
+	 * @param list
+	 *            the new list of values
+	 */
+	public void setList(E id, List<String> list) {
+		StringBuilder builder = new StringBuilder();
+		for (String item : list) {
+			if (builder.length() > 0) {
+				builder.append(", ");
+			}
+			builder.append('"')//
+					.append(item.replace("\\", "\\\\").replace("\"", "\\\""))//
+					.append('"');
+		}
+
+		setString(id, builder.toString());
+	}
+
+	/**
 	 * Create/update the .properties file.
 	 * <p>
 	 * Will use the most likely candidate as base if the file does not already
