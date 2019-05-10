@@ -5,6 +5,7 @@
 - new: server: count the bytes we rec/send
 - new: CryptUtils
 - new: stream classes
+- new: Bundles get/setList()
 - fix: IOUtils.readSmallStream and \n at the end
 - fix: Base64 implementation changed, no strange errors anymore
 - change: StringUtils.unzip64(String) now returns a byte[] (StringUtils.unzip64s(String) can be used instead)
