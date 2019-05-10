@@ -11,7 +11,6 @@ import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.SSLException;
@@ -41,7 +40,7 @@ public class CryptUtils {
 
 	private Cipher ecipher;
 	private Cipher dcipher;
-	private SecretKey key;
+	private byte[] bytes32;
 
 	/**
 	 * Small and lazy-easy way to initialize a 128 bits key with
@@ -215,9 +214,9 @@ public class CryptUtils {
 							+ " bytes");
 		}
 
-		key = new SecretKeySpec(bytes32, "AES");
-		ecipher = newCipher(Cipher.ENCRYPT_MODE);
-		dcipher = newCipher(Cipher.DECRYPT_MODE);
+		this.bytes32 = bytes32;
+		this.ecipher = newCipher(Cipher.ENCRYPT_MODE);
+		this.dcipher = newCipher(Cipher.DECRYPT_MODE);
 	}
 
 	/**
@@ -232,10 +231,14 @@ public class CryptUtils {
 	 */
 	private Cipher newCipher(int mode) {
 		try {
-			byte[] iv = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+			// bytes32 = 32 bytes, 32 > 16
+			byte[] iv = new byte[16];
+			for (int i = 0; i < iv.length; i++) {
+				iv[i] = bytes32[i];
+			}
 			IvParameterSpec ivspec = new IvParameterSpec(iv);
 			Cipher cipher = Cipher.getInstance(AES_NAME);
-			cipher.init(mode, key, ivspec);
+			cipher.init(mode, new SecretKeySpec(bytes32, "AES"), ivspec);
 			return cipher;
 		} catch (Exception e) {
 			e.printStackTrace();
