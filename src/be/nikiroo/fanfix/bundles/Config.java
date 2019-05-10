@@ -32,6 +32,16 @@ public enum Config {
 	DEFAULT_COVERS_DIR, //
 	@Meta(description = "string", info = "The default library to use (KEY:SERVER:PORT), or empty for the local library")
 	DEFAULT_LIBRARY, //
+	@Meta(def = "58365", description = "The port on which we can start the server", format = Format.INT, info = "A valid port")
+	SERVER_PORT, //
+	@Meta(def = "", description = "The encryption key for the server (NOT including a subkey)", format = Format.PASSWORD, info = "cannot contain the pipe character (|)")
+	SERVER_KEY, //
+	@Meta(def = "TRUE", description = "Allow write access to the clients by default (download story, move story...)", format = Format.BOOLEAN)
+	SERVER_RW, //
+	@Meta(def = "", description = "If not empty, only the EXACT listed sources will be available for clients", info = "list is comma-separated (,) and values are surrounded by double quotes (\"); any double quote in the value must be backslash-escaped (with \\\")")
+	SERVER_WHITELIST, //
+	@Meta(def = "", description = "The subkeys that the server will allow, including the modes", info = "list is comma-separated (,) and values are surrounded by double quotes (\"); any double quote in the value must be backslash-escaped (with \\\")")
+	SERVER_ALLOWED_SUBKEYS, //
 	@Meta(def = "$HOME/Books", description = "absolute path, $HOME variable supported, / is always accepted as dir separator", format = Format.DIRECTORY, info = "The directory where to store the library")
 	LIBRARY_DIR, //
 	@Meta(def = "false", description = "boolean", format = Format.BOOLEAN, info = "Show debug information on errors")
@@ -65,8 +75,7 @@ public enum Config {
 	@Meta(description = "If the last update check was done at least that many days, check for updates at startup (-1 for 'no checks' -- default is 1 day)", format = Format.INT)
 	UPDATE_INTERVAL, //
 	@Meta(def = "", description = "", info = "Format is ((user(:pass)@)proxy:port), with ':' being system proxy and an empty String being no proxy")
-	USE_PROXY,
-	@Meta(description = "An API key required to create a token from FimFiction", format = Format.STRING)
+	USE_PROXY, @Meta(description = "An API key required to create a token from FimFiction", format = Format.STRING)
 	LOGIN_FIMFICTION_APIKEY_CLIENT_ID, //
 	@Meta(description = "An API key required to create a token from FimFiction", format = Format.PASSWORD)
 	LOGIN_FIMFICTION_APIKEY_CLIENT_SECRET, //

@@ -14,6 +14,7 @@ import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
+import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.server.ConnectActionClientObject;
 
 /**
@@ -27,11 +28,47 @@ public class RemoteLibrary extends BasicLibrary {
 	private String host;
 	private int port;
 	private final String key;
+	private final String subkey;
+
+	// informative only (server will make the actual checks)
+	private boolean rw;
 
 	// TODO: error handling is not up to par!
 
 	/**
 	 * Create a {@link RemoteLibrary} linked to the given server.
+	 * <p>
+	 * Note that the key is structured:
+	 * <tt><b><i>xxx</i></b>(|<b><i>yyy</i></b>|<b>wl</b>)(|<b>rw</b>)</tt>
+	 * <p>
+	 * Note that anything before the first pipe (<tt>|</tt>) character is
+	 * considered to be the encryption key, anything after that character is
+	 * called the subkey (including the other pipe characters and flags!).
+	 * <p>
+	 * This is important because the subkey (including the pipe characters and
+	 * flags) must be present as-is in the server configuration file to be
+	 * allowed.
+	 * <ul>
+	 * <li><b><i>xxx</i></b>: the encryption key used to communicate with the
+	 * server</li>
+	 * <li><b><i>yyy</i></b>: the secondary key</li>
+	 * <li><b>rw</b>: flag to allow read and write access if it is not the
+	 * default on this server</li>
+	 * <li><b>wl</b>: flag to allow access to all the stories (bypassing the
+	 * whitelist if it exists)</li>
+	 * </ul>
+	 * 
+	 * Some examples:
+	 * <ul>
+	 * <li><b>my_key</b>: normal connection, will take the default server
+	 * options</li>
+	 * <li><b>my_key|agzyzz|wl</b>: will ask to bypass the white list (if it
+	 * exists)</li>
+	 * <li><b>my_key|agzyzz|rw</b>: will ask read-write access (if the default
+	 * is read-only)</li>
+	 * <li><b>my_key|agzyzz|wl|rw</b>: will ask both read-write access and white
+	 * list bypass</li>
+	 * </ul>
 	 * 
 	 * @param key
 	 *            the key that will allow us to exchange information with the
@@ -42,7 +79,19 @@ public class RemoteLibrary extends BasicLibrary {
 	 *            the port to contact it on
 	 */
 	public RemoteLibrary(String key, String host, int port) {
-		this.key = key;
+		int index = -1;
+		if (key != null) {
+			key.indexOf('|');
+		}
+
+		if (index >= 0) {
+			this.key = key.substring(index + 1);
+			this.subkey = key.substring(0, index);
+		} else {
+			this.key = key;
+			this.subkey = "";
+		}
+
 		this.host = host;
 		this.port = port;
 	}
@@ -78,10 +127,14 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action() throws Exception {
-					Object rep = send(new Object[] { "PING" });
+				public void action(Version serverVersion) throws Exception {
+					Object rep = send(new Object[] { subkey, "PING" });
 
-					if ("PONG".equals(rep)) {
+					if ("r/w".equals(rep)) {
+						rw = true;
+						result[0] = Status.READY;
+					} else if ("r/o".equals(rep)) {
+						rw = false;
 						result[0] = Status.READY;
 					} else {
 						result[0] = Status.UNAUTHORIZED;
@@ -119,8 +172,8 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action() throws Exception {
-					Object rep = send(new Object[] { "GET_COVER", luid });
+				public void action(Version serverVersion) throws Exception {
+					Object rep = send(new Object[] { subkey, "GET_COVER", luid });
 					result[0] = (Image) rep;
 				}
 
@@ -170,9 +223,9 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action() throws Exception {
-					Object rep = send(new Object[] { "GET_CUSTOM_COVER", type,
-							source });
+				public void action(Version serverVersion) throws Exception {
+					Object rep = send(new Object[] { subkey,
+							"GET_CUSTOM_COVER", type, source });
 					result[0] = (Image) rep;
 				}
 
@@ -205,13 +258,13 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action() throws Exception {
+				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
 					if (pg == null) {
 						pg = new Progress();
 					}
 
-					Object rep = send(new Object[] { "GET_STORY", luid });
+					Object rep = send(new Object[] { subkey, "GET_STORY", luid });
 
 					MetaData meta = null;
 					if (rep instanceof MetaData) {
@@ -270,13 +323,13 @@ public class RemoteLibrary extends BasicLibrary {
 
 		new ConnectActionClientObject(host, port, key) {
 			@Override
-			public void action() throws Exception {
+			public void action(Version serverVersion) throws Exception {
 				Progress pg = pgF;
 				if (story.getMeta().getWords() <= Integer.MAX_VALUE) {
 					pg.setMinMax(0, (int) story.getMeta().getWords());
 				}
 
-				send(new Object[] { "SAVE_STORY", luid });
+				send(new Object[] { subkey, "SAVE_STORY", luid });
 
 				List<Object> list = RemoteLibraryServer.breakStory(story);
 				for (Object obj : list) {
@@ -324,8 +377,8 @@ public class RemoteLibrary extends BasicLibrary {
 
 		new ConnectActionClientObject(host, port, key) {
 			@Override
-			public void action() throws Exception {
-				send(new Object[] { "DELETE_STORY", luid });
+			public void action(Version serverVersion) throws Exception {
+				send(new Object[] { subkey, "DELETE_STORY", luid });
 			}
 
 			@Override
@@ -368,8 +421,8 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action() throws Exception {
-					send(new Object[] { "SET_COVER", type, value, luid });
+				public void action(Version serverVersion) throws Exception {
+					send(new Object[] { subkey, "SET_COVER", type, value, luid });
 				}
 
 				@Override
@@ -417,10 +470,11 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action() throws Exception {
+				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
 
-					Object rep = send(new Object[] { "IMPORT", url.toString() });
+					Object rep = send(new Object[] { subkey, "IMPORT",
+							url.toString() });
 
 					while (true) {
 						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
@@ -473,11 +527,11 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action() throws Exception {
+				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
 
-					Object rep = send(new Object[] { "CHANGE_STA", luid,
-							newSource, newTitle, newAuthor });
+					Object rep = send(new Object[] { subkey, "CHANGE_STA",
+							luid, newSource, newTitle, newAuthor });
 					while (true) {
 						if (!RemoteLibraryServer.updateProgress(pg, rep)) {
 							break;
@@ -519,8 +573,8 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action() throws Exception {
-					send(new Object[] { "EXIT" });
+				public void action(Version serverVersion) throws Exception {
+					send(new Object[] { subkey, "EXIT" });
 				}
 
 				@Override
@@ -611,13 +665,14 @@ public class RemoteLibrary extends BasicLibrary {
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
-				public void action() throws Exception {
+				public void action(Version serverVersion) throws Exception {
 					Progress pg = pgF;
 					if (pg == null) {
 						pg = new Progress();
 					}
 
-					Object rep = send(new Object[] { "GET_METADATA", luid });
+					Object rep = send(new Object[] { subkey, "GET_METADATA",
+							luid });
 
 					while (true) {
 						if (!RemoteLibraryServer.updateProgress(pg, rep)) {

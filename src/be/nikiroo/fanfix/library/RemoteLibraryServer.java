@@ -11,6 +11,7 @@ import java.util.Map;
 import javax.net.ssl.SSLException;
 
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
@@ -18,6 +19,7 @@ import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Progress.ProgressListener;
 import be.nikiroo.utils.StringUtils;
+import be.nikiroo.utils.Version;
 import be.nikiroo.utils.serial.server.ConnectActionServerObject;
 import be.nikiroo.utils.serial.server.ServerObject;
 
@@ -27,8 +29,12 @@ import be.nikiroo.utils.serial.server.ServerObject;
  * The available commands are given as arrays of objects (first item is the
  * command, the rest are the arguments).
  * <p>
+ * All the commands are always prefixed by the subkey (which can be EMPTY if
+ * none).
+ * <p>
  * <ul>
- * <li>PING: will return PONG if the key is accepted</li>
+ * <li>PING: will return the mode if the key is accepted (mode can be: "r/o" or
+ * "r/w")</li>
  * <li>GET_METADATA *: will return the metadata of all the stories in the
  * library (array)</li> *
  * <li>GET_METADATA [luid]: will return the metadata of the story of LUID luid</li>
@@ -54,10 +60,15 @@ import be.nikiroo.utils.serial.server.ServerObject;
 public class RemoteLibraryServer extends ServerObject {
 	private Map<Long, String> commands = new HashMap<Long, String>();
 	private Map<Long, Long> times = new HashMap<Long, Long>();
+	private Map<Long, Boolean> wls = new HashMap<Long, Boolean>();
+	private Map<Long, Boolean> rws = new HashMap<Long, Boolean>();
 
 	/**
 	 * Create a new remote server (will not be active until
 	 * {@link RemoteLibraryServer#start()} is called).
+	 * <p>
+	 * Note: the key we use here is the encryption key (it must not contain a
+	 * subkey).
 	 * 
 	 * @param key
 	 *            the key that will restrict access to this server
@@ -73,53 +84,109 @@ public class RemoteLibraryServer extends ServerObject {
 	}
 
 	@Override
-	protected Object onRequest(ConnectActionServerObject action, Object data,
-			long id) throws Exception {
+	protected Object onRequest(ConnectActionServerObject action,
+			Version clientVersion, Object data, long id) throws Exception {
 		long start = new Date().getTime();
 
+		// defaults are positive (as previous versions without the feature)
+		boolean rw = true;
+		boolean wl = true;
+
+		String subkey = "";
 		String command = "";
 		Object[] args = new Object[0];
 		if (data instanceof Object[]) {
 			Object[] dataArray = (Object[]) data;
 			if (dataArray.length > 0) {
-				command = "" + dataArray[0];
+				subkey = "" + dataArray[0];
+			}
+			if (dataArray.length > 1) {
+				command = "" + dataArray[1];
 
-				args = new Object[dataArray.length - 1];
-				for (int i = 1; i < dataArray.length; i++) {
-					args[i - 1] = dataArray[i];
+				args = new Object[dataArray.length - 2];
+				for (int i = 2; i < dataArray.length; i++) {
+					args[i - 2] = dataArray[i];
 				}
 			}
 		}
 
-		String trace = "[ " + command + "] ";
+		List<String> whitelist = Instance.getConfig().getList(
+				Config.SERVER_WHITELIST);
+		if (whitelist == null) {
+			whitelist = new ArrayList<String>();
+		}
+
+		if (whitelist.isEmpty()) {
+			wl = false;
+		}
+
+		rw = Instance.getConfig().getBoolean(Config.SERVER_RW, rw);
+		if (!subkey.isEmpty()) {
+			List<String> allowed = Instance.getConfig().getList(
+					Config.SERVER_ALLOWED_SUBKEYS);
+			if (allowed.contains(subkey)) {
+				if ((subkey + "|").contains("|rw|")) {
+					rw = true;
+				}
+				if ((subkey + "|").contains("|wl|")) {
+					wl = false; // |wl| = bypass whitelist
+				}
+			}
+		}
+
+		String mode = display(wl, rw);
+
+		String trace = mode + "[ " + command + "] ";
 		for (Object arg : args) {
 			trace += arg + " ";
 		}
 		System.out.println(trace);
 
-		Object rep = doRequest(action, command, args);
+		Object rep = doRequest(action, command, args, rw, whitelist);
 
 		commands.put(id, command);
+		wls.put(id, wl);
+		rws.put(id, rw);
 		times.put(id, (new Date().getTime() - start));
 
 		return rep;
 	}
 
+	private String display(boolean whitelist, boolean rw) {
+		String mode = "";
+		if (!rw) {
+			mode += "RO: ";
+		}
+		if (whitelist) {
+			mode += "WL: ";
+		}
+
+		return mode;
+	}
+
 	@Override
 	protected void onRequestDone(long id, long bytesReceived, long bytesSent) {
+		boolean whitelist = wls.get(id);
+		boolean rw = rws.get(id);
+		wls.remove(id);
+		rws.remove(id);
+
 		String rec = StringUtils.formatNumber(bytesReceived) + "b";
 		String sent = StringUtils.formatNumber(bytesSent) + "b";
-		System.out.println(String.format("[>%s]: (%s sent, %s rec) in %d ms",
-				commands.get(id), sent, rec, times.get(id)));
+		System.out.println(String.format("%s[>%s]: (%s sent, %s rec) in %d ms",
+				display(whitelist, rw), commands.get(id), sent, rec,
+				times.get(id)));
+
 		commands.remove(id);
 		times.remove(id);
 	}
 
 	private Object doRequest(ConnectActionServerObject action, String command,
-			Object[] args) throws NoSuchFieldException, NoSuchMethodException,
+			Object[] args, boolean rw, List<String> whitelist)
+			throws NoSuchFieldException, NoSuchMethodException,
 			ClassNotFoundException, IOException {
 		if ("PING".equals(command)) {
-			return "PONG";
+			return rw ? "r/w" : "r/o";
 		} else if ("GET_METADATA".equals(command)) {
 			if ("*".equals(args[0])) {
 				Progress pg = createPgForwarder(action);

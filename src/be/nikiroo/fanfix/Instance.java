@@ -441,6 +441,7 @@ public class Instance {
 								+ getFile(libDir), e));
 			}
 		} else {
+			Exception ex = null;
 			int pos = remoteLib.lastIndexOf(":");
 			if (pos >= 0) {
 				String port = remoteLib.substring(pos + 1).trim();
@@ -459,13 +460,14 @@ public class Instance {
 								lib);
 
 					} catch (Exception e) {
+						ex = e;
 					}
 				}
 			}
 
 			if (lib == null) {
 				tracer.error(new IOException(
-						"Cannot create remote library for: " + remoteLib));
+						"Cannot create remote library for: " + remoteLib, ex));
 			}
 		}
 

@@ -4,7 +4,7 @@
  * files that you can read anywhere.
  * <p>
  * It has support for a {@link be.nikiroo.fanfix.library.BasicLibrary} system, 
- * too.
+ * too, and can even offer its services over the network.
  * 
  * @author niki
  */

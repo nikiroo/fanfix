@@ -7,6 +7,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
@@ -76,9 +77,8 @@ public class Main {
 	 * <li>--set-reader [reader type]: set the reader type to CLI, TUI or LOCAL
 	 * for this command</li>
 	 * <li>--version: get the version of the program</li>
-	 * <li>--server [key] [port]: start a server on this port</li>
-	 * <li>--stop-server [key] [port]: stop the running server on this port if
-	 * any</li>
+	 * <li>--server: start the server mode (see config file for parameters)</li>
+	 * <li>--stop-server: stop the running server on this port if any</li>
 	 * <li>--remote [key] [host] [port]: use a the given remote library</li>
 	 * </ul>
 	 * 
@@ -326,14 +326,10 @@ public class Main {
 				exitCode = 255; // no arguments for this option
 				break;
 			case SERVER:
+				exitCode = 255; // no arguments for this option
+				break;
 			case STOP_SERVER:
-				if (key == null) {
-					key = args[i];
-				} else if (port == null) {
-					port = Integer.parseInt(args[i]);
-				} else {
-					exitCode = 255;
-				}
+				exitCode = 255; // no arguments for this option
 				break;
 			case REMOTE:
 				if (key == null) {
@@ -571,8 +567,11 @@ public class Main {
 				BasicReader.getReader().browse(null);
 				break;
 			case SERVER:
+				key = Instance.getConfig().getString(Config.SERVER_KEY);
+				port = Instance.getConfig().getInteger(Config.SERVER_PORT);
 				if (port == null) {
-					exitCode = 255;
+					System.err.println("No port configured in the config file");
+					exitCode = 15;
 					break;
 				}
 				try {
@@ -584,8 +583,11 @@ public class Main {
 				}
 				return;
 			case STOP_SERVER:
+				key = Instance.getConfig().getString(Config.SERVER_KEY);
+				port = Instance.getConfig().getInteger(Config.SERVER_PORT);
 				if (port == null) {
-					exitCode = 255;
+					System.err.println("No port configured in the config file");
+					exitCode = 15;
 					break;
 				}
 
