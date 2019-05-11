@@ -2,6 +2,7 @@ package be.nikiroo.fanfix.library;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -130,6 +131,7 @@ public class RemoteLibraryServer extends ServerObject {
 				}
 				if ((subkey + "|").contains("|wl|")) {
 					wl = false; // |wl| = bypass whitelist
+					whitelist = new ArrayList<String>();
 				}
 			}
 		}
@@ -188,10 +190,10 @@ public class RemoteLibraryServer extends ServerObject {
 		if ("PING".equals(command)) {
 			return rw ? "r/w" : "r/o";
 		} else if ("GET_METADATA".equals(command)) {
+			List<MetaData> metas = new ArrayList<MetaData>();
+
 			if ("*".equals(args[0])) {
 				Progress pg = createPgForwarder(action);
-
-				List<MetaData> metas = new ArrayList<MetaData>();
 
 				for (MetaData meta : Instance.getLibrary().getMetas(pg)) {
 					MetaData light;
@@ -206,13 +208,32 @@ public class RemoteLibraryServer extends ServerObject {
 				}
 
 				forcePgDoneSent(pg);
-				return metas.toArray(new MetaData[] {});
+			} else {
+				metas.add(Instance.getLibrary().getInfo((String) args[0]));
 			}
 
-			return new MetaData[] { Instance.getLibrary().getInfo(
-					(String) args[0]) };
+			if (!whitelist.isEmpty()) {
+				for (int i = 0; i < metas.size(); i++) {
+					if (!whitelist.contains(metas.get(i).getSource())) {
+						metas.remove(i);
+						i--;
+					}
+				}
+			}
+
+			return metas.toArray(new MetaData[0]);
 		} else if ("GET_STORY".equals(command)) {
 			MetaData meta = Instance.getLibrary().getInfo((String) args[0]);
+			if (meta == null) {
+				return null;
+			}
+
+			if (!whitelist.isEmpty()) {
+				if (!whitelist.contains(meta.getSource())) {
+					return null;
+				}
+			}
+
 			meta = meta.clone();
 			meta.setCover(null);
 
@@ -226,6 +247,11 @@ public class RemoteLibraryServer extends ServerObject {
 				action.rec();
 			}
 		} else if ("SAVE_STORY".equals(command)) {
+			if (!rw) {
+				throw new AccessDeniedException("" + args[0], null,
+						"Read-Only remote library");
+			}
+
 			List<Object> list = new ArrayList<Object>();
 
 			action.send(null);
@@ -240,12 +266,22 @@ public class RemoteLibraryServer extends ServerObject {
 			Instance.getLibrary().save(story, (String) args[0], null);
 			return story.getMeta().getLuid();
 		} else if ("IMPORT".equals(command)) {
+			if (!rw) {
+				throw new AccessDeniedException("" + args[0], null,
+						"Read-Only remote library");
+			}
+
 			Progress pg = createPgForwarder(action);
 			Story story = Instance.getLibrary().imprt(
 					new URL((String) args[0]), pg);
 			forcePgDoneSent(pg);
 			return story.getMeta().getLuid();
 		} else if ("DELETE_STORY".equals(command)) {
+			if (!rw) {
+				throw new AccessDeniedException("" + args[0], null,
+						"Read-Only remote library");
+			}
+
 			Instance.getLibrary().delete((String) args[0]);
 		} else if ("GET_COVER".equals(command)) {
 			return Instance.getLibrary().getCover((String) args[0]);
@@ -260,6 +296,11 @@ public class RemoteLibraryServer extends ServerObject {
 				return null;
 			}
 		} else if ("SET_COVER".equals(command)) {
+			if (!rw) {
+				throw new AccessDeniedException("" + args[0], "" + args[1],
+						"Read-Only remote library");
+			}
+
 			if ("SOURCE".equals(args[0])) {
 				Instance.getLibrary().setSourceCover((String) args[1],
 						(String) args[2]);
@@ -268,11 +309,21 @@ public class RemoteLibraryServer extends ServerObject {
 						(String) args[2]);
 			}
 		} else if ("CHANGE_STA".equals(command)) {
+			if (!rw) {
+				throw new AccessDeniedException("" + args[0], "" + args[1],
+						"Read-Only remote library");
+			}
+
 			Progress pg = createPgForwarder(action);
 			Instance.getLibrary().changeSTA((String) args[0], (String) args[1],
 					(String) args[2], (String) args[3], pg);
 			forcePgDoneSent(pg);
 		} else if ("EXIT".equals(command)) {
+			if (!rw) {
+				throw new AccessDeniedException("EXIT", "",
+						"Read-Only remote library, cannot close it");
+			}
+
 			stop(0, false);
 		}
 

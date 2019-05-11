@@ -81,12 +81,12 @@ public class RemoteLibrary extends BasicLibrary {
 	public RemoteLibrary(String key, String host, int port) {
 		int index = -1;
 		if (key != null) {
-			key.indexOf('|');
+			index = key.indexOf('|');
 		}
 
 		if (index >= 0) {
-			this.key = key.substring(index + 1);
-			this.subkey = key.substring(0, index);
+			this.key = key.substring(0, index);
+			this.subkey = key.substring(index + 1);
 		} else {
 			this.key = key;
 			this.subkey = "";
