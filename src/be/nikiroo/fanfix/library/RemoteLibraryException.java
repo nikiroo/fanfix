@@ -10,6 +10,10 @@ import java.io.IOException;
 public class RemoteLibraryException extends IOException {
 	private static final long serialVersionUID = 1L;
 
+	private RemoteLibraryException() {
+		// for serialization purposes
+	}
+
 	/**
 	 * Wrap an {@link IOException} to allow it to pass across the network.
 	 * 
