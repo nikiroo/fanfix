@@ -143,11 +143,11 @@ public class RemoteLibrary extends BasicLibrary {
 
 				@Override
 				protected void onError(Exception e) {
-					// if (e instanceof SSLException) {
-					result[0] = Status.UNAUTHORIZED;
-					// } else {
-					// result[0] = Status.UNAVAILABLE;
-					// }
+					if (e instanceof SSLException) {
+						result[0] = Status.UNAUTHORIZED;
+					} else {
+						result[0] = Status.UNAVAILABLE;
+					}
 				}
 			}.connect();
 		} catch (UnknownHostException e) {

@@ -209,7 +209,16 @@ public class RemoteLibraryServer extends ServerObject {
 
 				forcePgDoneSent(pg);
 			} else {
-				metas.add(Instance.getLibrary().getInfo((String) args[0]));
+				MetaData meta = Instance.getLibrary().getInfo((String) args[0]);
+				MetaData light;
+				if (meta.getCover() == null) {
+					light = meta;
+				} else {
+					light = meta.clone();
+					light.setCover(null);
+				}
+
+				metas.add(light);
 			}
 
 			if (!whitelist.isEmpty()) {
