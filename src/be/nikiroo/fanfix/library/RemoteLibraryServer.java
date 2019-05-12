@@ -142,7 +142,8 @@ public class RemoteLibraryServer extends ServerObject {
 		for (Object arg : args) {
 			trace += arg + " ";
 		}
-		System.out.println(trace);
+		long now = System.currentTimeMillis();
+		System.out.println(StringUtils.fromTime(now) + ": " + trace);
 
 		Object rep = null;
 		try {
@@ -180,9 +181,12 @@ public class RemoteLibraryServer extends ServerObject {
 
 		String rec = StringUtils.formatNumber(bytesReceived) + "b";
 		String sent = StringUtils.formatNumber(bytesSent) + "b";
-		System.out.println(String.format("%s[>%s]: (%s sent, %s rec) in %d ms",
-				display(whitelist, rw), commands.get(id), sent, rec,
-				times.get(id)));
+		long now = System.currentTimeMillis();
+		System.out.println(StringUtils.fromTime(now)
+				+ ": "
+				+ String.format("%s[>%s]: (%s sent, %s rec) in %d ms",
+						display(whitelist, rw), commands.get(id), sent, rec,
+						times.get(id)));
 
 		commands.remove(id);
 		times.remove(id);
@@ -347,7 +351,9 @@ public class RemoteLibraryServer extends ServerObject {
 	@Override
 	protected void onError(Exception e) {
 		if (e instanceof SSLException) {
-			System.out.println("[Client connection refused (bad key)]");
+			long now = System.currentTimeMillis();
+			System.out.println(StringUtils.fromTime(now) + ": "
+					+ "[Client connection refused (bad key)]");
 		} else {
 			getTraceHandler().error(e);
 		}
