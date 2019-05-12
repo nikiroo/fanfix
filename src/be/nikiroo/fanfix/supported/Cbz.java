@@ -1,7 +1,6 @@
 package be.nikiroo.fanfix.supported;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -21,8 +20,8 @@ import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
-import be.nikiroo.utils.streams.MarkableFileInputStream;
 import be.nikiroo.utils.Progress;
+import be.nikiroo.utils.streams.MarkableFileInputStream;
 
 /**
  * Support class for CBZ files (works better with CBZ created with this program,

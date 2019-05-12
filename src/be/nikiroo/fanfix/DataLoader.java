@@ -238,7 +238,7 @@ public class DataLoader {
 	 */
 	public void refresh(URL url, BasicSupport support, boolean stable)
 			throws IOException {
-		if (check(url, stable)) {
+		if (!check(url, stable)) {
 			open(url, url, support, stable, null, null, null).close();
 		}
 	}

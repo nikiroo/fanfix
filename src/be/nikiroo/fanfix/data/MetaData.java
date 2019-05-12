@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import be.nikiroo.utils.Image;
+import be.nikiroo.utils.StringUtils;
 
 /**
  * The meta data associated to a {@link Story} object.
@@ -469,19 +470,8 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 
 		String cover = "none";
 		if (getCover() != null) {
-			cover = " bytes";
-
-			int size = getCover().getData().length;
-			if (size > 1000) {
-				size /= 1000;
-				cover = " kb";
-				if (size > 1000) {
-					size /= 1000;
-					cover = " mb";
-				}
-			}
-
-			cover = size + cover;
+			cover = StringUtils.formatNumber(getCover().getData().length)
+					+ "bytes";
 		}
 
 		return String.format(

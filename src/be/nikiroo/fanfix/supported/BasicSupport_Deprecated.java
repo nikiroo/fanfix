@@ -681,7 +681,6 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 			// try for files
 			if (source != null) {
 				try {
-
 					String relPath = null;
 					String absPath = null;
 					try {
