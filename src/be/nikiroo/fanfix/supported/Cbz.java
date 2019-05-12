@@ -132,25 +132,27 @@ class Cbz extends Epub {
 			story.setChapters(new ArrayList<Chapter>());
 
 			// Check if we can find non-images chapters, for hybrid-cbz support
-			for (Chapter chap : origStory) {
-				Boolean isImages = null;
-				for (Paragraph para : chap) {
-					ParagraphType t = para.getType();
-					if (isImages == null && !t.isText(true)) {
-						isImages = true;
-					}
-					if (t.isText(false)) {
-						String line = para.getContent();
-						// Images are saved in text mode as "[image-link]"
-						if (!(line.startsWith("[") && line.endsWith("]"))) {
-							isImages = false;
+			if (origStory != null) {
+				for (Chapter chap : origStory) {
+					Boolean isImages = null;
+					for (Paragraph para : chap) {
+						ParagraphType t = para.getType();
+						if (isImages == null && !t.isText(true)) {
+							isImages = true;
+						}
+						if (t.isText(false)) {
+							String line = para.getContent();
+							// Images are saved in text mode as "[image-link]"
+							if (!(line.startsWith("[") && line.endsWith("]"))) {
+								isImages = false;
+							}
 						}
 					}
-				}
 
-				if (isImages != null && !isImages) {
-					story.getChapters().add(chap);
-					chap.setNumber(story.getChapters().size());
+					if (isImages != null && !isImages) {
+						story.getChapters().add(chap);
+						chap.setNumber(story.getChapters().size());
+					}
 				}
 			}
 
