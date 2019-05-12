@@ -144,12 +144,22 @@ public class RemoteLibraryServer extends ServerObject {
 		}
 		System.out.println(trace);
 
-		Object rep = doRequest(action, command, args, rw, whitelist);
+		Object rep = null;
+		Exception oops = null;
+		try {
+			rep = doRequest(action, command, args, rw, whitelist);
+		} catch (Exception e) {
+			oops = e;
+		}
 
 		commands.put(id, command);
 		wls.put(id, wl);
 		rws.put(id, rw);
 		times.put(id, (new Date().getTime() - start));
+
+		if (oops != null) {
+			throw oops;
+		}
 
 		return rep;
 	}
