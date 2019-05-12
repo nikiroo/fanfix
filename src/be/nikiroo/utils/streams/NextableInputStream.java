@@ -218,7 +218,7 @@ public class NextableInputStream extends BufferedInputStream {
 			return true;
 		}
 
-		// If started, must be stopped an no more data to continue
+		// If started, must be stopped and no more data to continue
 		// i.e., sub-stream must be spent
 		if (!stopped || hasMoreData()) {
 			return false;
@@ -265,8 +265,8 @@ public class NextableInputStream extends BufferedInputStream {
 				data = new String(Arrays.copyOfRange(buffer, 0, stop), "UTF-8");
 			} catch (UnsupportedEncodingException e) {
 			}
-			if (data.length() > 50) {
-				data = data.substring(0, 47) + "...";
+			if (data.length() > 200) {
+				data = data.substring(0, 197) + "...";
 			}
 		}
 		String rep = String.format(

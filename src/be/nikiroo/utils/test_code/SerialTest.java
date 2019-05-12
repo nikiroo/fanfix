@@ -157,6 +157,19 @@ class SerialTest extends TestLauncher {
 				encodeRecodeTest(this, data);
 			}
 		});
+		addTest(new TestCase("Import/Export String in object") {
+			@Override
+			public void test() throws Exception {
+				Data data = new DataString("fanfan");
+				encodeRecodeTest(this, data);
+				data = new DataString("http://example.com/query.html");
+				encodeRecodeTest(this, data);
+				data = new DataString("Test|Ché|http://|\"\\\"Pouch\\");
+				encodeRecodeTest(this, data);
+				data = new DataString("Test|Ché\\n|\nhttp://|\"\\\"Pouch\\");
+				encodeRecodeTest(this, data);
+			}
+		});
 		addTest(new TestCase("Import/Export with nested objects forming a loop") {
 			@Override
 			public void test() throws Exception {
@@ -229,6 +242,20 @@ class SerialTest extends TestLauncher {
 
 		@SuppressWarnings("synthetic-access")
 		public DataObject(Data data) {
+			this.data = data;
+		}
+	}
+
+	@SuppressWarnings("unused")
+	class DataString extends Data {
+		private String data;
+
+		@SuppressWarnings("synthetic-access")
+		private DataString() {
+		}
+
+		@SuppressWarnings("synthetic-access")
+		public DataString(String data) {
 			this.data = data;
 		}
 	}

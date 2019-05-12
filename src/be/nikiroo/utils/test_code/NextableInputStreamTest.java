@@ -263,6 +263,59 @@ public class NextableInputStreamTest extends TestLauncher {
 				in.close();
 			}
 		});
+
+		addTest(new TestCase("Bytes NextAll test") {
+			@Override
+			public void test() throws Exception {
+				byte[] data = new byte[] { 42, 12, 0, 127, 12, 51, 11, 12 };
+				NextableInputStream in = new NextableInputStream(
+						new ByteArrayInputStream(data),
+						new NextableInputStreamStep(12));
+
+				checkNext(this, "FIRST", in, new byte[] { 42 });
+				checkNextAll(this, "SECOND", in, new byte[] { 0, 127, 12, 51,
+						11, 12 });
+			}
+		});
+
+		addTest(new TestCase("String NextAll test") {
+			@Override
+			public void test() throws Exception {
+				String d1 = "^java.lang.String";
+				String d2 = "\"http://example.com/query.html\"";
+				String data = d1 + ":" + d2;
+				NextableInputStream in = new NextableInputStream(
+						new ByteArrayInputStream(data.getBytes("UTF-8")),
+						new NextableInputStreamStep(':'));
+
+				checkNext(this, "FIRST", in, d1.getBytes("UTF-8"));
+				checkNextAll(this, "SECOND", in, d2.getBytes("UTF-8"));
+			}
+		});
+
+		addTest(new TestCase("NextAll in Next test") {
+			@Override
+			public void test() throws Exception {
+				String line1 = "première ligne";
+				String d1 = "^java.lang.String";
+				String d2 = "\"http://example.com/query.html\"";
+				String line3 = "end of lines";
+				String data = line1 + "\n" + d1 + ":" + d2 + "\n" + line3;
+
+				NextableInputStream inL = new NextableInputStream(
+						new ByteArrayInputStream(data.getBytes("UTF-8")),
+						new NextableInputStreamStep('\n'));
+
+				checkNext(this, "Line 1", inL, line1.getBytes("UTF-8"));
+				inL.next();
+
+				NextableInputStream in = new NextableInputStream(inL,
+						new NextableInputStreamStep(':'));
+
+				checkNext(this, "Line 2 FIRST", in, d1.getBytes("UTF-8"));
+				checkNextAll(this, "Line 2 SECOND", in, d2.getBytes("UTF-8"));
+			}
+		});
 	}
 
 	static void checkNext(TestCase test, String prefix, NextableInputStream in,

@@ -232,7 +232,7 @@ public class Importer {
 				nameThenContent.next();
 				String fieldName = IOUtils.readSmallStream(nameThenContent);
 
-				if (nameThenContent.next() && !nameThenContent.eof()) {
+				if (nameThenContent.nextAll() && !nameThenContent.eof()) {
 					// field value is direct or custom
 					Object value = null;
 					value = SerialUtils.decode(nameThenContent);
