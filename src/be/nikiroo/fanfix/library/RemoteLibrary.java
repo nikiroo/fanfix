@@ -109,16 +109,6 @@ public class RemoteLibrary extends BasicLibrary {
 		return status;
 	}
 
-	private boolean check() {
-		Status status = getStatusDo();
-		if (status != Status.READY) {
-			Instance.getTraceHandler().error("Remote lib not ready: " + status);
-			return false;
-		}
-
-		return true;
-	}
-
 	private Status getStatusDo() {
 		final Status[] result = new Status[1];
 
@@ -163,10 +153,6 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public Image getCover(final String luid) {
-		if (!check()) {
-			return null;
-		}
-
 		final Image[] result = new Image[1];
 
 		try {
@@ -196,28 +182,16 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public Image getCustomSourceCover(final String source) {
-		if (!check()) {
-			return null;
-		}
-
 		return getCustomCover(source, "SOURCE");
 	}
 
 	@Override
 	public Image getCustomAuthorCover(final String author) {
-		if (!check()) {
-			return null;
-		}
-
 		return getCustomCover(author, "AUTHOR");
 	}
 
 	// type: "SOURCE" or "AUTHOR"
 	private Image getCustomCover(final String source, final String type) {
-		if (!check()) {
-			return null;
-		}
-
 		final Image[] result = new Image[1];
 
 		try {
@@ -248,10 +222,6 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public synchronized Story getStory(final String luid, Progress pg) {
-		if (!check()) {
-			return null;
-		}
-
 		final Progress pgF = pg;
 		final Story[] result = new Story[1];
 
@@ -304,9 +274,6 @@ public class RemoteLibrary extends BasicLibrary {
 	@Override
 	public synchronized Story save(final Story story, final String luid,
 			Progress pg) throws IOException {
-		if (!check()) {
-			return null;
-		}
 
 		final String[] luidSaved = new String[1];
 		Progress pgSave = new Progress();
@@ -371,10 +338,6 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public synchronized void delete(final String luid) throws IOException {
-		if (!check()) {
-			throw new IOException("Library not ready");
-		}
-
 		new ConnectActionClientObject(host, port, key) {
 			@Override
 			public void action(Version serverVersion) throws Exception {
@@ -395,29 +358,17 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public void setSourceCover(final String source, final String luid) {
-		if (!check()) {
-			return;
-		}
-
 		setCover(source, luid, "SOURCE");
 	}
 
 	@Override
 	public void setAuthorCover(final String author, final String luid) {
-		if (!check()) {
-			return;
-		}
-
 		setCover(author, luid, "AUTHOR");
 	}
 
 	// type = "SOURCE" | "AUTHOR"
 	private void setCover(final String value, final String luid,
 			final String type) {
-		if (!check()) {
-			return;
-		}
-
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
@@ -443,10 +394,6 @@ public class RemoteLibrary extends BasicLibrary {
 	@Override
 	// Could work (more slowly) without it
 	public Story imprt(final URL url, Progress pg) throws IOException {
-		if (!check()) {
-			return null;
-		}
-
 		// Import the file locally if it is actually a file
 		if (url == null || url.getProtocol().equalsIgnoreCase("file")) {
 			return super.imprt(url, pg);
@@ -518,9 +465,6 @@ public class RemoteLibrary extends BasicLibrary {
 	protected synchronized void changeSTA(final String luid,
 			final String newSource, final String newTitle,
 			final String newAuthor, Progress pg) throws IOException {
-		if (!check()) {
-			return;
-		}
 
 		final Progress pgF = pg == null ? new Progress() : pg;
 
@@ -566,10 +510,6 @@ public class RemoteLibrary extends BasicLibrary {
 	 * Stop the server.
 	 */
 	public void exit() {
-		if (!check()) {
-			return;
-		}
-
 		try {
 			new ConnectActionClientObject(host, port, key) {
 				@Override
@@ -594,10 +534,6 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public synchronized MetaData getInfo(String luid) {
-		if (!check()) {
-			return null;
-		}
-
 		List<MetaData> metas = getMetasList(luid, null);
 		if (!metas.isEmpty()) {
 			return metas.get(0);
@@ -655,10 +591,6 @@ public class RemoteLibrary extends BasicLibrary {
 	 * @return the metas
 	 */
 	private List<MetaData> getMetasList(final String luid, Progress pg) {
-		if (!check()) {
-			return null;
-		}
-
 		final Progress pgF = pg;
 		final List<MetaData> metas = new ArrayList<MetaData>();
 
