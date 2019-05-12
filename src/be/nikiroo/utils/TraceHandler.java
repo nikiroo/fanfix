@@ -91,6 +91,8 @@ public class TraceHandler {
 	public void error(Exception e) {
 		if (showErrors) {
 			if (showErrorDetails) {
+				long now = System.currentTimeMillis();
+				System.err.print(StringUtils.fromTime(now) + ": ");
 				e.printStackTrace();
 			} else {
 				error(e.getMessage());
@@ -106,7 +108,8 @@ public class TraceHandler {
 	 */
 	public void error(String message) {
 		if (showErrors) {
-			System.err.println(message);
+			long now = System.currentTimeMillis();
+			System.err.println(StringUtils.fromTime(now) + ": " + message);
 		}
 	}
 
@@ -139,7 +142,10 @@ public class TraceHandler {
 	 */
 	public void trace(String message, int level) {
 		if (traceLevel > 0 && level <= traceLevel) {
+			long now = System.currentTimeMillis();
+			System.err.print(StringUtils.fromTime(now) + ": ");
 			if (maxPrintSize > 0 && message.length() > maxPrintSize) {
+
 				System.err
 						.println(message.substring(0, maxPrintSize) + "[...]");
 			} else {
