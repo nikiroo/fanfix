@@ -12,10 +12,7 @@
 
 ENABLED=true
 USER=fanfix
-
 JAR=/path/to/fanfix.jar
-PINCODE="my password"
-PORT=12000
 
 FPID=/tmp/fanfix.pid
 OUT=/var/log/fanfix
@@ -39,7 +36,7 @@ start)
 	else
 		[ -e "$OUT" ] && mv "$OUT" "$OUT".previous
 		[ -e "$ERR" ] && mv "$ERR" "$ERR".previous
-		sudo -u "$USER" -- java -jar "$JAR" --server "$PINCODE" "$PORT" > "$OUT" 2> "$ERR" &
+		sudo -u "$USER" -- java -jar "$JAR" --server > "$OUT" 2> "$ERR" &
 		echo $! > "$FPID"
 	fi
 	
@@ -48,7 +45,7 @@ start)
 ;;
 stop)
 	if sh "$0" status --quiet; then
-		sudo -u "$USER" -- java -jar "$JAR" --stop-server "$PINCODE" "$PORT"
+		sudo -u "$USER" -- java -jar "$JAR" --stop-server
 	fi
 	
 	i=1
