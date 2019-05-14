@@ -87,6 +87,9 @@ public class Main {
 	 *            see method description
 	 */
 	public static void main(String[] args) {
+		// Only one line, but very important:
+		Instance.init();
+
 		String urlString = null;
 		String luid = null;
 		String sourceString = null;

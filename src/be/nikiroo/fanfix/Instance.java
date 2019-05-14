@@ -42,7 +42,21 @@ public class Instance {
 	private static TraceHandler tracer;
 	private static TempFiles tempFiles;
 
-	static {
+	private static boolean init;
+
+	/**
+	 * Initialise the instance -- if already initialised, nothing will happen.
+	 * <p>
+	 * Before calling this method, you may call {@link Bundles#getDirectory()}
+	 * if wanted.
+	 */
+	static public void init() {
+		if (init) {
+			return;
+		}
+
+		init = true;
+
 		// Before we can configure it:
 		Boolean debug = checkEnv("DEBUG");
 		boolean trace = debug != null && debug;
