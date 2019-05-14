@@ -71,8 +71,12 @@ public interface Reader {
 	 *            the optional progress
 	 * 
 	 * @return the {@link Story}
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 * 
 	 */
-	public Story getStory(Progress pg);
+	public Story getStory(Progress pg) throws IOException;
 
 	/**
 	 * The {@link BasicLibrary} to load the stories from (by default, takes the
@@ -167,8 +171,11 @@ public interface Reader {
 	 * @param source
 	 *            the type of {@link Story} to take into account, or NULL for
 	 *            all
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
 	 */
-	public void browse(String source);
+	public void browse(String source) throws IOException;
 
 	/**
 	 * Display all supports that allow search operations.

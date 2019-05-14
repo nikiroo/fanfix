@@ -7,10 +7,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.net.ssl.SSLException;
+
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.data.Chapter;
-import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.library.CacheLibrary;
@@ -564,7 +565,12 @@ public class Main {
 					exitCode = 10;
 					break;
 				}
-				BasicReader.getReader().browse(null);
+				try {
+					BasicReader.getReader().browse(null);
+				} catch (IOException e) {
+					Instance.getTraceHandler().error(e);
+					exitCode = 66;
+				}
 				break;
 			case SERVER:
 				key = Instance.getConfig().getString(Config.SERVER_KEY);
@@ -590,8 +596,17 @@ public class Main {
 					exitCode = 15;
 					break;
 				}
+				try {
+					new RemoteLibrary(key, host, port).exit();
+				} catch (SSLException e) {
+					Instance.getTraceHandler().error(
+							"Bad access key for remote library");
+					exitCode = 43;
+				} catch (IOException e) {
+					Instance.getTraceHandler().error(e);
+					exitCode = 44;
+				}
 
-				new RemoteLibrary(key, host, port).exit();
 				break;
 			case REMOTE:
 				exitCode = 255; // should not be reachable (REMOTE -> START)
@@ -683,18 +698,14 @@ public class Main {
 	 * @return the exit return code (0 = success)
 	 */
 	private static int list(String source) {
-		List<MetaData> stories;
-		stories = BasicReader.getReader().getLibrary().getListBySource(source);
-
-		for (MetaData story : stories) {
-			String author = "";
-			if (story.getAuthor() != null && !story.getAuthor().isEmpty()) {
-				author = " (" + story.getAuthor() + ")";
-			}
-
-			System.out.println(story.getLuid() + ": " + story.getTitle()
-					+ author);
+		BasicReader.setDefaultReaderType(ReaderType.CLI);
+		try {
+			BasicReader.getReader().browse(source);
+		} catch (IOException e) {
+			Instance.getTraceHandler().error(e);
+			return 66;
 		}
+
 		return 0;
 	}
 

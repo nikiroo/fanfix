@@ -85,9 +85,8 @@ class CliReader extends BasicReader {
 	}
 
 	@Override
-	public void browse(String source) {
-		List<MetaData> stories;
-		stories = getLibrary().getListBySource(source);
+	public void browse(String source) throws IOException {
+		List<MetaData> stories = getLibrary().getListBySource(source);
 
 		for (MetaData story : stories) {
 			String author = "";

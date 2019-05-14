@@ -39,14 +39,36 @@ abstract public class BasicLibrary {
 	 * @author niki
 	 */
 	public enum Status {
-		/** The library is ready. */
-		READY,
+		/** The library is ready and r/w. */
+		READ_WRITE,
+		/** The library is ready, but read-only. */
+		READ_ONLY,
 		/** The library is invalid (not correctly set up). */
 		INVALID,
 		/** You are not allowed to access this library. */
 		UNAUTHORIZED,
 		/** The library is currently out of commission. */
-		UNAVAILABLE,
+		UNAVAILABLE;
+
+		/**
+		 * The library is available (you can query it).
+		 * <p>
+		 * It does <b>not</b> specify if it is read-only or not.
+		 * 
+		 * @return TRUE if it is
+		 */
+		public boolean isReady() {
+			return (this == READ_WRITE || this == READ_ONLY);
+		}
+
+		/**
+		 * This library can be modified (= you are allowed to modify it).
+		 * 
+		 * @return TRUE if it is
+		 */
+		public boolean isWritable() {
+			return (this == READ_WRITE);
+		}
 	}
 
 	/**
@@ -66,7 +88,7 @@ abstract public class BasicLibrary {
 	 * @return the current status
 	 */
 	public Status getStatus() {
-		return Status.READY;
+		return Status.READ_WRITE;
 	}
 
 	/**
@@ -81,8 +103,11 @@ abstract public class BasicLibrary {
 	 *            the optional {@link Progress}
 	 * 
 	 * @return the corresponding {@link Story}
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public abstract File getFile(String luid, Progress pg);
+	public abstract File getFile(String luid, Progress pg) throws IOException;
 
 	/**
 	 * Return the cover image associated to this story.
@@ -91,8 +116,11 @@ abstract public class BasicLibrary {
 	 *            the Library UID of the story
 	 * 
 	 * @return the cover image
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public abstract Image getCover(String luid);
+	public abstract Image getCover(String luid) throws IOException;
 
 	/**
 	 * Return the cover image associated to this source.
@@ -104,8 +132,11 @@ abstract public class BasicLibrary {
 	 *            the source
 	 * 
 	 * @return the cover image or NULL
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public Image getSourceCover(String source) {
+	public Image getSourceCover(String source) throws IOException {
 		Image custom = getCustomSourceCover(source);
 		if (custom != null) {
 			return custom;
@@ -129,8 +160,11 @@ abstract public class BasicLibrary {
 	 *            the author
 	 * 
 	 * @return the cover image or NULL
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public Image getAuthorCover(String author) {
+	public Image getAuthorCover(String author) throws IOException {
 		Image custom = getCustomAuthorCover(author);
 		if (custom != null) {
 			return custom;
@@ -153,8 +187,12 @@ abstract public class BasicLibrary {
 	 *            the source to look for
 	 * 
 	 * @return the custom cover or NULL if none
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public Image getCustomSourceCover(@SuppressWarnings("unused") String source) {
+	public Image getCustomSourceCover(@SuppressWarnings("unused") String source)
+			throws IOException {
 		return null;
 	}
 
@@ -167,8 +205,12 @@ abstract public class BasicLibrary {
 	 *            the author to look for
 	 * 
 	 * @return the custom cover or NULL if none
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public Image getCustomAuthorCover(@SuppressWarnings("unused") String author) {
+	public Image getCustomAuthorCover(@SuppressWarnings("unused") String author)
+			throws IOException {
 		return null;
 	}
 
@@ -179,8 +221,12 @@ abstract public class BasicLibrary {
 	 *            the source to change
 	 * @param luid
 	 *            the story LUID
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public abstract void setSourceCover(String source, String luid);
+	public abstract void setSourceCover(String source, String luid)
+			throws IOException;
 
 	/**
 	 * Set the author cover to the given story cover.
@@ -189,8 +235,12 @@ abstract public class BasicLibrary {
 	 *            the author to change
 	 * @param luid
 	 *            the story LUID
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public abstract void setAuthorCover(String author, String luid);
+	public abstract void setAuthorCover(String author, String luid)
+			throws IOException;
 
 	/**
 	 * Return the list of stories (represented by their {@link MetaData}, which
@@ -200,8 +250,11 @@ abstract public class BasicLibrary {
 	 *            the optional {@link Progress}
 	 * 
 	 * @return the list (can be empty but not NULL)
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	protected abstract List<MetaData> getMetas(Progress pg);
+	protected abstract List<MetaData> getMetas(Progress pg) throws IOException;
 
 	/**
 	 * Invalidate the {@link Story} cache (when the content should be re-read
@@ -228,8 +281,11 @@ abstract public class BasicLibrary {
 	 * 
 	 * @param meta
 	 *            the {@link Story} to clear from the cache
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	protected abstract void updateInfo(MetaData meta);
+	protected abstract void updateInfo(MetaData meta) throws IOException;
 
 	/**
 	 * Return the next LUID that can be used.
@@ -272,17 +328,27 @@ abstract public class BasicLibrary {
 	 * 
 	 * @param pg
 	 *            the optional progress reporter
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
 	public void refresh(Progress pg) {
-		getMetas(pg);
+		try {
+			getMetas(pg);
+		} catch (IOException e) {
+			// We will let it fail later
+		}
 	}
 
 	/**
 	 * List all the known types (sources) of stories.
 	 * 
 	 * @return the sources
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public synchronized List<String> getSources() {
+	public synchronized List<String> getSources() throws IOException {
 		List<String> list = new ArrayList<String>();
 		for (MetaData meta : getMetas(null)) {
 			String storySource = meta.getSource();
@@ -308,8 +374,12 @@ abstract public class BasicLibrary {
 	 * </ul>
 	 * 
 	 * @return the grouped list
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public synchronized Map<String, List<String>> getSourcesGrouped() {
+	public synchronized Map<String, List<String>> getSourcesGrouped()
+			throws IOException {
 		Map<String, List<String>> map = new TreeMap<String, List<String>>();
 		for (String source : getSources()) {
 			String name;
@@ -340,8 +410,11 @@ abstract public class BasicLibrary {
 	 * List all the known authors of stories.
 	 * 
 	 * @return the authors
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public synchronized List<String> getAuthors() {
+	public synchronized List<String> getAuthors() throws IOException {
 		List<String> list = new ArrayList<String>();
 		for (MetaData meta : getMetas(null)) {
 			String storyAuthor = meta.getAuthor();
@@ -372,8 +445,11 @@ abstract public class BasicLibrary {
 	 * <tt>0-9</tt>, which may only be present or not).
 	 * 
 	 * @return the authors' names, grouped by letter(s)
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public Map<String, List<String>> getAuthorsGrouped() {
+	public Map<String, List<String>> getAuthorsGrouped() throws IOException {
 		int MAX = 20;
 
 		Map<String, List<String>> groups = new TreeMap<String, List<String>>();
@@ -448,9 +524,14 @@ abstract public class BasicLibrary {
 	 * @param car
 	 *            the starting character, <tt>*</tt>, <tt>0</tt> or a capital
 	 *            letter
+	 * 
 	 * @return the authors that fulfill the starting letter
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	private List<String> getAuthorsGroup(List<String> authors, char car) {
+	private List<String> getAuthorsGroup(List<String> authors, char car)
+			throws IOException {
 		List<String> accepted = new ArrayList<String>();
 		for (String author : authors) {
 			char first = '*';
@@ -480,8 +561,11 @@ abstract public class BasicLibrary {
 	 * Cover images <b>MAYBE</b> not included.
 	 * 
 	 * @return the stories
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public synchronized List<MetaData> getList() {
+	public synchronized List<MetaData> getList() throws IOException {
 		return getMetas(null);
 	}
 
@@ -495,8 +579,12 @@ abstract public class BasicLibrary {
 	 *            the type of story to retrieve, or NULL for all
 	 * 
 	 * @return the stories
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public synchronized List<MetaData> getListBySource(String type) {
+	public synchronized List<MetaData> getListBySource(String type)
+			throws IOException {
 		List<MetaData> list = new ArrayList<MetaData>();
 		for (MetaData meta : getMetas(null)) {
 			String storyType = meta.getSource();
@@ -519,8 +607,12 @@ abstract public class BasicLibrary {
 	 *            the author of the stories to retrieve, or NULL for all
 	 * 
 	 * @return the stories
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public synchronized List<MetaData> getListByAuthor(String author) {
+	public synchronized List<MetaData> getListByAuthor(String author)
+			throws IOException {
 		List<MetaData> list = new ArrayList<MetaData>();
 		for (MetaData meta : getMetas(null)) {
 			String storyAuthor = meta.getAuthor();
@@ -541,8 +633,11 @@ abstract public class BasicLibrary {
 	 *            the Library UID of the story
 	 * 
 	 * @return the corresponding {@link Story}
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public synchronized MetaData getInfo(String luid) {
+	public synchronized MetaData getInfo(String luid) throws IOException {
 		if (luid != null) {
 			for (MetaData meta : getMetas(null)) {
 				if (luid.equals(meta.getLuid())) {
@@ -563,8 +658,12 @@ abstract public class BasicLibrary {
 	 *            the optional progress reporter
 	 * 
 	 * @return the corresponding {@link Story} or NULL if not found
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
-	public synchronized Story getStory(String luid, Progress pg) {
+	public synchronized Story getStory(String luid, Progress pg)
+			throws IOException {
 		Progress pgMetas = new Progress();
 		Progress pgStory = new Progress();
 		if (pg != null) {
@@ -598,9 +697,13 @@ abstract public class BasicLibrary {
 	 *            the optional progress reporter
 	 * 
 	 * @return the corresponding {@link Story} or NULL if not found
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
 	 */
 	public synchronized Story getStory(String luid,
-			@SuppressWarnings("javadoc") MetaData meta, Progress pg) {
+			@SuppressWarnings("javadoc") MetaData meta, Progress pg)
+			throws IOException {
 
 		if (pg == null) {
 			pg = new Progress();

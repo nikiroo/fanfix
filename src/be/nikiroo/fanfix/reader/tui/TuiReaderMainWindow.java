@@ -159,15 +159,24 @@ class TuiReaderMainWindow extends TWindow {
 				} else if (smode.equals("Sources")) {
 					selectTargets.clear();
 					selectTargets.add("(show all)");
-					for (String source : reader.getLibrary().getSources()) {
-						selectTargets.add(source);
+					try {
+						for (String source : reader.getLibrary().getSources()) {
+							selectTargets.add(source);
+						}
+					} catch (IOException e) {
+						Instance.getTraceHandler().error(e);
 					}
+
 					showTarget = true;
 				} else {
 					selectTargets.clear();
 					selectTargets.add("(show all)");
-					for (String author : reader.getLibrary().getAuthors()) {
-						selectTargets.add(author);
+					try {
+						for (String author : reader.getLibrary().getAuthors()) {
+							selectTargets.add(author);
+						}
+					} catch (IOException e) {
+						Instance.getTraceHandler().error(e);
 					}
 
 					showTarget = true;
@@ -231,12 +240,18 @@ class TuiReaderMainWindow extends TWindow {
 	 */
 	public void refreshStories() {
 		List<MetaData> metas;
-		if (mode == Mode.SOURCE) {
-			metas = reader.getLibrary().getListBySource(target);
-		} else if (mode == Mode.AUTHOR) {
-			metas = reader.getLibrary().getListByAuthor(target);
-		} else {
-			metas = reader.getLibrary().getList();
+
+		try {
+			if (mode == Mode.SOURCE) {
+				metas = reader.getLibrary().getListBySource(target);
+			} else if (mode == Mode.AUTHOR) {
+				metas = reader.getLibrary().getListByAuthor(target);
+			} else {
+				metas = reader.getLibrary().getList();
+			}
+		} catch (IOException e) {
+			Instance.getTraceHandler().error(e);
+			metas = new ArrayList<MetaData>();
 		}
 
 		setMetas(metas);

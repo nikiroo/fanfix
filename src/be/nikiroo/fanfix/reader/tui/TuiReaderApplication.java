@@ -82,7 +82,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 	}
 
 	@Override
-	public Story getStory(Progress pg) {
+	public Story getStory(Progress pg) throws IOException {
 		return reader.getStory(pg);
 	}
 
@@ -113,7 +113,11 @@ class TuiReaderApplication extends TApplication implements Reader {
 
 	@Override
 	public void browse(String source) {
-		reader.browse(source);
+		try {
+			reader.browse(source);
+		} catch (IOException e) {
+			Instance.getTraceHandler().error(e);
+		}
 	}
 
 	@Override

@@ -61,8 +61,6 @@ public class RemoteLibrary extends BasicLibrary {
 	// informative only (server will make the actual checks)
 	private boolean rw;
 
-	// TODO: error handling is not up to par!
-
 	/**
 	 * Create a {@link RemoteLibrary} linked to the given server.
 	 * <p>
@@ -126,7 +124,7 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public String getLibraryName() {
-		return host + ":" + port;
+		return (rw ? "[READ-ONLY] " : "") + host + ":" + port;
 	}
 
 	@Override
@@ -150,10 +148,10 @@ public class RemoteLibrary extends BasicLibrary {
 
 					if ("r/w".equals(rep)) {
 						rw = true;
-						result[0] = Status.READY;
+						result[0] = Status.READ_WRITE;
 					} else if ("r/o".equals(rep)) {
 						rw = false;
-						result[0] = Status.READY;
+						result[0] = Status.READ_ONLY;
 					} else {
 						result[0] = Status.UNAUTHORIZED;
 					}
@@ -180,7 +178,7 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public Image getCover(final String luid) {
+	public Image getCover(final String luid) throws IOException {
 		final Image[] result = new Image[1];
 
 		connectRemoteAction(new RemoteAction() {
@@ -197,17 +195,18 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public Image getCustomSourceCover(final String source) {
+	public Image getCustomSourceCover(final String source) throws IOException {
 		return getCustomCover(source, "SOURCE");
 	}
 
 	@Override
-	public Image getCustomAuthorCover(final String author) {
+	public Image getCustomAuthorCover(final String author) throws IOException {
 		return getCustomCover(author, "AUTHOR");
 	}
 
 	// type: "SOURCE" or "AUTHOR"
-	private Image getCustomCover(final String source, final String type) {
+	private Image getCustomCover(final String source, final String type)
+			throws IOException {
 		final Image[] result = new Image[1];
 
 		connectRemoteAction(new RemoteAction() {
@@ -224,7 +223,8 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public synchronized Story getStory(final String luid, Progress pg) {
+	public synchronized Story getStory(final String luid, Progress pg)
+			throws IOException {
 		final Progress pgF = pg;
 		final Story[] result = new Story[1];
 
@@ -331,18 +331,20 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public void setSourceCover(final String source, final String luid) {
+	public void setSourceCover(final String source, final String luid)
+			throws IOException {
 		setCover(source, luid, "SOURCE");
 	}
 
 	@Override
-	public void setAuthorCover(final String author, final String luid) {
+	public void setAuthorCover(final String author, final String luid)
+			throws IOException {
 		setCover(author, luid, "AUTHOR");
 	}
 
 	// type = "SOURCE" | "AUTHOR"
 	private void setCover(final String value, final String luid,
-			final String type) {
+			final String type) throws IOException {
 		connectRemoteAction(new RemoteAction() {
 			@Override
 			public void action(ConnectActionClientObject action)
@@ -445,7 +447,7 @@ public class RemoteLibrary extends BasicLibrary {
 	/**
 	 * Stop the server.
 	 */
-	public void exit() {
+	public void exit() throws IOException {
 		connectRemoteAction(new RemoteAction() {
 			@Override
 			public void action(ConnectActionClientObject action)
@@ -456,7 +458,7 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public synchronized MetaData getInfo(String luid) {
+	public synchronized MetaData getInfo(String luid) throws IOException {
 		List<MetaData> metas = getMetasList(luid, null);
 		if (!metas.isEmpty()) {
 			return metas.get(0);
@@ -466,7 +468,7 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected List<MetaData> getMetas(Progress pg) {
+	protected List<MetaData> getMetas(Progress pg) throws IOException {
 		return getMetasList("*", pg);
 	}
 
@@ -510,10 +512,13 @@ public class RemoteLibrary extends BasicLibrary {
 	 * @param pg
 	 *            the optional progress
 	 * 
-	 * 
 	 * @return the metas
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error or bad key (SSLException)
 	 */
-	private List<MetaData> getMetasList(final String luid, Progress pg) {
+	private List<MetaData> getMetasList(final String luid, Progress pg)
+			throws IOException {
 		final Progress pgF = pg;
 		final List<MetaData> metas = new ArrayList<MetaData>();
 
@@ -550,7 +555,9 @@ public class RemoteLibrary extends BasicLibrary {
 		return metas;
 	}
 
-	private void connectRemoteAction(final RemoteAction runAction) {
+	private void connectRemoteAction(final RemoteAction runAction)
+			throws IOException {
+		final IOException[] err = new IOException[1];
 		try {
 			final RemoteConnectAction[] array = new RemoteConnectAction[1];
 			RemoteConnectAction ra = new RemoteConnectAction() {
@@ -561,18 +568,22 @@ public class RemoteLibrary extends BasicLibrary {
 
 				@Override
 				protected void onError(Exception e) {
-					if (e instanceof SSLException) {
-						Instance.getTraceHandler().error(
-								"Connection refused (bad key)");
-					} else {
+					if (!(e instanceof IOException)) {
 						Instance.getTraceHandler().error(e);
+						return;
 					}
+
+					err[0] = (IOException) e;
 				}
 			};
 			array[0] = ra;
 			ra.connect();
 		} catch (Exception e) {
-			Instance.getTraceHandler().error(e);
+			err[0] = (IOException) e;
+		}
+
+		if (err[0] != null) {
+			throw err[0];
 		}
 	}
 }

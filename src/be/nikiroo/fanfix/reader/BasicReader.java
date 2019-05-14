@@ -54,7 +54,7 @@ public abstract class BasicReader implements Reader {
 	}
 
 	@Override
-	public synchronized Story getStory(Progress pg) {
+	public synchronized Story getStory(Progress pg) throws IOException {
 		if (story == null) {
 			story = getLibrary().getStory(meta.getLuid(), pg);
 		}

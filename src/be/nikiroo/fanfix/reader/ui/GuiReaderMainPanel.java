@@ -85,10 +85,10 @@ class GuiReaderMainPanel extends JPanel {
 		 * <p>
 		 * Will invalidate the layout.
 		 * 
-		 * @param libOk
-		 *            the library can be queried
+		 * @param status
+		 *            the library status, <b>must not</b> be NULL
 		 */
-		public void createMenu(boolean libOk);
+		public void createMenu(Status status);
 
 		/**
 		 * Create a popup menu for a {@link GuiReaderBook} that represents a
@@ -197,23 +197,28 @@ class GuiReaderMainPanel extends JPanel {
 				final BasicLibrary lib = helper.getReader().getLibrary();
 				final Status status = lib.getStatus();
 
-				if (status == Status.READY) {
+				if (status == Status.READ_WRITE) {
 					lib.refresh(pg);
 				}
 
 				inUi(new Runnable() {
 					@Override
 					public void run() {
-						if (status == Status.READY) {
-							helper.createMenu(true);
+						if (status.isReady()) {
+							helper.createMenu(status);
 							pane.setVisible(true);
 							if (typeF == null) {
-								addBookPane(true, false);
+								try {
+									addBookPane(true, false);
+								} catch (IOException e) {
+									error(e.getLocalizedMessage(),
+											"IOException", e);
+								}
 							} else {
 								addBookPane(typeF, true);
 							}
 						} else {
-							helper.createMenu(false);
+							helper.createMenu(status);
 							validate();
 
 							String desc = Instance.getTransGui().getStringX(
@@ -255,8 +260,11 @@ class GuiReaderMainPanel extends JPanel {
 	 * @param listMode
 	 *            TRUE to get a listing of all the sources or authors, FALSE to
 	 *            get one icon per source or author
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
 	 */
-	public void addBookPane(boolean type, boolean listMode) {
+	public void addBookPane(boolean type, boolean listMode) throws IOException {
 		this.currentType = type;
 		BasicLibrary lib = helper.getReader().getLibrary();
 		if (type) {
@@ -352,11 +360,17 @@ class GuiReaderMainPanel extends JPanel {
 			List<GuiReaderBookInfo> infos = new ArrayList<GuiReaderBookInfo>();
 
 			List<MetaData> metas;
-			if (currentType) {
-				metas = lib.getListBySource(value);
-			} else {
-				metas = lib.getListByAuthor(value);
+			try {
+				if (currentType) {
+					metas = lib.getListBySource(value);
+				} else {
+					metas = lib.getListByAuthor(value);
+				}
+			} catch (IOException e) {
+				error(e.getLocalizedMessage(), "IOException", e);
+				metas = new ArrayList<MetaData>();
 			}
+
 			for (MetaData meta : metas) {
 				infos.add(GuiReaderBookInfo.fromMeta(meta));
 			}

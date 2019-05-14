@@ -100,7 +100,7 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public File getFile(String luid, Progress pg) {
+	public File getFile(String luid, Progress pg) throws IOException {
 		Instance.getTraceHandler().trace(
 				this.getClass().getSimpleName() + ": get file for " + luid);
 
@@ -122,7 +122,7 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public Image getCover(String luid) {
+	public Image getCover(String luid) throws IOException {
 		MetaData meta = getInfo(luid);
 		if (meta != null) {
 			if (meta.getCover() != null) {
@@ -288,12 +288,12 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public void setSourceCover(String source, String luid) {
+	public void setSourceCover(String source, String luid) throws IOException {
 		setSourceCover(source, getCover(luid));
 	}
 
 	@Override
-	public void setAuthorCover(String author, String luid) {
+	public void setAuthorCover(String author, String luid) throws IOException {
 		setAuthorCover(author, getCover(luid));
 	}
 

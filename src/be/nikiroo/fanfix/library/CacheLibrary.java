@@ -52,7 +52,7 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected List<MetaData> getMetas(Progress pg) {
+	protected List<MetaData> getMetas(Progress pg) throws IOException {
 		if (pg == null) {
 			pg = new Progress();
 		}
@@ -66,7 +66,7 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public synchronized MetaData getInfo(String luid) {
+	public synchronized MetaData getInfo(String luid) throws IOException {
 		MetaData info = cacheLib.getInfo(luid);
 		if (info == null) {
 			info = lib.getInfo(luid);
@@ -76,7 +76,8 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public synchronized Story getStory(String luid, MetaData meta, Progress pg) {
+	public synchronized Story getStory(String luid, MetaData meta, Progress pg)
+			throws IOException {
 		if (pg == null) {
 			pg = new Progress();
 		}
@@ -109,7 +110,8 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public synchronized File getFile(final String luid, Progress pg) {
+	public synchronized File getFile(final String luid, Progress pg)
+			throws IOException {
 		if (pg == null) {
 			pg = new Progress();
 		}
@@ -134,7 +136,7 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public Image getCover(final String luid) {
+	public Image getCover(final String luid) throws IOException {
 		if (isCached(luid)) {
 			return cacheLib.getCover(luid);
 		}
@@ -144,7 +146,7 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public Image getSourceCover(String source) {
+	public Image getSourceCover(String source) throws IOException {
 		Image custom = getCustomSourceCover(source);
 		if (custom != null) {
 			return custom;
@@ -159,7 +161,7 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public Image getAuthorCover(String author) {
+	public Image getAuthorCover(String author) throws IOException {
 		Image custom = getCustomAuthorCover(author);
 		if (custom != null) {
 			return custom;
@@ -174,7 +176,7 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public Image getCustomSourceCover(String source) {
+	public Image getCustomSourceCover(String source) throws IOException {
 		Image custom = cacheLib.getCustomSourceCover(source);
 		if (custom == null) {
 			custom = lib.getCustomSourceCover(source);
@@ -187,7 +189,7 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public Image getCustomAuthorCover(String author) {
+	public Image getCustomAuthorCover(String author) throws IOException {
 		Image custom = cacheLib.getCustomAuthorCover(author);
 		if (custom == null) {
 			custom = lib.getCustomAuthorCover(author);
@@ -200,19 +202,19 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public void setSourceCover(String source, String luid) {
+	public void setSourceCover(String source, String luid) throws IOException {
 		lib.setSourceCover(source, luid);
 		cacheLib.setSourceCover(source, getCover(luid));
 	}
 
 	@Override
-	public void setAuthorCover(String author, String luid) {
+	public void setAuthorCover(String author, String luid) throws IOException {
 		lib.setAuthorCover(author, luid);
 		cacheLib.setAuthorCover(author, getCover(luid));
 	}
 
 	@Override
-	protected void updateInfo(MetaData meta) {
+	protected void updateInfo(MetaData meta) throws IOException {
 		if (meta != null && metas != null) {
 			for (int i = 0; i < metas.size(); i++) {
 				if (metas.get(i).getLuid().equals(meta.getLuid())) {
@@ -317,7 +319,11 @@ public class CacheLibrary extends BasicLibrary {
 	 * @return TRUE if it is
 	 */
 	public boolean isCached(String luid) {
-		return cacheLib.getInfo(luid) != null;
+		try {
+			return cacheLib.getInfo(luid) != null;
+		} catch (IOException e) {
+			return false;
+		}
 	}
 
 	/**

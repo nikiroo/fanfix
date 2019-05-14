@@ -1,5 +1,7 @@
 package be.nikiroo.fanfix.reader.ui;
 
+import java.io.IOException;
+
 import be.nikiroo.fanfix.bundles.StringIdGui;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
@@ -123,8 +125,11 @@ public class GuiReaderBookInfo {
 	 *            the {@link BasicLibrary} to use to fetch the image
 	 * 
 	 * @return the base image
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
 	 */
-	public Image getBaseImage(BasicLibrary lib) {
+	public Image getBaseImage(BasicLibrary lib) throws IOException {
 		switch (type) {
 		case STORY:
 			if (meta.getCover() != null) {
@@ -191,8 +196,13 @@ public class GuiReaderBookInfo {
 		GuiReaderBookInfo info = new GuiReaderBookInfo(Type.SOURCE, "source_"
 				+ source, source);
 
-		info.count = StringUtils.formatNumber(lib.getListBySource(source)
-				.size());
+		int size = 0;
+		try {
+			size = lib.getListBySource(source).size();
+		} catch (IOException e) {
+		}
+
+		info.count = StringUtils.formatNumber(size);
 		if (!info.count.isEmpty()) {
 			info.count = GuiReader.trans(StringIdGui.BOOK_COUNT_STORIES,
 					info.count);
@@ -216,8 +226,13 @@ public class GuiReaderBookInfo {
 		GuiReaderBookInfo info = new GuiReaderBookInfo(Type.AUTHOR, "author_"
 				+ author, author);
 
-		info.count = StringUtils.formatNumber(lib.getListByAuthor(author)
-				.size());
+		int size = 0;
+		try {
+			size = lib.getListByAuthor(author).size();
+		} catch (IOException e) {
+		}
+
+		info.count = StringUtils.formatNumber(size);
 		if (!info.count.isEmpty()) {
 			info.count = GuiReader.trans(StringIdGui.BOOK_COUNT_STORIES,
 					info.count);

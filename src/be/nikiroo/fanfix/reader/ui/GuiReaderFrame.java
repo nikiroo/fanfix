@@ -31,6 +31,7 @@ import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
+import be.nikiroo.fanfix.library.BasicLibrary.Status;
 import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.BasicReader;
@@ -92,20 +93,25 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 
 	@Override
 	public JPopupMenu createBookPopup() {
+		Status status = reader.getLibrary().getStatus();
 		JPopupMenu popup = new JPopupMenu();
 		popup.add(createMenuItemOpenBook());
 		popup.addSeparator();
 		popup.add(createMenuItemExport());
-		popup.add(createMenuItemMoveTo(true));
-		popup.add(createMenuItemSetCoverForSource());
-		popup.add(createMenuItemSetCoverForAuthor());
+		if (status.isWritable()) {
+			popup.add(createMenuItemMoveTo());
+			popup.add(createMenuItemSetCoverForSource());
+			popup.add(createMenuItemSetCoverForAuthor());
+		}
 		popup.add(createMenuItemClearCache());
-		popup.add(createMenuItemRedownload());
-		popup.addSeparator();
-		popup.add(createMenuItemRename(true));
-		popup.add(createMenuItemSetAuthor(true));
-		popup.addSeparator();
-		popup.add(createMenuItemDelete());
+		if (status.isWritable()) {
+			popup.add(createMenuItemRedownload());
+			popup.addSeparator();
+			popup.add(createMenuItemRename());
+			popup.add(createMenuItemSetAuthor());
+			popup.addSeparator();
+			popup.add(createMenuItemDelete());
+		}
 		popup.addSeparator();
 		popup.add(createMenuItemProperties());
 		return popup;
@@ -119,7 +125,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	}
 
 	@Override
-	public void createMenu(boolean libOk) {
+	public void createMenu(Status status) {
 		invalidate();
 
 		JMenuBar bar = new JMenuBar();
@@ -157,13 +163,15 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 
 		file.add(createMenuItemOpenBook());
 		file.add(createMenuItemExport());
-		file.add(createMenuItemMoveTo(libOk));
-		file.addSeparator();
-		file.add(imprt);
-		file.add(imprtF);
-		file.addSeparator();
-		file.add(createMenuItemRename(libOk));
-		file.add(createMenuItemSetAuthor(libOk));
+		if (status.isWritable()) {
+			file.add(createMenuItemMoveTo());
+			file.addSeparator();
+			file.add(imprt);
+			file.add(imprtF);
+			file.addSeparator();
+			file.add(createMenuItemRename());
+			file.add(createMenuItemSetAuthor());
+		}
 		file.addSeparator();
 		file.add(createMenuItemProperties());
 		file.addSeparator();
@@ -228,8 +236,12 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		bar.add(view);
 
 		Map<String, List<String>> groupedSources = new HashMap<String, List<String>>();
-		if (libOk) {
-			groupedSources = reader.getLibrary().getSourcesGrouped();
+		if (status.isReady()) {
+			try {
+				groupedSources = reader.getLibrary().getSourcesGrouped();
+			} catch (IOException e) {
+				error(e.getLocalizedMessage(), "IOException", e);
+			}
 		}
 		JMenu sources = new JMenu(GuiReader.trans(StringIdGui.MENU_SOURCES));
 		sources.setMnemonic(KeyEvent.VK_S);
@@ -237,8 +249,12 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		bar.add(sources);
 
 		Map<String, List<String>> goupedAuthors = new HashMap<String, List<String>>();
-		if (libOk) {
-			goupedAuthors = reader.getLibrary().getAuthorsGrouped();
+		if (status.isReady()) {
+			try {
+				goupedAuthors = reader.getLibrary().getAuthorsGrouped();
+			} catch (IOException e) {
+				error(e.getLocalizedMessage(), "IOException", e);
+			}
 		}
 		JMenu authors = new JMenu(GuiReader.trans(StringIdGui.MENU_AUTHORS));
 		authors.setMnemonic(KeyEvent.VK_A);
@@ -344,9 +360,13 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			final boolean listMode) {
 		return new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent ae) {
 				mainPanel.removeBookPanes();
-				mainPanel.addBookPane(type, listMode);
+				try {
+					mainPanel.addBookPane(type, listMode);
+				} catch (IOException e) {
+					error(e.getLocalizedMessage(), "IOException", e);
+				}
 				mainPanel.refreshBooks();
 			}
 		};
@@ -530,19 +550,18 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	/**
 	 * Create the "move to" menu item.
 	 * 
-	 * @param libOk
-	 *            the library can be queried
-	 * 
 	 * @return the item
 	 */
-	private JMenuItem createMenuItemMoveTo(boolean libOk) {
+	private JMenuItem createMenuItemMoveTo() {
 		JMenu changeTo = new JMenu(
 				GuiReader.trans(StringIdGui.MENU_FILE_MOVE_TO));
 		changeTo.setMnemonic(KeyEvent.VK_M);
 
 		Map<String, List<String>> groupedSources = new HashMap<String, List<String>>();
-		if (libOk) {
+		try {
 			groupedSources = reader.getLibrary().getSourcesGrouped();
+		} catch (IOException e) {
+			error(e.getLocalizedMessage(), "IOException", e);
 		}
 
 		JMenuItem item = new JMenuItem(
@@ -583,12 +602,9 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	/**
 	 * Create the "set author" menu item.
 	 * 
-	 * @param libOk
-	 *            the library can be queried
-	 * 
 	 * @return the item
 	 */
-	private JMenuItem createMenuItemSetAuthor(boolean libOk) {
+	private JMenuItem createMenuItemSetAuthor() {
 		JMenu changeTo = new JMenu(
 				GuiReader.trans(StringIdGui.MENU_FILE_SET_AUTHOR));
 		changeTo.setMnemonic(KeyEvent.VK_A);
@@ -601,34 +617,39 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		newItem.addActionListener(createMoveAction(ChangeAction.AUTHOR, null));
 
 		// Existing authors
-		if (libOk) {
-			Map<String, List<String>> groupedAuthors = reader.getLibrary()
-					.getAuthorsGrouped();
+		Map<String, List<String>> groupedAuthors;
 
-			if (groupedAuthors.size() > 1) {
-				for (String key : groupedAuthors.keySet()) {
-					JMenu group = new JMenu(key);
-					for (String value : groupedAuthors.get(key)) {
-						JMenuItem item = new JMenuItem(
-								value.isEmpty() ? GuiReader
-										.trans(StringIdGui.MENU_AUTHORS_UNKNOWN)
-										: value);
-						item.addActionListener(createMoveAction(
-								ChangeAction.AUTHOR, value));
-						group.add(item);
-					}
-					changeTo.add(group);
-				}
-			} else if (groupedAuthors.size() == 1) {
-				for (String value : groupedAuthors.values().iterator().next()) {
+		try {
+			groupedAuthors = reader.getLibrary().getAuthorsGrouped();
+		} catch (IOException e) {
+			error(e.getLocalizedMessage(), "IOException", e);
+			groupedAuthors = new HashMap<String, List<String>>();
+
+		}
+
+		if (groupedAuthors.size() > 1) {
+			for (String key : groupedAuthors.keySet()) {
+				JMenu group = new JMenu(key);
+				for (String value : groupedAuthors.get(key)) {
 					JMenuItem item = new JMenuItem(
 							value.isEmpty() ? GuiReader
 									.trans(StringIdGui.MENU_AUTHORS_UNKNOWN)
 									: value);
 					item.addActionListener(createMoveAction(
 							ChangeAction.AUTHOR, value));
-					changeTo.add(item);
+					group.add(item);
 				}
+				changeTo.add(group);
+			}
+		} else if (groupedAuthors.size() == 1) {
+			for (String value : groupedAuthors.values().iterator().next()) {
+				JMenuItem item = new JMenuItem(
+						value.isEmpty() ? GuiReader
+								.trans(StringIdGui.MENU_AUTHORS_UNKNOWN)
+								: value);
+				item.addActionListener(createMoveAction(ChangeAction.AUTHOR,
+						value));
+				changeTo.add(item);
 			}
 		}
 
@@ -638,13 +659,9 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	/**
 	 * Create the "rename" menu item.
 	 * 
-	 * @param libOk
-	 *            the library can be queried
-	 * 
 	 * @return the item
 	 */
-	private JMenuItem createMenuItemRename(
-			@SuppressWarnings("unused") boolean libOk) {
+	private JMenuItem createMenuItemRename() {
 		JMenuItem changeTo = new JMenuItem(
 				GuiReader.trans(StringIdGui.MENU_FILE_RENAME));
 		changeTo.setMnemonic(KeyEvent.VK_R);
@@ -714,7 +731,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 							SwingUtilities.invokeLater(new Runnable() {
 								@Override
 								public void run() {
-									createMenu(true);
+									createMenu(reader.getLibrary().getStatus());
 								}
 							});
 						}
@@ -864,7 +881,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 				KeyEvent.VK_C);
 		open.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent ae) {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
 					BasicLibrary lib = reader.getLibrary();
@@ -872,7 +889,11 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					String source = selectedBook.getInfo().getMeta()
 							.getSource();
 
-					lib.setSourceCover(source, luid);
+					try {
+						lib.setSourceCover(source, luid);
+					} catch (IOException e) {
+						error(e.getLocalizedMessage(), "IOException", e);
+					}
 
 					GuiReaderBookInfo sourceInfo = GuiReaderBookInfo
 							.fromSource(lib, source);
@@ -896,7 +917,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 				KeyEvent.VK_A);
 		open.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent ae) {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
 					BasicLibrary lib = reader.getLibrary();
@@ -904,7 +925,11 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					String author = selectedBook.getInfo().getMeta()
 							.getAuthor();
 
-					lib.setAuthorCover(author, luid);
+					try {
+						lib.setAuthorCover(author, luid);
+					} catch (IOException e) {
+						error(e.getLocalizedMessage(), "IOException", e);
+					}
 
 					GuiReaderBookInfo authorInfo = GuiReaderBookInfo
 							.fromAuthor(lib, author);
