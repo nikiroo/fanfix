@@ -19,6 +19,14 @@ import be.nikiroo.utils.ImageUtils;
  */
 public class ImageUtilsAwt extends ImageUtils {
 	@Override
+	protected boolean check() {
+		// If we can get the class, it means we have access to it
+		@SuppressWarnings("unused")
+		Object test = ImageIO.class;
+		return true;
+	}
+
+	@Override
 	public void saveAsImage(Image img, File target, String format)
 			throws IOException {
 		try {

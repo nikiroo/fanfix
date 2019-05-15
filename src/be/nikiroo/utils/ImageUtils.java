@@ -191,6 +191,14 @@ public abstract class ImageUtils {
 	}
 
 	/**
+	 * Check that the class can operate (for instance, that all the required
+	 * libraries or frameworks are present).
+	 * 
+	 * @return TRUE if it works
+	 */
+	abstract protected boolean check();
+
+	/**
 	 * Create a new {@link ImageUtils}.
 	 * 
 	 * @return the {@link ImageUtils}
@@ -199,7 +207,10 @@ public abstract class ImageUtils {
 		for (String clazz : new String[] { "be.nikiroo.utils.ui.ImageUtilsAwt",
 				"be.nikiroo.utils.android.ImageUtilsAndroid" }) {
 			try {
-				return (ImageUtils) SerialUtils.createObject(clazz);
+				ImageUtils obj = (ImageUtils) SerialUtils.createObject(clazz);
+				if (obj.check()) {
+					return obj;
+				}
 			} catch (Exception e) {
 			}
 		}

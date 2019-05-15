@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import javax.imageio.ImageIO;
+
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.ImageUtils;
 import be.nikiroo.utils.StringUtils;
@@ -18,6 +20,14 @@ import be.nikiroo.utils.StringUtils;
  * @author niki
  */
 public class ImageUtilsAndroid extends ImageUtils {
+	@Override
+	protected boolean check() {
+		// If we can get the class, it means we have access to it
+		@SuppressWarnings("unused")
+		Object test = Bitmap.class;
+		return true;
+	}
+	
 	@Override
 	public void saveAsImage(Image img, File target, String format)
 			throws IOException {
@@ -64,6 +74,7 @@ public class ImageUtilsAndroid extends ImageUtils {
 	static public Bitmap fromImage(Image img) throws IOException {
 		byte[] array = img.getData();
 		int size = array.length;
+		// TODO: check if we can use a stream, too
 		Bitmap image = BitmapFactory.decodeByteArray(array, 0, size);
 		if (image == null) {
 			String ssize = StringUtils.formatNumber(size);
