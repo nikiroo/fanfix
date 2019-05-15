@@ -227,7 +227,7 @@ class BundleHelper {
 	 *            the ARGB colour value
 	 * @return the raw {@link String} value that correspond to it
 	 */
-	static public String fromColour(int color) {
+	static public String fromColor(int color) {
 		int a = (color >> 24) & 0xFF;
 		int r = (color >> 16) & 0xFF;
 		int g = (color >> 8) & 0xFF;

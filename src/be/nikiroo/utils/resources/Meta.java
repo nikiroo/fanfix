@@ -46,11 +46,22 @@ public @interface Meta {
 		 * custom String value (basically, a {@link Format#FIXED_LIST} with an
 		 * option to enter a not accounted for value).
 		 */
-		COMBO_LIST
+		COMBO_LIST,
+		/**
+		 * A list of {@link Format#STRING}s.
+		 * <p>
+		 * The list items are separated by a comma, each surrounded by
+		 * double-quotes, with backslashes and double-quotes escaped by a
+		 * backslash.
+		 * <p>
+		 * Example: <tt>"un", "deux"</tt>
+		 */
+		LIST_OF_STRINGS,
 	}
 
 	/**
-	 * A description of this item.
+	 * A description of this item (what it is or does, how to explain that item
+	 * to the user).
 	 * 
 	 * @return what it is
 	 */

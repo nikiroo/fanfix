@@ -298,7 +298,7 @@ public class Bundle<E extends Enum<E>> {
 	 *            the new colour
 	 */
 	public void setColor(E id, Integer color) {
-		setString(id, BundleHelper.fromColour(color));
+		setString(id, BundleHelper.fromColor(color));
 	}
 
 	/**

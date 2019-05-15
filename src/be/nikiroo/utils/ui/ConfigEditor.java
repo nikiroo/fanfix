@@ -15,6 +15,7 @@ import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
 import be.nikiroo.utils.resources.Bundle;
+import be.nikiroo.utils.resources.MetaInfo;
 
 /**
  * A configuration panel for a {@link Bundle}.
@@ -30,7 +31,7 @@ import be.nikiroo.utils.resources.Bundle;
  */
 public class ConfigEditor<E extends Enum<E>> extends JPanel {
 	private static final long serialVersionUID = 1L;
-	private List<ConfigItem<E>> items;
+	private List<MetaInfo<E>> items;
 
 	/**
 	 * Create a new {@link ConfigEditor} for this {@link Bundle}.
@@ -54,15 +55,15 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 
 		main.add(new JLabel(title));
 
-		items = ConfigItem.getItems(type, bundle);
-		for (ConfigItem<E> item : items) {
-			main.add(item);
+		items = MetaInfo.getItems(type, bundle);
+		for (MetaInfo<E> item : items) {
+			main.add(new ConfigItem<E>(item));
 		}
 
 		main.add(createButton("Reset", new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				for (ConfigItem<E> item : items) {
+				for (MetaInfo<E> item : items) {
 					item.reload();
 				}
 			}
@@ -73,7 +74,7 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				Object snap = bundle.takeSnapshot();
 				bundle.reload(true);
-				for (ConfigItem<E> item : items) {
+				for (MetaInfo<E> item : items) {
 					item.reload();
 				}
 				bundle.reload(false);
@@ -84,7 +85,7 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 		main.add(createButton("Save", new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				for (ConfigItem<E> item : items) {
+				for (MetaInfo<E> item : items) {
 					item.save();
 				}
 
