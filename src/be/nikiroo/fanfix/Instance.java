@@ -47,7 +47,7 @@ public class Instance {
 	/**
 	 * Initialise the instance -- if already initialised, nothing will happen.
 	 * <p>
-	 * Before calling this method, you may call {@link Bundles#getDirectory()}
+	 * Before calling this method, you may call {@link Bundles#setDirectory()}
 	 * if wanted.
 	 */
 	static public void init() {
