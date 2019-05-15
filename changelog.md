@@ -5,6 +5,7 @@
 - new: server: count the bytes we rec/send
 - new: CryptUtils
 - new: stream classes
+- new: Bundles can now also set Boolean, Integer... and not just get them
 - new: Bundles get/setList()
 - fix: IOUtils.readSmallStream and \n at the end
 - fix: Base64 implementation changed, no strange errors anymore
