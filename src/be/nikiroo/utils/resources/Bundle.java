@@ -89,7 +89,7 @@ public class Bundle<E extends Enum<E>> {
 	 * Set the value associated to the given id as a {@link String}.
 	 * 
 	 * @param id
-	 *            the id of the value to get
+	 *            the id of the value to set
 	 * @param value
 	 *            the value
 	 * 
@@ -133,7 +133,7 @@ public class Bundle<E extends Enum<E>> {
 	 * Will only accept suffixes that form an existing id.
 	 * 
 	 * @param id
-	 *            the id of the value to get
+	 *            the id of the value to set
 	 * @param suffix
 	 *            the runtime suffix
 	 * @param value
@@ -161,17 +161,7 @@ public class Bundle<E extends Enum<E>> {
 	 */
 	public Boolean getBoolean(E id) {
 		String str = getString(id);
-		if (str != null && str.length() > 0) {
-			if (str.equalsIgnoreCase("true") || str.equalsIgnoreCase("on")
-					|| str.equalsIgnoreCase("yes"))
-				return true;
-			if (str.equalsIgnoreCase("false") || str.equalsIgnoreCase("off")
-					|| str.equalsIgnoreCase("no"))
-				return false;
-
-		}
-
-		return null;
+		return BundleHelper.parseBoolean(str);
 	}
 
 	/**
@@ -192,6 +182,20 @@ public class Bundle<E extends Enum<E>> {
 
 		return def;
 	}
+	
+	/**
+	 * Set the value associated to the given id as a {@link Boolean}.
+	 * 
+	 * @param id
+	 *            the id of the value to set
+	 * @param value
+	 *            the value
+	 * 
+	 */
+	public void setBoolean(E id, boolean value) {
+		setString(id.name(), BundleHelper.fromBoolean(value));
+	}
+
 
 	/**
 	 * Return the value associated to the given id as an {@link Integer}.
@@ -202,12 +206,7 @@ public class Bundle<E extends Enum<E>> {
 	 * @return the associated value
 	 */
 	public Integer getInteger(E id) {
-		try {
-			return Integer.parseInt(getString(id));
-		} catch (Exception e) {
-		}
-
-		return null;
+		return BundleHelper.parseInteger(getString(id));
 	}
 
 	/**
@@ -230,6 +229,19 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
+	 * Set the value associated to the given id as a {@link Integer}.
+	 * 
+	 * @param id
+	 *            the id of the value to set
+	 * @param value
+	 *            the value
+	 * 
+	 */
+	public void setInteger(E id, int value) {
+		setString(id.name(), BundleHelper.fromInteger(value));
+	}
+	
+	/**
 	 * Return the value associated to the given id as a {@link Character}.
 	 * 
 	 * @param id
@@ -238,12 +250,7 @@ public class Bundle<E extends Enum<E>> {
 	 * @return the associated value
 	 */
 	public Character getCharacter(E id) {
-		String s = getString(id).trim();
-		if (s.length() > 0) {
-			return s.charAt(0);
-		}
-
-		return null;
+		return BundleHelper.parseCharacter(getString(id));
 	}
 
 	/**
@@ -258,10 +265,9 @@ public class Bundle<E extends Enum<E>> {
 	 * @return the associated value
 	 */
 	public char getCharacter(E id, char def) {
-		String s = getString(id);
-		if (s != null && s.length() > 0) {
-			return s.trim().charAt(0);
-		}
+		Character car = getCharacter(id);
+		if (car != null)
+			return car;
 
 		return def;
 	}
@@ -278,92 +284,13 @@ public class Bundle<E extends Enum<E>> {
 	 * @return the associated value
 	 */
 	public Integer getColor(E id) {
-		Integer rep = null;
-
-		String bg = getString(id).trim();
-
-		int r = 0, g = 0, b = 0, a = -1;
-		if (bg.startsWith("#") && (bg.length() == 7 || bg.length() == 9)) {
-			try {
-				r = Integer.parseInt(bg.substring(1, 3), 16);
-				g = Integer.parseInt(bg.substring(3, 5), 16);
-				b = Integer.parseInt(bg.substring(5, 7), 16);
-				if (bg.length() == 9) {
-					a = Integer.parseInt(bg.substring(7, 9), 16);
-				} else {
-					a = 255;
-				}
-
-			} catch (NumberFormatException e) {
-				// no changes
-			}
-		}
-
-		// Try by name if still not found
-		if (a == -1) {
-			if ("black".equalsIgnoreCase(bg)) {
-				a = 255;
-				r = 0;
-				g = 0;
-				b = 0;
-			} else if ("white".equalsIgnoreCase(bg)) {
-				a = 255;
-				r = 255;
-				g = 255;
-				b = 255;
-			} else if ("red".equalsIgnoreCase(bg)) {
-				a = 255;
-				r = 255;
-				g = 0;
-				b = 0;
-			} else if ("green".equalsIgnoreCase(bg)) {
-				a = 255;
-				r = 0;
-				g = 255;
-				b = 0;
-			} else if ("blue".equalsIgnoreCase(bg)) {
-				a = 255;
-				r = 0;
-				g = 0;
-				b = 255;
-			} else if ("grey".equalsIgnoreCase(bg)
-					|| "gray".equalsIgnoreCase(bg)) {
-				a = 255;
-				r = 128;
-				g = 128;
-				b = 128;
-			} else if ("cyan".equalsIgnoreCase(bg)) {
-				a = 255;
-				r = 0;
-				g = 255;
-				b = 255;
-			} else if ("magenta".equalsIgnoreCase(bg)) {
-				a = 255;
-				r = 255;
-				g = 0;
-				b = 255;
-			} else if ("yellow".equalsIgnoreCase(bg)) {
-				a = 255;
-				r = 255;
-				g = 255;
-				b = 0;
-			}
-		}
-
-		if (a != -1) {
-			rep = ((a & 0xFF) << 24) //
-					| ((r & 0xFF) << 16) //
-					| ((g & 0xFF) << 8) //
-					| ((b & 0xFF) << 0);
-		}
-
-		return rep;
+		return BundleHelper.parseColor(getString(id));
 	}
 
 	/**
 	 * Set the value associated to the given id as a colour.
 	 * <p>
-	 * The value is an BGRA value.
+	 * The value is a BGRA value.
 	 * 
 	 * @param id
 	 *            the id of the value to set
@@ -371,20 +298,7 @@ public class Bundle<E extends Enum<E>> {
 	 *            the new colour
 	 */
 	public void setColor(E id, Integer color) {
-		int a = (color >> 24) & 0xFF;
-		int r = (color >> 16) & 0xFF;
-		int g = (color >> 8) & 0xFF;
-		int b = (color >> 0) & 0xFF;
-
-		String rs = Integer.toString(r, 16);
-		String gs = Integer.toString(g, 16);
-		String bs = Integer.toString(b, 16);
-		String as = "";
-		if (a < 255) {
-			as = Integer.toString(a, 16);
-		}
-
-		setString(id, "#" + rs + gs + bs + as);
+		setString(id, BundleHelper.fromColour(color));
 	}
 
 	/**
@@ -398,66 +312,7 @@ public class Bundle<E extends Enum<E>> {
 	 *         not found or cannot be parsed as a list
 	 */
 	public List<String> getList(E id) {
-		List<String> list = new ArrayList<String>();
-		String raw = getString(id);
-		try {
-			boolean inQuote = false;
-			boolean prevIsBackSlash = false;
-			StringBuilder builder = new StringBuilder();
-			for (int i = 0; i < raw.length(); i++) {
-				char car = raw.charAt(i);
-
-				if (prevIsBackSlash) {
-					builder.append(car);
-					prevIsBackSlash = false;
-				} else {
-					switch (car) {
-					case '"':
-						if (inQuote) {
-							list.add(builder.toString());
-							builder.setLength(0);
-						}
-
-						inQuote = !inQuote;
-						break;
-					case '\\':
-						prevIsBackSlash = true;
-						break;
-					case ' ':
-					case '\n':
-					case '\r':
-						if (inQuote) {
-							builder.append(car);
-						}
-						break;
-
-					case ',':
-						if (!inQuote) {
-							break;
-						}
-						// continue to default
-					default:
-						if (!inQuote) {
-							// Bad format!
-							return null;
-						}
-
-						builder.append(car);
-						break;
-					}
-				}
-			}
-
-			if (inQuote || prevIsBackSlash) {
-				// Bad format!
-				return null;
-			}
-
-		} catch (Exception e) {
-			return null;
-		}
-
-		return list;
+		return BundleHelper.parseList(getString(id));
 	}
 
 	/**
@@ -469,17 +324,7 @@ public class Bundle<E extends Enum<E>> {
 	 *            the new list of values
 	 */
 	public void setList(E id, List<String> list) {
-		StringBuilder builder = new StringBuilder();
-		for (String item : list) {
-			if (builder.length() > 0) {
-				builder.append(", ");
-			}
-			builder.append('"')//
-					.append(item.replace("\\", "\\\\").replace("\"", "\\\""))//
-					.append('"');
-		}
-
-		setString(id, builder.toString());
+		setString(id, BundleHelper.fromList(list));
 	}
 
 	/**
