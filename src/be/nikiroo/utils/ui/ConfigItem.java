@@ -1,6 +1,7 @@
 package be.nikiroo.utils.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -25,7 +26,6 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 
 	public ConfigItem(final MetaInfo<E> info) {
 		this.setLayout(new BorderLayout());
-		// this.setBorder(new EmptyBorder(2, 10, 2, 10));
 
 		if (info.getFormat() == Format.BOOLEAN) {
 			final JCheckBox field = new JCheckBox();
@@ -67,7 +67,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 				}
 			});
 
-			this.add(new JLabel(info.getName() + ": "), BorderLayout.WEST);
+			field.setText(info.getName());
 			this.add(field, BorderLayout.CENTER);
 		} else {
 			final JTextField field = new JTextField();
@@ -87,8 +87,40 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 				}
 			});
 
-			this.add(new JLabel(info.getName() + ": "), BorderLayout.WEST);
+			this.add(label(info.getName()), BorderLayout.WEST);
 			this.add(field, BorderLayout.CENTER);
 		}
+	}
+
+	/**
+	 * Create a label which width is constrained in lock steps.
+	 * 
+	 * @param text
+	 *            the text of the label
+	 * 
+	 * @return the label
+	 */
+	private JLabel label(String text) {
+		final JLabel label = new JLabel(text);
+
+		Dimension ps = label.getPreferredSize();
+		if (ps == null) {
+			ps = label.getSize();
+		}
+
+		int w = ps.width;
+		int step = 80;
+		for (int i = 2 * step; i < 10 * step; i += step) {
+			if (w < i) {
+				w = i;
+				break;
+			}
+		}
+
+		ps.width = w;
+		label.setSize(ps);
+		label.setPreferredSize(ps);
+
+		return label;
 	}
 }
