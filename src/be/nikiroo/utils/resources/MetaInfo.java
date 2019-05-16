@@ -2,6 +2,9 @@ package be.nikiroo.utils.resources;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import be.nikiroo.utils.resources.Meta.Format;
 
@@ -21,7 +24,8 @@ public class MetaInfo<E extends Enum<E>> {
 	private Meta meta;
 
 	private String value;
-	private List<Runnable> reloadListeners = new ArrayList<Runnable>();
+	private List<Runnable> reloadedListeners = new ArrayList<Runnable>();
+	private List<Runnable> saveListeners = new ArrayList<Runnable>();
 
 	private String name;
 	private String description;
@@ -50,7 +54,7 @@ public class MetaInfo<E extends Enum<E>> {
 		if (description == null) {
 			description = meta.description();
 			if (meta.info() != null && !meta.info().isEmpty()) {
-				description += "\n" + meta.info();
+				description += " (" + meta.info() + ")";
 			}
 		}
 
@@ -178,7 +182,7 @@ public class MetaInfo<E extends Enum<E>> {
 	 */
 	public void reload() {
 		value = bundle.getString(id);
-		for (Runnable listener : reloadListeners) {
+		for (Runnable listener : reloadedListeners) {
 			try {
 				listener.run();
 			} catch (Exception e) {
@@ -188,15 +192,29 @@ public class MetaInfo<E extends Enum<E>> {
 		}
 	}
 
-	public void addReloadListener(Runnable listener) {
-		reloadListeners.add(listener);
+	// listeners will be called AFTER reload
+	public void addReloadedListener(Runnable listener) {
+		reloadedListeners.add(listener);
 	}
 
 	/**
 	 * Save the current value to the {@link Bundle}.
 	 */
 	public void save() {
+		for (Runnable listener : saveListeners) {
+			try {
+				listener.run();
+			} catch (Exception e) {
+				// TODO: error management?
+				e.printStackTrace();
+			}
+		}
 		bundle.setString(id, value);
+	}
+
+	// listeners will be called BEFORE save
+	public void addSaveListener(Runnable listener) {
+		saveListeners.add(listener);
 	}
 
 	/**
@@ -222,5 +240,52 @@ public class MetaInfo<E extends Enum<E>> {
 		return list;
 	}
 
-	// TODO: by groups, a-là Authors/Sources
+	// TODO: multiple levels?
+	static public <E extends Enum<E>> Map<MetaInfo<E>, List<MetaInfo<E>>> getGroupedItems(
+			Class<E> type, Bundle<E> bundle) {
+		Map<MetaInfo<E>, List<MetaInfo<E>>> map = new TreeMap<MetaInfo<E>, List<MetaInfo<E>>>();
+		Map<MetaInfo<E>, List<MetaInfo<E>>> map1 = new TreeMap<MetaInfo<E>, List<MetaInfo<E>>>();
+
+		List<MetaInfo<E>> ungrouped = new ArrayList<MetaInfo<E>>();
+		for (MetaInfo<E> info : getItems(type, bundle)) {
+			if (info.meta.group()) {
+				List<MetaInfo<E>> list = new ArrayList<MetaInfo<E>>();
+				map.put(info, list);
+				map1.put(info, list);
+			} else {
+				ungrouped.add(info);
+			}
+		}
+
+		for (int i = 0; i < ungrouped.size(); i++) {
+			MetaInfo<E> info = ungrouped.get(i);
+			MetaInfo<E> group = findParent(info, map.keySet());
+			if (group != null) {
+				map.get(group).add(info);
+				ungrouped.remove(i--);
+			}
+		}
+
+		if (ungrouped.size() > 0) {
+			map.put(null, ungrouped);
+		}
+
+		return map;
+	}
+
+	static private <E extends Enum<E>> MetaInfo<E> findParent(MetaInfo<E> info,
+			Set<MetaInfo<E>> candidates) {
+		MetaInfo<E> group = null;
+		for (MetaInfo<E> pcandidate : candidates) {
+			if (info.id.toString().startsWith(pcandidate.id.toString())) {
+				if (group == null
+						|| group.id.toString().length() < pcandidate.id
+								.toString().length()) {
+					group = pcandidate;
+				}
+			}
+		}
+
+		return group;
+	}
 }
