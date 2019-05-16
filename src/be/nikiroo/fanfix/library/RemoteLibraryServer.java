@@ -2,7 +2,7 @@ package be.nikiroo.fanfix.library;
 
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.AccessDeniedException;
+import java.rmi.AccessException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -266,8 +266,8 @@ public class RemoteLibraryServer extends ServerObject {
 			}
 		} else if ("SAVE_STORY".equals(command)) {
 			if (!rw) {
-				throw new AccessDeniedException("" + args[0], null,
-						"Read-Only remote library");
+				throw new AccessException("Read-Only remote library: " 
+						+ args[0]);
 			}
 
 			List<Object> list = new ArrayList<Object>();
@@ -285,8 +285,8 @@ public class RemoteLibraryServer extends ServerObject {
 			return story.getMeta().getLuid();
 		} else if ("IMPORT".equals(command)) {
 			if (!rw) {
-				throw new AccessDeniedException("" + args[0], null,
-						"Read-Only remote library");
+				throw new AccessException("Read-Only remote library: " 
+						+ args[0]);
 			}
 
 			Progress pg = createPgForwarder(action);
@@ -296,8 +296,8 @@ public class RemoteLibraryServer extends ServerObject {
 			return story.getMeta().getLuid();
 		} else if ("DELETE_STORY".equals(command)) {
 			if (!rw) {
-				throw new AccessDeniedException("" + args[0], null,
-						"Read-Only remote library");
+				throw new AccessException("Read-Only remote library: " 
+						+ args[0]);
 			}
 
 			Instance.getLibrary().delete((String) args[0]);
@@ -315,8 +315,8 @@ public class RemoteLibraryServer extends ServerObject {
 			}
 		} else if ("SET_COVER".equals(command)) {
 			if (!rw) {
-				throw new AccessDeniedException("" + args[0], "" + args[1],
-						"Read-Only remote library");
+				throw new AccessException("Read-Only remote library: " 
+						+ args[0] + ", " + args[1]);
 			}
 
 			if ("SOURCE".equals(args[0])) {
@@ -328,8 +328,8 @@ public class RemoteLibraryServer extends ServerObject {
 			}
 		} else if ("CHANGE_STA".equals(command)) {
 			if (!rw) {
-				throw new AccessDeniedException("" + args[0], "" + args[1],
-						"Read-Only remote library");
+				throw new AccessException("Read-Only remote library: " 
+						+ args[0] + ", " + args[1]);
 			}
 
 			Progress pg = createPgForwarder(action);
@@ -338,8 +338,8 @@ public class RemoteLibraryServer extends ServerObject {
 			forcePgDoneSent(pg);
 		} else if ("EXIT".equals(command)) {
 			if (!rw) {
-				throw new AccessDeniedException("EXIT", "",
-						"Read-Only remote library, cannot close it");
+				throw new AccessException(
+						"Read-Only remote library: EXIT");
 			}
 
 			stop(0, false);
