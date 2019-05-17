@@ -57,7 +57,7 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 
 		items = MetaInfo.getItems(type, bundle);
 		for (MetaInfo<E> item : items) {
-			main.add(new ConfigItem<E>(item));
+			addItem(main, item);
 		}
 
 		main.add(createButton("Reset", new ActionListener() {
@@ -96,6 +96,17 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 				}
 			}
 		}));
+	}
+
+	private void addItem(JPanel main, MetaInfo<E> item) {
+		if (item.isGroup()) {
+			// TODO
+			for (MetaInfo<E> subitem : item) {
+				addItem(main, subitem);
+			}
+		} else {
+			main.add(new ConfigItem<E>(item));
+		}
 	}
 
 	/**

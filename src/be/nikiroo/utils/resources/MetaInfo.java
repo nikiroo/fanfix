@@ -3,9 +3,6 @@ package be.nikiroo.utils.resources;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
 
 import be.nikiroo.utils.resources.Meta.Format;
 
@@ -32,6 +29,19 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	private String name;
 	private String description;
 
+	/**
+	 * Create a new {@link MetaInfo} from a value (without children).
+	 * <p>
+	 * For instance, you can call
+	 * <tt>new MetaInfo(Config.class, configBundle, Config.MY_VALUE)</tt>.
+	 * 
+	 * @param type
+	 *            the type of enum the value is
+	 * @param bundle
+	 *            the bundle this value belongs to
+	 * @param id
+	 *            the value itself
+	 */
 	public MetaInfo(Class<E> type, Bundle<E> bundle, E id) {
 		this.bundle = bundle;
 		this.id = id;
@@ -79,7 +89,7 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	}
 
 	/**
-	 * THe name of this item, deduced from its ID.
+	 * The name of this item, deduced from its ID.
 	 * <p>
 	 * In other words, it is the ID but presented in a displayable form.
 	 * 
@@ -98,18 +108,51 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 		return description;
 	}
 
+	/**
+	 * The format this item is supposed to follow
+	 * 
+	 * @return the format
+	 */
 	public Format getFormat() {
 		return meta.format();
 	}
 
-	// for ComboBox, this is mostly a suggestion
+	/**
+	 * The allowed list of values that a {@link Format#FIXED_LIST} item is
+	 * allowed to be, or a list of suggestions for {@link Format#COMBO_LIST}
+	 * items.
+	 * 
+	 * @return the list of values
+	 */
 	public String[] getAllowedValues() {
 		return meta.list();
 	}
 
-	// TODO: use it!
+	/**
+	 * This item is a comma-separated list of values instead of a single value.
+	 * <p>
+	 * The list items are separated by a comma, each surrounded by
+	 * double-quotes, with backslashes and double-quotes escaped by a backslash.
+	 * <p>
+	 * Example: <tt>"un", "deux"</tt>
+	 * 
+	 * @return TRUE if it is
+	 */
 	public boolean isArray() {
 		return meta.array();
+	}
+
+	/**
+	 * This item is only used as a group, not as an option.
+	 * <p>
+	 * For instance, you could have LANGUAGE_CODE as a group for which you won't
+	 * use the value in the program, and LANGUAGE_CODE_FR, LANGUAGE_CODE_EN
+	 * inside for which the value must be set.
+	 * 
+	 * @return TRUE if it is a group
+	 */
+	public boolean isGroup() {
+		return meta.group();
 	}
 
 	/**
@@ -121,46 +164,113 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 		return value;
 	}
 
+	/**
+	 * The default value of this item, as a {@link String}.
+	 * 
+	 * @return the default value
+	 */
 	public String getDefaultString() {
 		return meta.def();
 	}
 
+	/**
+	 * The value stored by this item, as a {@link Boolean}.
+	 * 
+	 * @return the value
+	 */
 	public Boolean getBoolean() {
 		return BundleHelper.parseBoolean(getString());
 	}
 
+	/**
+	 * The default value of this item, as a {@link Boolean}.
+	 * 
+	 * @return the default value
+	 */
 	public Boolean getDefaultBoolean() {
 		return BundleHelper.parseBoolean(getDefaultString());
 	}
 
+	/**
+	 * The value stored by this item, as a {@link Character}.
+	 * 
+	 * @return the value
+	 */
 	public Character getCharacter() {
 		return BundleHelper.parseCharacter(getString());
 	}
 
+	/**
+	 * The default value of this item, as a {@link Character}.
+	 * 
+	 * @return the default value
+	 */
 	public Character getDefaultCharacter() {
 		return BundleHelper.parseCharacter(getDefaultString());
 	}
 
+	/**
+	 * The value stored by this item, as an {@link Integer}.
+	 * 
+	 * @return the value
+	 */
 	public Integer getInteger() {
 		return BundleHelper.parseInteger(getString());
 	}
 
+	/**
+	 * The default value of this item, as an {@link Integer}.
+	 * 
+	 * @return the default value
+	 */
 	public Integer getDefaultInteger() {
 		return BundleHelper.parseInteger(getDefaultString());
 	}
 
+	/**
+	 * The value stored by this item, as a colour (represented here as an
+	 * {@link Integer}) if it represents a colour, or NULL if it doesn't.
+	 * <p>
+	 * The returned colour value is an ARGB value.
+	 * 
+	 * @return the value
+	 */
 	public Integer getColor() {
 		return BundleHelper.parseColor(getString());
 	}
 
+	/**
+	 * The default value stored by this item, as a colour (represented here as
+	 * an {@link Integer}) if it represents a colour, or NULL if it doesn't.
+	 * <p>
+	 * The returned colour value is an ARGB value.
+	 * 
+	 * @return the value
+	 */
 	public Integer getDefaultColor() {
 		return BundleHelper.parseColor(getDefaultString());
 	}
 
+	/**
+	 * A {@link String} representation of the list of values.
+	 * <p>
+	 * The list of values is comma-separated and each value is surrounded by
+	 * double-quotes; backslashes and double-quotes are escaped by a backslash.
+	 * 
+	 * @return the value
+	 */
 	public List<String> getList() {
 		return BundleHelper.parseList(getString());
 	}
 
+	/**
+	 * A {@link String} representation of the default list of values.
+	 * <p>
+	 * The list of values is comma-separated and each value is surrounded by
+	 * double-quotes; backslashes and double-quotes are escaped by a backslash.
+	 * 
+	 * @return the value
+	 */
 	public List<String> getDefaultList() {
 		return BundleHelper.parseList(getDefaultString());
 	}
@@ -175,28 +285,66 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 		this.value = value;
 	}
 
+	/**
+	 * The value stored by this item, as a {@link Boolean}.
+	 * 
+	 * @param value
+	 *            the new value
+	 */
 	public void setBoolean(boolean value) {
 		setString(BundleHelper.fromBoolean(value));
 	}
 
+	/**
+	 * The value stored by this item, as a {@link Character}.
+	 * 
+	 * @param value
+	 *            the new value
+	 */
 	public void setCharacter(char value) {
 		setString(BundleHelper.fromCharacter(value));
 	}
 
+	/**
+	 * The value stored by this item, as an {@link Integer}.
+	 * 
+	 * @param value
+	 *            the new value
+	 */
 	public void setInteger(int value) {
 		setString(BundleHelper.fromInteger(value));
 	}
 
+	/**
+	 * The value stored by this item, as a colour (represented here as an
+	 * {@link Integer}) if it represents a colour, or NULL if it doesn't.
+	 * <p>
+	 * The returned colour value is an ARGB value.
+	 * 
+	 * @param value
+	 *            the value
+	 */
 	public void setColor(int value) {
 		setString(BundleHelper.fromColor(value));
 	}
 
+	/**
+	 * A {@link String} representation of the default list of values.
+	 * <p>
+	 * The list of values is comma-separated and each value is surrounded by
+	 * double-quotes; backslashes and double-quotes are escaped by a backslash.
+	 * 
+	 * @param value
+	 *            the {@link String} representation
+	 * 
+	 */
 	public void setList(List<String> value) {
 		setString(BundleHelper.fromList(value));
 	}
 
 	/**
-	 * Reload the value from the {@link Bundle}.
+	 * Reload the value from the {@link Bundle}, so the last value that was
+	 * saved will be used.
 	 */
 	public void reload() {
 		value = bundle.getString(id);
@@ -210,7 +358,14 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 		}
 	}
 
-	// listeners will be called AFTER reload
+	/**
+	 * Add a listener that will be called <b>after</b> a reload operation.
+	 * <p>
+	 * You could use it to refresh the UI for instance.
+	 * 
+	 * @param listener
+	 *            the listener
+	 */
 	public void addReloadedListener(Runnable listener) {
 		reloadedListeners.add(listener);
 	}
@@ -230,18 +385,41 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 		bundle.setString(id, value);
 	}
 
-	// listeners will be called BEFORE save
+	/**
+	 * Add a listener that will be called <b>before</b> a save operation.
+	 * <p>
+	 * You could use it to make some modification to the stored value before it
+	 * is saved.
+	 * 
+	 * @param listener
+	 *            the listener
+	 */
 	public void addSaveListener(Runnable listener) {
 		saveListeners.add(listener);
+	}
+
+	/**
+	 * The sub-items if any (if no sub-items, will return an empty list).
+	 * <p>
+	 * Sub-items are declared when a {@link Meta} has an ID that starts with the
+	 * ID of a {@link Meta#group()} {@link MetaInfo}.
+	 * <p>
+	 * For instance:
+	 * <ul>
+	 * <li>{@link Meta} <tt>MY_PREFIX</tt> is a {@link Meta#group()}</li>
+	 * <li>{@link Meta} <tt>MY_PREFIX_DESCRIPTION</tt> is another {@link Meta}</li>
+	 * <li><tt>MY_PREFIX_DESCRIPTION</tt> will be a child of <tt>MY_PREFIX</tt></li>
+	 * </ul>
+	 * 
+	 * @return the sub-items if any
+	 */
+	public List<MetaInfo<E>> getChildren() {
+		return children;
 	}
 
 	@Override
 	public Iterator<MetaInfo<E>> iterator() {
 		return children.iterator();
-	}
-
-	public List<MetaInfo<E>> getChildren() {
-		return children;
 	}
 
 	/**
@@ -260,55 +438,57 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	static public <E extends Enum<E>> List<MetaInfo<E>> getItems(Class<E> type,
 			Bundle<E> bundle) {
 		List<MetaInfo<E>> list = new ArrayList<MetaInfo<E>>();
+		List<MetaInfo<E>> shadow = new ArrayList<MetaInfo<E>>();
 		for (E id : type.getEnumConstants()) {
-			list.add(new MetaInfo<E>(type, bundle, id));
+			MetaInfo<E> info = new MetaInfo<E>(type, bundle, id);
+			list.add(info);
+			shadow.add(info);
+		}
+
+		for (int i = 0; i < list.size(); i++) {
+			MetaInfo<E> info = list.get(i);
+
+			MetaInfo<E> parent = findParent(info, shadow);
+			if (parent != null) {
+				list.remove(i--);
+				parent.children.add(info);
+			}
 		}
 
 		return list;
 	}
 
-	// TODO: multiple levels?
-	static public <E extends Enum<E>> Map<MetaInfo<E>, List<MetaInfo<E>>> getGroupedItems(
-			Class<E> type, Bundle<E> bundle) {
-		Map<MetaInfo<E>, List<MetaInfo<E>>> map = new TreeMap<MetaInfo<E>, List<MetaInfo<E>>>();
-		Map<MetaInfo<E>, List<MetaInfo<E>>> map1 = new TreeMap<MetaInfo<E>, List<MetaInfo<E>>>();
-
-		List<MetaInfo<E>> ungrouped = new ArrayList<MetaInfo<E>>();
-		for (MetaInfo<E> info : getItems(type, bundle)) {
-			if (info.meta.group()) {
-				List<MetaInfo<E>> list = new ArrayList<MetaInfo<E>>();
-				map.put(info, list);
-				map1.put(info, list);
-			} else {
-				ungrouped.add(info);
-			}
-		}
-
-		for (int i = 0; i < ungrouped.size(); i++) {
-			MetaInfo<E> info = ungrouped.get(i);
-			MetaInfo<E> group = findParent(info, map.keySet());
-			if (group != null) {
-				map.get(group).add(info);
-				ungrouped.remove(i--);
-			}
-		}
-
-		if (ungrouped.size() > 0) {
-			map.put(null, ungrouped);
-		}
-
-		return map;
-	}
-
+	/**
+	 * Find the longest parent of the given {@link MetaInfo}, which means:
+	 * <ul>
+	 * <li>the parent is a {@link Meta#group()}</li>
+	 * <li>the parent Id is a substring of the Id of the given {@link MetaInfo}</li>
+	 * <li>there is no other parent sharing a substring for this
+	 * {@link MetaInfo} with a longer Id</li>
+	 * </ul>
+	 * 
+	 * @param <E>
+	 *            the kind of enum
+	 * @param info
+	 *            the info to look for a parent for
+	 * @param candidates
+	 *            the list of potential parents
+	 * 
+	 * @return the longest parent or NULL if no parent is found
+	 */
 	static private <E extends Enum<E>> MetaInfo<E> findParent(MetaInfo<E> info,
-			Set<MetaInfo<E>> candidates) {
+			List<MetaInfo<E>> candidates) {
+		String id = info.id.toString();
 		MetaInfo<E> group = null;
 		for (MetaInfo<E> pcandidate : candidates) {
-			if (info.id.toString().startsWith(pcandidate.id.toString())) {
-				if (group == null
-						|| group.id.toString().length() < pcandidate.id
-								.toString().length()) {
-					group = pcandidate;
+			if (pcandidate.isGroup()) {
+				String candidateId = pcandidate.id.toString();
+				if (!id.equals(candidateId) && id.startsWith(candidateId)) {
+					if (group == null
+							|| group.id.toString().length() < candidateId
+									.length()) {
+						group = pcandidate;
+					}
 				}
 			}
 		}

@@ -28,11 +28,16 @@ import javax.swing.plaf.basic.BasicArrowButton;
 import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.StringUtils.Alignment;
 import be.nikiroo.utils.resources.Bundle;
+import be.nikiroo.utils.resources.Meta.Format;
 import be.nikiroo.utils.resources.MetaInfo;
 
 /**
  * A graphical item that reflect a configuration option from the given
  * {@link Bundle}.
+ * <p>
+ * This graphical item can be edited, and the result will be saved back into the
+ * linked {@link MetaInfo}; you still have to save the {@link MetaInfo} should
+ * you wish to, of course.
  * 
  * @author niki
  * 
@@ -42,10 +47,22 @@ import be.nikiroo.utils.resources.MetaInfo;
 public class ConfigItem<E extends Enum<E>> extends JPanel {
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * Create a new {@link ConfigItem} for the given {@link MetaInfo}.
+	 * 
+	 * @param info
+	 *            the {@link MetaInfo}
+	 */
 	public ConfigItem(MetaInfo<E> info) {
 		this.setLayout(new BorderLayout());
 
-		switch (info.getFormat()) {
+		// TODO: support arrays
+		Format fmt = info.getFormat();
+		if (info.isArray()) {
+			fmt = Format.STRING;
+		}
+
+		switch (fmt) {
 		case BOOLEAN:
 			addBooleanField(info);
 			break;
