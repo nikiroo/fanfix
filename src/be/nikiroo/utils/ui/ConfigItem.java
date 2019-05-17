@@ -2,12 +2,16 @@ package be.nikiroo.utils.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -25,6 +29,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.plaf.basic.BasicArrowButton;
 
+import be.nikiroo.utils.Image;
 import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.StringUtils.Alignment;
 import be.nikiroo.utils.resources.Bundle;
@@ -46,6 +51,18 @@ import be.nikiroo.utils.resources.MetaInfo;
  */
 public class ConfigItem<E extends Enum<E>> extends JPanel {
 	private static final long serialVersionUID = 1L;
+
+	/** A small (?) blue in PNG, base64 encoded. */
+	private static String infoImage64 = //
+	""
+			+ "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI"
+			+ "WXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wURFRg6IrtcdgAAATdJREFUOMvtkj8sQ1EUxr9z/71G"
+			+ "m1RDogYxq7WDDYMYTSajSG4n6YRYzSaSLibWbiaDIGwdiLIYDFKDNJEgKu969xi8UNHy7H7LPcN3"
+			+ "v/Odcy+hG9oOIeIcBCJS9MAvlZtOMtHxsrFrJHGqe0RVGnHAHpcIbPlng8BS3HmKBJYzabGUzcrJ"
+			+ "XK+ckIrqANYR2JEv2nYDEVck0WKGfHzyq82Go+btxoX3XAcAIqTj8wPqOH6mtMeM4bGCLhyfhTMA"
+			+ "qlLhKHqujCfaweCAmV0p50dPzsNpEKpK01V/n55HIvTnfDC2odKlfeYadZN/T+AqDACUsnkhqaU1"
+			+ "LRIVuX1x7ciuSWQxVIrunONrfq3dI6oh+T94Z8453vEem/HTqT8ZpFJ0qDXtGkPbAGAMeSRngQCA"
+			+ "eUvgn195AwlZWyvjtQdhAAAAAElFTkSuQmCC";
 
 	/**
 	 * Create a new {@link ConfigItem} for the given {@link MetaInfo}.
@@ -156,7 +173,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			}
 		});
 
-		field.setText(info.getName());
+		this.add(label(info), BorderLayout.WEST);
 		this.add(field, BorderLayout.CENTER);
 	}
 
@@ -384,7 +401,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 		}
 
 		int w = ps.width;
-		int step = 80;
+		int step = 150;
 		for (int i = 2 * step; i < 10 * step; i += step) {
 			if (w < i) {
 				w = i;
@@ -392,11 +409,9 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			}
 		}
 
-		// TODO: image
-		JButton help = new JButton("?");
-		help.addActionListener(new ActionListener() {
+		final Runnable showInfo = new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void run() {
 				StringBuilder builder = new StringBuilder();
 				String text = info.getDescription().replace("\\n", "\n");
 				for (String line : StringUtils.justifyText(text, 80,
@@ -407,7 +422,30 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 					builder.append(line);
 				}
 				text = builder.toString();
-				JOptionPane.showMessageDialog(ConfigItem.this, text);
+				JOptionPane.showMessageDialog(ConfigItem.this, text,
+						info.getName(), JOptionPane.INFORMATION_MESSAGE);
+			}
+		};
+
+		JLabel help = new JLabel("");
+		help.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		try {
+			Image img = new Image(infoImage64);
+			try {
+				BufferedImage bImg = ImageUtilsAwt.fromImage(img);
+				help.setIcon(new ImageIcon(bImg));
+			} finally {
+				img.close();
+			}
+		} catch (IOException e) {
+			// This is an hard-coded image, should not happen
+			help.setText("?");
+		}
+
+		help.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				showInfo.run();
 			}
 		});
 

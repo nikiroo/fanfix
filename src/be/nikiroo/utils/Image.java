@@ -60,8 +60,9 @@ public class Image implements Closeable, Serializable {
 	/**
 	 * Create an image from Base64 encoded data.
 	 * 
-	 * @deprecated Please use {@link Image#Image(InputStream)} instead, with a
-	 *             {@link Base64InputStream}
+	 * <p>
+	 * Please use {@link Image#Image(InputStream)} when possible instead, with a
+	 * {@link Base64InputStream}; it can be much more efficient.
 	 * 
 	 * @param base64EncodedData
 	 *            the Base64 encoded data as a String
@@ -69,7 +70,6 @@ public class Image implements Closeable, Serializable {
 	 * @throws IOException
 	 *             in case of I/O error or badly formated Base64
 	 */
-	@Deprecated
 	public Image(String base64EncodedData) throws IOException {
 		this(new Base64InputStream(new ByteArrayInputStream(
 				StringUtils.getBytes(base64EncodedData)), false));
@@ -235,6 +235,7 @@ public class Image implements Closeable, Serializable {
 	 * @throws ClassNotFoundException
 	 *             will not be thrown by this method
 	 */
+	@SuppressWarnings("unused")
 	private void readObject(ObjectInputStream in) throws IOException,
 			ClassNotFoundException {
 		data = getTemporaryFile();
