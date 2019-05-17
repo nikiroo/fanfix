@@ -1,6 +1,7 @@
 package be.nikiroo.utils.resources;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,11 +18,12 @@ import be.nikiroo.utils.resources.Meta.Format;
  * @param <E>
  *            the type of {@link Bundle} to edit
  */
-public class MetaInfo<E extends Enum<E>> {
+public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	private final Bundle<E> bundle;
 	private final E id;
 
 	private Meta meta;
+	private List<MetaInfo<E>> children = new ArrayList<MetaInfo<E>>();
 
 	private String value;
 	private List<Runnable> reloadedListeners = new ArrayList<Runnable>();
@@ -53,8 +55,14 @@ public class MetaInfo<E extends Enum<E>> {
 
 		if (description == null) {
 			description = meta.description();
+			if (description == null) {
+				description = "";
+			}
 			if (meta.info() != null && !meta.info().isEmpty()) {
-				description += " (" + meta.info() + ")";
+				if (!description.isEmpty()) {
+					description += "\n\n";
+				}
+				description += meta.info();
 			}
 		}
 
@@ -92,6 +100,16 @@ public class MetaInfo<E extends Enum<E>> {
 
 	public Format getFormat() {
 		return meta.format();
+	}
+
+	// for ComboBox, this is mostly a suggestion
+	public String[] getAllowedValues() {
+		return meta.list();
+	}
+
+	// TODO: use it!
+	public boolean isArray() {
+		return meta.array();
 	}
 
 	/**
@@ -215,6 +233,15 @@ public class MetaInfo<E extends Enum<E>> {
 	// listeners will be called BEFORE save
 	public void addSaveListener(Runnable listener) {
 		saveListeners.add(listener);
+	}
+
+	@Override
+	public Iterator<MetaInfo<E>> iterator() {
+		return children.iterator();
+	}
+
+	public List<MetaInfo<E>> getChildren() {
+		return children;
 	}
 
 	/**

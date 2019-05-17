@@ -47,16 +47,6 @@ public @interface Meta {
 		 * option to enter a not accounted for value).
 		 */
 		COMBO_LIST,
-		/**
-		 * A list of {@link Format#STRING}s.
-		 * <p>
-		 * The list items are separated by a comma, each surrounded by
-		 * double-quotes, with backslashes and double-quotes escaped by a
-		 * backslash.
-		 * <p>
-		 * Example: <tt>"un", "deux"</tt>
-		 */
-		LIST_OF_STRINGS,
 	}
 
 	/**
@@ -109,6 +99,11 @@ public @interface Meta {
 
 	/**
 	 * This item is a comma-separated list of values instead of a single value.
+	 * <p>
+	 * The list items are separated by a comma, each surrounded by
+	 * double-quotes, with backslashes and double-quotes escaped by a backslash.
+	 * <p>
+	 * Example: <tt>"un", "deux"</tt>
 	 * 
 	 * @return TRUE if it is
 	 */
