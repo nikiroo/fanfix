@@ -80,8 +80,6 @@ echo "TEST_PARAMS = $cols $ok $ko" >> Makefile
 echo "NAME = fanfix" >> Makefile
 echo "PREFIX = $PREFIX" >> Makefile
 echo "JAR_FLAGS += -C bin/ org $JCLI $JTUI $JGUI -C bin/ be -C bin/ VERSION" >> Makefile
-echo "RM_FOR_ANDROID = jexer be/nikiroo/utils/ui/* be/nikiroo/fanfix/reader/tui/* be/nikiroo/fanfix/reader/ui/*" >> Makefile
-echo "ID_FOR_ANDROID = be.nikiroo.fanfix.reader.android" >> Makefile
 #echo "SJAR_FLAGS += -C src/ org -C src/ jexer -C src/ be -C ./ LICENSE -C ./ README.md -C ./ VERSION" >> Makefile
 
 cat Makefile.base >> Makefile
