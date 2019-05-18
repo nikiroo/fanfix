@@ -41,12 +41,7 @@ public class RemoteLibrary extends BasicLibrary {
 			Object rep = super.send(data);
 			if (rep instanceof RemoteLibraryException) {
 				RemoteLibraryException remoteEx = (RemoteLibraryException) rep;
-				IOException cause = remoteEx.getCause();
-				if (cause == null) {
-					cause = new IOException("IOException");
-				}
-
-				throw cause;
+				throw remoteEx.unwrapException();
 			}
 
 			return rep;
@@ -446,6 +441,9 @@ public class RemoteLibrary extends BasicLibrary {
 
 	/**
 	 * Stop the server.
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error (including bad key)
 	 */
 	public void exit() throws IOException {
 		connectRemoteAction(new RemoteAction() {
