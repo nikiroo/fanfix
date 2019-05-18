@@ -6,6 +6,7 @@
 # - 1.2.0: add 'apk'
 # - 1.2.1: improve 'apk' and add 'android'
 # - 1.3.0: add 'man' for man(ual) pages
+# - 1.4.0: remove android stuff (not working anyway)
 
 # Required parameters (the commented out ones are supposed to be per project):
 
@@ -18,9 +19,6 @@
 #SJAR_FLAGS += a list of things to pack, each usually prefixed with "-C src/",
 #		for *-sources.jar files
 #TEST_PARAMS = any parameter to pass to the test runnable when "test-run"
-#ID_FOR_ANDROID = id of activity to launch for Android
-#RM_FOR_ANDROID = packages (if it ends with /) or classes to ignore for APK 
-#		generation
 
 JAVAC = javac
 JAVAC_FLAGS += -encoding UTF-8 -d ./bin/ -cp ./src/
@@ -48,12 +46,10 @@ help:
 	@echo "	make run-test	: to run the test program from the binaries"
 	@echo "	make jrun	: to run the program from the jar file"
 	@echo "	make install	: to install the application into $$PREFIX"
-	@echo "	make android	: to prepare the sources in android/ for Studio"
-	@echo "	make apk	: to compile the APK file"
 	@echo " make ifman	: to make the manual pages (if pandoc is found)"
 	@echo " make man	: to make the manual pages (requires pandoc)"
 
-.PHONY: all clean mrproper mrpropre build run jrun jar sjar resources test-resources install libs love apk android ifman man
+.PHONY: all clean mrproper mrpropre build run jrun jar sjar resources test-resources install libs ifman man love
 
 bin:
 	@mkdir -p bin
@@ -83,8 +79,6 @@ test: test-resources
 
 clean:
 	rm -rf bin/
-	rm -rf android/.gradle android/build android/app/build android/app/build.gradle
-	[ ! -L android/app/src/main/java ] || rm -rf android/app/src
 	@echo Removing sources taken from libs...
 	@for lib in libs/*-sources.jar libs/*-sources.patch.jar; do \
 		if [ "$$lib" != 'libs/*-sources.jar' -a "$$lib" != 'libs/*-sources.patch.jar' ]; then \
@@ -107,8 +101,6 @@ mrpropre: clean
 	rm -f $(NAME)-debug.apk
 	[ ! -e VERSION ] || rm -f "$(NAME)-`cat VERSION`.jar"
 	[ ! -e VERSION ] || rm -f "$(NAME)-`cat VERSION`-sources.jar"
-	[ ! -e VERSION ] || rm -f "$(NAME)-`cat VERSION`.apk"
-	[ ! -e VERSION ] || rm -f "$(NAME)-`cat VERSION`-debug.apk"
 
 love:
 	@echo "	...not war."
@@ -191,58 +183,6 @@ install:
 	if [ -e "man/man1/$(NAME).1" ]; then \
 		cp -r man/ "$(PREFIX)"/share/; \
 	fi
-
-android: android/app/src
-
-android/app/src:
-	@[ -d android ] || echo No android/ directory found
-	@[ -d android ]
-	@[ -e android/local.properties ] || echo 'You need to create android/local.properties and add "sdk.dir=PATH_TO_SDK"'
-	@[ -e android/local.properties ]
-	@mkdir -p android/app/src/main
-	@echo Linking sources...
-	@( \
-		cd android/app/src/main; \
-		ln -s ../../../../src/AndroidManifest.xml .; \
-		ln -s ../../../../res .; \
-		ln -s ../../../../src ./java; \
-	)
-	@echo Fixing configuration...
-	@( \
-		cd android/app/src/main/java; \
-		excl="\\n";\
-		if [ "${RM_FOR_ANDROID}" != "" ]; then \
-			echo Ignoring uneeded sources...; \
-			for file in ${RM_FOR_ANDROID}; do \
-				excl="$${excl}exclude '**/$${file}'\\n";\
-			done; \
-		fi; \
-		cd ../../../ ; \
-		cat build.gradle.base \
-			| sed 's:\(applicationId "\)":\1${ID_FOR_ANDROID}":' \
-			| sed "s:\s*exclude '':$$excl:g" \
-		> build.gradle; \
-	)
-
-apk: libs ${NAME}.apk
-	@echo Building APK files...
-
-${NAME}.apk: ${NAME}-debug.apk
-
-${NAME}-debug.apk: android
-	@echo Starting gradlew assemble...
-	@( \
-		cd android/; \
-		bash gradlew assemble && ( \
-			cd ..; \
-			cp android/app/build/outputs/apk/release/app-release-unsigned.apk ${NAME}.apk; \
-			cp android/app/build/outputs/apk/debug/app-debug.apk ${NAME}-debug.apk; \
-			[ ! -e VERSION ] || echo Copying to "$(NAME)-`cat VERSION`.apk"...; \
-			[ ! -e VERSION ] || cp $(NAME).apk "$(NAME)-`cat VERSION`.apk"; \
-			[ ! -e VERSION ] || echo Copying to "$(NAME)-`cat VERSION`-debug.apk"...; \
-			[ ! -e VERSION ] || cp $(NAME).apk "$(NAME)-`cat VERSION`-debug.apk"; \
-		); \
-	)
 
 ifman:
 	@if pandoc -v >/dev/null 2>&1; then \

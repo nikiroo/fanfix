@@ -5,9 +5,7 @@ PREFIX=/usr/local
 PROGS="java javac jar"
 
 UI=be/nikiroo/utils/ui/test/TestUI
-JUI="-C bin/ be/nikiroo/utils/ui"
 ANDOIRD=
-JANDROID=
 
 valid=true
 while [ "$*" != "" ]; do
@@ -29,14 +27,12 @@ while [ "$*" != "" ]; do
 		[ "$val" = no -o "$val" = false ] && UI= && JUI=
 		if [ "$val" = yes -o "$val" = true ]; then
 			UI=be/nikiroo/utils/ui/test/TestUI
-			JUI="-C bin/ be/nikiroo/utils/ui"
 		fi
 	;;
 	--android) #=yes	Enable Android UI support
 		[ "$val" = no -o "$val" = false ] && ANDROID= && JANDROID=
 		if [ "$val" = yes -o "$val" = true ]; then
 			ANDROID=be/nikiroo/utils/android/test/TestAndroid
-			JANDROID="-C bin/ be/nikiroo/utils/android"
 		fi
 	;;
 	*)
@@ -77,8 +73,8 @@ echo "TEST = be/nikiroo/utils/test_code/Test" >> Makefile
 echo "TEST_PARAMS = $cols $ok $ko" >> Makefile
 echo "NAME = nikiroo-utils" >> Makefile
 echo "PREFIX = $PREFIX" >> Makefile
-echo "JAR_FLAGS += -C bin/ be $JUI $JANDROID -C bin/ VERSION" >> Makefile
-echo "SJAR_FLAGS += -C src/ org -C src/ be" >> Makefile
+echo "JAR_FLAGS += -C bin/ be -C bin/ org -C bin/ VERSION" >> Makefile
+echo "SJAR_FLAGS += -C src/ org -C src/ be -C libs/ licenses" >> Makefile
 
 cat Makefile.base >> Makefile
 
