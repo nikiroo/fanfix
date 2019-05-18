@@ -173,7 +173,7 @@ The menu will NOT use sublevels but link to a [list](https://material.io/design/
 
 #### Header
 
-Use the same cover image as the books, and the description key/values comes from BasicLibrary.getDescription().
+Use the same cover image as the books, and the description key/values comes from BasicReader.getMetaDesc(MetaData).
 
 #### Description
 
