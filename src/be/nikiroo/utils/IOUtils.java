@@ -29,13 +29,15 @@ public class IOUtils {
 	 * @param target
 	 *            the target {@link File}
 	 * 
+	 * @return the number of bytes written
+	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public static void write(InputStream in, File target) throws IOException {
+	public static long write(InputStream in, File target) throws IOException {
 		OutputStream out = new FileOutputStream(target);
 		try {
-			write(in, out);
+			return write(in, out);
 		} finally {
 			out.close();
 		}
@@ -49,17 +51,23 @@ public class IOUtils {
 	 * @param out
 	 *            the target {@link OutputStream}
 	 * 
+	 * @return the number of bytes written
+	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public static void write(InputStream in, OutputStream out)
+	public static long write(InputStream in, OutputStream out)
 			throws IOException {
+		long written = 0;
 		byte buffer[] = new byte[4096];
 		int len = in.read(buffer);
 		while (len > -1) {
 			out.write(buffer, 0, len);
+			written += len;
 			len = in.read(buffer);
 		}
+
+		return written;
 	}
 
 	/**

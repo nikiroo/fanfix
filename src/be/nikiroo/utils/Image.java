@@ -26,7 +26,9 @@ public class Image implements Closeable, Serializable {
 	static private long count = 0;
 	static private Object lock = new Object();
 
+	private Object instanceLock = new Object();
 	private File data;
+	private long size;
 
 	/**
 	 * Do not use -- for serialisation purposes only.
@@ -45,7 +47,7 @@ public class Image implements Closeable, Serializable {
 		ByteArrayInputStream in = new ByteArrayInputStream(data);
 		try {
 			this.data = getTemporaryFile();
-			IOUtils.write(in, this.data);
+			size = IOUtils.write(in, this.data);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -86,7 +88,16 @@ public class Image implements Closeable, Serializable {
 	 */
 	public Image(InputStream in) throws IOException {
 		data = getTemporaryFile();
-		IOUtils.write(in, data);
+		size = IOUtils.write(in, data);
+	}
+
+	/**
+	 * The size of the enclosed image in bytes.
+	 * 
+	 * @return the size
+	 */
+	public long getSize() {
+		return size;
 	}
 
 	/**
@@ -163,13 +174,20 @@ public class Image implements Closeable, Serializable {
 	 */
 	@Override
 	public void close() throws IOException {
-		data.delete();
-		synchronized (lock) {
-			count--;
-			if (count <= 0) {
-				count = 0;
-				tmpRepository.close();
-				tmpRepository = null;
+		synchronized (instanceLock) {
+			if (size >= 0) {
+				size = -1;
+				data.delete();
+				data = null;
+
+				synchronized (lock) {
+					count--;
+					if (count <= 0) {
+						count = 0;
+						tmpRepository.close();
+						tmpRepository = null;
+					}
+				}
 			}
 		}
 	}
