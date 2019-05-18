@@ -47,11 +47,32 @@ public class Instance {
 	/**
 	 * Initialise the instance -- if already initialised, nothing will happen.
 	 * <p>
-	 * Before calling this method, you may call {@link Bundles#setDirectory()}
-	 * if wanted.
+	 * Before calling this method, you may call
+	 * {@link Bundles#setDirectory(String)} if wanted.
 	 */
 	static public void init() {
-		if (init) {
+		init(false);
+	}
+
+	/**
+	 * Initialise the instance -- if already initialised, nothing will happen
+	 * unless you pass TRUE to <tt>force</tt>.
+	 * <p>
+	 * Before calling this method, you may call
+	 * {@link Bundles#setDirectory(String)} if wanted.
+	 * <p>
+	 * Note: forcing the initialisation can be dangerous, so make sure to only
+	 * make it under controlled circumstances -- for instance, at the start of
+	 * the program, you could call {@link Instance#init()}, change some settings
+	 * because you want to force those settings (it will also forbid users to
+	 * change them!) and then call {@link Instance#init(boolean)} with
+	 * <tt>force</tt> set to TRUE.
+	 * 
+	 * @param force
+	 *            force the initialisation even if already initialised
+	 */
+	static public void init(boolean force) {
+		if (init && !force) {
 			return;
 		}
 
