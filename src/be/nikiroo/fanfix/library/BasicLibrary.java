@@ -191,8 +191,8 @@ abstract public class BasicLibrary {
 	 * @throws IOException
 	 *             in case of IOException
 	 */
-	public Image getCustomSourceCover(@SuppressWarnings("unused") String source)
-			throws IOException {
+	@SuppressWarnings("unused")
+	public Image getCustomSourceCover(String source) throws IOException {
 		return null;
 	}
 
@@ -209,8 +209,8 @@ abstract public class BasicLibrary {
 	 * @throws IOException
 	 *             in case of IOException
 	 */
-	public Image getCustomAuthorCover(@SuppressWarnings("unused") String author)
-			throws IOException {
+	@SuppressWarnings("unused")
+	public Image getCustomAuthorCover(String author) throws IOException {
 		return null;
 	}
 
@@ -328,9 +328,6 @@ abstract public class BasicLibrary {
 	 * 
 	 * @param pg
 	 *            the optional progress reporter
-	 * 
-	 * @throws IOException
-	 *             in case of IOException
 	 */
 	public void refresh(Progress pg) {
 		try {
@@ -525,13 +522,9 @@ abstract public class BasicLibrary {
 	 *            the starting character, <tt>*</tt>, <tt>0</tt> or a capital
 	 *            letter
 	 * 
-	 * @return the authors that fulfill the starting letter
-	 * 
-	 * @throws IOException
-	 *             in case of IOException
+	 * @return the authors that fulfil the starting letter
 	 */
-	private List<String> getAuthorsGroup(List<String> authors, char car)
-			throws IOException {
+	private List<String> getAuthorsGroup(List<String> authors, char car) {
 		List<String> accepted = new ArrayList<String>();
 		for (String author : authors) {
 			char first = '*';
