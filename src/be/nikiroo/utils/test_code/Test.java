@@ -3,10 +3,12 @@ package be.nikiroo.utils.test_code;
 import be.nikiroo.utils.Cache;
 import be.nikiroo.utils.CacheMemory;
 import be.nikiroo.utils.Downloader;
+import be.nikiroo.utils.Proxy;
 import be.nikiroo.utils.main.bridge;
 import be.nikiroo.utils.main.img2aa;
 import be.nikiroo.utils.main.justify;
 import be.nikiroo.utils.test.TestLauncher;
+import be.nikiroo.utils.ui.UIUtils;
 
 /**
  * Tests for nikiroo-utils.
@@ -45,11 +47,13 @@ public class Test extends TestLauncher {
 		Cache cache = null;
 		CacheMemory memcache = null;
 		Downloader downloader = null;
-
+		
 		// To include the sources:
 		img2aa siu;
 		justify ssu;
 		bridge aa;
+		Proxy proxy;
+		UIUtils uiUtils;
 	}
 
 	/**
