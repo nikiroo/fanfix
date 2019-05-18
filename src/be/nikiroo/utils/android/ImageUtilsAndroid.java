@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.stream.Stream;
 
-import javax.imageio.ImageIO;
-
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.ImageUtils;
 import be.nikiroo.utils.StringUtils;
@@ -26,7 +24,7 @@ public class ImageUtilsAndroid extends ImageUtils {
 	@Override
 	protected boolean check() {
 		// If we can get the class, it means we have access to it
-		Config.ALPHA_8;
+		Config c = Config.ALPHA_8;
 		return true;
 	}
 
@@ -82,10 +80,10 @@ public class ImageUtilsAndroid extends ImageUtils {
 				throw new IOException(
 						"Failed to convert input to image, size was: " + ssize);
 			}
+
+			return image;
 		} finally {
 			stream.close();
 		}
-		
-		return image;
 	}
 }

@@ -211,7 +211,7 @@ public abstract class ImageUtils {
 				if (obj.check()) {
 					return obj;
 				}
-			} catch (Exception e) {
+			} catch (Throwable e) {
 			}
 		}
 
