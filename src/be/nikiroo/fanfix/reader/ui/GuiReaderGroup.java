@@ -116,31 +116,33 @@ public class GuiReaderGroup extends JPanel {
 	}
 
 	/**
-	 * Note: this class supports NULL as a background color, which will revert
+	 * Note: this class supports NULL as a background colour, which will revert
 	 * it to its default state.
 	 * <p>
 	 * Note: this class' implementation will also set the main pane background
-	 * color at the same time.
+	 * colour at the same time.
 	 * <p>
-	 * Sets the background color of this component. The background color is used
-	 * only if the component is opaque, and only by subclasses of
+	 * Sets the background colour of this component. The background colour is
+	 * used only if the component is opaque, and only by subclasses of
 	 * <code>JComponent</code> or <code>ComponentUI</code> implementations.
 	 * Direct subclasses of <code>JComponent</code> must override
-	 * <code>paintComponent</code> to honor this property.
+	 * <code>paintComponent</code> to honour this property.
 	 * <p>
-	 * It is up to the look and feel to honor this property, some may choose to
+	 * It is up to the look and feel to honour this property, some may choose to
 	 * ignore it.
 	 * 
-	 * @param bg
-	 *            the desired background <code>Color</code>
+	 * @param backgroundColor
+	 *            the desired background <code>Colour</code>
 	 * @see java.awt.Component#getBackground
 	 * @see #setOpaque
 	 * 
 	 * @beaninfo preferred: true bound: true attribute: visualUpdate true
-	 *           description: The background color of the component.
+	 *           description: The background colour of the component.
 	 */
 	@Override
 	public void setBackground(Color backgroundColor) {
+		this.backgroundColor = backgroundColor;
+		
 		Color cme = backgroundColor == null ? backgroundColorDef
 				: backgroundColor;
 		Color cpane = backgroundColor == null ? backgroundColorDefPane
@@ -209,9 +211,6 @@ public class GuiReaderGroup extends JPanel {
 
 	/**
 	 * Refresh the list of {@link GuiReaderBook}s displayed in the control.
-	 * 
-	 * @param infos
-	 *            the new list of infos
 	 */
 	public void refreshBooks() {
 		refreshBooks(infos, words);

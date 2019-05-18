@@ -138,6 +138,7 @@ class GuiReaderMainPanel extends JPanel {
 
 		pane = new JPanel();
 		pane.setLayout(new BoxLayout(pane, BoxLayout.PAGE_AXIS));
+		JScrollPane scroll = new JScrollPane(pane);
 
 		Integer icolor = Instance.getUiConfig().getColor(
 				UiConfig.BACKGROUND_COLOR);
@@ -145,9 +146,9 @@ class GuiReaderMainPanel extends JPanel {
 			color = new Color(icolor);
 			setBackground(color);
 			pane.setBackground(color);
+			scroll.setBackground(color);
 		}
 
-		JScrollPane scroll = new JScrollPane(pane);
 		scroll.getVerticalScrollBar().setUnitIncrement(16);
 		add(scroll, BorderLayout.CENTER);
 
