@@ -73,8 +73,8 @@ echo "TEST = be/nikiroo/utils/test_code/Test" >> Makefile
 echo "TEST_PARAMS = $cols $ok $ko" >> Makefile
 echo "NAME = nikiroo-utils" >> Makefile
 echo "PREFIX = $PREFIX" >> Makefile
-echo "JAR_FLAGS += -C bin/ be -C bin/ org -C bin/ VERSION" >> Makefile
-echo "SJAR_FLAGS += -C src/ org -C src/ be -C libs/ licenses" >> Makefile
+echo "JAR_FLAGS += -C bin/ be -C bin/ org -C ./ LICENSE -C ./ VERSION -C libs/ licenses" >> Makefile
+echo "SJAR_FLAGS += -C src/ org -C src/ be -C ./ LICENSE -C ./ VERSION -C libs/ licenses" >> Makefile
 
 cat Makefile.base >> Makefile
 
