@@ -8,6 +8,7 @@
 # - 1.3.0: add 'man' for man(ual) pages
 # - 1.4.0: remove android stuff (not working anyway)
 # - 1.5.0: include sources and readme/changelog in jar
+# - 1.5.1: include binaries from libs/bin/ into the jar
 
 # Required parameters (the commented out ones are supposed to be per project):
 
@@ -153,6 +154,8 @@ $(NAME).jar: resources
 	@ls *.md >/dev/null || cp VERSION README.md
 	@echo "Copying documentation into bin/..."
 	@cp -r *.md bin/ || cp VERSION bin/no-documentation.md
+	@[ ! -d libs/bin/ ] || echo "Copying additional binaries from libs/bin/ into bin/..."
+	@[ ! -d libs/bin/ ] || cp -r libs/bin/* bin/
 	@echo "Copying sources into bin/..."
 	@cp -r src/* bin/
 	@echo "Making jar..."
