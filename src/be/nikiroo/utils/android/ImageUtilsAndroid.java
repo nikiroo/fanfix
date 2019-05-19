@@ -45,7 +45,7 @@ public class ImageUtilsAndroid extends ImageUtils {
 			}
 
 			// Some formats are not reliable
-			// Second change: PNG
+			// Second chance: PNG
 			if (!ok && !format.equals("png")) {
 				ok = image.compress(Bitmap.CompressFormat.PNG, 90, fos);
 			}
