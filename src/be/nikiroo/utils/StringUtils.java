@@ -157,6 +157,30 @@ public class StringUtils {
 	}
 
 	/**
+	 * Justify a text into width-sized (at the maximum) lines and return all the
+	 * lines concatenated into a single '\\n'-separated line of text.
+	 * 
+	 * @param text
+	 *            the {@link String} to justify
+	 * @param width
+	 *            the maximum size of the resulting lines
+	 * 
+	 * @return a list of justified text lines concatenated into a single
+	 *         '\\n'-separated line of text
+	 */
+	static public String justifyTexts(String text, int width) {
+		StringBuilder builder = new StringBuilder();
+		for (String line : justifyText(text, width, null)) {
+			if (builder.length() > 0) {
+				builder.append('\n');
+			}
+			builder.append(line);
+		}
+
+		return builder.toString();
+	}
+
+	/**
 	 * Justify a text into width-sized (at the maximum) lines.
 	 * 
 	 * @param text
