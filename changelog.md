@@ -2,7 +2,7 @@
 
 # Version WIP
 
-- new: now android-compatible (see [companion project](https://gitlab.com/Rayman22/fanfix-android))
+- new: now Android-compatible (see [companion project](https://gitlab.com/Rayman22/fanfix-android))
 - new: story search (not all sources yet)
 - new: proxy support
 - fix: support hybrid CBZ (with text)
@@ -10,6 +10,7 @@
 - gui: focus fix
 - gui: bg colour fix
 - gui: fix keyboard navigation support (up and down)
+- gui: configuration is now much easier
 - MangaLEL: website has changed
 - search: Fanfiction.net support
 - search: MangaLEL support

@@ -2,16 +2,24 @@
 
 # Version WIP
 
-- new: recherche d'histoires (Fanfiction.net)
+- new: maintenant compatible Android (voir [companion project](https://gitlab.com/Rayman22/fanfix-android))
+- new: recherche d'histoires (pas encore toutes les sources)
 - new: support d'un proxy
 - fix: support des CBZ contenant du texte
 - fix: correction de DEBUG=0
 - gui: correction pour le focus 
+- gui: fix pour la couleur d'arrière plan
+- gui: fix pour la navigation au clavier (haut et bas)
+- gui: configuration beaucoup plus facile
 - MangaLEL: site web changé
 - search: supporte MangaLEL
+- search: supporte Fanfiction.net
+- FimFictionAPI: correction d'une NPE
 - remote: changement du chiffrement because Google
 - remote: incompatible avec 2.x
-- remote: perfs et utilisation de la mémoire améliorées
+- remote: moins bonnes perfs mais meilleure utilisation de la mémoire
+- remote: le log inclus maintenant la date des évènements
+- remote: le mot de passe se configure maintenant dans le fichier de configuration
 
 # Version 2.0.2
 

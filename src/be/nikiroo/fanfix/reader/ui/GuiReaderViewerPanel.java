@@ -16,6 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
+import javax.swing.plaf.basic.BasicArrowButton;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.StringIdGui;
@@ -82,6 +83,10 @@ public class GuiReaderViewerPanel extends JPanel {
 		scroll = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scroll.getVerticalScrollBar().setUnitIncrement(16);
+
+		// TODO:
+		// JButton up = new BasicArrowButton(BasicArrowButton.NORTH);
+		// JButton down = new BasicArrowButton(BasicArrowButton.SOUTH);
 
 		if (!imageDocument) {
 			add(scroll, BorderLayout.CENTER);

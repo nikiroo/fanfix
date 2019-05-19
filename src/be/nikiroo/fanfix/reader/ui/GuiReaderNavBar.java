@@ -57,6 +57,10 @@ public class GuiReaderNavBar extends JPanel {
 		LayoutManager layout = new BoxLayout(this, BoxLayout.X_AXIS);
 		setLayout(layout);
 
+		// TODO:
+		// JButton up = new BasicArrowButton(BasicArrowButton.NORTH);
+		// JButton down = new BasicArrowButton(BasicArrowButton.SOUTH);
+
 		navButtons = new JButton[4];
 
 		navButtons[0] = createNavButton("<<", new ActionListener() {

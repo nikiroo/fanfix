@@ -75,7 +75,10 @@ public enum Config {
 	@Meta(description = "If the last update check was done at least that many days, check for updates at startup (-1 for 'no checks' -- default is 1 day)", format = Format.INT)
 	UPDATE_INTERVAL, //
 	@Meta(def = "", description = "", info = "Format is ((user(:pass)@)proxy:port), with ':' being system proxy and an empty String being no proxy")
-	USE_PROXY, @Meta(description = "An API key required to create a token from FimFiction", format = Format.STRING)
+	USE_PROXY, //
+	@Meta(group = true, description = "FimFiction APIKEY credentials\nFimFiction can be queried via an API, but requires an API key to do that. One has been created for this program, but if you have another API key you can set it here. You can also set a login and password instead, in that case, a new API key will be generated (and stored) if you still haven't set one.")
+	LOGIN_FIMFICTION_APIKEY, //
+	@Meta(description = "An API key required to create a token from FimFiction", format = Format.STRING)
 	LOGIN_FIMFICTION_APIKEY_CLIENT_ID, //
 	@Meta(description = "An API key required to create a token from FimFiction", format = Format.PASSWORD)
 	LOGIN_FIMFICTION_APIKEY_CLIENT_SECRET, //
