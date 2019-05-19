@@ -50,8 +50,12 @@ public @interface Meta {
 	}
 
 	/**
-	 * A description of this item (what it is or does, how to explain that item
-	 * to the user).
+	 * A description for this item: what it is or does, how to explain that item
+	 * to the user including what can be used here (i.e., %s = file name, %d =
+	 * file size...).
+	 * <p>
+	 * For group, the first line ('\\n'-separated) will be used as a title while
+	 * the rest will be the description.
 	 * 
 	 * @return what it is
 	 */
@@ -110,13 +114,9 @@ public @interface Meta {
 	boolean array() default false;
 
 	/**
-	 * An addition to the format.
-	 * <p>
-	 * Free info text to help translate, for instance the parameters order and
-	 * type for String translations (i.e., %s = input file name, %d = file size
-	 * in MB).
-	 * 
-	 * @return some info
+	 * @deprecated add the info into the description, as only the description
+	 *             will be translated.
 	 */
+	@Deprecated
 	String info() default "";
 }

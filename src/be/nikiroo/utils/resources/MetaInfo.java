@@ -62,24 +62,29 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 				description = null;
 			}
 		}
-
 		if (description == null) {
 			description = meta.description();
 			if (description == null) {
 				description = "";
 			}
-			if (meta.info() != null && !meta.info().isEmpty()) {
-				if (!description.isEmpty()) {
-					description += "\n\n";
-				}
-				description += meta.info();
+		}
+
+		String name = idToName(id, null);
+
+		// Special rules for groups:
+		if (meta.group()) {
+			String groupName = description.split("\n")[0];
+			description = description.substring(groupName.length()).trim();
+			if (!groupName.isEmpty()) {
+				name = groupName;
 			}
 		}
 
-		String name = id.toString();
-		if (name.length() > 1) {
-			name = name.substring(0, 1) + name.substring(1).toLowerCase();
-			name = name.replace("_", " ");
+		if (meta.def() != null && !meta.def().isEmpty()) {
+			if (!description.isEmpty()) {
+				description += "\n\n";
+			}
+			description += "(Default value: " + meta.def() + ")";
 		}
 
 		this.name = name;
@@ -89,20 +94,34 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	}
 
 	/**
-	 * The name of this item, deduced from its ID.
+	 * For normal items, this is the name of this item, deduced from its ID (or
+	 * in other words, it is the ID but presented in a displayable form).
 	 * <p>
-	 * In other words, it is the ID but presented in a displayable form.
+	 * For group items, this is the first line of the description if it is not
+	 * empty (else, it is the ID in the same way as normal items).
+	 * <p>
+	 * Never NULL.
 	 * 
-	 * @return the name
+	 * 
+	 * @return the name, never NULL
 	 */
 	public String getName() {
 		return name;
 	}
 
 	/**
-	 * The description of this item (information to present to the user).
+	 * A description for this item: what it is or does, how to explain that item
+	 * to the user including what can be used here (i.e., %s = file name, %d =
+	 * file size...).
+	 * <p>
+	 * For group, the first line ('\\n'-separated) will be used as a title while
+	 * the rest will be the description.
+	 * <p>
+	 * If a default value is known, it will be specified here, too.
+	 * <p>
+	 * Never NULL.
 	 * 
-	 * @return the description
+	 * @return the description, not NULL
 	 */
 	public String getDescription() {
 		return description;
@@ -121,11 +140,21 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	 * The allowed list of values that a {@link Format#FIXED_LIST} item is
 	 * allowed to be, or a list of suggestions for {@link Format#COMBO_LIST}
 	 * items.
+	 * <p>
+	 * Will always allow an empty string in addition to the rest.
 	 * 
 	 * @return the list of values
 	 */
 	public String[] getAllowedValues() {
-		return meta.list();
+		String[] list = meta.list();
+
+		String[] withEmpty = new String[list.length + 1];
+		withEmpty[0] = "";
+		for (int i = 0; i < list.length; i++) {
+			withEmpty[i + 1] = list[i];
+		}
+
+		return withEmpty;
 	}
 
 	/**
@@ -158,9 +187,17 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	/**
 	 * The value stored by this item, as a {@link String}.
 	 * 
+	 * @param useDefaultIfEmpty
+	 *            use the default value instead of NULL if the setting is not
+	 *            set
+	 * 
 	 * @return the value
 	 */
-	public String getString() {
+	public String getString(boolean useDefaultIfEmpty) {
+		if (value == null && useDefaultIfEmpty) {
+			return getDefaultString();
+		}
+
 		return value;
 	}
 
@@ -176,10 +213,14 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	/**
 	 * The value stored by this item, as a {@link Boolean}.
 	 * 
+	 * @param useDefaultIfEmpty
+	 *            use the default value instead of NULL if the setting is not
+	 *            set
+	 * 
 	 * @return the value
 	 */
-	public Boolean getBoolean() {
-		return BundleHelper.parseBoolean(getString());
+	public Boolean getBoolean(boolean useDefaultIfEmpty) {
+		return BundleHelper.parseBoolean(getString(useDefaultIfEmpty));
 	}
 
 	/**
@@ -194,10 +235,14 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	/**
 	 * The value stored by this item, as a {@link Character}.
 	 * 
+	 * @param useDefaultIfEmpty
+	 *            use the default value instead of NULL if the setting is not
+	 *            set
+	 * 
 	 * @return the value
 	 */
-	public Character getCharacter() {
-		return BundleHelper.parseCharacter(getString());
+	public Character getCharacter(boolean useDefaultIfEmpty) {
+		return BundleHelper.parseCharacter(getString(useDefaultIfEmpty));
 	}
 
 	/**
@@ -212,10 +257,14 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	/**
 	 * The value stored by this item, as an {@link Integer}.
 	 * 
+	 * @param useDefaultIfEmpty
+	 *            use the default value instead of NULL if the setting is not
+	 *            set
+	 * 
 	 * @return the value
 	 */
-	public Integer getInteger() {
-		return BundleHelper.parseInteger(getString());
+	public Integer getInteger(boolean useDefaultIfEmpty) {
+		return BundleHelper.parseInteger(getString(useDefaultIfEmpty));
 	}
 
 	/**
@@ -233,10 +282,14 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	 * <p>
 	 * The returned colour value is an ARGB value.
 	 * 
+	 * @param useDefaultIfEmpty
+	 *            use the default value instead of NULL if the setting is not
+	 *            set
+	 * 
 	 * @return the value
 	 */
-	public Integer getColor() {
-		return BundleHelper.parseColor(getString());
+	public Integer getColor(boolean useDefaultIfEmpty) {
+		return BundleHelper.parseColor(getString(useDefaultIfEmpty));
 	}
 
 	/**
@@ -257,10 +310,14 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	 * The list of values is comma-separated and each value is surrounded by
 	 * double-quotes; backslashes and double-quotes are escaped by a backslash.
 	 * 
+	 * @param useDefaultIfEmpty
+	 *            use the default value instead of NULL if the setting is not
+	 *            set
+	 * 
 	 * @return the value
 	 */
-	public List<String> getList() {
-		return BundleHelper.parseList(getString());
+	public List<String> getList(boolean useDefaultIfEmpty) {
+		return BundleHelper.parseList(getString(useDefaultIfEmpty));
 	}
 
 	/**
@@ -452,6 +509,7 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 			if (parent != null) {
 				list.remove(i--);
 				parent.children.add(info);
+				info.name = idToName(info.id, parent.id);
 			}
 		}
 
@@ -494,5 +552,21 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 		}
 
 		return group;
+	}
+
+	static private <E extends Enum<E>> String idToName(E id, E prefix) {
+		String name = id.toString();
+		if (prefix != null && name.startsWith(prefix.toString())) {
+			name = name.substring(prefix.toString().length());
+		}
+
+		if (name.length() > 0) {
+			name = name.substring(0, 1).toUpperCase()
+					+ name.substring(1).toLowerCase();
+		}
+
+		name = name.replace("_", " ");
+
+		return name.trim();
 	}
 }

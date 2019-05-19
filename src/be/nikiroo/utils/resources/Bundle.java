@@ -182,7 +182,7 @@ public class Bundle<E extends Enum<E>> {
 
 		return def;
 	}
-	
+
 	/**
 	 * Set the value associated to the given id as a {@link Boolean}.
 	 * 
@@ -195,7 +195,6 @@ public class Bundle<E extends Enum<E>> {
 	public void setBoolean(E id, boolean value) {
 		setString(id.name(), BundleHelper.fromBoolean(value));
 	}
-
 
 	/**
 	 * Return the value associated to the given id as an {@link Integer}.
@@ -240,7 +239,7 @@ public class Bundle<E extends Enum<E>> {
 	public void setInteger(E id, int value) {
 		setString(id.name(), BundleHelper.fromInteger(value));
 	}
-	
+
 	/**
 	 * Return the value associated to the given id as a {@link Character}.
 	 * 
@@ -505,12 +504,11 @@ public class Bundle<E extends Enum<E>> {
 		String[] list = meta.list();
 		boolean nullable = meta.nullable();
 		String def = meta.def();
-		String info = meta.info();
 		boolean array = meta.array();
 
 		// Default, empty values -> NULL
-		if (desc.length() + list.length + info.length() + def.length() == 0
-				&& !group && nullable && format == Meta.Format.STRING) {
+		if (desc.length() + list.length + def.length() == 0 && !group
+				&& nullable && format == Meta.Format.STRING) {
 			return null;
 		}
 
@@ -525,7 +523,7 @@ public class Bundle<E extends Enum<E>> {
 		} else {
 			builder.append(" (FORMAT: ").append(format)
 					.append(nullable ? "" : " (required)");
-			builder.append(") ").append(info);
+			builder.append(") ");
 
 			if (list.length > 0) {
 				builder.append("\n# ALLOWED VALUES:");

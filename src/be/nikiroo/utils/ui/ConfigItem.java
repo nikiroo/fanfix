@@ -15,7 +15,6 @@ import java.io.IOException;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
@@ -26,8 +25,8 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
-import javax.swing.plaf.basic.BasicArrowButton;
 
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.StringUtils;
@@ -69,8 +68,13 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	 * 
 	 * @param info
 	 *            the {@link MetaInfo}
+	 * @param nhgap
+	 *            negative horisontal gap in pixel to use for the label, i.e.,
+	 *            the step lock sized labels will start smaller by that amount
+	 *            (the use case would be to align controls that start at a
+	 *            different horisontal position)
 	 */
-	public ConfigItem(MetaInfo<E> info) {
+	public ConfigItem(MetaInfo<E> info, int nhgap) {
 		this.setLayout(new BorderLayout());
 
 		// TODO: support arrays
@@ -81,46 +85,46 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 
 		switch (fmt) {
 		case BOOLEAN:
-			addBooleanField(info);
+			addBooleanField(info, nhgap);
 			break;
 		case COLOR:
-			addColorField(info);
+			addColorField(info, nhgap);
 			break;
 		case FILE:
-			addBrowseField(info, false);
+			addBrowseField(info, nhgap, false);
 			break;
 		case DIRECTORY:
-			addBrowseField(info, true);
+			addBrowseField(info, nhgap, true);
 			break;
 		case COMBO_LIST:
-			addComboboxField(info, true);
+			addComboboxField(info, nhgap, true);
 			break;
 		case FIXED_LIST:
-			addComboboxField(info, false);
+			addComboboxField(info, nhgap, false);
 			break;
 		case INT:
-			addIntField(info);
+			addIntField(info, nhgap);
 			break;
 		case PASSWORD:
-			addPasswordField(info);
+			addPasswordField(info, nhgap);
 			break;
 		case STRING:
 		case LOCALE: // TODO?
 		default:
-			addStringField(info);
+			addStringField(info, nhgap);
 			break;
 		}
 	}
 
-	private void addStringField(final MetaInfo<E> info) {
+	private void addStringField(final MetaInfo<E> info, int nhgap) {
 		final JTextField field = new JTextField();
 		field.setToolTipText(info.getDescription());
-		field.setText(info.getString());
+		field.setText(info.getString(false));
 
 		info.addReloadedListener(new Runnable() {
 			@Override
 			public void run() {
-				field.setText(info.getString());
+				field.setText(info.getString(false));
 			}
 		});
 		info.addSaveListener(new Runnable() {
@@ -130,17 +134,16 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			}
 		});
 
-		this.add(label(info), BorderLayout.WEST);
+		this.add(label(info, nhgap), BorderLayout.WEST);
 		this.add(field, BorderLayout.CENTER);
+
+		setPreferredSize(field);
 	}
 
-	private void addBooleanField(final MetaInfo<E> info) {
+	private void addBooleanField(final MetaInfo<E> info, int nhgap) {
 		final JCheckBox field = new JCheckBox();
 		field.setToolTipText(info.getDescription());
-		Boolean state = info.getBoolean();
-		if (state == null) {
-			info.getDefaultBoolean();
-		}
+		Boolean state = info.getBoolean(true);
 
 		// Should not happen!
 		if (state == null) {
@@ -155,10 +158,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 		info.addReloadedListener(new Runnable() {
 			@Override
 			public void run() {
-				Boolean state = info.getBoolean();
-				if (state == null) {
-					info.getDefaultBoolean();
-				}
+				Boolean state = info.getBoolean(true);
 				if (state == null) {
 					state = false;
 				}
@@ -173,19 +173,21 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			}
 		});
 
-		this.add(label(info), BorderLayout.WEST);
+		this.add(label(info, nhgap), BorderLayout.WEST);
 		this.add(field, BorderLayout.CENTER);
+
+		setPreferredSize(field);
 	}
 
-	private void addColorField(final MetaInfo<E> info) {
+	private void addColorField(final MetaInfo<E> info, int nhgap) {
 		final JTextField field = new JTextField();
 		field.setToolTipText(info.getDescription());
-		field.setText(info.getString());
+		field.setText(info.getString(false));
 
 		info.addReloadedListener(new Runnable() {
 			@Override
 			public void run() {
-				field.setText(info.getString());
+				field.setText(info.getString(false));
 			}
 		});
 		info.addSaveListener(new Runnable() {
@@ -195,38 +197,41 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			}
 		});
 
-		this.add(label(info), BorderLayout.WEST);
+		this.add(label(info, nhgap), BorderLayout.WEST);
 		JPanel pane = new JPanel(new BorderLayout());
 
 		final JButton colorWheel = new JButton();
-		colorWheel.setIcon(getIcon(17, info.getColor()));
+		colorWheel.setIcon(getIcon(17, info.getColor(true)));
 		colorWheel.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Color initialColor = new Color(info.getColor(), true);
+				Color initialColor = new Color(info.getColor(true), true);
 				Color newColor = JColorChooser.showDialog(ConfigItem.this,
 						info.getName(), initialColor);
 				if (newColor != null) {
 					info.setColor(newColor.getRGB());
-					field.setText(info.getString());
-					colorWheel.setIcon(getIcon(17, info.getColor()));
+					field.setText(info.getString(false));
+					colorWheel.setIcon(getIcon(17, info.getColor(true)));
 				}
 			}
 		});
 		pane.add(colorWheel, BorderLayout.WEST);
 		pane.add(field, BorderLayout.CENTER);
 		this.add(pane, BorderLayout.CENTER);
+
+		setPreferredSize(pane);
 	}
 
-	private void addBrowseField(final MetaInfo<E> info, final boolean dir) {
+	private void addBrowseField(final MetaInfo<E> info, int nhgap,
+			final boolean dir) {
 		final JTextField field = new JTextField();
 		field.setToolTipText(info.getDescription());
-		field.setText(info.getString());
+		field.setText(info.getString(false));
 
 		info.addReloadedListener(new Runnable() {
 			@Override
 			public void run() {
-				field.setText(info.getString());
+				field.setText(info.getString(false));
 			}
 		});
 		info.addSaveListener(new Runnable() {
@@ -248,30 +253,33 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 					File file = chooser.getSelectedFile();
 					if (file != null) {
 						info.setString(file.getAbsolutePath());
-						field.setText(info.getString());
+						field.setText(info.getString(false));
 					}
 				}
 			}
 		});
 
 		JPanel pane = new JPanel(new BorderLayout());
-		this.add(label(info), BorderLayout.WEST);
+		this.add(label(info, nhgap), BorderLayout.WEST);
 		pane.add(browseButton, BorderLayout.WEST);
 		pane.add(field, BorderLayout.CENTER);
 		this.add(pane, BorderLayout.CENTER);
+
+		setPreferredSize(pane);
 	}
 
-	private void addComboboxField(final MetaInfo<E> info, boolean editable) {
+	private void addComboboxField(final MetaInfo<E> info, int nhgap,
+			boolean editable) {
 		// rawtypes for Java 1.6 (and 1.7 ?) support
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		final JComboBox field = new JComboBox(info.getAllowedValues());
 		field.setEditable(editable);
-		field.setSelectedItem(info.getString());
+		field.setSelectedItem(info.getString(false));
 
 		info.addReloadedListener(new Runnable() {
 			@Override
 			public void run() {
-				field.setSelectedItem(info.getString());
+				field.setSelectedItem(info.getString(false));
 			}
 		});
 		info.addSaveListener(new Runnable() {
@@ -281,19 +289,21 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			}
 		});
 
-		this.add(label(info), BorderLayout.WEST);
+		this.add(label(info, nhgap), BorderLayout.WEST);
 		this.add(field, BorderLayout.CENTER);
+
+		setPreferredSize(field);
 	}
 
-	private void addPasswordField(final MetaInfo<E> info) {
+	private void addPasswordField(final MetaInfo<E> info, int nhgap) {
 		final JPasswordField field = new JPasswordField();
 		field.setToolTipText(info.getDescription());
-		field.setText(info.getString());
+		field.setText(info.getString(true));
 
 		info.addReloadedListener(new Runnable() {
 			@Override
 			public void run() {
-				field.setText(info.getString());
+				field.setText(info.getString(false));
 			}
 		});
 		info.addSaveListener(new Runnable() {
@@ -303,85 +313,40 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			}
 		});
 
-		this.add(label(info), BorderLayout.WEST);
+		this.add(label(info, nhgap), BorderLayout.WEST);
 		this.add(field, BorderLayout.CENTER);
+
+		setPreferredSize(field);
 	}
 
-	private void addIntField(final MetaInfo<E> info) {
-		final JTextField field = new JTextField();
+	private void addIntField(final MetaInfo<E> info, int nhgap) {
+		final JSpinner field = new JSpinner();
 		field.setToolTipText(info.getDescription());
-		field.setText(info.getString());
-		field.setInputVerifier(new InputVerifier() {
-			@Override
-			public boolean verify(JComponent input) {
-				String text = field.getText().trim();
-				if (text.startsWith("-")) {
-					text = text.substring(1).trim();
-				}
-
-				return text.replaceAll("[0-9]", "").isEmpty();
-			}
-		});
+		field.setValue(info.getInteger(true) == null ? 0 : info
+				.getInteger(true));
 
 		info.addReloadedListener(new Runnable() {
 			@Override
 			public void run() {
-				field.setText(info.getString());
+				field.setValue(info.getInteger(true) == null ? 0 : info
+						.getInteger(true));
 			}
 		});
 		info.addSaveListener(new Runnable() {
 			@Override
 			public void run() {
-				info.setString(field.getText());
-				Integer value = info.getInteger();
+				info.setInteger((Integer) field.getValue());
+				Integer value = info.getInteger(false);
 				if (value == null) {
-					info.setString("");
-				} else {
-					info.setInteger(value);
+					field.setValue(0);
 				}
-				field.setText(info.getString());
 			}
 		});
 
-		JButton up = new BasicArrowButton(BasicArrowButton.NORTH);
-		JButton down = new BasicArrowButton(BasicArrowButton.SOUTH);
+		this.add(label(info, nhgap), BorderLayout.WEST);
+		this.add(field, BorderLayout.CENTER);
 
-		up.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent ae) {
-				int value = 0;
-				try {
-					value = Integer.parseInt(field.getText());
-				} catch (NumberFormatException e) {
-				}
-
-				field.setText(Integer.toString(value + 1));
-			}
-		});
-
-		down.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent ae) {
-				int value = 0;
-				try {
-					value = Integer.parseInt(field.getText());
-				} catch (NumberFormatException e) {
-				}
-
-				field.setText(Integer.toString(value - 1));
-			}
-		});
-
-		JPanel upDown = new JPanel(new BorderLayout());
-		upDown.add(up, BorderLayout.NORTH);
-		upDown.add(down, BorderLayout.SOUTH);
-
-		JPanel pane = new JPanel(new BorderLayout());
-		pane.add(upDown, BorderLayout.WEST);
-		pane.add(field, BorderLayout.CENTER);
-
-		this.add(label(info), BorderLayout.WEST);
-		this.add(pane, BorderLayout.CENTER);
+		setPreferredSize(field);
 	}
 
 	/**
@@ -389,10 +354,15 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	 * 
 	 * @param info
 	 *            the {@link MetaInfo} for which we want to add a label
+	 * @param nhgap
+	 *            negative horisontal gap in pixel to use for the label, i.e.,
+	 *            the step lock sized labels will start smaller by that amount
+	 *            (the use case would be to align controls that start at a
+	 *            different horisontal position)
 	 * 
 	 * @return the label
 	 */
-	private JComponent label(final MetaInfo<E> info) {
+	private JComponent label(final MetaInfo<E> info, int nhgap) {
 		final JLabel label = new JLabel(info.getName());
 
 		Dimension ps = label.getPreferredSize();
@@ -402,7 +372,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 
 		int w = ps.width;
 		int step = 150;
-		for (int i = 2 * step; i < 10 * step; i += step) {
+		for (int i = 2 * step - nhgap; i < 10 * step; i += step) {
 			if (w < i) {
 				w = i;
 				break;
@@ -413,7 +383,8 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			@Override
 			public void run() {
 				StringBuilder builder = new StringBuilder();
-				String text = info.getDescription().replace("\\n", "\n");
+				String text = (info.getDescription().replace("\\n", "\n"))
+						.trim();
 				for (String line : StringUtils.justifyText(text, 80,
 						Alignment.LEFT)) {
 					if (builder.length() > 0) {
@@ -494,5 +465,12 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 		}
 
 		return new ImageIcon(img);
+	}
+
+	private void setPreferredSize(JComponent field) {
+		JTextField a = new JTextField("Test");
+		int height = Math.max(a.getMinimumSize().height,
+				field.getMinimumSize().height);
+		setPreferredSize(new Dimension(200, height));
 	}
 }

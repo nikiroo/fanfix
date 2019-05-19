@@ -1,6 +1,7 @@
 package be.nikiroo.utils.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -12,8 +13,11 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 
+import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.resources.Bundle;
 import be.nikiroo.utils.resources.MetaInfo;
 
@@ -52,12 +56,13 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 		this.add(scroll, BorderLayout.CENTER);
 
 		main.setLayout(new BoxLayout(main, BoxLayout.PAGE_AXIS));
-
+		main.setBorder(new EmptyBorder(5, 5, 5, 5));
+		
 		main.add(new JLabel(title));
 
 		items = MetaInfo.getItems(type, bundle);
 		for (MetaInfo<E> item : items) {
-			addItem(main, item);
+			addItem(main, item, 0);
 		}
 
 		main.add(createButton("Reset", new ActionListener() {
@@ -98,14 +103,32 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 		}));
 	}
 
-	private void addItem(JPanel main, MetaInfo<E> item) {
+	private void addItem(JPanel main, MetaInfo<E> item, int nhgap) {
 		if (item.isGroup()) {
-			// TODO
-			for (MetaInfo<E> subitem : item) {
-				addItem(main, subitem);
+			JPanel bpane = new JPanel(new BorderLayout());
+			bpane.setBorder(new TitledBorder(item.getName()));
+			JPanel pane = new JPanel();
+			pane.setBorder(new EmptyBorder(5, 5, 5, 5));
+			pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+
+			String info = item.getDescription();
+			info = StringUtils.justifyTexts(info, 100);
+			if (!info.isEmpty()) {
+				JTextArea text = new JTextArea(info);
+				text.setWrapStyleWord(true);
+				text.setOpaque(false);
+				text.setForeground(new Color(100, 100, 180));
+				text.setEditable(false);
+				pane.add(text);
 			}
+
+			for (MetaInfo<E> subitem : item) {
+				addItem(pane, subitem, nhgap + 11);
+			}
+			bpane.add(pane, BorderLayout.CENTER);
+			main.add(bpane);
 		} else {
-			main.add(new ConfigItem<E>(item));
+			main.add(new ConfigItem<E>(item, nhgap));
 		}
 	}
 
