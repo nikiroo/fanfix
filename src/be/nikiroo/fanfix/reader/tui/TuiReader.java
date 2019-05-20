@@ -52,10 +52,17 @@ class TuiReader extends BasicReader {
 
 	@Override
 	public void read(boolean sync) throws IOException {
+		// TODO
+		if (!sync) {
+			// How could you do a not-sync in TUI mode?
+			throw new java.lang.IllegalStateException(
+					"Async mode not implemented yet.");
+		}
+
 		try {
 			TuiReaderApplication app = new TuiReaderApplication(this,
 					guessBackendType());
-			new Thread(app).start();
+			app.run();
 		} catch (Exception e) {
 			Instance.getTraceHandler().error(e);
 		}
@@ -66,7 +73,7 @@ class TuiReader extends BasicReader {
 		try {
 			TuiReaderApplication app = new TuiReaderApplication(this, source,
 					guessBackendType());
-			new Thread(app).start();
+			app.run();
 		} catch (Exception e) {
 			Instance.getTraceHandler().error(e);
 		}
