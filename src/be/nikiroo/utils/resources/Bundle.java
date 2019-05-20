@@ -73,6 +73,27 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
+	 * Check if the setting is set into this {@link Bundle}.
+	 * 
+	 * @param id
+	 *            the id of the setting to check
+	 * @param includeDefaultValue
+	 *            TRUE to only return false when the setting is not set AND
+	 *            there is no default value
+	 * 
+	 * @return TRUE if the setting is set
+	 */
+	public boolean iSet(E id, boolean includeDefaultValue) {
+		if (getString(id.toString(), null) == null) {
+			if (!includeDefaultValue || getString(id) == null) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Return the value associated to the given id as a {@link String}.
 	 * 
 	 * @param id
@@ -82,7 +103,34 @@ public class Bundle<E extends Enum<E>> {
 	 *         resource file)
 	 */
 	public String getString(E id) {
-		return getString(id.name());
+		return getString(id, null);
+	}
+
+	/**
+	 * Return the value associated to the given id as a {@link String}.
+	 * <p>
+	 * If no value is associated, take the default one if any.
+	 * 
+	 * @param id
+	 *            the id of the value to get
+	 * @param def
+	 *            the default value when it is not present in the config file
+	 * 
+	 * @return the associated value, or NULL if not found (not present in the
+	 *         resource file)
+	 */
+	public String getString(E id, String def) {
+		String rep = getString(id.name(), null);
+		if (rep == null) {
+			MetaInfo<E> info = new MetaInfo<E>(type, this, id);
+			rep = info.getDefaultString();
+		}
+
+		if (rep == null) {
+			rep = def;
+		}
+
+		return rep;
 	}
 
 	/**
@@ -103,6 +151,8 @@ public class Bundle<E extends Enum<E>> {
 	 * with the runtime value "_suffix" (that is, "_" and suffix).
 	 * <p>
 	 * Will only accept suffixes that form an existing id.
+	 * <p>
+	 * If no value is associated, take the default one if any.
 	 * 
 	 * @param id
 	 *            the id of the value to get
@@ -153,6 +203,8 @@ public class Bundle<E extends Enum<E>> {
 
 	/**
 	 * Return the value associated to the given id as a {@link Boolean}.
+	 * <p>
+	 * If no value is associated, take the default one if any.
 	 * 
 	 * @param id
 	 *            the id of the value to get
@@ -166,6 +218,8 @@ public class Bundle<E extends Enum<E>> {
 
 	/**
 	 * Return the value associated to the given id as a {@link Boolean}.
+	 * <p>
+	 * If no value is associated, take the default one if any.
 	 * 
 	 * @param id
 	 *            the id of the value to get
@@ -198,6 +252,8 @@ public class Bundle<E extends Enum<E>> {
 
 	/**
 	 * Return the value associated to the given id as an {@link Integer}.
+	 * <p>
+	 * If no value is associated, take the default one if any.
 	 * 
 	 * @param id
 	 *            the id of the value to get
@@ -210,6 +266,8 @@ public class Bundle<E extends Enum<E>> {
 
 	/**
 	 * Return the value associated to the given id as an int.
+	 * <p>
+	 * If no value is associated, take the default one if any.
 	 * 
 	 * @param id
 	 *            the id of the value to get
@@ -242,6 +300,8 @@ public class Bundle<E extends Enum<E>> {
 
 	/**
 	 * Return the value associated to the given id as a {@link Character}.
+	 * <p>
+	 * If no value is associated, take the default one if any.
 	 * 
 	 * @param id
 	 *            the id of the value to get
@@ -254,6 +314,8 @@ public class Bundle<E extends Enum<E>> {
 
 	/**
 	 * Return the value associated to the given id as a {@link Character}.
+	 * <p>
+	 * If no value is associated, take the default one if any.
 	 * 
 	 * @param id
 	 *            the id of the value to get
@@ -276,6 +338,8 @@ public class Bundle<E extends Enum<E>> {
 	 * and can be parsed.
 	 * <p>
 	 * The returned value is an ARGB value.
+	 * <p>
+	 * If no value is associated, take the default one if any.
 	 * 
 	 * @param id
 	 *            the id of the value to get
@@ -303,6 +367,8 @@ public class Bundle<E extends Enum<E>> {
 	/**
 	 * Return the value associated to the given id as a list of values if it is
 	 * found and can be parsed.
+	 * <p>
+	 * If no value is associated, take the default one if any.
 	 * 
 	 * @param id
 	 *            the id of the value to get
@@ -455,15 +521,17 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
-	 * Get the value for the given key if it exists in the internal map, or NULL
-	 * if not.
+	 * Get the value for the given key if it exists in the internal map, or
+	 * <tt>def</tt> if not.
 	 * 
 	 * @param key
 	 *            the key to check for
+	 * @param def
+	 *            the default value when it is not present in the internal map
 	 * 
-	 * @return the value, or NULL
+	 * @return the value, or <tt>def</tt> if not found
 	 */
-	protected String getString(String key) {
+	protected String getString(String key, String def) {
 		if (changeMap.containsKey(key)) {
 			return changeMap.get(key);
 		}
@@ -472,7 +540,7 @@ public class Bundle<E extends Enum<E>> {
 			return map.get(key);
 		}
 
-		return null;
+		return def;
 	}
 
 	/**

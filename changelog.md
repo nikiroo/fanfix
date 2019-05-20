@@ -7,6 +7,7 @@
 - new: stream classes
 - new: Bundles can now also set Boolean, Integer... and not just get them
 - new: Bundles get/setList()
+- new: Bundles can now use the default values provided by the Meta
 - fix: IOUtils.readSmallStream and \n at the end
 - fix: Base64 implementation changed, no strange errors anymore
 - change: StringUtils.unzip64(String) now returns a byte[] (StringUtils.unzip64s(String) can be used instead)

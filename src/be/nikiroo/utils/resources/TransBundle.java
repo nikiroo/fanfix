@@ -137,7 +137,7 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 		} else if ("DUMMY".equals(id.name().toUpperCase())) {
 			result = "[" + key.toLowerCase() + "]";
 		} else if (containsKey(key)) {
-			result = getString(key);
+			result = getString(key, null);
 		} else {
 			result = null;
 		}
@@ -326,7 +326,7 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 
 		String name = id.name() + "_NOUTF";
 		if (containsKey(name)) {
-			String value = getString(name);
+			String value = getString(name, null);
 			writeValue(writer, name, value);
 		}
 	}
