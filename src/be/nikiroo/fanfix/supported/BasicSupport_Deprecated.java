@@ -391,8 +391,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 		// redundant "Chapter x: " in front of it, or "-" (as in
 		// "Chapter 5: - Fun!" after the ": " was automatically added)
 		String chapterName = processPara(name).getContent().trim();
-		for (String lang : Instance.getConfig().getString(Config.CHAPTER)
-				.split(",")) {
+		for (String lang : Instance.getConfig().getList(Config.CHAPTER)) {
 			String chapterWord = Instance.getConfig().getStringX(
 					Config.CHAPTER, lang);
 			if (chapterName.startsWith(chapterWord)) {

@@ -331,8 +331,7 @@ class Text extends BasicSupport {
 	 */
 	static private String detectChapter(String line, int number) {
 		line = line.toUpperCase();
-		for (String lang : Instance.getConfig().getString(Config.CHAPTER)
-				.split(",")) {
+		for (String lang : Instance.getConfig().getList(Config.CHAPTER)) {
 			String chapter = Instance.getConfig().getStringX(Config.CHAPTER,
 					lang);
 			if (chapter != null && !chapter.isEmpty()) {

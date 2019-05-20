@@ -114,11 +114,10 @@ public class Instance {
 			// Could have used: System.getProperty("java.io.tmpdir")
 			tmp = new File(configDir, "tmp");
 		}
-		String ua = config.getString(Config.USER_AGENT);
+		String ua = config.getString(Config.USER_AGENT, "");
 		try {
-			int hours = config.getInteger(Config.CACHE_MAX_TIME_CHANGING, -1);
-			int hoursLarge = config
-					.getInteger(Config.CACHE_MAX_TIME_STABLE, -1);
+			int hours = config.getInteger(Config.CACHE_MAX_TIME_CHANGING, 0);
+			int hoursLarge = config.getInteger(Config.CACHE_MAX_TIME_STABLE, 0);
 			cache = new DataLoader(tmp, ua, hours, hoursLarge);
 		} catch (IOException e) {
 			tracer.error(new IOException(
@@ -332,7 +331,7 @@ public class Instance {
 	 */
 	public static boolean isVersionCheckNeeded() {
 		try {
-			long wait = config.getInteger(Config.UPDATE_INTERVAL, 1) * 24 * 60
+			long wait = config.getInteger(Config.UPDATE_INTERVAL, 0) * 24 * 60
 					* 60 * 1000;
 			if (wait >= 0) {
 				String lastUpString = IOUtils.readSmallFile(new File(configDir,

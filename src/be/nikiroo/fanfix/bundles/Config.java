@@ -10,80 +10,111 @@ import be.nikiroo.utils.resources.Meta.Format;
  */
 @SuppressWarnings("javadoc")
 public enum Config {
-	@Meta(description = "language (example: en-GB, fr-BE...) or nothing for default system language", format = Format.LOCALE, info = "Force the language (can be overwritten again with the env variable $LANG)")
+	@Meta(description = "The language (example: en-GB, fr-BE...) or nothing for default system language (can be overwritten with the variable $LANG)",//
+	format = Format.LOCALE)
 	LANG, //
-	@Meta(description = "reader type (CLI = simple output to console, TUI = Text User Interface with menus and windows, GUI = a GUI with locally stored files)", format = Format.FIXED_LIST, list = {
-			"CLI", "GUI", "TUI" }, info = "Select the default reader to use to read stories")
+	@Meta(description = "The default reader type to use to read stories:\nCLI = simple output to console\nTUI = a Text User Interface with menus and windows, based upon Jexer\nGUI = a GUI with locally stored files, based upon Swing", //
+	format = Format.FIXED_LIST, list = { "CLI", "GUI", "TUI" }, def = "GUI")
 	READER_TYPE, //
-	@Meta(def = "INFO_TEXT", format = Format.COMBO_LIST, list = { "INFO_TEXT",
-			"EPUB", "HTML", "TEXT" }, info = "One of the known output type", description = "The type of output for the Local Reader for non-images documents")
+	@Meta(description = "The type of output for the Local Reader for non-images documents",//
+	format = Format.FIXED_LIST, list = { "INFO_TEXT", "EPUB", "HTML", "TEXT" }, def = "INFO_TEXT")
 	NON_IMAGES_DOCUMENT_TYPE, //
-	@Meta(def = "CBZ", format = Format.COMBO_LIST, list = { "CBZ", "HTML" }, description = "The type of output for the Local Reader for images documents")
+	@Meta(description = "The type of output for the Local Reader for non-images documents",//
+	format = Format.FIXED_LIST, list = { "CBZ", "HTML" }, def = "CBZ")
 	IMAGES_DOCUMENT_TYPE, //
-	@Meta(description = "absolute path, $HOME variable supported, / is always accepted as dir separator", format = Format.DIRECTORY, info = "The directory where to store temporary files, defaults to directory 'tmp' in the conig directory (usually $HOME/.fanfix)")
+	@Meta(description = "The directory where to store temporary files (defaults to directory 'tmp' in the conig directory, usually $HOME/.fanfix/tmp); it must be an absolute path, $HOME notation is supported, / is always accepted as directory separator",//
+	format = Format.DIRECTORY)
 	CACHE_DIR, //
-	@Meta(def = "24", description = "delay in hours, or 0 for no cache, or -1 for infinite time (default)", format = Format.INT, info = "The delay after which a cached resource that is thought to change ~often is considered too old and triggers a refresh")
+	@Meta(description = "The delay in hours after which a cached resource that is thought to change ~often is considered too old and triggers a refresh delay (or 0 for no cache, or -1 for infinite time)", //
+	format = Format.INT, def = "24")
 	CACHE_MAX_TIME_CHANGING, //
-	@Meta(def = "720", description = "delay in hours, or 0 for no cache, or -1 for infinite time (default)", format = Format.INT, info = "The delay after which a cached resource that is thought to change rarely is considered too old and triggers a refresh")
+	@Meta(description = "The delay in hours after which a cached resource that is thought to change rarely is considered too old and triggers a refresh delay (or 0 for no cache, or -1 for infinite time)", //
+	format = Format.INT, def = "720")
 	CACHE_MAX_TIME_STABLE, //
-	@Meta(def = "Mozilla/5.0 (X11; Linux x86_64; rv:44.0) Gecko/20100101 Firefox/44.0 -- ELinks/0.9.3 (Linux 2.6.11 i686; 80x24)", description = "string", info = "The user-agent to use to download files")
+	@Meta(description = "The user-agent to use to download files",//
+	def = "Mozilla/5.0 (X11; Linux x86_64; rv:44.0) Gecko/20100101 Firefox/44.0 -- ELinks/0.9.3 (Linux 2.6.11 i686; 80x24) -- Fanfix (https://github.com/nikiroo/fanfix/)")
 	USER_AGENT, //
-	@Meta(def = "$HOME/.fanfix/covers/", description = "absolute path, $HOME variable supported, / is always accepted as dir separator", format = Format.DIRECTORY, info = "The directory where to get the default story covers")
+	@Meta(description = "The directory where to get the default story covers; it must be an absolute path, $HOME notation is supported, / is always accepted as directory separator",//
+	format = Format.DIRECTORY, def = "$HOME/.fanfix/covers/")
 	DEFAULT_COVERS_DIR, //
-	@Meta(description = "string", info = "The default library to use (KEY:SERVER:PORT), or empty for the local library")
+	@Meta(description = "The default library to use (KEY:SERVER:PORT), or empty for the local library",//
+	format = Format.STRING, def = "")
 	DEFAULT_LIBRARY, //
-	@Meta(def = "58365", description = "The port on which we can start the server", format = Format.INT, info = "A valid port")
+	@Meta(description = "The port on which we can start the server (must be a valid port, from 1 to 65535)", //
+	format = Format.INT, def = "58365")
 	SERVER_PORT, //
-	@Meta(def = "", description = "The encryption key for the server (NOT including a subkey)", format = Format.PASSWORD, info = "cannot contain the pipe character (|)")
+	@Meta(description = "The encryption key for the server (NOT including a subkey), it cannot contain the pipe character \"|\" but can be empty (it is *still* encrypted, but with an empty, easy to guess key)",//
+	format = Format.PASSWORD, def = "")
 	SERVER_KEY, //
-	@Meta(def = "TRUE", description = "Allow write access to the clients by default (download story, move story...)", format = Format.BOOLEAN)
+	@Meta(description = "Allow write access to the clients (download story, move story...) without RW subkeys", //
+	format = Format.BOOLEAN, def = "true")
 	SERVER_RW, //
-	@Meta(def = "", description = "If not empty, only the EXACT listed sources will be available for clients", info = "list is comma-separated (,) and values are surrounded by double quotes (\"); any double quote in the value must be backslash-escaped (with \\\")")
+	@Meta(description = "If not empty, only the EXACT listed sources will be available for clients without BL subkeys",//
+	array = true, format = Format.STRING, def = "")
 	SERVER_WHITELIST, //
-	@Meta(def = "", description = "The subkeys that the server will allow, including the modes", info = "list is comma-separated (,) and values are surrounded by double quotes (\"); any double quote in the value must be backslash-escaped (with \\\")")
+	@Meta(description = "The subkeys that the server will allow, including the modes", //
+	array = true, format = Format.STRING, def = "")
 	SERVER_ALLOWED_SUBKEYS, //
-	@Meta(def = "$HOME/Books", description = "absolute path, $HOME variable supported, / is always accepted as dir separator", format = Format.DIRECTORY, info = "The directory where to store the library")
+	@Meta(description = "The directory where to store the library; it must be an absolute path, $HOME notation is supported, / is always accepted as directory separator",//
+	format = Format.DIRECTORY, def = "$HOME/Books")
 	LIBRARY_DIR, //
-	@Meta(def = "false", description = "boolean", format = Format.BOOLEAN, info = "Show debug information on errors")
+	@Meta(description = "Show debug information on errors",//
+	format = Format.BOOLEAN, def = "false")
 	DEBUG_ERR, //
-	@Meta(def = "false", description = "boolean", format = Format.BOOLEAN, info = "Show debug trace information")
+	@Meta(description = "Show debug trace information",//
+	format = Format.BOOLEAN, def = "false")
 	DEBUG_TRACE, //
-	@Meta(def = "PNG", description = "image format", format = Format.COMBO_LIST, list = {
-			"PNG", "JPG", "BMP" }, info = "Image format to use for cover images")
+	@Meta(description = "Image format to use for cover images",//
+	format = Format.FIXED_LIST, list = { "PNG", "JPG", "BMP" }, def = "PNG")
 	IMAGE_FORMAT_COVER, //
-	@Meta(def = "JPG", description = "image format", format = Format.COMBO_LIST, list = {
-			"PNG", "JPG", "BMP" }, info = "Image format to use for content images")
+	@Meta(description = "Image format to use for content images",//
+	format = Format.FIXED_LIST, list = { "PNG", "JPG", "BMP" }, def = "jpg")
 	IMAGE_FORMAT_CONTENT, //
 	@Meta(group = true)
 	LATEX_LANG, //
-	@Meta(def = "english", description = "LaTeX output language: English", info = "LaTeX full name")
+	@Meta(description = "LaTeX output language (full name) for \"English\"",//
+	format = Format.STRING, def = "english")
 	LATEX_LANG_EN, //
-	@Meta(def = "french", description = "LaTeX output language: French", info = "LaTeX full name")
+	@Meta(description = "LaTeX output language (full name) for \"French\"",//
+	format = Format.STRING, def = "french")
 	LATEX_LANG_FR, //
-	@Meta(def = "by,par,de,©,(c)", description = "other 'by' prefixes before author name, used to identify the author", array = true)
+	@Meta(description = "other 'by' prefixes before author name, used to identify the author",//
+	array = true, format = Format.STRING, def = "\"by\",\"par\",\"de\",\"©\",\"(c)\"")
 	BYS, //
-	@Meta(def = "EN,FR", description = "List of languages codes used for chapter identification (should not be changed)", array = true, info = "EN,FR")
+	@Meta(description = "List of languages codes used for chapter identification (should not be changed)", //
+	array = true, format = Format.STRING, def = "\"EN\",\"FR\"")
 	CHAPTER, //
-	@Meta(def = "Chapter", description = "Chapter identification String: English", info = "used to identify a starting chapter in text mode")
+	@Meta(description = "Chapter identification string in English, used to identify a starting chapter in text mode",//
+	format = Format.STRING, def = "Chapter")
 	CHAPTER_EN, //
-	@Meta(def = "Chapitre", description = "Chapter identification String: French", info = "used to identify a starting chapter in text mode")
+	@Meta(description = "Chapter identification string in French, used to identify a starting chapter in text mode",//
+	format = Format.STRING, def = "Chapitre")
 	CHAPTER_FR, //
-	@Meta(description = "Login information (username) for YiffStar to have access to all the stories (should not be necessary anymore)")
+	@Meta(description = "Login for YiffStar to have access to all the stories (should not be necessary anymore, but can still be used)",//
+	format = Format.STRING)
 	LOGIN_YIFFSTAR_USER, //
-	@Meta(description = "Login information (password) for YiffStar to have access to all the stories (should not be necessary anymore)", format = Format.PASSWORD)
+	@Meta(description = "Password for YiffStar to have access to all the stories (should not be necessary anymore, but can still be used)",//
+	format = Format.PASSWORD)
 	LOGIN_YIFFSTAR_PASS, //
-	@Meta(description = "If the last update check was done at least that many days, check for updates at startup (-1 for 'no checks' -- default is 1 day)", format = Format.INT)
+	@Meta(description = "If the last update check was done at least that many days ago, check for updates at startup (-1 for 'no checks')", //
+	format = Format.INT, def = "1")
 	UPDATE_INTERVAL, //
-	@Meta(def = "", description = "", info = "Format is ((user(:pass)@)proxy:port), with ':' being system proxy and an empty String being no proxy")
+	@Meta(description = "The proxy server to use under the format 'user:pass@proxy:port', 'user@proxy:port', 'proxy:port' or ':' alone (system proxy); an empty String means no proxy",//
+	format = Format.STRING, def = "")
 	USE_PROXY, //
-	@Meta(group = true, description = "FimFiction APIKEY credentials\nFimFiction can be queried via an API, but requires an API key to do that. One has been created for this program, but if you have another API key you can set it here. You can also set a login and password instead, in that case, a new API key will be generated (and stored) if you still haven't set one.")
+	@Meta(description = "FimFiction APIKEY credentials\nFimFiction can be queried via an API, but requires an API key to do that. One has been created for this program, but if you have another API key you can set it here. You can also set a login and password instead, in that case, a new API key will be generated (and stored) if you still haven't set one.",//
+	group = true)
 	LOGIN_FIMFICTION_APIKEY, //
-	@Meta(description = "An API key required to create a token from FimFiction", format = Format.STRING)
+	@Meta(description = "The login of the API key used to create a new token from FimFiction", //
+	format = Format.STRING)
 	LOGIN_FIMFICTION_APIKEY_CLIENT_ID, //
-	@Meta(description = "An API key required to create a token from FimFiction", format = Format.PASSWORD)
+	@Meta(description = "The password of the API key used to create a new token from FimFiction", //
+	format = Format.PASSWORD)
 	LOGIN_FIMFICTION_APIKEY_CLIENT_SECRET, //
-	@Meta(description = "Do not use the new API, even if we have a token, and force HTML scraping (default is false, use API if token or ID present)", format = Format.BOOLEAN)
+	@Meta(description = "Do not use the new API, even if we have a token, and force HTML scraping",//
+	format = Format.BOOLEAN, def = "false")
 	LOGIN_FIMFICTION_APIKEY_FORCE_HTML, //
-	@Meta(def = "Bearer WnZ5oHlzQoDocv1GcgHfcoqctHkSwL-D", description = "A token is required to use the beta APIv2 from FimFiction (see APIKEY_CLIENT_*)", format = Format.PASSWORD)
+	@Meta(description = "The token required to use the beta APIv2 from FimFiction (see APIKEY_CLIENT_* if you want to generate a new one from your own API key)", //
+	format = Format.PASSWORD, def = "Bearer WnZ5oHlzQoDocv1GcgHfcoqctHkSwL-D")
 	LOGIN_FIMFICTION_APIKEY_TOKEN, //
 }
