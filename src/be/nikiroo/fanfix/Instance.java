@@ -108,12 +108,12 @@ public class Instance {
 		lib = createDefaultLibrary(remoteDir);
 
 		// create cache and TMP
-		Image.setTemporaryFilesRoot(new File(configDir, "tmp.images"));
-		File tmp = getFile(Config.CACHE_DIR);
-		if (tmp == null) {
-			// Could have used: System.getProperty("java.io.tmpdir")
-			tmp = new File(configDir, "tmp");
+		File tmp = getFile(Config.CACHE_DIR, new File(configDir, "tmp"));
+		if (!tmp.isAbsolute()) {
+			tmp = new File(configDir, tmp.getPath());
 		}
+		Image.setTemporaryFilesRoot(new File(tmp.getParent(), "tmp.images"));
+
 		String ua = config.getString(Config.USER_AGENT, "");
 		try {
 			int hours = config.getInteger(Config.CACHE_MAX_TIME_CHANGING, 0);
@@ -128,18 +128,12 @@ public class Instance {
 		cache.setTraceHandler(tracer);
 
 		// readerTmp / coverDir
-		readerTmp = getFile(UiConfig.CACHE_DIR_LOCAL_READER);
-		if (readerTmp == null) {
-			readerTmp = new File(configDir, "tmp-reader");
-		}
+		readerTmp = getFile(UiConfig.CACHE_DIR_LOCAL_READER, new File(
+				configDir, "tmp-reader"));
 
-		coverDir = getFile(Config.DEFAULT_COVERS_DIR);
-		if (coverDir != null && !coverDir.exists()) {
-			tracer.error(new IOException(
-					"The 'default covers' directory does not exists: "
-							+ coverDir));
-			coverDir = null;
-		}
+		coverDir = getFile(Config.DEFAULT_COVERS_DIR, new File(configDir,
+				"covers"));
+		coverDir.mkdirs();
 
 		try {
 			tempFiles = new TempFiles("fanfix");
@@ -463,9 +457,9 @@ public class Instance {
 
 		String remoteLib = config.getString(Config.DEFAULT_LIBRARY);
 		if (remoteLib == null || remoteLib.trim().isEmpty()) {
-			String libDir = System.getProperty("fanfix.libdir");
+			String libDir = System.getenv("BOOKS_DIR");
 			if (libDir == null || libDir.isEmpty()) {
-				libDir = config.getString(Config.LIBRARY_DIR);
+				libDir = config.getString(Config.LIBRARY_DIR, "$HOME/Books");
 			}
 			try {
 				lib = new LocalLibrary(getFile(libDir));
@@ -513,8 +507,13 @@ public class Instance {
 	 * 
 	 * @return the path
 	 */
-	private static File getFile(Config id) {
-		return getFile(config.getString(id));
+	private static File getFile(Config id, File def) {
+		String path = config.getString(id);
+		if (path != null && path.isEmpty()) {
+			path = def.getPath();
+		}
+
+		return getFile(path);
 	}
 
 	/**
@@ -522,8 +521,13 @@ public class Instance {
 	 * 
 	 * @return the path
 	 */
-	private static File getFile(UiConfig id) {
-		return getFile(uiconfig.getString(id));
+	private static File getFile(UiConfig id, File def) {
+		String path = uiconfig.getString(id);
+		if (path != null && path.isEmpty()) {
+			path = def.getPath();
+		}
+
+		return getFile(path);
 	}
 
 	/**
@@ -546,14 +550,26 @@ public class Instance {
 	}
 
 	/**
-	 * Return the home directory from the system properties.
+	 * Return the home directory from the environment (FANFIX_DIR) or the system
+	 * properties.
+	 * <p>
+	 * The environment variable is tested first. Then, the custom property
+	 * "fanfix.home" is tried, followed by the usual "user.home" then
+	 * "java.io.tmp" if nothing else is found.
 	 * 
 	 * @return the home
 	 */
 	private static String getHome() {
-		String home = System.getProperty("fanfix.home");
+		String home = System.getenv("FANFIX_DIR");
 		if (home != null && new File(home).isFile()) {
 			home = null;
+		}
+
+		if (home == null || home.trim().isEmpty()) {
+			home = System.getProperty("fanfix.home");
+			if (home != null && new File(home).isFile()) {
+				home = null;
+			}
 		}
 
 		if (home == null || home.trim().isEmpty()) {

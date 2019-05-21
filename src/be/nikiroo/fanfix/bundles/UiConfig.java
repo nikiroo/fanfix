@@ -10,21 +10,28 @@ import be.nikiroo.utils.resources.Meta.Format;
  */
 @SuppressWarnings("javadoc")
 public enum UiConfig {
-	@Meta(format = Format.DIRECTORY, info = "absolute path, $HOME variable supported, / is always accepted as dir separator", description = "The directory where to store temporary files, defaults to directory 'tmp.reader' in the config directory (usually $HOME/.fanfix)")
+	@Meta(description = "The directory where to store temporary files for the GUI reader; any relative path uses the applciation config directory as base, $HOME notation is supported, / is always accepted as directory separator",//
+	format = Format.DIRECTORY, def = "tmp-reader/")
 	CACHE_DIR_LOCAL_READER, //
-	@Meta(format = Format.COMBO_LIST, list = { "INFO_TEXT", "EPUB", "HTML",
-			"TEXT" }, info = "One of the known output type", description = "The type of output for the GUI Reader for non-images documents")
+	@Meta(description = "How to save the cached stories for the GUI Reader (non-images documents) -- those files will be sent to the reader",//
+	format = Format.COMBO_LIST, list = { "INFO_TEXT", "EPUB", "HTML", "TEXT" }, def = "EPUB")
 	GUI_NON_IMAGES_DOCUMENT_TYPE, //
-	@Meta(format = Format.COMBO_LIST, list = { "CBZ", "HTML" }, description = "The type of output for the GUI Reader for images documents")
+	@Meta(description = "How to save the cached stories for the GUI Reader (images documents) -- those files will be sent to the reader",//
+	format = Format.COMBO_LIST, list = { "CBZ", "HTML" }, def = "CBZ")
 	GUI_IMAGES_DOCUMENT_TYPE, //
-	@Meta(format = Format.BOOLEAN, description = "Use the internal reader for images documents -- this is TRUE by default")
+	@Meta(description = "Use the internal reader for images documents",//
+	format = Format.BOOLEAN, def = "true")
 	IMAGES_DOCUMENT_USE_INTERNAL_READER, //
-	@Meta(info = "A command to start", description = "The command launched for images documents -- default to the system default for the current file type")
+	@Meta(description = "The external viewer for images documents (or empty to use the system default program for the given file type)",//
+	format = Format.STRING)
 	IMAGES_DOCUMENT_READER, //
-	@Meta(format = Format.BOOLEAN, description = "Use the internal reader for non images documents -- this is TRUE by default")
+	@Meta(description = "Use the internal reader for non-images documents",//
+	format = Format.BOOLEAN, def = "true")
 	NON_IMAGES_DOCUMENT_USE_INTERNAL_READER, //
-	@Meta(info = "A command to start", description = "The command launched for non images documents -- default to the system default for the current file type")
+	@Meta(description = "The external viewer for non-images documents (or empty to use the system default program for the given file type)",//
+	format = Format.STRING)
 	NON_IMAGES_DOCUMENT_READER, //
-	@Meta(format = Format.COLOR, description = "The background colour if you don't want the default system one")
+	@Meta(description = "The background colour of the library if you don't like the default system one",//
+	format = Format.COLOR)
 	BACKGROUND_COLOR, //
 }

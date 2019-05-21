@@ -22,8 +22,8 @@ public enum Config {
 	@Meta(description = "The type of output for the Local Reader for non-images documents",//
 	format = Format.FIXED_LIST, list = { "CBZ", "HTML" }, def = "CBZ")
 	IMAGES_DOCUMENT_TYPE, //
-	@Meta(description = "The directory where to store temporary files (defaults to directory 'tmp' in the conig directory, usually $HOME/.fanfix/tmp); it must be an absolute path, $HOME notation is supported, / is always accepted as directory separator",//
-	format = Format.DIRECTORY)
+	@Meta(description = "The directory where to store temporary files; any relative path uses the applciation config directory as base, $HOME notation is supported, / is always accepted as directory separator",//
+	format = Format.DIRECTORY, def = "tmp/")
 	CACHE_DIR, //
 	@Meta(description = "The delay in hours after which a cached resource that is thought to change ~often is considered too old and triggers a refresh delay (or 0 for no cache, or -1 for infinite time)", //
 	format = Format.INT, def = "24")
@@ -34,8 +34,8 @@ public enum Config {
 	@Meta(description = "The user-agent to use to download files",//
 	def = "Mozilla/5.0 (X11; Linux x86_64; rv:44.0) Gecko/20100101 Firefox/44.0 -- ELinks/0.9.3 (Linux 2.6.11 i686; 80x24) -- Fanfix (https://github.com/nikiroo/fanfix/)")
 	USER_AGENT, //
-	@Meta(description = "The directory where to get the default story covers; it must be an absolute path, $HOME notation is supported, / is always accepted as directory separator",//
-	format = Format.DIRECTORY, def = "$HOME/.fanfix/covers/")
+	@Meta(description = "The directory where to get the default story covers; any relative path uses the applciation config directory as base, $HOME notation is supported, / is always accepted as directory separator",//
+	format = Format.DIRECTORY, def = "covers/")
 	DEFAULT_COVERS_DIR, //
 	@Meta(description = "The default library to use (KEY:SERVER:PORT), or empty for the local library",//
 	format = Format.STRING, def = "")
@@ -55,8 +55,8 @@ public enum Config {
 	@Meta(description = "The subkeys that the server will allow, including the modes", //
 	array = true, format = Format.STRING, def = "")
 	SERVER_ALLOWED_SUBKEYS, //
-	@Meta(description = "The directory where to store the library; it must be an absolute path, $HOME notation is supported, / is always accepted as directory separator",//
-	format = Format.DIRECTORY, def = "$HOME/Books")
+	@Meta(description = "The directory where to store the library (can be overriden by the envvironment variable \"BOOKS_DIR\"; any relative path uses the applciation config directory as base, $HOME notation is supported, / is always accepted as directory separator",//
+	format = Format.DIRECTORY, def = "$HOME/Books/")
 	LIBRARY_DIR, //
 	@Meta(description = "Show debug information on errors",//
 	format = Format.BOOLEAN, def = "false")
