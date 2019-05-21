@@ -19,6 +19,8 @@ import java.util.MissingResourceException;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
+import be.nikiroo.utils.resources.Meta.Format;
+
 /**
  * This class encapsulate a {@link ResourceBundle} in UTF-8. It allows to
  * retrieve values associated to an enumeration, and allows some additional
@@ -83,9 +85,24 @@ public class Bundle<E extends Enum<E>> {
 	 * 
 	 * @return TRUE if the setting is set
 	 */
-	public boolean iSet(E id, boolean includeDefaultValue) {
-		if (getString(id.toString(), null) == null) {
-			if (!includeDefaultValue || getString(id) == null) {
+	public boolean isSet(E id, boolean includeDefaultValue) {
+		return isSet(id.name(), includeDefaultValue);
+	}
+
+	/**
+	 * Check if the setting is set into this {@link Bundle}.
+	 * 
+	 * @param id
+	 *            the id of the setting to check
+	 * @param includeDefaultValue
+	 *            TRUE to only return false when the setting is not set AND
+	 *            there is no default value
+	 * 
+	 * @return TRUE if the setting is set
+	 */
+	protected boolean isSet(String name, boolean includeDefaultValue) {
+		if (getString(name, null) == null) {
+			if (!includeDefaultValue || getString(name, "") == null) {
 				return false;
 			}
 		}
@@ -122,8 +139,13 @@ public class Bundle<E extends Enum<E>> {
 	public String getString(E id, String def) {
 		String rep = getString(id.name(), null);
 		if (rep == null) {
-			MetaInfo<E> info = new MetaInfo<E>(type, this, id);
-			rep = info.getDefaultString();
+			try {
+				Meta meta = type.getDeclaredField(id.name()).getAnnotation(
+						Meta.class);
+				rep = meta.def();
+			} catch (NoSuchFieldException e) {
+			} catch (SecurityException e) {
+			}
 		}
 
 		if (rep == null) {
@@ -576,32 +598,36 @@ public class Bundle<E extends Enum<E>> {
 
 		// Default, empty values -> NULL
 		if (desc.length() + list.length + def.length() == 0 && !group
-				&& nullable && format == Meta.Format.STRING) {
+				&& nullable && format == Format.STRING) {
 			return null;
 		}
 
 		StringBuilder builder = new StringBuilder();
-		builder.append("# ").append(desc);
-		if (desc.length() > 20) {
-			builder.append("\n#");
+		for (String line : desc.split("\n")) {
+			builder.append("# ").append(line).append("\n");
 		}
 
 		if (group) {
-			builder.append("This item is used as a group, its content is not expected to be used.");
+			builder.append("# This item is used as a group, its content is not expected to be used.");
 		} else {
-			builder.append(" (FORMAT: ").append(format)
-					.append(nullable ? "" : " (required)");
+			builder.append("# (FORMAT: ").append(format)
+					.append(nullable ? "" : ", required");
 			builder.append(") ");
 
 			if (list.length > 0) {
-				builder.append("\n# ALLOWED VALUES:");
+				builder.append("\n# ALLOWED VALUES: ");
+				boolean first = true;
 				for (String value : list) {
-					builder.append(" \"").append(value).append("\"");
+					if (!first) {
+						builder.append(", ");
+					}
+					builder.append(BundleHelper.escape(value));
+					first = false;
 				}
 			}
 
 			if (array) {
-				builder.append("\n# (This item accept a list of comma-separated values)");
+				builder.append("\n# (This item accepts a list of escaped comma-separated values)");
 			}
 		}
 
@@ -633,8 +659,11 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
-	 * Write the given id to the config file, i.e., "MY_ID = my_curent_value"
-	 * followed by a new line
+	 * Write the given data to the config file, i.e., "MY_ID = my_curent_value"
+	 * followed by a new line.
+	 * <p>
+	 * Will prepend a # sign if the is is not set (see
+	 * {@link Bundle#isSet(Enum, boolean)}).
 	 * 
 	 * @param writer
 	 *            the {@link Writer} to write into
@@ -645,12 +674,15 @@ public class Bundle<E extends Enum<E>> {
 	 *             in case of IO error
 	 */
 	protected void writeValue(Writer writer, E id) throws IOException {
-		writeValue(writer, id.name(), getString(id));
+		boolean set = isSet(id, false);
+		writeValue(writer, id.name(), getString(id), set);
 	}
 
 	/**
 	 * Write the given data to the config file, i.e., "MY_ID = my_curent_value"
-	 * followed by a new line
+	 * followed by a new line.
+	 * <p>
+	 * Will prepend a # sign if the is is not set.
 	 * 
 	 * @param writer
 	 *            the {@link Writer} to write into
@@ -658,12 +690,19 @@ public class Bundle<E extends Enum<E>> {
 	 *            the id to write
 	 * @param value
 	 *            the id's value
+	 * @param set
+	 *            the value is set in this {@link Bundle}
 	 * 
 	 * @throws IOException
 	 *             in case of IO error
 	 */
-	protected void writeValue(Writer writer, String id, String value)
-			throws IOException {
+	protected void writeValue(Writer writer, String id, String value,
+			boolean set) throws IOException {
+
+		if (!set) {
+			writer.write('#');
+		}
+
 		writer.write(id);
 		writer.write(" = ");
 
@@ -717,7 +756,7 @@ public class Bundle<E extends Enum<E>> {
 				File file = getPropertyFile(dir, name.name(), locale);
 				if (file != null) {
 					Reader reader = new InputStreamReader(new FileInputStream(
-							file), "UTF8");
+							file), "UTF-8");
 					resetMap(new PropertyResourceBundle(reader));
 					found = true;
 				}
@@ -748,7 +787,7 @@ public class Bundle<E extends Enum<E>> {
 
 	/**
 	 * Reset the backing map to the content of the given bundle, or with default
-	 * valiues if bundle is NULL.
+	 * values if bundle is NULL.
 	 * 
 	 * @param bundle
 	 *            the bundle to copy

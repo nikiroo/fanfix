@@ -267,19 +267,25 @@ class BundleHelper {
 				char car = str.charAt(i);
 
 				if (prevIsBackSlash) {
+					// We don't process it here
 					builder.append(car);
 					prevIsBackSlash = false;
 				} else {
 					switch (car) {
 					case '"':
+						// We don't process it here
+						builder.append(car);
+
 						if (inQuote) {
-							list.add(builder.toString());
+							list.add(unescape(builder.toString()));
 							builder.setLength(0);
 						}
 
 						inQuote = !inQuote;
 						break;
 					case '\\':
+						// We don't process it here
+						builder.append(car);
 						prevIsBackSlash = true;
 						break;
 					case ' ':
@@ -333,9 +339,83 @@ class BundleHelper {
 			if (builder.length() > 0) {
 				builder.append(", ");
 			}
-			builder.append('"')//
-					.append(item.replace("\\", "\\\\").replace("\"", "\\\""))//
-					.append('"');
+			builder.append(escape(item));
+		}
+
+		return builder.toString();
+	}
+
+	/**
+	 * Escape the given value for list formating (no \\, no \n).
+	 * <p>
+	 * You can unescape it with {@link BundleHelper#unescape(String)}
+	 * 
+	 * @param value
+	 *            the value to escape
+	 * 
+	 * @return an escaped value that can unquoted by the reverse operation
+	 *         {@link BundleHelper#unescape(String)}
+	 */
+	static public String escape(String value) {
+		return '"' + value//
+				.replace("\\", "\\\\") //
+				.replace("\"", "\\\"") //
+				.replace("\n", "\\\n") //
+				.replace("\r", "\\\r") //
+		+ '"';
+	}
+
+	/**
+	 * Unescape the given value for list formating (change \\n into \n and so
+	 * on).
+	 * <p>
+	 * You can escape it with {@link BundleHelper#escape(String)}
+	 * 
+	 * @param value
+	 *            the value to escape
+	 * 
+	 * @return an unescaped value that can reverted by the reverse operation
+	 *         {@link BundleHelper#escape(String)}, or NULL if it was badly
+	 *         formated
+	 */
+	static public String unescape(String value) {
+		if (value.length() < 2 || !value.startsWith("\"")
+				|| !value.endsWith("\"")) {
+			// Bad format
+			return null;
+		}
+
+		value = value.substring(1, value.length() - 2);
+
+		boolean prevIsBackslash = false;
+		StringBuilder builder = new StringBuilder();
+		for (char car : value.toCharArray()) {
+			if (prevIsBackslash) {
+				switch (car) {
+				case 'n':
+				case 'N':
+					builder.append('\n');
+					break;
+				case 'r':
+				case 'R':
+					builder.append('\r');
+					break;
+				default: // includes \ and "
+					builder.append(car);
+					break;
+				}
+			} else {
+				if (car == '\\') {
+					prevIsBackslash = true;
+				} else {
+					builder.append(car);
+				}
+			}
+		}
+
+		if (prevIsBackslash) {
+			// Bad format
+			return null;
 		}
 
 		return builder.toString();

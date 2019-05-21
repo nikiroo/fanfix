@@ -327,7 +327,8 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 		String name = id.name() + "_NOUTF";
 		if (containsKey(name)) {
 			String value = getString(name, null);
-			writeValue(writer, name, value);
+			boolean set = isSet(id, false);
+			writeValue(writer, name, value, set);
 		}
 	}
 
