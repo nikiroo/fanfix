@@ -204,7 +204,7 @@ class BasicSupportHelper {
 	public static String fixAuthor(String author) {
 		if (author != null) {
 			for (String suffix : new String[] { " ", ":" }) {
-				for (String byString : Instance.getConfig().getList(Config.BYS)) {
+				for (String byString : Instance.getConfig().getList(Config.CONF_BYS)) {
 					byString += suffix;
 					if (author.toUpperCase().startsWith(byString.toUpperCase())) {
 						author = author.substring(byString.length()).trim();

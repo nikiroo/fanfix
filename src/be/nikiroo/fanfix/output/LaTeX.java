@@ -66,7 +66,7 @@ class LaTeX extends BasicOutput {
 			author = "\\author{" + latexEncode(meta.getAuthor()) + "}";
 			lang = meta.getLang().toLowerCase();
 			if (lang != null && !lang.isEmpty()) {
-				lang = Instance.getConfig().getStringX(Config.LATEX_LANG, lang);
+				lang = Instance.getConfig().getStringX(Config.CONF_LATEX_LANG, lang);
 				if (lang == null) {
 					System.err.println(Instance.getTrans().getString(
 							StringId.LATEX_LANG_UNKNOWN, lang));

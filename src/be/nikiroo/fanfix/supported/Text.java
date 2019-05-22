@@ -331,8 +331,8 @@ class Text extends BasicSupport {
 	 */
 	static private String detectChapter(String line, int number) {
 		line = line.toUpperCase();
-		for (String lang : Instance.getConfig().getList(Config.CHAPTER)) {
-			String chapter = Instance.getConfig().getStringX(Config.CHAPTER,
+		for (String lang : Instance.getConfig().getList(Config.CONF_CHAPTER)) {
+			String chapter = Instance.getConfig().getStringX(Config.CONF_CHAPTER,
 					lang);
 			if (chapter != null && !chapter.isEmpty()) {
 				chapter = chapter.toUpperCase() + " ";

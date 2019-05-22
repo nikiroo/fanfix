@@ -47,7 +47,7 @@ public class InfoCover {
 				writeMeta(infoWriter, "TYPE", meta.getType());
 				if (meta.getCover() != null) {
 					String format = Instance.getConfig()
-							.getString(Config.IMAGE_FORMAT_COVER).toLowerCase();
+							.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER).toLowerCase();
 					writeMeta(infoWriter, "COVER", targetName + "." + format);
 				} else {
 					writeMeta(infoWriter, "COVER", "");

@@ -93,7 +93,7 @@ public class Instance {
 		createConfigs(configDir, false);
 
 		// Proxy support
-		Proxy.use(Instance.getConfig().getString(Config.USE_PROXY));
+		Proxy.use(Instance.getConfig().getString(Config.NETWORK_PROXY));
 
 		// update tracer:
 		if (debug == null) {
@@ -114,7 +114,7 @@ public class Instance {
 		}
 		Image.setTemporaryFilesRoot(new File(tmp.getParent(), "tmp.images"));
 
-		String ua = config.getString(Config.USER_AGENT, "");
+		String ua = config.getString(Config.NETWORK_USER_AGENT, "");
 		try {
 			int hours = config.getInteger(Config.CACHE_MAX_TIME_CHANGING, 0);
 			int hoursLarge = config.getInteger(Config.CACHE_MAX_TIME_STABLE, 0);
@@ -325,7 +325,7 @@ public class Instance {
 	 */
 	public static boolean isVersionCheckNeeded() {
 		try {
-			long wait = config.getInteger(Config.UPDATE_INTERVAL, 0) * 24 * 60
+			long wait = config.getInteger(Config.NETWORK_UPDATE_INTERVAL, 0) * 24 * 60
 					* 60 * 1000;
 			if (wait >= 0) {
 				String lastUpString = IOUtils.readSmallFile(new File(configDir,

@@ -305,9 +305,9 @@ class Fanfiction extends BasicSupport_Deprecated {
 					if (pos >= 0) {
 						boolean chaptered = false;
 						for (String lang : Instance.getConfig().getList(
-								Config.CHAPTER)) {
+								Config.CONF_CHAPTER)) {
 							String chapterWord = Instance.getConfig()
-									.getStringX(Config.CHAPTER, lang);
+									.getStringX(Config.CONF_CHAPTER, lang);
 							int posChap = line.indexOf(chapterWord + " ");
 							if (posChap < pos) {
 								chaptered = true;

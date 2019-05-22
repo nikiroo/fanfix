@@ -47,8 +47,8 @@ public class LocalLibrary extends BasicLibrary {
 	 */
 	public LocalLibrary(File baseDir) {
 		this(baseDir, Instance.getConfig().getString(
-				Config.NON_IMAGES_DOCUMENT_TYPE), Instance.getConfig()
-				.getString(Config.IMAGES_DOCUMENT_TYPE), false);
+				Config.FILE_FORMAT_NON_IMAGES_DOCUMENT_TYPE), Instance.getConfig()
+				.getString(Config.FILE_FORMAT_IMAGES_DOCUMENT_TYPE), false);
 	}
 
 	/**
@@ -516,7 +516,7 @@ public class LocalLibrary extends BasicLibrary {
 	private File getAuthorCoverFile(String author) {
 		File aDir = new File(baseDir, "_AUTHORS");
 		String hash = StringUtils.getMd5Hash(author);
-		String ext = Instance.getConfig().getString(Config.IMAGE_FORMAT_COVER);
+		String ext = Instance.getConfig().getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER);
 		return new File(aDir, hash + "." + ext.toLowerCase());
 	}
 
@@ -562,7 +562,7 @@ public class LocalLibrary extends BasicLibrary {
 		}
 
 		String coverExt = "."
-				+ Instance.getConfig().getString(Config.IMAGE_FORMAT_COVER)
+				+ Instance.getConfig().getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER)
 						.toLowerCase();
 		File coverFile = new File(path + coverExt);
 		if (!coverFile.exists()) {

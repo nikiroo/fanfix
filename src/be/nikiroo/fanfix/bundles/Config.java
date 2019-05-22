@@ -10,18 +10,32 @@ import be.nikiroo.utils.resources.Meta.Format;
  */
 @SuppressWarnings("javadoc")
 public enum Config {
-	@Meta(description = "The language (example: en-GB, fr-BE...) or nothing for default system language (can be overwritten with the variable $LANG)",//
+	@Meta(description = "The language to use for in the program (example: en-GB, fr-BE...) or nothing for default system language (can be overwritten with the variable $LANG)",//
 	format = Format.LOCALE)
 	LANG, //
 	@Meta(description = "The default reader type to use to read stories:\nCLI = simple output to console\nTUI = a Text User Interface with menus and windows, based upon Jexer\nGUI = a GUI with locally stored files, based upon Swing", //
 	format = Format.FIXED_LIST, list = { "CLI", "GUI", "TUI" }, def = "GUI")
 	READER_TYPE, //
-	@Meta(description = "The type of output for the Local Reader for non-images documents",//
+
+	@Meta(description = "File format options",//
+	group = true)
+	FILE_FORMAT, //
+	@Meta(description = "How to save non-images documents in the library",//
 	format = Format.FIXED_LIST, list = { "INFO_TEXT", "EPUB", "HTML", "TEXT" }, def = "INFO_TEXT")
-	NON_IMAGES_DOCUMENT_TYPE, //
-	@Meta(description = "The type of output for the Local Reader for non-images documents",//
+	FILE_FORMAT_NON_IMAGES_DOCUMENT_TYPE, //
+	@Meta(description = "How to save images documents in the library",//
 	format = Format.FIXED_LIST, list = { "CBZ", "HTML" }, def = "CBZ")
-	IMAGES_DOCUMENT_TYPE, //
+	FILE_FORMAT_IMAGES_DOCUMENT_TYPE, //
+	@Meta(description = "How to save cover images",//
+	format = Format.FIXED_LIST, list = { "PNG", "JPG", "BMP" }, def = "PNG")
+	FILE_FORMAT_IMAGE_FORMAT_COVER, //
+	@Meta(description = "How to save content images",//
+	format = Format.FIXED_LIST, list = { "PNG", "JPG", "BMP" }, def = "JPG")
+	FILE_FORMAT_IMAGE_FORMAT_CONTENT, //
+
+	@Meta(description = "Cache management",//
+	group = true)
+	CACHE, //
 	@Meta(description = "The directory where to store temporary files; any relative path uses the applciation config directory as base, $HOME notation is supported, / is always accepted as directory separator",//
 	format = Format.DIRECTORY, def = "tmp/")
 	CACHE_DIR, //
@@ -31,15 +45,33 @@ public enum Config {
 	@Meta(description = "The delay in hours after which a cached resource that is thought to change rarely is considered too old and triggers a refresh delay (or 0 for no cache, or -1 for infinite time)", //
 	format = Format.INT, def = "720")
 	CACHE_MAX_TIME_STABLE, //
-	@Meta(description = "The user-agent to use to download files",//
-	def = "Mozilla/5.0 (X11; Linux x86_64; rv:44.0) Gecko/20100101 Firefox/44.0 -- ELinks/0.9.3 (Linux 2.6.11 i686; 80x24) -- Fanfix (https://github.com/nikiroo/fanfix/)")
-	USER_AGENT, //
+
 	@Meta(description = "The directory where to get the default story covers; any relative path uses the applciation config directory as base, $HOME notation is supported, / is always accepted as directory separator",//
 	format = Format.DIRECTORY, def = "covers/")
 	DEFAULT_COVERS_DIR, //
+	@Meta(description = "The directory where to store the library (can be overriden by the envvironment variable \"BOOKS_DIR\"; any relative path uses the applciation config directory as base, $HOME notation is supported, / is always accepted as directory separator",//
+	format = Format.DIRECTORY, def = "$HOME/Books/")
+	LIBRARY_DIR, //
 	@Meta(description = "The default library to use (KEY:SERVER:PORT), or empty for the local library",//
 	format = Format.STRING, def = "")
 	DEFAULT_LIBRARY, //
+
+	@Meta(description = "Network configuration",//
+	group = true)
+	NETWORK, //
+	@Meta(description = "The user-agent to use to download files",//
+	def = "Mozilla/5.0 (X11; Linux x86_64; rv:44.0) Gecko/20100101 Firefox/44.0 -- ELinks/0.9.3 (Linux 2.6.11 i686; 80x24) -- Fanfix (https://github.com/nikiroo/fanfix/)")
+	NETWORK_USER_AGENT, //
+	@Meta(description = "The proxy server to use under the format 'user:pass@proxy:port', 'user@proxy:port', 'proxy:port' or ':' alone (system proxy); an empty String means no proxy",//
+	format = Format.STRING, def = "")
+	NETWORK_PROXY, //
+	@Meta(description = "If the last update check was done at least that many days ago, check for updates at startup (-1 for 'no checks')", //
+	format = Format.INT, def = "1")
+	NETWORK_UPDATE_INTERVAL, //
+
+	@Meta(description = "Remote Server configuration\nNote that the key is structured: \"KEY|SUBKEY|wl|rw\"\n- \"KEY\" is the actual encryption key (it can actually be empty, which will still encrypt the messages but of course it will be easier to guess the key)\n- \"SUBKEY\" is the (optional) subkey to use to get additional privileges\n- \"wl\" is a special privilege that allows that subkey to ignore white lists\n- \"rw\" is a special privilege that allows that subkey to modify the library, even if it is not in RW (by default) mode\n\nSome examples:\n- \"super-secret\": a normal key, no special privileges\n- \"you-will-not-guess|azOpd8|wl\": a white-list ignoring key\n- \"new-password|subpass|rw\": a key that allows modifications on the library",//
+	group = true)
+	SERVER, //
 	@Meta(description = "The port on which we can start the server (must be a valid port, from 1 to 65535)", //
 	format = Format.INT, def = "58365")
 	SERVER_PORT, //
@@ -52,56 +84,55 @@ public enum Config {
 	@Meta(description = "If not empty, only the EXACT listed sources will be available for clients without BL subkeys",//
 	array = true, format = Format.STRING, def = "")
 	SERVER_WHITELIST, //
-	@Meta(description = "The subkeys that the server will allow, including the modes", //
+	@Meta(description = "The subkeys that the server will allow, including the modes\nA subkey ", //
 	array = true, format = Format.STRING, def = "")
 	SERVER_ALLOWED_SUBKEYS, //
-	@Meta(description = "The directory where to store the library (can be overriden by the envvironment variable \"BOOKS_DIR\"; any relative path uses the applciation config directory as base, $HOME notation is supported, / is always accepted as directory separator",//
-	format = Format.DIRECTORY, def = "$HOME/Books/")
-	LIBRARY_DIR, //
+
+	@Meta(description = "DEBUG options",//
+	group = true)
+	DEBUG, //
 	@Meta(description = "Show debug information on errors",//
 	format = Format.BOOLEAN, def = "false")
 	DEBUG_ERR, //
 	@Meta(description = "Show debug trace information",//
 	format = Format.BOOLEAN, def = "false")
 	DEBUG_TRACE, //
-	@Meta(description = "Image format to use for cover images",//
-	format = Format.FIXED_LIST, list = { "PNG", "JPG", "BMP" }, def = "PNG")
-	IMAGE_FORMAT_COVER, //
-	@Meta(description = "Image format to use for content images",//
-	format = Format.FIXED_LIST, list = { "PNG", "JPG", "BMP" }, def = "jpg")
-	IMAGE_FORMAT_CONTENT, //
-	@Meta(group = true)
-	LATEX_LANG, //
+
+	@Meta(description = "Internal configuration\nThose options are internal to the program and should probably not be changed",//
+	group = true)
+	CONF, //
+	@Meta(description = "LaTeX configuration",//
+	group = true)
+	CONF_LATEX_LANG, //
 	@Meta(description = "LaTeX output language (full name) for \"English\"",//
 	format = Format.STRING, def = "english")
-	LATEX_LANG_EN, //
+	CONF_LATEX_LANG_EN, //
 	@Meta(description = "LaTeX output language (full name) for \"French\"",//
 	format = Format.STRING, def = "french")
-	LATEX_LANG_FR, //
+	CONF_LATEX_LANG_FR, //
 	@Meta(description = "other 'by' prefixes before author name, used to identify the author",//
 	array = true, format = Format.STRING, def = "\"by\",\"par\",\"de\",\"©\",\"(c)\"")
-	BYS, //
+	CONF_BYS, //
 	@Meta(description = "List of languages codes used for chapter identification (should not be changed)", //
 	array = true, format = Format.STRING, def = "\"EN\",\"FR\"")
-	CHAPTER, //
+	CONF_CHAPTER, //
 	@Meta(description = "Chapter identification string in English, used to identify a starting chapter in text mode",//
 	format = Format.STRING, def = "Chapter")
-	CHAPTER_EN, //
+	CONF_CHAPTER_EN, //
 	@Meta(description = "Chapter identification string in French, used to identify a starting chapter in text mode",//
 	format = Format.STRING, def = "Chapitre")
-	CHAPTER_FR, //
-	@Meta(description = "Login for YiffStar to have access to all the stories (should not be necessary anymore, but can still be used)",//
+	CONF_CHAPTER_FR, //
+
+	@Meta(description = "YiffStar/SoFurry credentials\nYou can give your YiffStar credentials here to have access to all the stories, though it should not be necessary anymore (some stories used to beblocked for anonymous viewers)",//
+	group = true)
+	LOGIN_YIFFSTAR, //
+	@Meta(description = "Your YiffStar/SoFurry login",//
 	format = Format.STRING)
 	LOGIN_YIFFSTAR_USER, //
-	@Meta(description = "Password for YiffStar to have access to all the stories (should not be necessary anymore, but can still be used)",//
+	@Meta(description = "Your YiffStar/SoFurry password",//
 	format = Format.PASSWORD)
 	LOGIN_YIFFSTAR_PASS, //
-	@Meta(description = "If the last update check was done at least that many days ago, check for updates at startup (-1 for 'no checks')", //
-	format = Format.INT, def = "1")
-	UPDATE_INTERVAL, //
-	@Meta(description = "The proxy server to use under the format 'user:pass@proxy:port', 'user@proxy:port', 'proxy:port' or ':' alone (system proxy); an empty String means no proxy",//
-	format = Format.STRING, def = "")
-	USE_PROXY, //
+
 	@Meta(description = "FimFiction APIKEY credentials\nFimFiction can be queried via an API, but requires an API key to do that. One has been created for this program, but if you have another API key you can set it here. You can also set a login and password instead, in that case, a new API key will be generated (and stored) if you still haven't set one.",//
 	group = true)
 	LOGIN_FIMFICTION_APIKEY, //

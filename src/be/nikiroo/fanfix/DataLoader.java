@@ -278,11 +278,11 @@ public class DataLoader {
 			throws IOException {
 		String format;
 		if (cover) {
-			format = Instance.getConfig().getString(Config.IMAGE_FORMAT_COVER)
+			format = Instance.getConfig().getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER)
 					.toLowerCase();
 		} else {
 			format = Instance.getConfig()
-					.getString(Config.IMAGE_FORMAT_CONTENT).toLowerCase();
+					.getString(Config.FILE_FORMAT_IMAGE_FORMAT_CONTENT).toLowerCase();
 		}
 		saveAsImage(img, new File(target.toString() + "." + format), format);
 	}

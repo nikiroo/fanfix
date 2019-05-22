@@ -437,7 +437,7 @@ class Epub extends BasicOutput {
 
 		if (story.getMeta() != null && story.getMeta().getCover() != null) {
 			String format = Instance.getConfig()
-					.getString(Config.IMAGE_FORMAT_COVER).toLowerCase();
+					.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER).toLowerCase();
 			builder.append("\n      <item id=\"cover\" href=\"images/cover."
 					+ format + "\" media-type=\"image/png\"/>");
 		}
@@ -483,7 +483,7 @@ class Epub extends BasicOutput {
 		}
 
 		String format = Instance.getConfig()
-				.getString(Config.IMAGE_FORMAT_COVER).toLowerCase();
+				.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER).toLowerCase();
 
 		builder.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
 		builder.append("\n<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" \"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">");

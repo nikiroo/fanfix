@@ -92,7 +92,7 @@ class Html extends BasicOutput {
 		}
 
 		String format = Instance.getConfig()
-				.getString(Config.IMAGE_FORMAT_COVER).toLowerCase();
+				.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER).toLowerCase();
 
 		InputStream inStyle = getClass().getResourceAsStream("html.style.css");
 		if (inStyle == null) {

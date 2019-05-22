@@ -68,9 +68,9 @@ class BasicSupportPara {
 		// "Chapter 5: - Fun!" after the ": " was automatically added)
 		String chapterName = BasicSupportPara.processPara(name, false)
 				.getContent().trim();
-		for (String lang : Instance.getConfig().getList(Config.CHAPTER)) {
+		for (String lang : Instance.getConfig().getList(Config.CONF_CHAPTER)) {
 			String chapterWord = Instance.getConfig().getStringX(
-					Config.CHAPTER, lang);
+					Config.CONF_CHAPTER, lang);
 			if (chapterName.startsWith(chapterWord)) {
 				chapterName = chapterName.substring(chapterWord.length())
 						.trim();
