@@ -404,7 +404,12 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	 * saved will be used.
 	 */
 	public void reload() {
-		value = bundle.getString(id);
+		if (bundle.isSet(id, false)) {
+			value = bundle.getString(id);
+		} else {
+			value = null;
+		}
+
 		for (Runnable listener : reloadedListeners) {
 			try {
 				listener.run();

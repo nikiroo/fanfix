@@ -114,6 +114,7 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 			String info = item.getDescription();
 			info = StringUtils.justifyTexts(info, 100);
 			if (!info.isEmpty()) {
+				info = info + "\n";
 				JTextArea text = new JTextArea(info);
 				text.setWrapStyleWord(true);
 				text.setOpaque(false);

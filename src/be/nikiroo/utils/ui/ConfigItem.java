@@ -63,6 +63,9 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			+ "LRIVuX1x7ciuSWQxVIrunONrfq3dI6oh+T94Z8453vEem/HTqT8ZpFJ0qDXtGkPbAGAMeSRngQCA"
 			+ "eUvgn195AwlZWyvjtQdhAAAAAElFTkSuQmCC";
 
+	/** The original value before current changes. */
+	private Object orig;
+
 	/**
 	 * Create a new {@link ConfigItem} for the given {@link MetaInfo}.
 	 * 
@@ -116,21 +119,49 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 		}
 	}
 
+	private void reload(Object value) {
+		// We consider "" and NULL to be equals
+		if ("".equals(value)) {
+			value = null;
+		}
+		orig = value;
+	}
+
+	private boolean isChanged(Object newValue) {
+		// We consider "" and NULL to be equals
+		if ("".equals(newValue)) {
+			newValue = null;
+		}
+
+		if (newValue == null) {
+			return orig != null;
+		}
+
+		return !newValue.equals(orig);
+	}
+
 	private void addStringField(final MetaInfo<E> info, int nhgap) {
 		final JTextField field = new JTextField();
 		field.setToolTipText(info.getDescription());
-		field.setText(info.getString(false));
+		String value = info.getString(false);
+		reload(value);
+		field.setText(value);
 
 		info.addReloadedListener(new Runnable() {
 			@Override
 			public void run() {
-				field.setText(info.getString(false));
+				String value = info.getString(false);
+				reload(value);
+				field.setText(value);
 			}
 		});
 		info.addSaveListener(new Runnable() {
 			@Override
 			public void run() {
-				info.setString(field.getText());
+				String value = field.getText();
+				if (isChanged(value)) {
+					info.setString(value);
+				}
 			}
 		});
 
@@ -153,6 +184,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			state = false;
 		}
 
+		reload(state);
 		field.setSelected(state);
 
 		info.addReloadedListener(new Runnable() {
@@ -163,13 +195,17 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 					state = false;
 				}
 
+				reload(state);
 				field.setSelected(state);
 			}
 		});
 		info.addSaveListener(new Runnable() {
 			@Override
 			public void run() {
-				info.setBoolean(field.isSelected());
+				boolean state = field.isSelected();
+				if (isChanged(state)) {
+					info.setBoolean(state);
+				}
 			}
 		});
 
@@ -182,18 +218,25 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	private void addColorField(final MetaInfo<E> info, int nhgap) {
 		final JTextField field = new JTextField();
 		field.setToolTipText(info.getDescription());
-		field.setText(info.getString(false));
+		String value = info.getString(false);
+		reload(value);
+		field.setText(value);
 
 		info.addReloadedListener(new Runnable() {
 			@Override
 			public void run() {
-				field.setText(info.getString(false));
+				String value = info.getString(false);
+				reload(value);
+				field.setText(value);
 			}
 		});
 		info.addSaveListener(new Runnable() {
 			@Override
 			public void run() {
-				info.setString(field.getText());
+				String value = field.getText();
+				if (isChanged(value)) {
+					info.setString(value);
+				}
 			}
 		});
 
@@ -205,7 +248,11 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 		colorWheel.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Color initialColor = new Color(info.getColor(true), true);
+				Integer icol = info.getColor(true);
+				if (icol == null) {
+					icol = new Color(255, 255, 255, 255).getRGB();
+				}
+				Color initialColor = new Color(icol, true);
 				Color newColor = JColorChooser.showDialog(ConfigItem.this,
 						info.getName(), initialColor);
 				if (newColor != null) {
@@ -226,18 +273,25 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			final boolean dir) {
 		final JTextField field = new JTextField();
 		field.setToolTipText(info.getDescription());
-		field.setText(info.getString(false));
+		String value = info.getString(false);
+		reload(value);
+		field.setText(value);
 
 		info.addReloadedListener(new Runnable() {
 			@Override
 			public void run() {
-				field.setText(info.getString(false));
+				String value = info.getString(false);
+				reload(value);
+				field.setText(value);
 			}
 		});
 		info.addSaveListener(new Runnable() {
 			@Override
 			public void run() {
-				info.setString(field.getText());
+				String value = field.getText();
+				if (isChanged(value)) {
+					info.setString(value);
+				}
 			}
 		});
 
@@ -252,8 +306,11 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 				if (chooser.showOpenDialog(ConfigItem.this) == JFileChooser.APPROVE_OPTION) {
 					File file = chooser.getSelectedFile();
 					if (file != null) {
-						info.setString(file.getAbsolutePath());
-						field.setText(info.getString(false));
+						String value = file.getAbsolutePath();
+						if (isChanged(value)) {
+							info.setString(value);
+						}
+						field.setText(value);
 					}
 				}
 			}
@@ -274,18 +331,25 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		final JComboBox field = new JComboBox(info.getAllowedValues());
 		field.setEditable(editable);
-		field.setSelectedItem(info.getString(false));
+		String value = info.getString(false);
+		reload(value);
+		field.setSelectedItem(value);
 
 		info.addReloadedListener(new Runnable() {
 			@Override
 			public void run() {
-				field.setSelectedItem(info.getString(false));
+				String value = info.getString(false);
+				reload(value);
+				field.setSelectedItem(value);
 			}
 		});
 		info.addSaveListener(new Runnable() {
 			@Override
 			public void run() {
-				info.setString(field.getSelectedItem().toString());
+				String value = field.getSelectedItem().toString();
+				if (isChanged(value)) {
+					info.setString(value);
+				}
 			}
 		});
 
@@ -298,18 +362,25 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	private void addPasswordField(final MetaInfo<E> info, int nhgap) {
 		final JPasswordField field = new JPasswordField();
 		field.setToolTipText(info.getDescription());
-		field.setText(info.getString(true));
+		String value = info.getString(false);
+		reload(value);
+		field.setText(value);
 
 		info.addReloadedListener(new Runnable() {
 			@Override
 			public void run() {
-				field.setText(info.getString(false));
+				String value = info.getString(false);
+				reload(value);
+				field.setText(value);
 			}
 		});
 		info.addSaveListener(new Runnable() {
 			@Override
 			public void run() {
-				info.setString(new String(field.getPassword()));
+				String value = new String(field.getPassword());
+				if (isChanged(value)) {
+					info.setString(value);
+				}
 			}
 		});
 
@@ -322,23 +393,26 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	private void addIntField(final MetaInfo<E> info, int nhgap) {
 		final JSpinner field = new JSpinner();
 		field.setToolTipText(info.getDescription());
-		field.setValue(info.getInteger(true) == null ? 0 : info
-				.getInteger(true));
+		int value = info.getInteger(true) == null ? 0 : info.getInteger(true);
+		reload(value);
+		field.setValue(value);
 
 		info.addReloadedListener(new Runnable() {
 			@Override
 			public void run() {
-				field.setValue(info.getInteger(true) == null ? 0 : info
-						.getInteger(true));
+				int value = info.getInteger(true) == null ? 0 : info
+						.getInteger(true);
+				reload(value);
+				field.setValue(value);
 			}
 		});
 		info.addSaveListener(new Runnable() {
 			@Override
 			public void run() {
-				info.setInteger((Integer) field.getValue());
-				Integer value = info.getInteger(false);
-				if (value == null) {
-					field.setValue(0);
+				int value = field.getValue() == null ? 0 : (Integer) field
+						.getValue();
+				if (isChanged(value)) {
+					info.setInteger(value);
 				}
 			}
 		});
@@ -442,11 +516,17 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	 * @param size
 	 *            the size of the badge
 	 * @param color
-	 *            the colour of the badge
+	 *            the colour of the badge, which can be NULL (will return
+	 *            transparent white)
 	 * 
 	 * @return the badge
 	 */
-	private Icon getIcon(int size, int color) {
+	private Icon getIcon(int size, Integer color) {
+		// Allow null values
+		if (color == null) {
+			color = new Color(255, 255, 255, 255).getRGB();
+		}
+
 		Color c = new Color(color, true);
 		int avg = (c.getRed() + c.getGreen() + c.getBlue()) / 3;
 		Color border = (avg >= 128 ? Color.BLACK : Color.WHITE);
