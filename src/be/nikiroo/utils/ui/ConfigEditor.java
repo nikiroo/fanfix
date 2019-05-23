@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BoxLayout;
@@ -57,11 +58,13 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 
 		main.setLayout(new BoxLayout(main, BoxLayout.PAGE_AXIS));
 		main.setBorder(new EmptyBorder(5, 5, 5, 5));
-		
+
 		main.add(new JLabel(title));
 
-		items = MetaInfo.getItems(type, bundle);
-		for (MetaInfo<E> item : items) {
+		items = new ArrayList<MetaInfo<E>>();
+		List<MetaInfo<E>> groupedItems = MetaInfo.getItems(type, bundle);
+		for (MetaInfo<E> item : groupedItems) {
+			// will init this.items
 			addItem(main, item, 0);
 		}
 
@@ -129,6 +132,7 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 			bpane.add(pane, BorderLayout.CENTER);
 			main.add(bpane);
 		} else {
+			items.add(item);
 			main.add(new ConfigItem<E>(item, nhgap));
 		}
 	}

@@ -348,7 +348,8 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 		info.addSaveListener(new Runnable() {
 			@Override
 			public void run() {
-				String value = field.getSelectedItem().toString();
+				Object item = field.getSelectedItem();
+				String value = item == null ? null : item.toString();
 				if (isChanged(value)) {
 					info.setString(value);
 				}
