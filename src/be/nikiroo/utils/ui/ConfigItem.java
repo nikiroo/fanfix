@@ -51,6 +51,8 @@ import be.nikiroo.utils.resources.MetaInfo;
 public class ConfigItem<E extends Enum<E>> extends JPanel {
 	private static final long serialVersionUID = 1L;
 
+	private static int minimumHeight = -1;
+
 	/** A small (?) blue in PNG, base64 encoded. */
 	private static String infoImage64 = //
 	""
@@ -444,6 +446,8 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			ps = label.getSize();
 		}
 
+		ps.height = Math.max(ps.height, getMinimumHeight());
+
 		int w = ps.width;
 		int step = 150;
 		for (int i = 2 * step - nhgap; i < 10 * step; i += step) {
@@ -498,13 +502,16 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 		pane2.add(help, BorderLayout.WEST);
 		pane2.add(new JLabel(" "), BorderLayout.CENTER);
 
-		JPanel pane = new JPanel(new BorderLayout());
-		pane.add(label, BorderLayout.WEST);
-		pane.add(pane2, BorderLayout.CENTER);
+		JPanel contentPane = new JPanel(new BorderLayout());
+		contentPane.add(label, BorderLayout.WEST);
+		contentPane.add(pane2, BorderLayout.CENTER);
 
 		ps.width = w + 30; // 30 for the (?) sign
-		pane.setSize(ps);
-		pane.setPreferredSize(ps);
+		contentPane.setSize(ps);
+		contentPane.setPreferredSize(ps);
+
+		JPanel pane = new JPanel(new BorderLayout());
+		pane.add(contentPane, BorderLayout.NORTH);
 
 		return pane;
 	}
@@ -548,9 +555,16 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	}
 
 	private void setPreferredSize(JComponent field) {
-		JTextField a = new JTextField("Test");
-		int height = Math.max(a.getMinimumSize().height,
-				field.getMinimumSize().height);
+		int height = Math
+				.max(getMinimumHeight(), field.getMinimumSize().height);
 		setPreferredSize(new Dimension(200, height));
+	}
+
+	static private int getMinimumHeight() {
+		if (minimumHeight < 0) {
+			minimumHeight = new JTextField("Test").getMinimumSize().height;
+		}
+
+		return minimumHeight;
 	}
 }
