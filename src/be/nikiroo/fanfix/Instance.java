@@ -40,6 +40,8 @@ public class Instance {
 	private static TraceHandler tracer;
 	private static TempFiles tempFiles;
 
+	private static File cacheDir;
+
 	static {
 		// Before we can configure it:
 		tracer = new TraceHandler(true, checkEnv("DEBUG"), checkEnv("DEBUG"));
@@ -71,17 +73,17 @@ public class Instance {
 		lib = createDefaultLibrary(remoteDir);
 
 		// create cache
-		File tmp = getFile(Config.CACHE_DIR);
-		if (tmp == null) {
+		cacheDir = getFile(Config.CACHE_DIR);
+		if (cacheDir == null) {
 			// Could have used: System.getProperty("java.io.tmpdir")
-			tmp = new File(configDir, "tmp");
+			cacheDir = new File(configDir, "tmp");
 		}
 		String ua = config.getString(Config.USER_AGENT);
 		try {
 			int hours = config.getInteger(Config.CACHE_MAX_TIME_CHANGING, -1);
 			int hoursLarge = config
 					.getInteger(Config.CACHE_MAX_TIME_STABLE, -1);
-			cache = new DataLoader(tmp, ua, hours, hoursLarge);
+			cache = new DataLoader(cacheDir, ua, hours, hoursLarge);
 		} catch (IOException e) {
 			tracer.error(new IOException(
 					"Cannot create cache (will continue without cache)", e));
@@ -336,6 +338,14 @@ public class Instance {
 	 */
 	public static TempFiles getTempFiles() {
 		return tempFiles;
+	}
+
+	/**
+	 * Delete all the cache files, can be very long...
+	 */
+	public static void PATCH_emptyCache() {
+		IOUtils.deltree(cacheDir);
+		cacheDir.mkdirs();
 	}
 
 	/**
