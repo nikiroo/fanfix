@@ -16,6 +16,10 @@
 - runtime: serial: SSL -> CryptUtils (both are **runtime** incompatible and CryptUtils is slower)
 - runtime: break **runtime** compat with package utils.serial (Objects) -- ServerString should still be compatible (if not SSL obviously)
 
+## Version 4.7.3
+
+- fix: Downloader: POST and 302 redirects
+
 ## Version 4.7.2
 
 - fix: Downloader issue with caching (input was spent when returned the first time)
