@@ -325,8 +325,8 @@ public class Instance {
 	 */
 	public static boolean isVersionCheckNeeded() {
 		try {
-			long wait = config.getInteger(Config.NETWORK_UPDATE_INTERVAL, 0) * 24 * 60
-					* 60 * 1000;
+			long wait = config.getInteger(Config.NETWORK_UPDATE_INTERVAL, 0)
+					* 24 * 60 * 60 * 1000;
 			if (wait >= 0) {
 				String lastUpString = IOUtils.readSmallFile(new File(configDir,
 						"LAST_UPDATE"));
@@ -370,18 +370,14 @@ public class Instance {
 	}
 
 	/**
-	 * The configuration directory (will check, in order of preference,
-	 * {@link Bundles#getDirectory()}, the system properties, the environment
-	 * and then defaults to $HOME/.fanfix).
+	 * The configuration directory (will check, in order of preference, the
+	 * system properties, the environment and then defaults to
+	 * {@link Instance#getHome()}/.fanfix).
 	 * 
 	 * @return the config directory
 	 */
 	private static String getConfigDir() {
-		String configDir = Bundles.getDirectory();
-
-		if (configDir == null) {
-			configDir = System.getProperty("CONFIG_DIR");
-		}
+		String configDir = System.getProperty("CONFIG_DIR");
 
 		if (configDir == null) {
 			configDir = System.getenv("CONFIG_DIR");
@@ -460,6 +456,9 @@ public class Instance {
 			String libDir = System.getenv("BOOKS_DIR");
 			if (libDir == null || libDir.isEmpty()) {
 				libDir = config.getString(Config.LIBRARY_DIR, "$HOME/Books");
+				if (!getFile(libDir).isAbsolute()) {
+					libDir = new File(configDir, libDir).getPath();
+				}
 			}
 			try {
 				lib = new LocalLibrary(getFile(libDir));
