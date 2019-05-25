@@ -58,11 +58,10 @@ public class Downloader {
 	public Downloader(String UA, Cache cache) {
 		this.UA = UA;
 
-		cookies = new CookieManager();
-		cookies.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+		cookies = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
 		CookieHandler.setDefault(cookies);
 
-		this.cache = cache;
+		setCache(cache);
 	}
 
 	/**
@@ -266,9 +265,9 @@ public class Downloader {
 			params = postParams;
 		}
 
+		StringBuilder requestData = null;
 		if ((params != null || oauth != null)
 				&& conn instanceof HttpURLConnection) {
-			StringBuilder requestData = null;
 			if (params != null) {
 				requestData = new StringBuilder();
 				for (Map.Entry<String, String> param : params.entrySet()) {
@@ -281,14 +280,14 @@ public class Downloader {
 							String.valueOf(param.getValue()), "UTF-8"));
 				}
 
-				conn.setDoOutput(true);
-
 				if (getParams == null && postParams != null) {
 					((HttpURLConnection) conn).setRequestMethod("POST");
 				}
 
 				conn.setRequestProperty("Content-Type",
 						"application/x-www-form-urlencoded");
+				conn.setRequestProperty("Content-Length",
+						Integer.toString(requestData.length()));
 				conn.setRequestProperty("charset", "utf-8");
 			}
 
@@ -297,22 +296,27 @@ public class Downloader {
 			}
 
 			if (requestData != null) {
-				OutputStreamWriter writer = null;
+				conn.setDoOutput(true);
+				OutputStreamWriter writer = new OutputStreamWriter(
+						conn.getOutputStream());
 				try {
-					writer = new OutputStreamWriter(conn.getOutputStream());
 					writer.write(requestData.toString());
 					writer.flush();
 				} finally {
-					if (writer != null) {
-						writer.close();
-					}
+					writer.close();
 				}
 			}
+		}
+
+		// Manual redirection, much better for POST data
+		if (conn instanceof HttpURLConnection) {
+			((HttpURLConnection) conn).setInstanceFollowRedirects(false);
 		}
 
 		conn.connect();
 
 		// Check if redirect
+		// BEWARE! POST data cannot be redirected, so it is ignored here
 		if (conn instanceof HttpURLConnection) {
 			int repCode = 0;
 			try {
@@ -324,7 +328,7 @@ public class Downloader {
 			if (repCode / 100 == 3) {
 				String newUrl = conn.getHeaderField("Location");
 				return open(new URL(newUrl), originalUrl, currentReferer,
-						cookiesValues, postParams, getParams, oauth, stable);
+						cookiesValues, null, getParams, oauth, stable);
 			}
 		}
 
@@ -369,9 +373,15 @@ public class Downloader {
 			throws IOException {
 		URLConnection conn = url.openConnection();
 
+		String cookies = generateCookies(cookiesValues);
+		if (cookies != null && !cookies.isEmpty()) {
+			conn.setRequestProperty("Cookie", cookies);
+		}
+
 		conn.setRequestProperty("User-Agent", UA);
-		conn.setRequestProperty("Cookie", generateCookies(cookiesValues));
 		conn.setRequestProperty("Accept-Encoding", "gzip");
+		conn.setRequestProperty("Accept", "*/*");
+
 		if (currentReferer != null) {
 			conn.setRequestProperty("Referer", currentReferer.toString());
 			conn.setRequestProperty("Host", currentReferer.getHost());
