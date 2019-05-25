@@ -136,8 +136,12 @@ class Epub extends BasicOutput {
 		// OPS/images
 		if (story.getMeta() != null && story.getMeta().getCover() != null) {
 			File file = new File(images, "cover");
-			Instance.getCache().saveAsImage(story.getMeta().getCover(), file,
-					true);
+			try {
+				Instance.getCache().saveAsImage(story.getMeta().getCover(),
+						file, true);
+			} catch (Exception e) {
+				Instance.getTraceHandler().error(e);
+			}
 		}
 
 		// OPS/* except chapters
@@ -437,7 +441,8 @@ class Epub extends BasicOutput {
 
 		if (story.getMeta() != null && story.getMeta().getCover() != null) {
 			String format = Instance.getConfig()
-					.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER).toLowerCase();
+					.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER)
+					.toLowerCase();
 			builder.append("\n      <item id=\"cover\" href=\"images/cover."
 					+ format + "\" media-type=\"image/png\"/>");
 		}
