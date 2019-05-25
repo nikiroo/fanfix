@@ -385,7 +385,7 @@ class BundleHelper {
 			return null;
 		}
 
-		value = value.substring(1, value.length() - 2);
+		value = value.substring(1, value.length() - 1);
 
 		boolean prevIsBackslash = false;
 		StringBuilder builder = new StringBuilder();
