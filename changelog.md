@@ -1,5 +1,9 @@
 # Fanfix
 
+# Version 2.0.3
+
+- SoFurry: fix download registred users stories
+
 # Version 2.0.2
 
 - i18n: setting the language in the option panel now works even with $LANG set
