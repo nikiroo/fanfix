@@ -76,9 +76,19 @@ public class ImageUtilsAndroid extends ImageUtils {
 		try {
 			Bitmap image = BitmapFactory.decodeStream(stream);
 			if (image == null) {
+				String extra = "";
+				if (img.getSize() <= 1024) {
+					try {
+						extra = ", content: "
+								+ new String(img.getData(), "UTF-8");
+					} catch (Exception e) {
+						extra = ", content unavailable";
+					}
+				}
 				String ssize = StringUtils.formatNumber(img.getSize());
 				throw new IOException(
-						"Failed to convert input to image, size was: " + ssize);
+						"Failed to convert input to image, size was: " + ssize
+								+ extra);
 			}
 
 			return image;

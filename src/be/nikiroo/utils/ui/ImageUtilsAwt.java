@@ -11,6 +11,7 @@ import javax.imageio.ImageIO;
 
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.ImageUtils;
+import be.nikiroo.utils.StringUtils;
 
 /**
  * This class offer some utilities based around images and uses java.awt.
@@ -98,7 +99,19 @@ public class ImageUtilsAwt extends ImageUtils {
 			}
 
 			if (image == null) {
-				throw new IOException("Failed to convert input to image");
+				String extra = "";
+				if (img.getSize() <= 1024) {
+					try {
+						extra = ", content: "
+								+ new String(img.getData(), "UTF-8");
+					} catch (Exception e) {
+						extra = ", content unavailable";
+					}
+				}
+				String ssize = StringUtils.formatNumber(img.getSize());
+				throw new IOException(
+						"Failed to convert input to image, size was: " + ssize
+								+ extra);
 			}
 
 			// Note: this code has been found on Internet;
