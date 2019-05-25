@@ -78,7 +78,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 */
 	public GuiReaderFrame(GuiReader reader, String type) {
 		super(getAppTitle(reader.getLibrary().getLibraryName()));
-		
+
 		this.reader = reader;
 
 		mainPanel = new GuiReaderMainPanel(this, type);
@@ -421,7 +421,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 					fc.showDialog(GuiReaderFrame.this,
 							GuiReader.trans(StringIdGui.TITLE_SAVE));
 					if (fc.getSelectedFile() != null) {
-						final OutputType type = otherFilters.get(fc.getFileFilter());
+						final OutputType type = otherFilters.get(fc
+								.getFileFilter());
 						final String path = fc.getSelectedFile()
 								.getAbsolutePath()
 								+ type.getDefaultExtension(false);
@@ -481,22 +482,39 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 		refresh.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				if (JOptionPane
+						.showConfirmDialog(
+								GuiReaderFrame.this,
+								"Delete the disk cache?\n(This operation can be very long!)",
+								"Cache", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+					try {
+						Instance.PATCH_emptyCache();
+					} catch (Exception err) {
+						Instance.getTraceHandler().error(err);
+					}
+				}
+
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
 					mainPanel.outOfUi(null, false, new Runnable() {
 						@Override
 						public void run() {
-							reader.clearLocalReaderCache(selectedBook.getInfo()
-									.getMeta().getLuid());
-							selectedBook.setCached(false);
-							GuiReaderCoverImager.clearIcon(selectedBook
-									.getInfo());
-							SwingUtilities.invokeLater(new Runnable() {
-								@Override
-								public void run() {
-									selectedBook.repaint();
+							GuiReaderBookInfo info = selectedBook.getInfo();
+							if (info != null) {
+								MetaData meta = info.getMeta();
+								if (meta != null) {
+									reader.clearLocalReaderCache(meta.getLuid());
+									selectedBook.setCached(false);
+									GuiReaderCoverImager.clearIcon(selectedBook
+											.getInfo());
+									SwingUtilities.invokeLater(new Runnable() {
+										@Override
+										public void run() {
+											selectedBook.repaint();
+										}
+									});
 								}
-							});
+							}
 						}
 					});
 				}
@@ -718,21 +736,16 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
 					final MetaData meta = selectedBook.getInfo().getMeta();
-					mainPanel.imprt(
-							meta.getUrl(),
-							new StoryRunnable() {
-								@Override
-								public void run(Story story) {
-									MetaData newMeta = story.getMeta();
-									if (!newMeta.getSource().equals(
-											meta.getSource())) {
-										reader.changeSource(newMeta.getLuid(),
-												meta.getSource());
-									}
-								}
-							},
-							GuiReader
-									.trans(StringIdGui.PROGRESS_CHANGE_SOURCE));
+					mainPanel.imprt(meta.getUrl(), new StoryRunnable() {
+						@Override
+						public void run(Story story) {
+							MetaData newMeta = story.getMeta();
+							if (!newMeta.getSource().equals(meta.getSource())) {
+								reader.changeSource(newMeta.getLuid(),
+										meta.getSource());
+							}
+						}
+					}, GuiReader.trans(StringIdGui.PROGRESS_CHANGE_SOURCE));
 				}
 			}
 		});
