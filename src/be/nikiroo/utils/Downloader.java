@@ -1,5 +1,6 @@
 package be.nikiroo.utils;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -288,7 +289,6 @@ public class Downloader {
 						"application/x-www-form-urlencoded");
 				conn.setRequestProperty("Content-Length",
 						Integer.toString(requestData.length()));
-				conn.setRequestProperty("charset", "utf-8");
 			}
 
 			if (oauth != null) {
@@ -316,7 +316,8 @@ public class Downloader {
 		conn.connect();
 
 		// Check if redirect
-		// BEWARE! POST data cannot be redirected, so it is ignored here
+		// BEWARE! POST data cannot be redirected (some webservers complain) for
+		// HTTP codes 302 and 303
 		if (conn instanceof HttpURLConnection) {
 			int repCode = 0;
 			try {
@@ -328,32 +329,48 @@ public class Downloader {
 			if (repCode / 100 == 3) {
 				String newUrl = conn.getHeaderField("Location");
 				return open(new URL(newUrl), originalUrl, currentReferer,
-						cookiesValues, null, getParams, oauth, stable);
+						cookiesValues, //
+						(repCode == 302 || repCode == 303) ? null : postParams, //
+						getParams, oauth, stable);
 			}
 		}
 
-		InputStream in = conn.getInputStream();
-		if ("gzip".equals(conn.getContentEncoding())) {
-			in = new GZIPInputStream(in);
-		}
+		try {
+			InputStream in = conn.getInputStream();
+			if ("gzip".equals(conn.getContentEncoding())) {
+				in = new GZIPInputStream(in);
+			}
 
-		if (in != null && cache != null) {
-			tracer.trace("Save to cache: " + originalUrl);
-			try {
+			if (in == null) {
+				throw new IOException("No InputStream!");
+			}
+
+			if (cache != null) {
+				String size = conn.getContentLengthLong() < 0 ? "unknown size"
+						: StringUtils.formatNumber(conn.getContentLengthLong())
+								+ "bytes";
+				tracer.trace("Save to cache (" + size + "): " + originalUrl);
 				try {
-					cache.save(in, originalUrl);
-				} finally {
-					in.close();
+					try {
+						long bytes = cache.save(in, originalUrl);
+						tracer.trace("Saved to cache: "
+								+ StringUtils.formatNumber(bytes) + "bytes");
+					} finally {
+						in.close();
+					}
+					in = cache.load(originalUrl, true, true);
+				} catch (IOException e) {
+					tracer.error(new IOException(
+							"Cannot save URL to cache, will ignore cache: "
+									+ url, e));
 				}
-				in = cache.load(originalUrl, true, false);
-			} catch (IOException e) {
-				tracer.error(new IOException(
-						"Cannot save URL to cache, will ignore cache: " + url,
-						e));
 			}
-		}
 
-		return in;
+			return in;
+		} catch (IOException e) {
+			throw new IOException(String.format(
+					"Cannot find %s (current URL: %s)", originalUrl, url), e);
+		}
 	}
 
 	/**
@@ -381,6 +398,7 @@ public class Downloader {
 		conn.setRequestProperty("User-Agent", UA);
 		conn.setRequestProperty("Accept-Encoding", "gzip");
 		conn.setRequestProperty("Accept", "*/*");
+		conn.setRequestProperty("Charset", "utf-8");
 
 		if (currentReferer != null) {
 			conn.setRequestProperty("Referer", currentReferer.toString());

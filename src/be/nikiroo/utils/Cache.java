@@ -281,13 +281,15 @@ public class Cache {
 	 * @param uniqueID
 	 *            a unique ID used to locate the cached resource
 	 * 
+	 * @return the number of bytes written
+	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public void save(InputStream in, String uniqueID) throws IOException {
+	public long save(InputStream in, String uniqueID) throws IOException {
 		File cached = getCached(uniqueID);
 		cached.getParentFile().mkdirs();
-		save(in, cached);
+		return save(in, cached);
 	}
 
 	/**
@@ -298,12 +300,14 @@ public class Cache {
 	 * @param url
 	 *            the {@link URL} used to locate the cached resource
 	 * 
+	 * @return the number of bytes written
+	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public void save(InputStream in, URL url) throws IOException {
+	public long save(InputStream in, URL url) throws IOException {
 		File cached = getCached(url);
-		save(in, cached);
+		return save(in, cached);
 	}
 
 	/**
@@ -316,13 +320,16 @@ public class Cache {
 	 * @param cached
 	 *            the cached {@link File} to save to
 	 * 
+	 * @return the number of bytes written
+	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	private void save(InputStream in, File cached) throws IOException {
+	private long save(InputStream in, File cached) throws IOException {
 		// We delete AFTER so not to remove the subdir we will use...
-		IOUtils.write(in, cached);
+		long bytes = IOUtils.write(in, cached);
 		clean(true, dir, 10);
+		return bytes;
 	}
 
 	/**

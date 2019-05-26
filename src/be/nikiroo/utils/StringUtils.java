@@ -713,10 +713,10 @@ public class StringUtils {
 	 * <p>
 	 * Examples:
 	 * <ul>
-	 * <li><tt>8 765</tt> becomes "8k"</li>
-	 * <li><tt>998 765</tt> becomes "998k"</li>
-	 * <li><tt>12 987 364</tt> becomes "12M"</li>
-	 * <li><tt>5 534 333 221</tt> becomes "5G"</li>
+	 * <li><tt>8 765</tt> becomes "8 k"</li>
+	 * <li><tt>998 765</tt> becomes "998 k"</li>
+	 * <li><tt>12 987 364</tt> becomes "12 M"</li>
+	 * <li><tt>5 534 333 221</tt> becomes "5 G"</li>
 	 * </ul>
 	 * 
 	 * @param value
@@ -734,10 +734,10 @@ public class StringUtils {
 	 * <p>
 	 * Examples (assuming decimalPositions = 1):
 	 * <ul>
-	 * <li><tt>8 765</tt> becomes "8.7k"</li>
-	 * <li><tt>998 765</tt> becomes "998.7k"</li>
-	 * <li><tt>12 987 364</tt> becomes "12.9M"</li>
-	 * <li><tt>5 534 333 221</tt> becomes "5.5G"</li>
+	 * <li><tt>8 765</tt> becomes "8.7 k"</li>
+	 * <li><tt>998 765</tt> becomes "998.7 k"</li>
+	 * <li><tt>12 987 364</tt> becomes "12.9 M"</li>
+	 * <li><tt>5 534 333 221</tt> becomes "5.5 G"</li>
 	 * </ul>
 	 * 
 	 * @param value
@@ -749,7 +749,7 @@ public class StringUtils {
 	 */
 	public static String formatNumber(long value, int decimalPositions) {
 		long userValue = value;
-		String suffix = "";
+		String suffix = " ";
 		long mult = 1;
 
 		if (value >= 1000000000l) {

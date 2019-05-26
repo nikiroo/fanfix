@@ -100,7 +100,7 @@ public class ImageUtilsAwt extends ImageUtils {
 
 			if (image == null) {
 				String extra = "";
-				if (img.getSize() <= 1024) {
+				if (img.getSize() <= 2048) {
 					try {
 						extra = ", content: "
 								+ new String(img.getData(), "UTF-8");
