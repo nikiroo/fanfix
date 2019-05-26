@@ -147,12 +147,20 @@ class FimfictionApi extends BasicSupport {
 		if (!coverImageLink.trim().isEmpty()) {
 			URL coverImageUrl = new URL(coverImageLink.trim());
 
-			InputStream in = Instance.getCache()
-					.open(coverImageUrl, this, true);
+			// No need to use the oauth, cookies... for the cover
+			// Plus: it crashes on Android because of the referer
 			try {
-				meta.setCover(new Image(in));
-			} finally {
-				in.close();
+				InputStream in = Instance.getCache().open(coverImageUrl, null,
+						true);
+				try {
+					meta.setCover(new Image(in));
+				} finally {
+					in.close();
+				}
+			} catch (IOException e) {
+				Instance.getTraceHandler().error(
+						new IOException(
+								"Cannot get the story cover, ignoring...", e));
 			}
 		}
 
