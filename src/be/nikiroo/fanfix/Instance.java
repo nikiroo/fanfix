@@ -507,11 +507,7 @@ public class Instance {
 	 * @return the path
 	 */
 	private static File getFile(Config id, File def) {
-		String path = config.getString(id);
-		if (path != null && path.isEmpty()) {
-			path = def.getPath();
-		}
-
+		String path = config.getString(id, def.getPath());
 		return getFile(path);
 	}
 
@@ -521,11 +517,7 @@ public class Instance {
 	 * @return the path
 	 */
 	private static File getFile(UiConfig id, File def) {
-		String path = uiconfig.getString(id);
-		if (path != null && path.isEmpty()) {
-			path = def.getPath();
-		}
-
+		String path = uiconfig.getString(id, def.getPath());
 		return getFile(path);
 	}
 
