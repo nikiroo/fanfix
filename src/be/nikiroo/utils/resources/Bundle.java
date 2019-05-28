@@ -137,6 +137,26 @@ public class Bundle<E extends Enum<E>> {
 	 *         resource file)
 	 */
 	public String getString(E id, String def) {
+		return getString(id, def, -1);
+	}
+
+	/**
+	 * Return the value associated to the given id as a {@link String}.
+	 * <p>
+	 * If no value is associated, take the default one if any.
+	 * 
+	 * @param id
+	 *            the id of the value to get
+	 * @param def
+	 *            the default value when it is not present in the config file
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays
+	 * 
+	 * @return the associated value, or NULL if not found (not present in the
+	 *         resource file)
+	 */
+	public String getString(E id, String def, int item) {
 		String rep = getString(id.name(), null);
 		if (rep == null) {
 			try {
@@ -148,8 +168,18 @@ public class Bundle<E extends Enum<E>> {
 			}
 		}
 
-		if (rep == null) {
-			rep = def;
+		//TODO: is it ok? need to jDoc?
+		if (rep == null || rep.isEmpty()) {
+			return def;
+		}
+
+		if (item >= 0) {
+			List<String> values = BundleHelper.parseList(rep, item);
+			if (values != null && item < values.size()) {
+				return values.get(item);
+			}
+
+			return null;
 		}
 
 		return rep;
@@ -169,6 +199,31 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
+	 * Set the value associated to the given id as a {@link String}.
+	 * 
+	 * @param id
+	 *            the id of the value to set
+	 * @param value
+	 *            the value
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays
+	 * 
+	 */
+	public void setString(E id, String value, int item) {
+		if (item < 0) {
+			setString(id.name(), value);
+		} else {
+			List<String> values = getList(id);
+			for (int i = values.size(); i < item; i++) {
+				values.add(null);
+			}
+			values.set(item, value);
+			setString(id.name(), BundleHelper.fromList(values));
+		}
+	}
+
+	/**
 	 * Return the value associated to the given id as a {@link String} suffixed
 	 * with the runtime value "_suffix" (that is, "_" and suffix).
 	 * <p>
@@ -185,14 +240,63 @@ public class Bundle<E extends Enum<E>> {
 	 *         resource file)
 	 */
 	public String getStringX(E id, String suffix) {
+		return getStringX(id, suffix, null, -1);
+	}
+
+	/**
+	 * Return the value associated to the given id as a {@link String} suffixed
+	 * with the runtime value "_suffix" (that is, "_" and suffix).
+	 * <p>
+	 * Will only accept suffixes that form an existing id.
+	 * <p>
+	 * If no value is associated, take the default one if any.
+	 * 
+	 * @param id
+	 *            the id of the value to get
+	 * @param suffix
+	 *            the runtime suffix
+	 * @param def
+	 *            the default value when it is not present in the config file
+	 * 
+	 * @return the associated value, or NULL if not found (not present in the
+	 *         resource file)
+	 */
+	public String getStringX(E id, String suffix, String def) {
+		return getStringX(id, suffix, def, -1);
+	}
+
+	/**
+	 * Return the value associated to the given id as a {@link String} suffixed
+	 * with the runtime value "_suffix" (that is, "_" and suffix).
+	 * <p>
+	 * Will only accept suffixes that form an existing id.
+	 * <p>
+	 * If no value is associated, take the default one if any.
+	 * 
+	 * @param id
+	 *            the id of the value to get
+	 * @param suffix
+	 *            the runtime suffix
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays
+	 * @param def
+	 *            the default value when it is not present in the config file
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays
+	 * 
+	 * @return the associated value, or NULL if not found (not present in the
+	 *         resource file)
+	 */
+	public String getStringX(E id, String suffix, String def, int item) {
 		String key = id.name()
 				+ (suffix == null ? "" : "_" + suffix.toUpperCase());
 
 		try {
 			id = Enum.valueOf(type, key);
-			return getString(id);
+			return getString(id, def, item);
 		} catch (IllegalArgumentException e) {
-
 		}
 
 		return null;
@@ -212,14 +316,33 @@ public class Bundle<E extends Enum<E>> {
 	 *            the value
 	 */
 	public void setStringX(E id, String suffix, String value) {
+		setStringX(id, suffix, value, -1);
+	}
+
+	/**
+	 * Set the value associated to the given id as a {@link String} suffixed
+	 * with the runtime value "_suffix" (that is, "_" and suffix).
+	 * <p>
+	 * Will only accept suffixes that form an existing id.
+	 * 
+	 * @param id
+	 *            the id of the value to set
+	 * @param suffix
+	 *            the runtime suffix
+	 * @param value
+	 *            the value
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays
+	 */
+	public void setStringX(E id, String suffix, String value, int item) {
 		String key = id.name()
 				+ (suffix == null ? "" : "_" + suffix.toUpperCase());
 
 		try {
 			id = Enum.valueOf(type, key);
-			setString(id, value);
+			setString(id, value, item);
 		} catch (IllegalArgumentException e) {
-
 		}
 	}
 
@@ -234,8 +357,7 @@ public class Bundle<E extends Enum<E>> {
 	 * @return the associated value
 	 */
 	public Boolean getBoolean(E id) {
-		String str = getString(id);
-		return BundleHelper.parseBoolean(str);
+		return BundleHelper.parseBoolean(getString(id), -1);
 	}
 
 	/**
@@ -252,9 +374,35 @@ public class Bundle<E extends Enum<E>> {
 	 * @return the associated value
 	 */
 	public boolean getBoolean(E id, boolean def) {
-		Boolean b = getBoolean(id);
-		if (b != null)
-			return b;
+		Boolean value = getBoolean(id);
+		if (value != null) {
+			return value;
+		}
+
+		return def;
+	}
+
+	/**
+	 * Return the value associated to the given id as a {@link Boolean}.
+	 * <p>
+	 * If no value is associated, take the default one if any.
+	 * 
+	 * @param id
+	 *            the id of the value to get
+	 * @param def
+	 *            the default value when it is not present in the config file or
+	 *            if it is not a boolean value
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays
+	 * 
+	 * @return the associated value
+	 */
+	public Boolean getBoolean(E id, boolean def, int item) {
+		String value = getString(id);
+		if (value != null) {
+			return BundleHelper.parseBoolean(value, item);
+		}
 
 		return def;
 	}
@@ -269,7 +417,23 @@ public class Bundle<E extends Enum<E>> {
 	 * 
 	 */
 	public void setBoolean(E id, boolean value) {
-		setString(id.name(), BundleHelper.fromBoolean(value));
+		setBoolean(id, value, -1);
+	}
+
+	/**
+	 * Set the value associated to the given id as a {@link Boolean}.
+	 * 
+	 * @param id
+	 *            the id of the value to set
+	 * @param value
+	 *            the value
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays
+	 * 
+	 */
+	public void setBoolean(E id, boolean value, int item) {
+		setString(id, BundleHelper.fromBoolean(value), item);
 	}
 
 	/**
@@ -283,7 +447,12 @@ public class Bundle<E extends Enum<E>> {
 	 * @return the associated value
 	 */
 	public Integer getInteger(E id) {
-		return BundleHelper.parseInteger(getString(id));
+		String value = getString(id);
+		if (value != null) {
+			return BundleHelper.parseInteger(value, -1);
+		}
+
+		return null;
 	}
 
 	/**
@@ -300,9 +469,35 @@ public class Bundle<E extends Enum<E>> {
 	 * @return the associated value
 	 */
 	public int getInteger(E id, int def) {
-		Integer i = getInteger(id);
-		if (i != null)
-			return i;
+		Integer value = getInteger(id);
+		if (value != null) {
+			return value;
+		}
+
+		return def;
+	}
+
+	/**
+	 * Return the value associated to the given id as an int.
+	 * <p>
+	 * If no value is associated, take the default one if any.
+	 * 
+	 * @param id
+	 *            the id of the value to get
+	 * @param def
+	 *            the default value when it is not present in the config file or
+	 *            if it is not a int value
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays
+	 * 
+	 * @return the associated value
+	 */
+	public Integer getInteger(E id, int def, int item) {
+		String value = getString(id);
+		if (value != null) {
+			return BundleHelper.parseInteger(value, item);
+		}
 
 		return def;
 	}
@@ -317,7 +512,23 @@ public class Bundle<E extends Enum<E>> {
 	 * 
 	 */
 	public void setInteger(E id, int value) {
-		setString(id.name(), BundleHelper.fromInteger(value));
+		setInteger(id, value, -1);
+	}
+
+	/**
+	 * Set the value associated to the given id as a {@link Integer}.
+	 * 
+	 * @param id
+	 *            the id of the value to set
+	 * @param value
+	 *            the value
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays
+	 * 
+	 */
+	public void setInteger(E id, int value, int item) {
+		setString(id, BundleHelper.fromInteger(value), item);
 	}
 
 	/**
@@ -331,7 +542,7 @@ public class Bundle<E extends Enum<E>> {
 	 * @return the associated value
 	 */
 	public Character getCharacter(E id) {
-		return BundleHelper.parseCharacter(getString(id));
+		return BundleHelper.parseCharacter(getString(id), -1);
 	}
 
 	/**
@@ -348,9 +559,100 @@ public class Bundle<E extends Enum<E>> {
 	 * @return the associated value
 	 */
 	public char getCharacter(E id, char def) {
-		Character car = getCharacter(id);
-		if (car != null)
-			return car;
+		Character value = getCharacter(id);
+		if (value != null) {
+			return value;
+		}
+
+		return def;
+	}
+
+	/**
+	 * Return the value associated to the given id as a {@link Character}.
+	 * <p>
+	 * If no value is associated, take the default one if any.
+	 * 
+	 * @param id
+	 *            the id of the value to get
+	 * @param def
+	 *            the default value when it is not present in the config file or
+	 *            if it is not a char value
+	 * 
+	 * @return the associated value
+	 */
+	public Character getCharacter(E id, char def, int item) {
+		String value = getString(id);
+		if (value != null) {
+			return BundleHelper.parseCharacter(value, item);
+		}
+
+		return def;
+	}
+
+	/**
+	 * Set the value associated to the given id as a {@link Character}.
+	 * 
+	 * @param id
+	 *            the id of the value to set
+	 * @param value
+	 *            the value
+	 * 
+	 */
+	public void setCharacter(E id, char value) {
+		setCharacter(id, value, -1);
+	}
+
+	/**
+	 * Set the value associated to the given id as a {@link Character}.
+	 * 
+	 * @param id
+	 *            the id of the value to set
+	 * @param value
+	 *            the value
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays
+	 * 
+	 */
+	public void setCharacter(E id, char value, int item) {
+		setString(id, BundleHelper.fromCharacter(value), item);
+	}
+
+	/**
+	 * Return the value associated to the given id as a colour if it is found
+	 * and can be parsed.
+	 * <p>
+	 * The returned value is an ARGB value.
+	 * <p>
+	 * If no value is associated, take the default one if any.
+	 * 
+	 * @param id
+	 *            the id of the value to get
+	 * 
+	 * @return the associated value
+	 */
+	public Integer getColor(E id) {
+		return BundleHelper.parseColor(getString(id), -1);
+	}
+
+	/**
+	 * Return the value associated to the given id as a colour if it is found
+	 * and can be parsed.
+	 * <p>
+	 * The returned value is an ARGB value.
+	 * <p>
+	 * If no value is associated, take the default one if any.
+	 * 
+	 * @param id
+	 *            the id of the value to get
+	 * 
+	 * @return the associated value
+	 */
+	public int getColor(E id, int def) {
+		Integer value = getColor(id);
+		if (value != null) {
+			return value;
+		}
 
 		return def;
 	}
@@ -368,8 +670,13 @@ public class Bundle<E extends Enum<E>> {
 	 * 
 	 * @return the associated value
 	 */
-	public Integer getColor(E id) {
-		return BundleHelper.parseColor(getString(id));
+	public Integer getColor(E id, int def, int item) {
+		String value = getString(id);
+		if (value != null) {
+			return BundleHelper.parseColor(value, item);
+		}
+
+		return def;
 	}
 
 	/**
@@ -383,7 +690,23 @@ public class Bundle<E extends Enum<E>> {
 	 *            the new colour
 	 */
 	public void setColor(E id, Integer color) {
-		setString(id, BundleHelper.fromColor(color));
+		setColor(id, color, -1);
+	}
+
+	/**
+	 * Set the value associated to the given id as a Color.
+	 * 
+	 * @param id
+	 *            the id of the value to set
+	 * @param value
+	 *            the value
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays
+	 * 
+	 */
+	public void setColor(E id, int value, int item) {
+		setString(id, BundleHelper.fromColor(value), item);
 	}
 
 	/**
@@ -399,7 +722,49 @@ public class Bundle<E extends Enum<E>> {
 	 *         not found or cannot be parsed as a list
 	 */
 	public List<String> getList(E id) {
-		return BundleHelper.parseList(getString(id));
+		return BundleHelper.parseList(getString(id), -1);
+	}
+
+	/**
+	 * Return the value associated to the given id as a list of values if it is
+	 * found and can be parsed.
+	 * <p>
+	 * If no value is associated, take the default one if any.
+	 * 
+	 * @param id
+	 *            the id of the value to get
+	 * 
+	 * @return the associated list, empty if the value is empty, NULL if it is
+	 *         not found or cannot be parsed as a list
+	 */
+	public List<String> getList(E id, List<String> def) {
+		List<String> value = getList(id);
+		if (value != null) {
+			return value;
+		}
+
+		return def;
+	}
+
+	/**
+	 * Return the value associated to the given id as a list of values if it is
+	 * found and can be parsed.
+	 * <p>
+	 * If no value is associated, take the default one if any.
+	 * 
+	 * @param id
+	 *            the id of the value to get
+	 * 
+	 * @return the associated list, empty if the value is empty, NULL if it is
+	 *         not found or cannot be parsed as a list
+	 */
+	public List<String> getList(E id, List<String> def, int item) {
+		String value = getString(id);
+		if (value != null) {
+			return BundleHelper.parseList(value, item);
+		}
+
+		return def;
 	}
 
 	/**
@@ -411,7 +776,23 @@ public class Bundle<E extends Enum<E>> {
 	 *            the new list of values
 	 */
 	public void setList(E id, List<String> list) {
-		setString(id, BundleHelper.fromList(list));
+		setList(id, list, -1);
+	}
+
+	/**
+	 * Set the value associated to the given id as a {@link List}.
+	 * 
+	 * @param id
+	 *            the id of the value to set
+	 * @param value
+	 *            the value
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays
+	 * 
+	 */
+	public void setList(E id, List<String> value, int item) {
+		setString(id, BundleHelper.fromList(value), item);
 	}
 
 	/**
@@ -627,7 +1008,7 @@ public class Bundle<E extends Enum<E>> {
 			}
 
 			if (array) {
-				builder.append("\n# (This item accepts a list of escaped comma-separated values)");
+				builder.append("\n# (This item accepts a list of ^escaped comma-separated values)");
 			}
 		}
 

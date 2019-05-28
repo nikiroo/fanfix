@@ -18,19 +18,24 @@ class BundleHelper {
 	 * 
 	 * @param str
 	 *            the input {@link String}
+	 * @param item
+	 *            the item number to use for an array of values, or -1 for
+	 *            non-arrays
 	 * 
 	 * @return the converted {@link Boolean} or NULL
 	 */
-	static public Boolean parseBoolean(String str) {
-		if (str != null && str.length() > 0) {
-			if (str.equalsIgnoreCase("true") || str.equalsIgnoreCase("on")
-					|| str.equalsIgnoreCase("yes"))
-				return true;
-			if (str.equalsIgnoreCase("false") || str.equalsIgnoreCase("off")
-					|| str.equalsIgnoreCase("no"))
-				return false;
-
+	static public Boolean parseBoolean(String str, int item) {
+		str = getItem(str, item);
+		if (str == null) {
+			return null;
 		}
+
+		if (str.equalsIgnoreCase("true") || str.equalsIgnoreCase("on")
+				|| str.equalsIgnoreCase("yes"))
+			return true;
+		if (str.equalsIgnoreCase("false") || str.equalsIgnoreCase("off")
+				|| str.equalsIgnoreCase("no"))
+			return false;
 
 		return null;
 	}
@@ -55,10 +60,18 @@ class BundleHelper {
 	 * 
 	 * @param str
 	 *            the input {@link String}
+	 * @param item
+	 *            the item number to use for an array of values, or -1 for
+	 *            non-arrays
 	 * 
 	 * @return the converted {@link Integer} or NULL
 	 */
-	static public Integer parseInteger(String str) {
+	static public Integer parseInteger(String str, int item) {
+		str = getItem(str, item);
+		if (str == null) {
+			return null;
+		}
+
 		try {
 			return Integer.parseInt(str);
 		} catch (Exception e) {
@@ -80,18 +93,6 @@ class BundleHelper {
 	}
 
 	/**
-	 * Return a {@link String} representation of the given {@link Integer}.
-	 * 
-	 * @param value
-	 *            the input value
-	 * 
-	 * @return the raw {@link String} value that correspond to it
-	 */
-	static public String fromBoolean(int value) {
-		return Integer.toString(value);
-	}
-
-	/**
 	 * Convert the given {@link String} into a {@link Character} if it
 	 * represents a {@link Character}, or NULL if it doesn't.
 	 * <p>
@@ -101,10 +102,18 @@ class BundleHelper {
 	 * 
 	 * @param str
 	 *            the input {@link String}
+	 * @param item
+	 *            the item number to use for an array of values, or -1 for
+	 *            non-arrays
 	 * 
 	 * @return the converted {@link Character} or NULL
 	 */
-	static public Character parseCharacter(String str) {
+	static public Character parseCharacter(String str, int item) {
+		str = getItem(str, item);
+		if (str == null) {
+			return null;
+		}
+
 		String s = str.trim();
 		if (s.length() == 1) {
 			return s.charAt(0);
@@ -133,10 +142,18 @@ class BundleHelper {
 	 * 
 	 * @param str
 	 *            the input {@link String}
+	 * @param item
+	 *            the item number to use for an array of values, or -1 for
+	 *            non-arrays
 	 * 
 	 * @return the converted colour as an {@link Integer} value or NULL
 	 */
-	static Integer parseColor(String str) {
+	static Integer parseColor(String str, int item) {
+		str = getItem(str, item);
+		if (str == null) {
+			return null;
+		}
+
 		Integer rep = null;
 
 		str = str.trim();
@@ -245,19 +262,45 @@ class BundleHelper {
 	}
 
 	/**
+	 * The size of this raw list.
+	 * 
+	 * @param raw
+	 *            the raw list
+	 * 
+	 * @return its size if it is a list, -1 if not
+	 */
+	static public int getListSize(String raw) {
+		List<String> list = parseList(raw, -1);
+		if (list == null) {
+			return -1;
+		}
+
+		return list.size();
+	}
+
+	/**
 	 * Return a {@link String} representation of the given list of values.
 	 * <p>
 	 * The list of values is comma-separated and each value is surrounded by
-	 * double-quotes; backslashes and double-quotes are escaped by a backslash.
+	 * double-quotes; caret (^) and double-quotes (") are escaped by a caret.
 	 * 
 	 * @param str
 	 *            the input value
+	 * @param item
+	 *            the item number to use for an array of values, or -1 for
+	 *            non-arrays
+	 * 
 	 * @return the raw {@link String} value that correspond to it
 	 */
-	static public List<String> parseList(String str) {
+	static public List<String> parseList(String str, int item) {
 		if (str == null) {
 			return null;
 		}
+
+		if (item >= 0) {
+			str = getItem(str, item);
+		}
+
 		List<String> list = new ArrayList<String>();
 		try {
 			boolean inQuote = false;
@@ -283,7 +326,7 @@ class BundleHelper {
 
 						inQuote = !inQuote;
 						break;
-					case '\\':
+					case '^':
 						// We don't process it here
 						builder.append(car);
 						prevIsBackSlash = true;
@@ -327,6 +370,8 @@ class BundleHelper {
 
 	/**
 	 * Return a {@link String} representation of the given list of values.
+	 * <p>
+	 * NULL will be assimilated to an empty {@link String}.
 	 * 
 	 * @param list
 	 *            the input value
@@ -339,14 +384,14 @@ class BundleHelper {
 			if (builder.length() > 0) {
 				builder.append(", ");
 			}
-			builder.append(escape(item));
+			builder.append(escape(item == null ? "" : item));
 		}
 
 		return builder.toString();
 	}
 
 	/**
-	 * Escape the given value for list formating (no \\, no \n).
+	 * Escape the given value for list formating (no carets, no NEWLINES...).
 	 * <p>
 	 * You can unescape it with {@link BundleHelper#unescape(String)}
 	 * 
@@ -358,16 +403,16 @@ class BundleHelper {
 	 */
 	static public String escape(String value) {
 		return '"' + value//
-				.replace("\\", "\\\\") //
-				.replace("\"", "\\\"") //
-				.replace("\n", "\\\n") //
-				.replace("\r", "\\\r") //
+				.replace("^", "^^") //
+				.replace("\"", "^\"") //
+				.replace("\n", "^\n") //
+				.replace("\r", "^\r") //
 		+ '"';
 	}
 
 	/**
-	 * Unescape the given value for list formating (change \\n into \n and so
-	 * on).
+	 * Unescape the given value for list formating (change ^n into NEWLINE and
+	 * so on).
 	 * <p>
 	 * You can escape it with {@link BundleHelper#escape(String)}
 	 * 
@@ -400,12 +445,13 @@ class BundleHelper {
 				case 'R':
 					builder.append('\r');
 					break;
-				default: // includes \ and "
+				default: // includes ^ and "
 					builder.append(car);
 					break;
 				}
+				prevIsBackslash = false;
 			} else {
-				if (car == '\\') {
+				if (car == '^') {
 					prevIsBackslash = true;
 				} else {
 					builder.append(car);
@@ -419,5 +465,29 @@ class BundleHelper {
 		}
 
 		return builder.toString();
+	}
+
+	/**
+	 * Retrieve the specific item in the given value, assuming it is an array.
+	 * 
+	 * @param value
+	 *            the value to look into
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays (in that case, simply return the value as-is)
+	 * 
+	 * @return the value as-is for non arrays, the item <tt>item</tt> if found,
+	 *         NULL if not
+	 */
+	static private String getItem(String value, int item) {
+		if (item >= 0) {
+			value = null;
+			List<String> values = parseList(value, -1);
+			if (values != null && item < values.size()) {
+				value = values.get(item);
+			}
+		}
+
+		return value;
 	}
 }

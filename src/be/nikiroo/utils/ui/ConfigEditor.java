@@ -94,7 +94,7 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				for (MetaInfo<E> item : items) {
-					item.save();
+					item.save(true);
 				}
 
 				try {

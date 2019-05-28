@@ -95,7 +95,7 @@ public class TraceHandler {
 				System.err.print(StringUtils.fromTime(now) + ": ");
 				e.printStackTrace();
 			} else {
-				error(e.getMessage());
+				error(e.toString());
 			}
 		}
 	}
