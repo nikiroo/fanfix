@@ -70,13 +70,17 @@ public class CacheMemory extends Cache {
 	}
 
 	@Override
-	public void save(InputStream in, String uniqueID) throws IOException {
-		data.put(getKey(uniqueID), IOUtils.toByteArray(in));
+	public long save(InputStream in, String uniqueID) throws IOException {
+		byte[] bytes = IOUtils.toByteArray(in);
+		data.put(getKey(uniqueID), bytes);
+		return bytes.length;
 	}
 
 	@Override
-	public void save(InputStream in, URL url) throws IOException {
-		data.put(getKey(url), IOUtils.toByteArray(in));
+	public long save(InputStream in, URL url) throws IOException {
+		byte[] bytes = IOUtils.toByteArray(in);
+		data.put(getKey(url), bytes);
+		return bytes.length;
 	}
 
 	/**
