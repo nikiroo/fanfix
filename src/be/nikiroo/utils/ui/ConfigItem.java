@@ -136,13 +136,8 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 									.getListSize(false));
 					main.add(field);
 
-					// TODO this doesn't woooooorkk
-					add.invalidate();
-					field.invalidate();
-					main.invalidate();
-					ConfigItem.this.repaint();
-					ConfigItem.this.validate();
-					ConfigItem.this.repaint();
+					main.revalidate();
+					main.repaint();
 				}
 			});
 
