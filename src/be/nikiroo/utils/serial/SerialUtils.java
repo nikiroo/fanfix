@@ -670,7 +670,6 @@ public class SerialUtils {
 	static void encodeString(OutputStream out, String raw) throws IOException {
 		// TODO: not. efficient.
 		out.write('\"');
-		// TODO !! utf-8 required
 		for (char car : raw.toCharArray()) {
 			encodeString(out, car);
 		}
@@ -691,7 +690,7 @@ public class SerialUtils {
 		out.write('\"');
 	}
 
-	// for encode string, NOT to encode a char by itself!
+	// for encoding string, NOT to encode a char by itself!
 	static void encodeString(OutputStream out, char raw) throws IOException {
 		switch (raw) {
 		case '\\':

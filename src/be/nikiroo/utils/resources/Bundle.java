@@ -143,7 +143,8 @@ public class Bundle<E extends Enum<E>> {
 	/**
 	 * Return the value associated to the given id as a {@link String}.
 	 * <p>
-	 * If no value is associated, take the default one if any.
+	 * If no value is associated (or if it is empty!), take the default one if
+	 * any.
 	 * 
 	 * @param id
 	 *            the id of the value to get
@@ -168,7 +169,6 @@ public class Bundle<E extends Enum<E>> {
 			}
 		}
 
-		//TODO: is it ok? need to jDoc?
 		if (rep == null || rep.isEmpty()) {
 			return def;
 		}
