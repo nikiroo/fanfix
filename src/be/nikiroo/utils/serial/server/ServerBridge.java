@@ -226,7 +226,6 @@ public class ServerBridge extends Server {
 	 *            the data to trace
 	 */
 	private void trace(String prefix, String data) {
-		// TODO: we convert to string and back
 		int size = data == null ? 0 : data.length();
 		String ssize = StringUtils.formatNumber(size) + "bytes";
 

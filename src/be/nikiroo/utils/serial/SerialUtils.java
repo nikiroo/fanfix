@@ -65,8 +65,6 @@ public class SerialUtils {
 			protected void toStream(OutputStream out, Object value)
 					throws IOException {
 
-				// TODO: we use \n to separate, and b64 to un-\n
-				// -- but we could use \\n ?
 				String type = value.getClass().getCanonicalName();
 				type = type.substring(0, type.length() - 2); // remove the []
 
@@ -79,11 +77,11 @@ public class SerialUtils {
 						write(out, "\r");
 						if (!SerialUtils.encode(out, item)) {
 							try {
-								// TODO: bad escaping?
 								write(out, "B64:");
 								OutputStream out64 = new Base64OutputStream(
 										out, true);
 								new Exporter(out64).append(item);
+								out64.flush();
 							} catch (NotSerializableException e) {
 								throw new UnknownFormatConversionException(e
 										.getMessage());
@@ -464,7 +462,6 @@ public class SerialUtils {
 			}
 		}
 
-		// TODO: Not efficient
 		for (String prefix : new String[] { "c\"", "\"", "b", "s", "i", "l",
 				"f", "d", "E:" }) {
 			if (encodedValue.startsWith(prefix)) {
@@ -672,20 +669,6 @@ public class SerialUtils {
 		out.write('\"');
 		for (char car : raw.toCharArray()) {
 			encodeString(out, car);
-		}
-		out.write('\"');
-	}
-
-	// aa bb -> "aa\tbb"
-	static void encodeString(OutputStream out, InputStream raw)
-			throws IOException {
-		out.write('\"');
-		byte buffer[] = new byte[4096];
-		for (int len = 0; (len = raw.read(buffer)) > 0;) {
-			for (int i = 0; i < len; i++) {
-				// TODO: not 100% correct, look up howto for UTF-8
-				encodeString(out, (char) buffer[i]);
-			}
 		}
 		out.write('\"');
 	}
