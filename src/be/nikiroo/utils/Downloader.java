@@ -345,8 +345,8 @@ public class Downloader {
 			}
 
 			if (cache != null) {
-				String size = conn.getContentLengthLong() < 0 ? "unknown size"
-						: StringUtils.formatNumber(conn.getContentLengthLong())
+				String size = conn.getContentLength() < 0 ? "unknown size"
+						: StringUtils.formatNumber(conn.getContentLength())
 								+ "bytes";
 				tracer.trace("Save to cache (" + size + "): " + originalUrl);
 				try {

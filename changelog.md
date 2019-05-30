@@ -12,6 +12,7 @@
 - fix: IOUtils.readSmallStream and \n at the end
 - fix: Base64 implementation changed, no strange errors anymore
 - fix: Downloader had some problems with POST redirection
+- android: binary code (.class) is now bundled in the jar, too
 - change: StringUtils.unzip64(String) now returns a byte[] (StringUtils.unzip64s(String) can be used instead)
 - change: be.nikiroo.utils.markableFileInputStream moved to be.nikiroo.utils.streams (old class still present in @Deprecated state for now)
 - change: TestLauncher is now "silent" by default (no exception details, see setDetails(true))
