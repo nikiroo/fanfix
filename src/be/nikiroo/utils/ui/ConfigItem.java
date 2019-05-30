@@ -141,8 +141,10 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 		case PASSWORD:
 			configItem = new ConfigItemPassword<E>(info);
 			break;
+		case LOCALE:
+			configItem = new ConfigItemLocale<E>(info);
+			break;
 		case STRING:
-		case LOCALE: // TODO?
 		default:
 			configItem = new ConfigItemString<E>(info);
 			break;

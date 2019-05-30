@@ -9,6 +9,7 @@ class ConfigItemCombobox<E extends Enum<E>> extends ConfigItem<E> {
 	private static final long serialVersionUID = 1L;
 
 	private boolean editable;
+	private String[] allowedValues;
 
 	/**
 	 * Create a new {@link ConfigItemCombobox} for the given {@link MetaInfo}.
@@ -21,6 +22,7 @@ class ConfigItemCombobox<E extends Enum<E>> extends ConfigItem<E> {
 	public ConfigItemCombobox(MetaInfo<E> info, boolean editable) {
 		super(info, true);
 		this.editable = editable;
+		this.allowedValues = info.getAllowedValues();
 	}
 
 	@Override
@@ -59,7 +61,7 @@ class ConfigItemCombobox<E extends Enum<E>> extends ConfigItem<E> {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	protected JComponent createField(int item) {
-		JComboBox field = new JComboBox(info.getAllowedValues());
+		JComboBox field = new JComboBox(allowedValues);
 		field.setEditable(editable);
 		return field;
 	}

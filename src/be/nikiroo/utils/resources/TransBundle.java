@@ -169,8 +169,7 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 	}
 
 	/**
-	 * Return all the languages known by the program.
-	 * 
+	 * Return all the languages known by the program for this bundle.
 	 * 
 	 * @return the known language codes
 	 */

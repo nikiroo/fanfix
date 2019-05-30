@@ -141,7 +141,7 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	/**
 	 * The allowed list of values that a {@link Format#FIXED_LIST} item is
 	 * allowed to be, or a list of suggestions for {@link Format#COMBO_LIST}
-	 * items.
+	 * items. Also works for {@link Format#LOCALE}.
 	 * <p>
 	 * Will always allow an empty string in addition to the rest.
 	 * 
@@ -157,6 +157,22 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 		}
 
 		return withEmpty;
+	}
+
+	/**
+	 * Return all the languages known by the program for this bundle.
+	 * <p>
+	 * This only works for {@link TransBundle}, and will return an empty list if
+	 * this is not a {@link TransBundle}.
+	 * 
+	 * @return the known language codes
+	 */
+	public List<String> getKnownLanguages() {
+		if (bundle instanceof TransBundle) {
+			return ((TransBundle<E>) bundle).getKnownLanguages();
+		}
+
+		return new ArrayList<String>();
 	}
 
 	/**
