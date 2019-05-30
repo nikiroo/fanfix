@@ -21,17 +21,15 @@ import be.nikiroo.utils.streams.Base64OutputStream;
 /**
  * Small utility class to do AES encryption/decryption.
  * <p>
- * For the moment, it is multi-thread compatible, but beware:
+ * It is multi-thread compatible, but beware:
  * <ul>
  * <li>The encrypt/decrypt calls are serialized</li>
- * <li>The streams are independent and thus parallel</li>
+ * <li>The streams are independent (and thus parallel)</li>
  * </ul>
  * <p>
- * Do not assume it is actually secure, it is actually not.
- * <p>
- * It just here to offer a more-or-less protected exchange of data because
- * anonymous and self-signed certificates backed SSL is against Google wishes
- * (so, don't even try, they own Internet).
+ * Do not assume it is secure; it just here to offer a more-or-less protected
+ * exchange of data because anonymous and self-signed certificates backed SSL is
+ * against Google wishes, and I need Android support.
  * 
  * @author niki
  */
