@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.resources.Meta.Format;
 
 /**
@@ -175,8 +174,8 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	}
 
 	/**
-	 * A manual flag to specify if the {@link MetaData} has been changed or not,
-	 * which can be used by {@link MetaInfo#save(boolean)}.
+	 * A manual flag to specify if the data has been changed or not, which can
+	 * be used by {@link MetaInfo#save(boolean)}.
 	 * 
 	 * @return TRUE if it is dirty (if it has changed)
 	 */
@@ -185,8 +184,8 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	}
 
 	/**
-	 * A manual flag to specify that the {@link MetaData} has been changed,
-	 * which can be used by {@link MetaInfo#save(boolean)}.
+	 * A manual flag to specify that the data has been changed, which can be
+	 * used by {@link MetaInfo#save(boolean)}.
 	 */
 	public void setDirty() {
 		this.dirty = true;
@@ -519,7 +518,7 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	 * The value stored by this item, as a colour (represented here as an
 	 * {@link Integer}) if it represents a colour, or NULL if it doesn't.
 	 * <p>
-	 * The returned colour value is an ARGB value.
+	 * The colour value is an ARGB value.
 	 * 
 	 * @param value
 	 *            the value
