@@ -5,7 +5,7 @@ import javax.swing.JComponent;
 
 import be.nikiroo.utils.resources.MetaInfo;
 
-public class ConfigItemBoolean<E extends Enum<E>> extends ConfigItem<E> {
+class ConfigItemBoolean<E extends Enum<E>> extends ConfigItem<E> {
 	private static final long serialVersionUID = 1L;
 
 	/**

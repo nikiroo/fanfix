@@ -5,7 +5,7 @@ import javax.swing.JComponent;
 
 import be.nikiroo.utils.resources.MetaInfo;
 
-public class ConfigItemCombobox<E extends Enum<E>> extends ConfigItem<E> {
+class ConfigItemCombobox<E extends Enum<E>> extends ConfigItem<E> {
 	private static final long serialVersionUID = 1L;
 
 	private boolean editable;

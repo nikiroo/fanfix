@@ -5,7 +5,7 @@ import javax.swing.JTextField;
 
 import be.nikiroo.utils.resources.MetaInfo;
 
-public class ConfigItemString<E extends Enum<E>> extends ConfigItem<E> {
+class ConfigItemString<E extends Enum<E>> extends ConfigItem<E> {
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -45,7 +45,7 @@ public class ConfigItemString<E extends Enum<E>> extends ConfigItem<E> {
 	protected void setToInfo(Object value, int item) {
 		info.setString((String) value, item);
 	}
-	
+
 	@Override
 	protected JComponent createField(int item) {
 		return new JTextField();

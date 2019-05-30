@@ -5,7 +5,7 @@ import javax.swing.JSpinner;
 
 import be.nikiroo.utils.resources.MetaInfo;
 
-public class ConfigItemInteger<E extends Enum<E>> extends ConfigItem<E> {
+class ConfigItemInteger<E extends Enum<E>> extends ConfigItem<E> {
 	private static final long serialVersionUID = 1L;
 
 	/**

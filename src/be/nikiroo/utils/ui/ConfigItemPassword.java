@@ -5,7 +5,7 @@ import javax.swing.JPasswordField;
 
 import be.nikiroo.utils.resources.MetaInfo;
 
-public class ConfigItemPassword<E extends Enum<E>> extends ConfigItem<E> {
+class ConfigItemPassword<E extends Enum<E>> extends ConfigItem<E> {
 	private static final long serialVersionUID = 1L;
 
 	/**

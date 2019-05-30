@@ -21,7 +21,7 @@ import javax.swing.JTextField;
 
 import be.nikiroo.utils.resources.MetaInfo;
 
-public class ConfigItemColor<E extends Enum<E>> extends ConfigItem<E> {
+class ConfigItemColor<E extends Enum<E>> extends ConfigItem<E> {
 	private static final long serialVersionUID = 1L;
 
 	private Map<JComponent, JTextField> fields = new HashMap<JComponent, JTextField>();
