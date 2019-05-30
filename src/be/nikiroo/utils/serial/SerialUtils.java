@@ -511,7 +511,6 @@ public class SerialUtils {
 				throw new IOException("Unknown custom type: " + type);
 			} finally {
 				content.close(false);
-				// TODO: check what happens with thrown Exception in finally
 				encodedValue.end();
 			}
 		}

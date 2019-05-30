@@ -45,7 +45,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 
 	private static int minimumHeight = -1;
 
-	/** A small (?) blue in PNG, base64 encoded. */
+	/** A small 16x16 "?" blue in PNG, base64 encoded. */
 	private static String infoImage64 = //
 	""
 			+ "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI"
@@ -57,14 +57,49 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			+ "LRIVuX1x7ciuSWQxVIrunONrfq3dI6oh+T94Z8453vEem/HTqT8ZpFJ0qDXtGkPbAGAMeSRngQCA"
 			+ "eUvgn195AwlZWyvjtQdhAAAAAElFTkSuQmCC";
 
+	// A small 16x16 "+" image with colours
+	private static String addImage64 = //
+	""
+			+ "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI"
+			+ "WXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wUeES0QBFvvnAAAAB1pVFh0Q29tbWVudAAAAAAAQ3Jl"
+			+ "YXRlZCB3aXRoIEdJTVBkLmUHAAACH0lEQVQ4y42Tz0sVURTHP+fMmC7CQMpH1EjgIimCsEVBEIg/"
+			+ "qIbcBAW2Uai1m/oH2rlJXLQpeRJt2gQhTO0iTTKC1I2JBf5gKCJCRPvhPOed22LmvV70Fn7hwr3c"
+			+ "+z3ne+73HCFHEClxaASRHgduA91AW369BkwDI3Foy0GkEofmACQnSxyaCyItAkMClMzYdeCAJgVP"
+			+ "tJJrPA7tVoUjNZlngXMAiRmXClfoK/Tjq09x7T6LW+8RxOVJ5+LQzgSRojm5WCEDlMrQVbjIQNtN"
+			+ "rh0d5FTzaTLBmWKgM4h0Ig4NzWseohYCJUuqx123Sx0MBpF2+MAdyWUnlqX4lf4bIDHjR+rwJJPR"
+			+ "qNCgCjDsA10lM/oKIRcO9lByCYklnG/pqQa4euQ6J5tPoKI0yD6ef33Ku40Z80R7CSJNWyZxT+Ki"
+			+ "2ytGP911hyZxQaRp1RtPPPYKD4+sGJwPrDUp7Q9Xxnj9fYrUUnaszEAwQHfrZQAerT/g7cYMiuCp"
+			+ "z8LmLI0qBqz6wLQn2v5he57FrXkAtlPH2ZZOuskCzG2+4dnnx3iSuSgCKqLAlAIjmXPiVIRsgYjU"
+			+ "usrfO0Gq7cA9jUNbBsZrmiQnac1e6n3FeBzakpf39OSBG9IPHAZwzlFoagVg5edHXn57wZed9dpA"
+			+ "C3FoYRDpf8M0AQwKwu9yubxjeA7Y72ENqlp3mOqMcwcwDPQCx8gGchV4BYzGoS1V3gL8AVA5C5/0"
+			+ "oRFoAAAAAElFTkSuQmCC";
+
+	// A small 32x32 "-" image with colours
+	private static String removeImage64 = //
+	""
+			+ "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI"
+			+ "WXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wUeESw5X/JGsQAAAB1pVFh0Q29tbWVudAAAAAAAQ3Jl"
+			+ "YXRlZCB3aXRoIEdJTVBkLmUHAAACKUlEQVQ4y5WTO2iTYRSG3+//v/+SJrG5SSABh1JQBHFJNUNR"
+			+ "YodCLoMoTkK0YKhQtBmsl01wKVZRBwcrgosg3SwFW9Cippe0VmlpB6uYqYIaNSZtbv/lOKRx0iR9"
+			+ "4YOzvOc8vOd8wLbG4nYGAKP9tshKr3Pq0zFXORt0UzbopvUeZ2ml1/niUcIWAYBzwwqr+xgAjCSt"
+			+ "wpXjWzx105Ha+1XsMgT8U6IJfPAacyfO50OXJi3VwbtbxMbidtZ3tiClbzi/eAuCmxgai4AfNvNn"
+			+ "KJn3X5xWKgwA0lHHYud3MdDUXMcmIOMx0oGJXJCN9tuiJ98p4//DbtTk2cFKhB/OSBcMgQHVMkir"
+			+ "AqwJBhGYrIIkCQc2eJK3aewI9Crko2FIh0K1Jo0mcwmV6XFUlmfRXhK7eXuRKaRVIYdiUGKnW8Kn"
+			+ "0ia0t6/hKHJVqCcLzncQgLhtIvBfbWbZZahq+cl96AuvQLre2Mw59NUlkCwjZ6USL0uYgSj26B/X"
+			+ "oK+vtkYgMAhMRF4x5oWlPdod0UQtfUFo7YEBBKz59BEGAAtRx1xHVgzu5AYyHmMmMJHrZolhhU3t"
+			+ "05XJe7s2PJuCq9k1MgKyNjOXiBf8kWW5JDy4XKHBl2ql6+pvX8ZjzDOqrcWsFQAAE/T3H3z2GG/6"
+			+ "zhT8sfdKeehWkUQAeJ7WcH23xTz1uPBwf1hclA3mBZjPojFOIOSsVPpmN1OznfpA+Gn+2kCHqg/d"
+			+ "LhIA/AFU5d0V6gTjtQAAAABJRU5ErkJggg==";
+
 	/** The original value before current changes. */
 	private Object orig;
 	private List<Integer> dirtyBits;
 
-	protected MetaInfo<E> info;
-
 	private JComponent field;
 	private List<JComponent> fields = new ArrayList<JComponent>();
+
+	/** The {@link MetaInfo} linked to the field. */
+	protected MetaInfo<E> info;
 
 	/**
 	 * Create a new {@link ConfigItem} for the given {@link MetaInfo}.
@@ -125,8 +160,9 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 				main.add(field);
 			}
 
-			// TODO: image
-			final JButton add = new JButton("+");
+			final JButton add = new JButton();
+			setImage(add, addImage64, "+");
+
 			final ConfigItem<E> fconfigItem = configItem;
 			add.addActionListener(new ActionListener() {
 				@Override
@@ -389,6 +425,8 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	 *            is FALSE)
 	 * @param addTo
 	 * @param nhgap
+	 * 
+	 * @return
 	 */
 	protected JComponent createComponent(final int item) {
 		setField(item, createField(item));
@@ -464,18 +502,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 
 		JLabel help = new JLabel("");
 		help.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		try {
-			Image img = new Image(infoImage64);
-			try {
-				BufferedImage bImg = ImageUtilsAwt.fromImage(img);
-				help.setIcon(new ImageIcon(bImg));
-			} finally {
-				img.close();
-			}
-		} catch (IOException e) {
-			// This is an hard-coded image, should not happen
-			help.setText("?");
-		}
+		setImage(help, infoImage64, "?");
 
 		help.addMouseListener(new MouseAdapter() {
 			@Override
@@ -514,5 +541,59 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 		}
 
 		return minimumHeight;
+	}
+
+	/**
+	 * Set an image to the given {@link JButton}, with a fallback text if it
+	 * fails.
+	 * 
+	 * @param button
+	 *            the button to set
+	 * @param image64
+	 *            the image in BASE64 (should be PNG or similar)
+	 * @param fallbackText
+	 *            text to use in case the image cannot be created
+	 */
+	static private void setImage(JLabel button, String image64,
+			String fallbackText) {
+		try {
+			Image img = new Image(image64);
+			try {
+				BufferedImage bImg = ImageUtilsAwt.fromImage(img);
+				button.setIcon(new ImageIcon(bImg));
+			} finally {
+				img.close();
+			}
+		} catch (IOException e) {
+			// This is an hard-coded image, should not happen
+			button.setText(fallbackText);
+		}
+	}
+
+	/**
+	 * Set an image to the given {@link JButton}, with a fallback text if it
+	 * fails.
+	 * 
+	 * @param button
+	 *            the button to set
+	 * @param image64
+	 *            the image in BASE64 (should be PNG or similar)
+	 * @param fallbackText
+	 *            text to use in case the image cannot be created
+	 */
+	static private void setImage(JButton button, String image64,
+			String fallbackText) {
+		try {
+			Image img = new Image(image64);
+			try {
+				BufferedImage bImg = ImageUtilsAwt.fromImage(img);
+				button.setIcon(new ImageIcon(bImg));
+			} finally {
+				img.close();
+			}
+		} catch (IOException e) {
+			// This is an hard-coded image, should not happen
+			button.setText(fallbackText);
+		}
 	}
 }
