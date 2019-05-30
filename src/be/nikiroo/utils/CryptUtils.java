@@ -63,15 +63,15 @@ public class CryptUtils {
 	}
 
 	/**
-	 * Create a new instance of {@link CryptUtils} with the given 128 bytes key.
+	 * Create a new instance of {@link CryptUtils} with the given 128 bits key.
 	 * <p>
-	 * The key <b>must</b> be exactly 128 bytes long.
+	 * The key <b>must</b> be exactly 128 bits long.
 	 * 
 	 * @param bytes32
 	 *            the 128 bits (32 bytes) of the key
 	 * 
 	 * @throws InvalidKeyException
-	 *             if the key is not an array of 128 bytes
+	 *             if the key is not an array of 128 bits
 	 */
 	public CryptUtils(byte[] bytes32) throws InvalidKeyException {
 		init(bytes32);
@@ -196,7 +196,7 @@ public class CryptUtils {
 	}
 
 	/**
-	 * This method required an array of 128 bytes.
+	 * This method required an array of 128 bits.
 	 * 
 	 * @param bytes32
 	 *            the array, which <b>must</b> be of 128 bits (32 bytes)
@@ -366,7 +366,7 @@ public class CryptUtils {
 		try {
 			return new String(decrypt(data), "UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			// UTF-8 is required in all confirm JVMs
+			// UTF-8 is required in all conform JVMs
 			e.printStackTrace();
 			return null;
 		}
@@ -417,7 +417,7 @@ public class CryptUtils {
 		try {
 			return new String(decrypt(StringUtils.unbase64(data)), "UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			// UTF-8 is required in all confirm JVMs
+			// UTF-8 is required in all conform JVMs
 			e.printStackTrace();
 			return null;
 		} catch (IOException e) {
