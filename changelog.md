@@ -1,6 +1,6 @@
 # nikiroo-utils
 
-## Version WIP
+## Version 5.0.0
 
 - new: server: count the bytes we rec/send
 - new: CryptUtils
@@ -8,8 +8,10 @@
 - new: Bundles can now also set Boolean, Integer... and not just get them
 - new: Bundles get/setList()
 - new: Bundles can now use the default values provided by the Meta
+- new: GUI presentation for Bundles is much improved
 - fix: IOUtils.readSmallStream and \n at the end
 - fix: Base64 implementation changed, no strange errors anymore
+- fix: Downloader had some problems with POST redirection
 - change: StringUtils.unzip64(String) now returns a byte[] (StringUtils.unzip64s(String) can be used instead)
 - change: be.nikiroo.utils.markableFileInputStream moved to be.nikiroo.utils.streams (old class still present in @Deprecated state for now)
 - change: TestLauncher is now "silent" by default (no exception details, see setDetails(true))
