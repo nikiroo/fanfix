@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +25,7 @@ public class ConfigItemColor<E extends Enum<E>> extends ConfigItem<E> {
 	private static final long serialVersionUID = 1L;
 
 	private Map<JComponent, JTextField> fields = new HashMap<JComponent, JTextField>();
+	private Map<JComponent, JButton> panels = new HashMap<JComponent, JButton>();
 
 	/**
 	 * Create a new {@link ConfigItemColor} for the given {@link MetaInfo}.
@@ -55,7 +58,11 @@ public class ConfigItemColor<E extends Enum<E>> extends ConfigItem<E> {
 		if (field != null) {
 			field.setText(value == null ? "" : value.toString());
 		}
-		// TODO: change color too
+
+		JButton colorWheel = panels.get(getField(item));
+		if (colorWheel != null) {
+			colorWheel.setIcon(getIcon(17, getFromInfoColor(item)));
+		}
 	}
 
 	@Override
@@ -63,6 +70,16 @@ public class ConfigItemColor<E extends Enum<E>> extends ConfigItem<E> {
 		info.setString((String) value, item);
 	}
 
+	/**
+	 * Get the colour currently present in the linked info for the given item.
+	 * 
+	 * @param item
+	 *            the item number to get for an array of values, or -1 to get
+	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
+	 *            is FALSE)
+	 * 
+	 * @return a colour
+	 */
 	private int getFromInfoColor(int item) {
 		Integer color = info.getColor(item, true);
 		if (color == null) {
@@ -94,10 +111,20 @@ public class ConfigItemColor<E extends Enum<E>> extends ConfigItem<E> {
 			}
 		});
 
+		field.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+				info.setString(field.getText() + e.getKeyChar(), item);
+				int color = getFromInfoColor(item);
+				colorWheel.setIcon(getIcon(17, color));
+			}
+		});
+
 		pane.add(colorWheel, BorderLayout.WEST);
 		pane.add(field, BorderLayout.CENTER);
 
 		fields.put(pane, field);
+		panels.put(pane, colorWheel);
 		return pane;
 	}
 
