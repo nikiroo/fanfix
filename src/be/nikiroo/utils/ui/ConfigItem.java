@@ -46,7 +46,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	private static int minimumHeight = -1;
 
 	/** A small 16x16 "?" blue in PNG, base64 encoded. */
-	private static String infoImage64 = //
+	private static String img64Info = //
 	""
 			+ "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI"
 			+ "WXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wURFRg6IrtcdgAAATdJREFUOMvtkj8sQ1EUxr9z/71G"
@@ -57,8 +57,8 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			+ "LRIVuX1x7ciuSWQxVIrunONrfq3dI6oh+T94Z8453vEem/HTqT8ZpFJ0qDXtGkPbAGAMeSRngQCA"
 			+ "eUvgn195AwlZWyvjtQdhAAAAAElFTkSuQmCC";
 
-	// A small 16x16 "+" image with colours
-	private static String addImage64 = //
+	/** A small 16x16 "+" image with colours */
+	private static String img54add = //
 	""
 			+ "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI"
 			+ "WXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wUeES0QBFvvnAAAAB1pVFh0Q29tbWVudAAAAAAAQ3Jl"
@@ -74,8 +74,8 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			+ "C3FoYRDpf8M0AQwKwu9yubxjeA7Y72ENqlp3mOqMcwcwDPQCx8gGchV4BYzGoS1V3gL8AVA5C5/0"
 			+ "oRFoAAAAAElFTkSuQmCC";
 
-	// A small 32x32 "-" image with colours
-	private static String removeImage64 = //
+	/** A small 32x32 "-" image with colours */
+	private static String img64Remove = //
 	""
 			+ "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI"
 			+ "WXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wUeESw5X/JGsQAAAB1pVFh0Q29tbWVudAAAAAAAQ3Jl"
@@ -163,7 +163,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			}
 
 			final JButton add = new JButton();
-			setImage(add, addImage64, "+");
+			setImage(add, img54add, "+");
 
 			final ConfigItem<E> fconfigItem = configItem;
 			add.addActionListener(new ActionListener() {
@@ -504,7 +504,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 
 		JLabel help = new JLabel("");
 		help.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		setImage(help, infoImage64, "?");
+		setImage(help, img64Info, "?");
 
 		help.addMouseListener(new MouseAdapter() {
 			@Override
@@ -556,7 +556,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	 * @param fallbackText
 	 *            text to use in case the image cannot be created
 	 */
-	static private void setImage(JLabel button, String image64,
+	static protected void setImage(JLabel button, String image64,
 			String fallbackText) {
 		try {
 			Image img = new Image(image64);
@@ -583,7 +583,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	 * @param fallbackText
 	 *            text to use in case the image cannot be created
 	 */
-	static private void setImage(JButton button, String image64,
+	static protected void setImage(JButton button, String image64,
 			String fallbackText) {
 		try {
 			Image img = new Image(image64);
