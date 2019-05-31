@@ -50,12 +50,8 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 	 */
 	public ConfigEditor(Class<E> type, final Bundle<E> bundle, String title) {
 		this.setLayout(new BorderLayout());
+
 		JPanel main = new JPanel();
-
-		JScrollPane scroll = new JScrollPane(main);
-		scroll.getVerticalScrollBar().setUnitIncrement(16);
-		this.add(scroll, BorderLayout.CENTER);
-
 		main.setLayout(new BoxLayout(main, BoxLayout.PAGE_AXIS));
 		main.setBorder(new EmptyBorder(5, 5, 5, 5));
 
@@ -68,7 +64,11 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 			addItem(main, item, 0);
 		}
 
-		main.add(createButton("Reset", new ActionListener() {
+		JPanel buttons = new JPanel();
+		buttons.setLayout(new BoxLayout(buttons, BoxLayout.PAGE_AXIS));
+		buttons.setBorder(new EmptyBorder(5, 5, 5, 5));
+
+		buttons.add(createButton("Reset", new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				for (MetaInfo<E> item : items) {
@@ -77,7 +77,7 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 			}
 		}));
 
-		main.add(createButton("Default", new ActionListener() {
+		buttons.add(createButton("Default", new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Object snap = bundle.takeSnapshot();
@@ -90,7 +90,7 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 			}
 		}));
 
-		main.add(createButton("Save", new ActionListener() {
+		buttons.add(createButton("Save", new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				for (MetaInfo<E> item : items) {
@@ -104,6 +104,12 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 				}
 			}
 		}));
+
+		JScrollPane scroll = new JScrollPane(main);
+		scroll.getVerticalScrollBar().setUnitIncrement(16);
+
+		this.add(scroll, BorderLayout.CENTER);
+		this.add(buttons, BorderLayout.SOUTH);
 	}
 
 	private void addItem(JPanel main, MetaInfo<E> item, int nhgap) {
