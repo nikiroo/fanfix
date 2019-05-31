@@ -30,7 +30,7 @@ class ConfigItemBoolean<E extends Enum<E>> extends ConfigItem<E> {
 
 	@Override
 	protected Object getFromInfo(int item) {
-		return info.getBoolean(item, false);
+		return info.getBoolean(item, true);
 	}
 
 	@Override

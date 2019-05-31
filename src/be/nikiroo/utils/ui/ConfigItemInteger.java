@@ -30,7 +30,7 @@ class ConfigItemInteger<E extends Enum<E>> extends ConfigItem<E> {
 
 	@Override
 	protected Object getFromInfo(int item) {
-		return info.getInteger(item, false);
+		return info.getInteger(item, true);
 	}
 
 	@Override

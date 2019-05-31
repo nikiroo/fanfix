@@ -49,7 +49,7 @@ class ConfigItemColor<E extends Enum<E>> extends ConfigItem<E> {
 
 	@Override
 	protected Object getFromInfo(int item) {
-		return info.getString(item, false);
+		return info.getString(item, true);
 	}
 
 	@Override
