@@ -1167,7 +1167,7 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
-	 * Reset the backing map to the content of the given bundle, or with default
+	 * Reset the backing map to the content of the given bundle, or with NULL
 	 * values if bundle is NULL.
 	 * 
 	 * @param bundle
@@ -1185,7 +1185,7 @@ public class Bundle<E extends Enum<E>> {
 					if (bundle != null) {
 						value = bundle.getString(id.name());
 					} else {
-						value = meta.def();
+						value = null;
 					}
 
 					this.map.put(id.name(), value == null ? null : value.trim());
