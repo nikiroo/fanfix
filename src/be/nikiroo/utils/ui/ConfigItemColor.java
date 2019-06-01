@@ -90,7 +90,7 @@ class ConfigItemColor<E extends Enum<E>> extends ConfigItem<E> {
 	}
 
 	@Override
-	protected JComponent createField(final int item) {
+	protected JComponent createEmptyField(final int item) {
 		final JPanel pane = new JPanel(new BorderLayout());
 		final JTextField field = new JTextField();
 

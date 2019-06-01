@@ -10,7 +10,9 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -40,13 +42,13 @@ import be.nikiroo.utils.resources.MetaInfo;
  * @param <E>
  *            the type of {@link Bundle} to edit
  */
-public class ConfigItem<E extends Enum<E>> extends JPanel {
+public abstract class ConfigItem<E extends Enum<E>> extends JPanel {
 	private static final long serialVersionUID = 1L;
 
 	private static int minimumHeight = -1;
 
 	/** A small 16x16 "?" blue in PNG, base64 encoded. */
-	private static String img64Info = //
+	private static String img64info = //
 	""
 			+ "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI"
 			+ "WXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wURFRg6IrtcdgAAATdJREFUOMvtkj8sQ1EUxr9z/71G"
@@ -58,7 +60,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			+ "eUvgn195AwlZWyvjtQdhAAAAAElFTkSuQmCC";
 
 	/** A small 16x16 "+" image with colours */
-	private static String img54add = //
+	private static String img64add = //
 	""
 			+ "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI"
 			+ "WXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wUeES0QBFvvnAAAAB1pVFh0Q29tbWVudAAAAAAAQ3Jl"
@@ -75,7 +77,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			+ "oRFoAAAAAElFTkSuQmCC";
 
 	/** A small 32x32 "-" image with colours */
-	private static String img64Remove = //
+	private static String img64remove = //
 	""
 			+ "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBI"
 			+ "WXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wUeESw5X/JGsQAAAB1pVFh0Q29tbWVudAAAAAAAQ3Jl"
@@ -93,10 +95,18 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 
 	/** The original value before current changes. */
 	private Object orig;
+	private List<Object> origs = new ArrayList<Object>();
 	private List<Integer> dirtyBits;
 
+	/** The fields (one for non-array, a list for arrays). */
 	private JComponent field;
 	private List<JComponent> fields = new ArrayList<JComponent>();
+
+	/** The fields to panel map to get the actual item added to 'main'. */
+	private Map<Integer, JComponent> itemFields = new HashMap<Integer, JComponent>();
+
+	/** The main panel with all the fields in it. */
+	private JPanel main;
 
 	/** The {@link MetaInfo} linked to the field. */
 	protected MetaInfo<E> info;
@@ -104,76 +114,34 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	/**
 	 * Create a new {@link ConfigItem} for the given {@link MetaInfo}.
 	 * 
-	 * @param info
-	 *            the {@link MetaInfo}
 	 * @param nhgap
 	 *            negative horisontal gap in pixel to use for the label, i.e.,
 	 *            the step lock sized labels will start smaller by that amount
 	 *            (the use case would be to align controls that start at a
 	 *            different horisontal position)
 	 */
-	public ConfigItem(MetaInfo<E> info, int nhgap) {
-		this(info, true);
-
-		ConfigItem<E> configItem;
-		switch (info.getFormat()) {
-		case BOOLEAN:
-			configItem = new ConfigItemBoolean<E>(info);
-			break;
-		case COLOR:
-			configItem = new ConfigItemColor<E>(info);
-			break;
-		case FILE:
-			configItem = new ConfigItemBrowse<E>(info, false);
-			break;
-		case DIRECTORY:
-			configItem = new ConfigItemBrowse<E>(info, true);
-			break;
-		case COMBO_LIST:
-			configItem = new ConfigItemCombobox<E>(info, true);
-			break;
-		case FIXED_LIST:
-			configItem = new ConfigItemCombobox<E>(info, false);
-			break;
-		case INT:
-			configItem = new ConfigItemInteger<E>(info);
-			break;
-		case PASSWORD:
-			configItem = new ConfigItemPassword<E>(info);
-			break;
-		case LOCALE:
-			configItem = new ConfigItemLocale<E>(info);
-			break;
-		case STRING:
-		default:
-			configItem = new ConfigItemString<E>(info);
-			break;
-		}
-
+	public void init(int nhgap) {
 		if (info.isArray()) {
 			this.setLayout(new BorderLayout());
 			add(label(nhgap), BorderLayout.WEST);
 
-			final JPanel main = new JPanel();
+			main = new JPanel();
+
 			main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
 			int size = info.getListSize(false);
 			for (int i = 0; i < size; i++) {
-				JComponent field = configItem.createComponent(i);
-				main.add(field);
+				addItem(i);
 			}
+			main.revalidate();
+			main.repaint();
 
 			final JButton add = new JButton();
-			setImage(add, img54add, "+");
+			setImage(add, img64add, "+");
 
-			final ConfigItem<E> fconfigItem = configItem;
 			add.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					JComponent field = fconfigItem
-							.createComponent(fconfigItem.info
-									.getListSize(false));
-					main.add(field);
-
+					addItem(fields.size());
 					main.revalidate();
 					main.repaint();
 				}
@@ -191,9 +159,51 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			this.setLayout(new BorderLayout());
 			add(label(nhgap), BorderLayout.WEST);
 
-			JComponent field = configItem.createComponent(-1);
+			JComponent field = createField(-1);
 			add(field, BorderLayout.CENTER);
 		}
+	}
+
+	private void addItem(final int item) {
+		JPanel minusPanel = new JPanel(new BorderLayout());
+		itemFields.put(item, minusPanel);
+
+		JComponent field = createField(item);
+
+		final JButton remove = new JButton();
+		setImage(remove, img64remove, "-");
+
+		remove.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				removeItem(item);
+			}
+		});
+
+		minusPanel.add(field, BorderLayout.CENTER);
+		minusPanel.add(remove, BorderLayout.EAST);
+
+		main.add(minusPanel);
+		main.revalidate();
+		main.repaint();
+	}
+
+	private void removeItem(int item) {
+		int last = itemFields.size() - 1;
+
+		for (int i = item; i <= last; i++) {
+			Object value = null;
+			if (i < last) {
+				value = getFromField(i + 1);
+			}
+			setToField(value, i);
+			setToInfo(value, i);
+			setDirtyItem(i);
+		}
+
+		main.remove(itemFields.remove(last));
+		main.revalidate();
+		main.repaint();
 	}
 
 	/**
@@ -216,10 +226,10 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 
 	/**
 	 * Create an empty graphical component to be used later by
-	 * {@link ConfigItem#getField(int)}.
+	 * {@link ConfigItem#createField(int)}.
 	 * <p>
 	 * Note that {@link ConfigItem#reload(int)} will be called after it was
-	 * created.
+	 * created by {@link ConfigItem#createField(int)}.
 	 * 
 	 * @param item
 	 *            the item number to get for an array of values, or -1 to get
@@ -228,10 +238,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	 * 
 	 * @return the graphical component
 	 */
-	protected JComponent createField(@SuppressWarnings("unused") int item) {
-		// Not used by the main class, only the sublasses
-		return null;
-	}
+	abstract protected JComponent createEmptyField(int item);
 
 	/**
 	 * Get the information from the {@link MetaInfo} in the subclass preferred
@@ -244,10 +251,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	 * 
 	 * @return the information in the subclass preferred format
 	 */
-	protected Object getFromInfo(@SuppressWarnings("unused") int item) {
-		// Not used by the main class, only the subclasses
-		return null;
-	}
+	abstract protected Object getFromInfo(int item);
 
 	/**
 	 * Set the value to the {@link MetaInfo}.
@@ -259,23 +263,21 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
 	 *            is FALSE)
 	 */
-	protected void setToInfo(@SuppressWarnings("unused") Object value,
-			@SuppressWarnings("unused") int item) {
-		// Not used by the main class, only the subclasses
-	}
+	abstract protected void setToInfo(Object value, int item);
 
 	/**
+	 * The value present in the given item's related field in the subclass
+	 * preferred format.
+	 * 
 	 * @param item
 	 *            the item number to get for an array of values, or -1 to get
 	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
 	 *            is FALSE)
 	 * 
-	 * @return
+	 * @return the value present in the given item's related field in the
+	 *         subclass preferred format
 	 */
-	protected Object getFromField(@SuppressWarnings("unused") int item) {
-		// Not used by the main class, only the subclasses
-		return null;
-	}
+	abstract protected Object getFromField(int item);
 
 	/**
 	 * Set the value (in the subclass preferred format) into the field.
@@ -287,15 +289,12 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
 	 *            is FALSE)
 	 */
-	protected void setToField(@SuppressWarnings("unused") Object value,
-			@SuppressWarnings("unused") int item) {
-		// Not used by the main class, only the subclasses
-	}
+	abstract protected void setToField(Object value, int item);
 
 	/**
 	 * Create a new field for the given graphical component at the given index
 	 * (note that the component is usually created by
-	 * {@link ConfigItem#createField(int)}).
+	 * {@link ConfigItem#createEmptyField(int)}).
 	 * 
 	 * @param item
 	 *            the item number to get for an array of values, or -1 to get
@@ -319,7 +318,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 
 	/**
 	 * Retrieve the associated graphical component that was created with
-	 * {@link ConfigItem#createField(int)}.
+	 * {@link ConfigItem#createEmptyField(int)}.
 	 * 
 	 * @param item
 	 *            the item number to get for an array of values, or -1 to get
@@ -338,6 +337,52 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 		}
 
 		return null;
+	}
+
+	/**
+	 * The original value (before any changes to the {@link MetaInfo}) for this
+	 * item.
+	 * 
+	 * @param item
+	 *            the item number to get for an array of values, or -1 to get
+	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
+	 *            is FALSE)
+	 * 
+	 * @return the original value
+	 */
+	private Object getOrig(int item) {
+		if (item < 0) {
+			return orig;
+		}
+
+		if (item < origs.size()) {
+			return origs.get(item);
+		}
+
+		return null;
+	}
+
+	/**
+	 * The original value (before any changes to the {@link MetaInfo}) for this
+	 * item.
+	 * 
+	 * @param item
+	 *            the item number to get for an array of values, or -1 to get
+	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
+	 *            is FALSE)
+	 * @param value
+	 *            the new original value
+	 */
+	private void setOrig(Object value, int item) {
+		if (item < 0) {
+			orig = value;
+		} else {
+			while (item >= origs.size()) {
+				origs.add(null);
+			}
+
+			origs.set(item, value);
+		}
 	}
 
 	/**
@@ -366,12 +411,38 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	 * 
 	 * @param value
 	 *            the value to test
+	 * @param item
+	 *            the item number to get for an array of values, or -1 to get
+	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
+	 *            is FALSE)
 	 * 
 	 * @return TRUE if it has
 	 */
-	protected boolean hasValueChanged(Object value) {
+	protected boolean hasValueChanged(Object value, int item) {
 		// We consider "" and NULL to be equals
+		Object orig = getOrig(item);
+		if (orig == null) {
+			orig = "";
+		}
 		return !orig.equals(value == null ? "" : value);
+	}
+
+	/**
+	 * Reload the values to what they currently are in the {@link MetaInfo}.
+	 */
+	private void reload() {
+		if (info.isArray()) {
+			while (!itemFields.isEmpty()) {
+				main.remove(itemFields.remove(itemFields.size() - 1));
+			}
+			main.revalidate();
+			main.repaint();
+			for (int item = 0; item < info.getListSize(false); item++) {
+				reload(item);
+			}
+		} else {
+			reload(-1);
+		}
 	}
 
 	/**
@@ -382,12 +453,34 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
 	 *            is FALSE)
 	 */
-	protected void reload(int item) {
+	private void reload(int item) {
+		if (item >= 0 && !itemFields.containsKey(item)) {
+			addItem(item);
+		}
+
+		// if (item >= 0) {
+		// Object value = getFromField(item);
+		// if (value == null) {
+		// value = "";
+		// }
+		//
+		// boolean empty = value.equals("");
+		//
+		// if (!empty && item >= info.getListSize(false)) {
+		// // item was deleted, remove it
+		// removeItem(item);
+		// return;
+		// }
+		//
+		// // in case of reload after remove
+		// if (!itemFields.containsKey(item)) {
+		// addItem(item);
+		// }
+		// }
+
 		Object value = getFromInfo(item);
 		setToField(value, item);
-
-		// We consider "" and NULL to be equals
-		orig = (value == null ? "" : value);
+		setOrig(value == null ? "" : value, item);
 	}
 
 	/**
@@ -395,60 +488,97 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 	 * modify it to, reflect the changes so it can be saved later.
 	 * <p>
 	 * This method does <b>not</b> call {@link MetaInfo#save(boolean)}.
-	 * 
-	 * @param item
-	 *            the item number to get for an array of values, or -1 to get
-	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
-	 *            is FALSE)
 	 */
-	protected void save(int item) {
-		Object value = getFromField(item);
+	private void save() {
+		if (info.isArray()) {
+			boolean dirty = fields.size() != info.getListSize(false);
+			for (int item = 0; item < fields.size(); item++) {
+				if (getDirtyBit(item)) {
+					dirty = true;
+				}
+			}
 
-		boolean dirty = false;
-		if (dirtyBits != null) {
-			dirty = dirtyBits.remove((Integer) item);
+			if (dirty) {
+				info.setString(null, -1);
+				for (int item = 0; item < fields.size(); item++) {
+					Object value = null;
+					if (getField(item) != null) {
+						value = getFromField(item);
+						if ("".equals(value)) {
+							value = null;
+						}
+					}
+
+					info.setDirty();
+					setToInfo(value, item);
+					setOrig(value, item);
+				}
+			}
 		} else {
-			// We consider "" and NULL to be equals
-			dirty = hasValueChanged(value);
-		}
+			if (getDirtyBit(-1)) {
+				Object value = getFromField(-1);
 
-		if (dirty) {
-			info.setDirty();
-			setToInfo(value, item);
-			orig = (value == null ? "" : value);
+				info.setDirty();
+				setToInfo(value, -1);
+				setOrig(value, -1);
+			}
 		}
 	}
 
 	/**
+	 * Check if the item is dirty, and clear the dirty bit if set.
 	 * 
 	 * @param item
 	 *            the item number to get for an array of values, or -1 to get
 	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
 	 *            is FALSE)
-	 * @param addTo
-	 * @param nhgap
 	 * 
-	 * @return
+	 * @return TRUE if it was dirty, FALSE if not
 	 */
-	protected JComponent createComponent(final int item) {
-		setField(item, createField(item));
+	private boolean getDirtyBit(int item) {
+		if (dirtyBits != null) {
+			return dirtyBits.remove((Integer) item);
+		}
+
+		Object value = null;
+		if (getField(item) != null) {
+			value = getFromField(item);
+		}
+
+		return hasValueChanged(value, item);
+	}
+
+	/**
+	 * Create a new field for the given item.
+	 * 
+	 * @param item
+	 *            the item number to get for an array of values, or -1 to get
+	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
+	 *            is FALSE)
+	 * 
+	 * @return the newly created field
+	 */
+	protected JComponent createField(final int item) {
+		JComponent field = createEmptyField(item);
+		setField(item, field);
 		reload(item);
 
 		info.addReloadedListener(new Runnable() {
 			@Override
 			public void run() {
-				reload(item);
+				reload();
 			}
 		});
 		info.addSaveListener(new Runnable() {
 			@Override
 			public void run() {
-				save(item);
+				save();
 			}
 		});
 
-		JComponent field = getField(item);
-		setPreferredSize(field);
+		int height = Math
+				.max(getMinimumHeight(), field.getMinimumSize().height);
+		field.setPreferredSize(new Dimension(200, height));
 
 		return field;
 	}
@@ -504,7 +634,7 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 
 		JLabel help = new JLabel("");
 		help.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		setImage(help, img64Info, "?");
+		setImage(help, img64info, "?");
 
 		help.addMouseListener(new MouseAdapter() {
 			@Override
@@ -531,18 +661,62 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 		return pane;
 	}
 
-	protected void setPreferredSize(JComponent field) {
-		int height = Math
-				.max(getMinimumHeight(), field.getMinimumSize().height);
-		setPreferredSize(new Dimension(200, height));
-	}
+	/**
+	 * Create a new {@link ConfigItem} for the given {@link MetaInfo}.
+	 * 
+	 * @param <E>
+	 *            the type of {@link Bundle} to edit
+	 * 
+	 * @param info
+	 *            the {@link MetaInfo}
+	 * @param nhgap
+	 *            negative horisontal gap in pixel to use for the label, i.e.,
+	 *            the step lock sized labels will start smaller by that amount
+	 *            (the use case would be to align controls that start at a
+	 *            different horisontal position)
+	 * 
+	 * @return the new {@link ConfigItem}
+	 */
+	static public <E extends Enum<E>> ConfigItem<E> createItem(
+			MetaInfo<E> info, int nhgap) {
 
-	static private int getMinimumHeight() {
-		if (minimumHeight < 0) {
-			minimumHeight = new JTextField("Test").getMinimumSize().height;
+		ConfigItem<E> configItem;
+		switch (info.getFormat()) {
+		case BOOLEAN:
+			configItem = new ConfigItemBoolean<E>(info);
+			break;
+		case COLOR:
+			configItem = new ConfigItemColor<E>(info);
+			break;
+		case FILE:
+			configItem = new ConfigItemBrowse<E>(info, false);
+			break;
+		case DIRECTORY:
+			configItem = new ConfigItemBrowse<E>(info, true);
+			break;
+		case COMBO_LIST:
+			configItem = new ConfigItemCombobox<E>(info, true);
+			break;
+		case FIXED_LIST:
+			configItem = new ConfigItemCombobox<E>(info, false);
+			break;
+		case INT:
+			configItem = new ConfigItemInteger<E>(info);
+			break;
+		case PASSWORD:
+			configItem = new ConfigItemPassword<E>(info);
+			break;
+		case LOCALE:
+			configItem = new ConfigItemLocale<E>(info);
+			break;
+		case STRING:
+		default:
+			configItem = new ConfigItemString<E>(info);
+			break;
 		}
 
-		return minimumHeight;
+		configItem.init(nhgap);
+		return configItem;
 	}
 
 	/**
@@ -597,5 +771,13 @@ public class ConfigItem<E extends Enum<E>> extends JPanel {
 			// This is an hard-coded image, should not happen
 			button.setText(fallbackText);
 		}
+	}
+
+	static private int getMinimumHeight() {
+		if (minimumHeight < 0) {
+			minimumHeight = new JTextField("Test").getMinimumSize().height;
+		}
+
+		return minimumHeight;
 	}
 }

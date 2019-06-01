@@ -47,7 +47,7 @@ class ConfigItemInteger<E extends Enum<E>> extends ConfigItem<E> {
 	}
 
 	@Override
-	protected JComponent createField(int item) {
+	protected JComponent createEmptyField(int item) {
 		return new JSpinner();
 	}
 }

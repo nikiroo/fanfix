@@ -70,7 +70,7 @@ class ConfigItemBrowse<E extends Enum<E>> extends ConfigItem<E> {
 	}
 
 	@Override
-	protected JComponent createField(final int item) {
+	protected JComponent createEmptyField(final int item) {
 		final JPanel pane = new JPanel(new BorderLayout());
 		final JTextField field = new JTextField();
 		field.addKeyListener(new KeyAdapter() {
@@ -81,7 +81,7 @@ class ConfigItemBrowse<E extends Enum<E>> extends ConfigItem<E> {
 					file = new File(field.getText());
 				}
 
-				if (hasValueChanged(file)) {
+				if (hasValueChanged(file, item)) {
 					setDirtyItem(item);
 				}
 			}
@@ -99,7 +99,7 @@ class ConfigItemBrowse<E extends Enum<E>> extends ConfigItem<E> {
 					File file = chooser.getSelectedFile();
 					if (file != null) {
 						setToField(file, item);
-						if (hasValueChanged(file)) {
+						if (hasValueChanged(file, item)) {
 							setDirtyItem(item);
 						}
 					}

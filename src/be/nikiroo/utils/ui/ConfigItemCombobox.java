@@ -60,7 +60,7 @@ class ConfigItemCombobox<E extends Enum<E>> extends ConfigItem<E> {
 	// rawtypes for Java 1.6 (and 1.7 ?) support
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	protected JComponent createField(int item) {
+	protected JComponent createEmptyField(int item) {
 		JComboBox field = new JComboBox(allowedValues);
 		field.setEditable(editable);
 		return field;

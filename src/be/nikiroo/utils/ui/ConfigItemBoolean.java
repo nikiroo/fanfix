@@ -53,7 +53,7 @@ class ConfigItemBoolean<E extends Enum<E>> extends ConfigItem<E> {
 	}
 
 	@Override
-	protected JComponent createField(int item) {
+	protected JComponent createEmptyField(int item) {
 		// Should not happen!
 		if (getFromInfo(item) == null) {
 			System.err

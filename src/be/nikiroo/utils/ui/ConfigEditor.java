@@ -139,7 +139,7 @@ public class ConfigEditor<E extends Enum<E>> extends JPanel {
 			main.add(bpane);
 		} else {
 			items.add(item);
-			main.add(new ConfigItem<E>(item, nhgap));
+			main.add(ConfigItem.createItem(item, nhgap));
 		}
 	}
 

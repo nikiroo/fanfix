@@ -16,7 +16,7 @@ import be.nikiroo.utils.resources.MetaInfo;
 class ConfigItemPassword<E extends Enum<E>> extends ConfigItem<E> {
 	private static final long serialVersionUID = 1L;
 	/** A small 16x16 pass-protecet icon in PNG, base64 encoded. */
-	private static String img64PassProtected = //
+	private static String img64passProtected = //
 	""
 			+ "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAAAnNCSVQICFXsRgQAAAD5SURBVCjP"
 			+ "ndG9LoNxGIbxHxJTG9U0IsJAdCSNqZEa9BR87BaHYfW5ESYkmjQh4giwIU00MWFwAPWRSmpgaf6G"
@@ -26,7 +26,7 @@ class ConfigItemPassword<E extends Enum<E>> extends ConfigItem<E> {
 			+ "lbp3l5b1xR/1rWrYf/MLWpplWwswQpMAAAAASUVORK5CYII=";
 
 	/** A small 16x16 pass-unprotecet icon in PNG, base64 encoded. */
-	private static String img64PassUnprotected = //
+	private static String img64passUnprotected = //
 	""
 			+ "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAAAAmJLR0QAAKqNIzIAAAAJcEhZcwAA"
 			+ "CxMAAAsTAQCanBgAAAAHdElNRQfjBR8MIilwhCwdAAABK0lEQVQoz5XQv0uUAQCH8c/7qod4nect"
@@ -78,24 +78,24 @@ class ConfigItemPassword<E extends Enum<E>> extends ConfigItem<E> {
 	}
 
 	@Override
-	protected JComponent createField(int item) {
+	protected JComponent createEmptyField(int item) {
 		JPanel pane = new JPanel(new BorderLayout());
 		final JPasswordField field = new JPasswordField();
 		field.setEchoChar('*');
 
 		final JButton show = new JButton();
 		final Boolean[] visible = new Boolean[] { false };
-		setImage(show, img64PassProtected, "/");
+		setImage(show, img64passProtected, "/");
 		show.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				visible[0] = !visible[0];
 				if (visible[0]) {
 					field.setEchoChar((char) 0);
-					setImage(show, img64PassUnprotected, "o");
+					setImage(show, img64passUnprotected, "o");
 				} else {
 					field.setEchoChar('*');
-					setImage(show, img64PassProtected, "/");
+					setImage(show, img64passProtected, "/");
 				}
 			}
 		});

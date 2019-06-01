@@ -26,8 +26,8 @@ class ConfigItemLocale<E extends Enum<E>> extends ConfigItemCombobox<E> {
 	// rawtypes for Java 1.6 (and 1.7 ?) support
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	protected JComponent createField(int item) {
-		JComboBox field = (JComboBox) super.createField(item);
+	protected JComponent createEmptyField(int item) {
+		JComboBox field = (JComboBox) super.createEmptyField(item);
 		field.setRenderer(new DefaultListCellRenderer() {
 			private static final long serialVersionUID = 1L;
 
