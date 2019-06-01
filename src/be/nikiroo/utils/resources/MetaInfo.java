@@ -477,12 +477,7 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	 */
 	public void setString(String value, int item) {
 		if (isArray() && item >= 0) {
-			List<String> values = BundleHelper.parseList(this.value, -1);
-			for (int i = values.size(); i <= item; i++) {
-				values.add(null);
-			}
-			values.set(item, value);
-			this.value = BundleHelper.fromList(values);
+			this.value = BundleHelper.fromList(this.value, value, item);
 		} else {
 			this.value = value;
 		}
@@ -575,7 +570,8 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 			value = null;
 		}
 
-		for (Runnable listener : reloadedListeners) {
+		// Copy the list so we can create new listener in a listener
+		for (Runnable listener : new ArrayList<Runnable>(reloadedListeners)) {
 			try {
 				listener.run();
 			} catch (Exception e) {
@@ -607,7 +603,8 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	 *            dirty flag)
 	 */
 	public void save(boolean onlyIfDirty) {
-		for (Runnable listener : saveListeners) {
+		// Copy the list so we can create new listener in a listener
+		for (Runnable listener : new ArrayList<Runnable>(saveListeners)) {
 			try {
 				listener.run();
 			} catch (Exception e) {

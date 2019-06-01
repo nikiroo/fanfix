@@ -92,7 +92,7 @@ public class Bundle<E extends Enum<E>> {
 	/**
 	 * Check if the setting is set into this {@link Bundle}.
 	 * 
-	 * @param id
+	 * @param name
 	 *            the id of the setting to check
 	 * @param includeDefaultValue
 	 *            TRUE to only return false when the setting is not set AND
@@ -215,11 +215,7 @@ public class Bundle<E extends Enum<E>> {
 			setString(id.name(), value);
 		} else {
 			List<String> values = getList(id);
-			for (int i = values.size(); i < item; i++) {
-				values.add(null);
-			}
-			values.set(item, value);
-			setString(id.name(), BundleHelper.fromList(values));
+			setString(id.name(), BundleHelper.fromList(values, value, item));
 		}
 	}
 
@@ -277,9 +273,6 @@ public class Bundle<E extends Enum<E>> {
 	 *            the id of the value to get
 	 * @param suffix
 	 *            the runtime suffix
-	 * @param item
-	 *            the item number to get for an array of values, or -1 for
-	 *            non-arrays
 	 * @param def
 	 *            the default value when it is not present in the config file
 	 * @param item
@@ -577,6 +570,9 @@ public class Bundle<E extends Enum<E>> {
 	 * @param def
 	 *            the default value when it is not present in the config file or
 	 *            if it is not a char value
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays
 	 * 
 	 * @return the associated value
 	 */
@@ -645,6 +641,9 @@ public class Bundle<E extends Enum<E>> {
 	 * 
 	 * @param id
 	 *            the id of the value to get
+	 * @param def
+	 *            the default value when it is not present in the config file or
+	 *            if it is not a char value
 	 * 
 	 * @return the associated value
 	 */
@@ -667,6 +666,12 @@ public class Bundle<E extends Enum<E>> {
 	 * 
 	 * @param id
 	 *            the id of the value to get
+	 * @param def
+	 *            the default value when it is not present in the config file or
+	 *            if it is not a char value
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays
 	 * 
 	 * @return the associated value
 	 */
@@ -733,6 +738,9 @@ public class Bundle<E extends Enum<E>> {
 	 * 
 	 * @param id
 	 *            the id of the value to get
+	 * @param def
+	 *            the default value when it is not present in the config file or
+	 *            if it is not a char value
 	 * 
 	 * @return the associated list, empty if the value is empty, NULL if it is
 	 *         not found or cannot be parsed as a list
@@ -754,6 +762,12 @@ public class Bundle<E extends Enum<E>> {
 	 * 
 	 * @param id
 	 *            the id of the value to get
+	 * @param def
+	 *            the default value when it is not present in the config file or
+	 *            if it is not a char value
+	 * @param item
+	 *            the item number to get for an array of values, or -1 for
+	 *            non-arrays
 	 * 
 	 * @return the associated list, empty if the value is empty, NULL if it is
 	 *         not found or cannot be parsed as a list

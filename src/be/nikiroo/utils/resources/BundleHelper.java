@@ -262,14 +262,19 @@ class BundleHelper {
 	}
 
 	/**
-	 * The size of this raw list.
+	 * The size of this raw list (note than a NULL list is of size 0).
 	 * 
 	 * @param raw
 	 *            the raw list
 	 * 
-	 * @return its size if it is a list, -1 if not
+	 * @return its size if it is a list (NULL is an empty list), -1 if it is not
+	 *         a list
 	 */
 	static public int getListSize(String raw) {
+		if (raw == null) {
+			return 0;
+		}
+
 		List<String> list = parseList(raw, -1);
 		if (list == null) {
 			return -1;
@@ -371,7 +376,17 @@ class BundleHelper {
 	/**
 	 * Return a {@link String} representation of the given list of values.
 	 * <p>
-	 * NULL will be assimilated to an empty {@link String}.
+	 * NULL will be assimilated to an empty {@link String} if later non-null
+	 * values exist, or just ignored if not.
+	 * <p>
+	 * Example:
+	 * <ul>
+	 * <li><tt>1</tt>,<tt>NULL</tt>, <tt>3</tt> will become <tt>1</tt>,
+	 * <tt>""</tt>, <tt>3</tt></li>
+	 * <li><tt>1</tt>,<tt>NULL</tt>, <tt>NULL</tt> will become <tt>1</tt></li>
+	 * <li><tt>NULL</tt>, <tt>NULL</tt>, <tt>NULL</tt> will become an empty list
+	 * </li>
+	 * </ul>
 	 * 
 	 * @param list
 	 *            the input value
@@ -379,15 +394,96 @@ class BundleHelper {
 	 * @return the raw {@link String} value that correspond to it
 	 */
 	static public String fromList(List<String> list) {
+		if (list == null) {
+			list = new ArrayList<String>();
+		}
+
+		int last = list.size() - 1;
+		for (int i = 0; i < list.size(); i++) {
+			if (list.get(i) != null) {
+				last = i;
+			}
+		}
+
 		StringBuilder builder = new StringBuilder();
-		for (String item : list) {
+		for (int i = 0; i <= last; i++) {
+			String item = list.get(i);
+			if (item == null) {
+				item = "";
+			}
+
 			if (builder.length() > 0) {
 				builder.append(", ");
 			}
-			builder.append(escape(item == null ? "" : item));
+			builder.append(escape(item));
 		}
 
 		return builder.toString();
+	}
+
+	/**
+	 * Return a {@link String} representation of the given list of values.
+	 * <p>
+	 * NULL will be assimilated to an empty {@link String} if later non-null
+	 * values exist, or just ignored if not.
+	 * <p>
+	 * Example:
+	 * <ul>
+	 * <li><tt>1</tt>,<tt>NULL</tt>, <tt>3</tt> will become <tt>1</tt>,
+	 * <tt>""</tt>, <tt>3</tt></li>
+	 * <li><tt>1</tt>,<tt>NULL</tt>, <tt>NULL</tt> will become <tt>1</tt></li>
+	 * <li><tt>NULL</tt>, <tt>NULL</tt>, <tt>NULL</tt> will become an empty list
+	 * </li>
+	 * </ul>
+	 * 
+	 * @param list
+	 *            the input value
+	 * @param value
+	 *            the value to insert
+	 * @param item
+	 *            the position to insert it at
+	 * 
+	 * @return the raw {@link String} value that correspond to it
+	 */
+	static public String fromList(List<String> list, String value, int item) {
+		if (list == null) {
+			list = new ArrayList<String>();
+		}
+
+		while (item >= list.size()) {
+			list.add(null);
+		}
+		list.set(item, value);
+
+		return fromList(list);
+	}
+
+	/**
+	 * Return a {@link String} representation of the given list of values.
+	 * <p>
+	 * NULL will be assimilated to an empty {@link String} if later non-null
+	 * values exist, or just ignored if not.
+	 * <p>
+	 * Example:
+	 * <ul>
+	 * <li><tt>1</tt>,<tt>NULL</tt>, <tt>3</tt> will become <tt>1</tt>,
+	 * <tt>""</tt>, <tt>3</tt></li>
+	 * <li><tt>1</tt>,<tt>NULL</tt>, <tt>NULL</tt> will become <tt>1</tt></li>
+	 * <li><tt>NULL</tt>, <tt>NULL</tt>, <tt>NULL</tt> will become an empty list
+	 * </li>
+	 * </ul>
+	 * 
+	 * @param list
+	 *            the input value
+	 * @param value
+	 *            the value to insert
+	 * @param item
+	 *            the position to insert it at
+	 * 
+	 * @return the raw {@link String} value that correspond to it
+	 */
+	static public String fromList(String list, String value, int item) {
+		return fromList(parseList(list, -1), value, item);
 	}
 
 	/**
