@@ -458,26 +458,6 @@ public abstract class ConfigItem<E extends Enum<E>> extends JPanel {
 			addItem(item);
 		}
 
-		// if (item >= 0) {
-		// Object value = getFromField(item);
-		// if (value == null) {
-		// value = "";
-		// }
-		//
-		// boolean empty = value.equals("");
-		//
-		// if (!empty && item >= info.getListSize(false)) {
-		// // item was deleted, remove it
-		// removeItem(item);
-		// return;
-		// }
-		//
-		// // in case of reload after remove
-		// if (!itemFields.containsKey(item)) {
-		// addItem(item);
-		// }
-		// }
-
 		Object value = getFromInfo(item);
 		setToField(value, item);
 		setOrig(value == null ? "" : value, item);
@@ -491,16 +471,18 @@ public abstract class ConfigItem<E extends Enum<E>> extends JPanel {
 	 */
 	private void save() {
 		if (info.isArray()) {
-			boolean dirty = fields.size() != info.getListSize(false);
-			for (int item = 0; item < fields.size(); item++) {
+			boolean dirty = itemFields.size() != info.getListSize(false);
+			for (int item = 0; item < itemFields.size(); item++) {
 				if (getDirtyBit(item)) {
 					dirty = true;
 				}
 			}
 
 			if (dirty) {
+				info.setDirty();
 				info.setString(null, -1);
-				for (int item = 0; item < fields.size(); item++) {
+
+				for (int item = 0; item < itemFields.size(); item++) {
 					Object value = null;
 					if (getField(item) != null) {
 						value = getFromField(item);
@@ -509,7 +491,6 @@ public abstract class ConfigItem<E extends Enum<E>> extends JPanel {
 						}
 					}
 
-					info.setDirty();
 					setToInfo(value, item);
 					setOrig(value, item);
 				}
