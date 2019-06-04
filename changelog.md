@@ -21,6 +21,10 @@
 - remote: worse perfs but much better memory usage
 - remote: log now includes the time of events
 
+# Version 2.0.3
+
+SoFurry: fix for stories only available to registrated users
+
 # Version 2.0.2
 
 - i18n: setting the language in the option panel now works even with $LANG set

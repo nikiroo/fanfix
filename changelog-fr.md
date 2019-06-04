@@ -21,6 +21,10 @@
 - remote: le log inclus maintenant la date des évènements
 - remote: le mot de passe se configure maintenant dans le fichier de configuration
 
+# Version 2.0.3
+
+SoFurry: correction pour les histoires disponibles uniquement aux utilisateurs inscrits sur le site
+
 # Version 2.0.2
 
 - i18n: changer la langue dans les options fonctionne aussi quand $LANG existe

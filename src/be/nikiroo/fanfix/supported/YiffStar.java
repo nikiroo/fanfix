@@ -74,10 +74,13 @@ class YiffStar extends BasicSupport_Deprecated {
 
 		if (login != null && !login.isEmpty() && password != null
 				&& !password.isEmpty()) {
+
 			Map<String, String> post = new HashMap<String, String>();
-			post.put("sfLoginUsername", login);
-			post.put("sfLoginPassword", password);
+			post.put("LoginForm[sfLoginUsername]", login);
+			post.put("LoginForm[sfLoginPassword]", password);
 			post.put("YII_CSRF_TOKEN", "");
+			post.put("yt1", "Login");
+			post.put("returnUrl", "/");
 
 			// Cookies will actually be retained by the cache manager once
 			// logged in
@@ -91,8 +94,10 @@ class YiffStar extends BasicSupport_Deprecated {
 	public URL getCanonicalUrl(URL source) {
 		try {
 			if (source.getPath().startsWith("/view")) {
-				source = new URL(source.toString() + "/guest");
-				InputStream in = Instance.getCache().open(source, this, false);
+				source = guest(source.toString());
+				// NO CACHE because we don't want the NotLoggedIn message later
+				InputStream in = Instance.getCache().openNoCache(source, this,
+						null, null, null);
 				String line = getLine(in, "/browse/folder/", 0);
 				if (line != null) {
 					String[] tab = line.split("\"");
