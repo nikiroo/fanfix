@@ -17,7 +17,7 @@
 - FimFictionAPI: fix NPE
 - remote: encryption mode changed because Google
 - remote: not compatible with 2.x
-- remote: now use password from config file
+- remote: can now use password from config file
 - remote: worse perfs but much better memory usage
 - remote: log now includes the time of events
 
