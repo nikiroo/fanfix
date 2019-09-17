@@ -49,6 +49,7 @@ public class Test extends TestLauncher {
 	 */
 	static public void main(String[] args) throws IOException {
 		Instance.init();
+		//Instance.getCache().setOffline(true);
 		
 		int result = 0;
 		tempFiles = new TempFiles("fanfix-test");

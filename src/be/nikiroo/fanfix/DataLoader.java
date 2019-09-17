@@ -28,6 +28,7 @@ public class DataLoader {
 	private Downloader downloader;
 	private Downloader downloaderNoCache;
 	private Cache cache;
+	private boolean offline;
 
 	/**
 	 * Create a new {@link DataLoader} object.
@@ -68,6 +69,41 @@ public class DataLoader {
 		downloader = new Downloader(UA);
 		downloaderNoCache = downloader;
 		cache = new CacheMemory();
+	}
+	
+	/**
+	 * This {@link Downloader} is forbidden to try and connect to the network.
+	 * <p>
+	 * If TRUE, it will only check the cache (even in no-cache mode!).
+	 * <p>
+	 * Default is FALSE.
+	 * 
+	 * @return TRUE if offline
+	 */
+	public boolean isOffline() {
+		return offline;
+	}
+	
+	/**
+	 * This {@link Downloader} is forbidden to try and connect to the network.
+	 * <p>
+	 * If TRUE, it will only check the cache (even in no-cache mode!).
+	 * <p>
+	 * Default is FALSE.
+	 * 
+	 * @param offline TRUE for offline, FALSE for online
+	 */
+	public void setOffline(boolean offline) {
+		this.offline = offline;
+		downloader.setOffline(offline);
+		downloaderNoCache.setOffline(offline);
+		
+		// If we don't, we cannot support no-cache using code in OFFLINE mode
+		if (offline) {
+			downloaderNoCache.setCache(cache);
+		} else {
+			downloaderNoCache.setCache(null);
+		}
 	}
 
 	/**
