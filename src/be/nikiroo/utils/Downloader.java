@@ -30,6 +30,7 @@ public class Downloader {
 	private CookieManager cookies;
 	private TraceHandler tracer = new TraceHandler();
 	private Cache cache;
+	private boolean offline;
 
 	/**
 	 * Create a new {@link Downloader}.
@@ -62,6 +63,32 @@ public class Downloader {
 		CookieHandler.setDefault(cookies);
 
 		setCache(cache);
+	}
+	
+	/**
+	 * This {@link Downloader} is forbidden to try and connect to the network.
+	 * <p>
+	 * If TRUE, it will only check the cache if any.
+	 * <p>
+	 * Default is FALSE.
+	 * 
+	 * @return TRUE if offline
+	 */
+	public boolean isOffline() {
+		return offline;
+	}
+	
+	/**
+	 * This {@link Downloader} is forbidden to try and connect to the network.
+	 * <p>
+	 * If TRUE, it will only check the cache if any.
+	 * <p>
+	 * Default is FALSE.
+	 * 
+	 * @param offline TRUE for offline, FALSE for online
+	 */
+	public void setOffline(boolean offline) {
+		this.offline = offline;
 	}
 
 	/**
@@ -167,7 +194,7 @@ public class Downloader {
 	 * @return the {@link InputStream} of the opened page
 	 * 
 	 * @throws IOException
-	 *             in case of I/O error
+	 *             in case of I/O error (including offline mode + not in cache)
 	 */
 	public InputStream open(URL url, URL currentReferer,
 			Map<String, String> cookiesValues, Map<String, String> postParams,
@@ -199,7 +226,7 @@ public class Downloader {
 	 * @return the {@link InputStream} of the opened page
 	 * 
 	 * @throws IOException
-	 *             in case of I/O error
+	 *             in case of I/O error (including offline mode + not in cache)
 	 */
 	public InputStream open(URL url, URL currentReferer,
 			Map<String, String> cookiesValues, Map<String, String> postParams,
@@ -236,7 +263,7 @@ public class Downloader {
 	 * @return the {@link InputStream} of the opened page
 	 * 
 	 * @throws IOException
-	 *             in case of I/O error
+	 *             in case of I/O error (including offline mode + not in cache)
 	 */
 	public InputStream open(URL url, final URL originalUrl, URL currentReferer,
 			Map<String, String> cookiesValues, Map<String, String> postParams,
@@ -254,6 +281,11 @@ public class Downloader {
 			}
 		}
 
+		if (offline) {
+			tracer.error("Downloader OFFLINE, cannot proceed to URL: " + url);
+			throw new IOException("Downloader is currently OFFLINE, cannot download: " + url);
+		}
+		
 		tracer.trace("Download: " + url);
 
 		URLConnection conn = openConnectionWithCookies(url, currentReferer,

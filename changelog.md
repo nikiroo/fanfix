@@ -1,5 +1,9 @@
 # nikiroo-utils
 
+## Version WIP
+
+- Downloader: new Offline mode for cache accesses only
+
 ## Version 5.0.0
 
 - new: server: count the bytes we rec/send
