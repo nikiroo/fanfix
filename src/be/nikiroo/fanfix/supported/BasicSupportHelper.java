@@ -16,7 +16,7 @@ import be.nikiroo.utils.Image;
  * 
  * @author niki
  */
-class BasicSupportHelper {
+public class BasicSupportHelper {
 	/**
 	 * Get the default cover related to this subject (see <tt>.info</tt> files).
 	 * 
@@ -25,7 +25,7 @@ class BasicSupportHelper {
 	 * 
 	 * @return the cover if any, or NULL
 	 */
-	public static Image getDefaultCover(String subject) {
+	public Image getDefaultCover(String subject) {
 		if (subject != null && !subject.isEmpty()
 				&& Instance.getCoverDir() != null) {
 			try {
@@ -48,7 +48,7 @@ class BasicSupportHelper {
 	 * 
 	 * @return the extensions
 	 */
-	public static String[] getImageExt(boolean emptyAllowed) {
+	public String[] getImageExt(boolean emptyAllowed) {
 		if (emptyAllowed) {
 			return new String[] { "", ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
 		}
@@ -61,7 +61,7 @@ class BasicSupportHelper {
 	 * refresh the cache with it if it is.
 	 * 
 	 * @param support
-	 *            the linked {@link BasicSupport}
+	 *            the linked {@link BasicSupport} (can be NULL)
 	 * @param source
 	 *            the story source
 	 * @param line
@@ -70,7 +70,7 @@ class BasicSupportHelper {
 	 * @return the image if found, or NULL
 	 * 
 	 */
-	public static Image getImage(BasicSupport support, URL source, String line) {
+	public Image getImage(BasicSupport support, URL source, String line) {
 		URL url = getImageUrl(support, source, line);
 		if (url != null) {
 			if ("file".equals(url.getProtocol())) {
@@ -101,7 +101,7 @@ class BasicSupportHelper {
 	 * refresh the cache with it if it is.
 	 * 
 	 * @param support
-	 *            the linked {@link BasicSupport}
+	 *            the linked {@link BasicSupport} (can be NULL)
 	 * @param source
 	 *            the story source
 	 * @param line
@@ -110,7 +110,7 @@ class BasicSupportHelper {
 	 * @return the image URL if found, or NULL
 	 * 
 	 */
-	public static URL getImageUrl(BasicSupport support, URL source, String line) {
+	public URL getImageUrl(BasicSupport support, URL source, String line) {
 		URL url = null;
 
 		if (line != null) {
@@ -201,7 +201,7 @@ class BasicSupportHelper {
 	 * 
 	 * @return the author without prefixes
 	 */
-	public static String fixAuthor(String author) {
+	public String fixAuthor(String author) {
 		if (author != null) {
 			for (String suffix : new String[] { " ", ":" }) {
 				for (String byString : Instance.getConfig().getList(Config.CONF_BYS)) {

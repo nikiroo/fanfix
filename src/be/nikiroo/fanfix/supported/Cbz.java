@@ -85,7 +85,7 @@ class Cbz extends Epub {
 						&& entry.getName().startsWith(getDataPrefix())) {
 					String entryLName = entry.getName().toLowerCase();
 					boolean imageEntry = false;
-					for (String ext : BasicSupportImages.getImageExt(false)) {
+					for (String ext : bsImages.getImageExt(false)) {
 						if (entryLName.endsWith(ext)) {
 							imageEntry = true;
 						}

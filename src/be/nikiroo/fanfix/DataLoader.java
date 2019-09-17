@@ -95,7 +95,7 @@ public class DataLoader {
 	 * @param url
 	 *            the resource to open
 	 * @param support
-	 *            the support to use to download the resource
+	 *            the support to use to download the resource (can be NULL)
 	 * @param stable
 	 *            TRUE for more stable resources, FALSE when they often change
 	 * 
@@ -149,7 +149,7 @@ public class DataLoader {
 	 *            is also used for the cache ID if needed (so we can retrieve
 	 *            the content with this URL if needed)
 	 * @param support
-	 *            the support to use to download the resource
+	 *            the support to use to download the resource (can be NULL)
 	 * @param stable
 	 *            TRUE for more stable resources, FALSE when they often change
 	 * @param postParams
@@ -229,7 +229,7 @@ public class DataLoader {
 	 * @param url
 	 *            the resource to open
 	 * @param support
-	 *            the support to use to download the resource
+	 *            the support to use to download the resource (can be NULL)
 	 * @param stable
 	 *            TRUE for more stable resources, FALSE when they often change
 	 * 

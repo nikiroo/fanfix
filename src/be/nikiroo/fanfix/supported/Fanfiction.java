@@ -138,7 +138,7 @@ class Fanfiction extends BasicSupport_Deprecated {
 			}
 		}
 
-		return BasicSupportHelper.fixAuthor(author);
+		return bsHelper.fixAuthor(author);
 	}
 
 	private String getDate(InputStream in) {

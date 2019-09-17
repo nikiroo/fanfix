@@ -1,7 +1,6 @@
 package be.nikiroo.fanfix.supported;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -19,8 +18,8 @@ import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.ImageUtils;
-import be.nikiroo.utils.streams.MarkableFileInputStream;
 import be.nikiroo.utils.Progress;
+import be.nikiroo.utils.streams.MarkableFileInputStream;
 
 /**
  * Support class for local stories encoded in textual format, with a few rules:
@@ -147,7 +146,7 @@ class Text extends BasicSupport {
 			author = authorDate.substring(0, pos);
 		}
 
-		return BasicSupportHelper.fixAuthor(author);
+		return bsHelper.fixAuthor(author);
 	}
 
 	private String getDate() {
@@ -184,7 +183,7 @@ class Text extends BasicSupport {
 			}
 		}
 
-		Image cover = BasicSupportImages.getImage(this,
+		Image cover = bsImages.getImage(this,
 				sourceFile.getParentFile(), path);
 		if (cover != null) {
 			try {

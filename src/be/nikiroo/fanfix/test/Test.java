@@ -33,7 +33,8 @@ public class Test extends TestLauncher {
 	public Test(String[] args) {
 		super("Fanfix", args);
 		Instance.setTraceHandler(null);
-		addSeries(new BasicSupportTest(args));
+		addSeries(new BasicSupportUtilitiesTest(args));
+		addSeries(new BasicSupportDeprecatedTest(args));
 		addSeries(new LibraryTest(args));
 		addSeries(new ConversionTest(args));
 	}
@@ -47,6 +48,8 @@ public class Test extends TestLauncher {
 	 *             in case of I/O error
 	 */
 	static public void main(String[] args) throws IOException {
+		Instance.init();
+		
 		int result = 0;
 		tempFiles = new TempFiles("fanfix-test");
 		try {
