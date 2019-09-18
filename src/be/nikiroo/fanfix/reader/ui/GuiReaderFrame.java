@@ -390,7 +390,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 								.trans(StringIdGui.SUBTITLE_CONFIG));
 				JFrame frame = new JFrame(title);
 				frame.add(ed);
-				frame.setSize(800, 600);
+				frame.setSize(850, 600);
 				frame.setVisible(true);
 			}
 		});

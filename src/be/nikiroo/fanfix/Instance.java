@@ -451,8 +451,26 @@ public class Instance {
 	private static BasicLibrary createDefaultLibrary(File remoteDir) {
 		BasicLibrary lib = null;
 
-		String remoteLib = config.getString(Config.DEFAULT_LIBRARY);
-		if (remoteLib == null || remoteLib.trim().isEmpty()) {
+		boolean useRemote = config.getBoolean(Config.REMOTE_LIBRARY_ENABLED,
+				false);
+
+		if (useRemote) {
+			String host = null;
+			int port = -1;
+			try {
+				host = config.getString(Config.REMOTE_LIBRARY_HOST);
+				port = config.getInteger(Config.REMOTE_LIBRARY_PORT, -1);
+				String key = config.getString(Config.REMOTE_LIBRARY_KEY);
+
+				tracer.trace("Selecting remote library " + host + ":" + port);
+				lib = new RemoteLibrary(key, host, port);
+				lib = new CacheLibrary(getRemoteDir(remoteDir, host), lib);
+			} catch (Exception e) {
+				tracer.error(new IOException(
+						"Cannot create remote library for: " + host + ":"
+								+ port, e));
+			}
+		} else {
 			String libDir = System.getenv("BOOKS_DIR");
 			if (libDir == null || libDir.isEmpty()) {
 				libDir = config.getString(Config.LIBRARY_DIR, "$HOME/Books");
@@ -466,35 +484,6 @@ public class Instance {
 				tracer.error(new IOException(
 						"Cannot create library for directory: "
 								+ getFile(libDir), e));
-			}
-		} else {
-			Exception ex = null;
-			int pos = remoteLib.lastIndexOf(":");
-			if (pos >= 0) {
-				String port = remoteLib.substring(pos + 1).trim();
-				remoteLib = remoteLib.substring(0, pos);
-				pos = remoteLib.lastIndexOf(":");
-				if (pos >= 0) {
-					String host = remoteLib.substring(pos + 1).trim();
-					String key = remoteLib.substring(0, pos).trim();
-
-					try {
-						tracer.trace("Selecting remote library " + host + ":"
-								+ port);
-						lib = new RemoteLibrary(key, host,
-								Integer.parseInt(port));
-						lib = new CacheLibrary(getRemoteDir(remoteDir, host),
-								lib);
-
-					} catch (Exception e) {
-						ex = e;
-					}
-				}
-			}
-
-			if (lib == null) {
-				tracer.error(new IOException(
-						"Cannot create remote library for: " + remoteLib, ex));
 			}
 		}
 

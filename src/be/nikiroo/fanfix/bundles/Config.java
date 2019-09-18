@@ -11,7 +11,7 @@ import be.nikiroo.utils.resources.Meta.Format;
 @SuppressWarnings("javadoc")
 public enum Config {
 	@Meta(description = "The language to use for in the program (example: en-GB, fr-BE...) or nothing for default system language (can be overwritten with the variable $LANG)",//
-	format = Format.LOCALE)
+	format = Format.LOCALE, list = { "en-GB", "fr-BE" })
 	LANG, //
 	@Meta(description = "The default reader type to use to read stories:\nCLI = simple output to console\nTUI = a Text User Interface with menus and windows, based upon Jexer\nGUI = a GUI with locally stored files, based upon Swing", //
 	format = Format.FIXED_LIST, list = { "CLI", "GUI", "TUI" }, def = "GUI")
@@ -52,9 +52,22 @@ public enum Config {
 	@Meta(description = "The directory where to store the library (can be overriden by the envvironment variable \"BOOKS_DIR\"; any relative path uses the applciation config directory as base, $HOME notation is supported, / is always accepted as directory separator",//
 	format = Format.DIRECTORY, def = "$HOME/Books/")
 	LIBRARY_DIR, //
-	@Meta(description = "The default library to use (KEY:SERVER:PORT), or empty for the local library",//
-	format = Format.STRING, def = "")
-	DEFAULT_LIBRARY, //
+
+	@Meta(description = "Remote library\nA remote library can be configured to fetch the stories from a remote Fanfix server",//
+	group = true)
+	REMOTE_LIBRARY, //
+	@Meta(description = "Use the remote Fanfix server configured here instead of the local library (if FALSE, the local library will be used instead)",//
+	format = Format.BOOLEAN, def = "false")
+	REMOTE_LIBRARY_ENABLED, //
+	@Meta(description = "The remote Fanfix server to connect to",//
+	format = Format.STRING)
+	REMOTE_LIBRARY_HOST, //
+	@Meta(description = "The port to use for the remote Fanfix server",//
+	format = Format.INT, def = "58365")
+	REMOTE_LIBRARY_PORT, //
+	@Meta(description = "The key is structured: \"KEY|SUBKEY|wl|rw\"\n- \"KEY\" is the actual encryption key (it can actually be empty, which will still encrypt the messages but of course it will be easier to guess the key)\n- \"SUBKEY\" is the (optional) subkey to use to get additional privileges\n- \"wl\" is a special privilege that allows that subkey to ignore white lists\n- \"rw\" is a special privilege that allows that subkey to modify the library, even if it is not in RW (by default) mode\n\nSome examples:\n- \"super-secret\": a normal key, no special privileges\n- \"you-will-not-guess|azOpd8|wl\": a white-list ignoring key\n- \"new-password|subpass|rw\": a key that allows modifications on the library",//
+	format = Format.PASSWORD)
+	REMOTE_LIBRARY_KEY, //
 
 	@Meta(description = "Network configuration",//
 	group = true)

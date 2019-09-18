@@ -20,7 +20,7 @@ public class GuiReaderPropertiesFrame extends JFrame {
 	/**
 	 * Create a new {@link GuiReaderPropertiesFrame}.
 	 * 
-	 * @param ib
+	 * @param lib
 	 *            the library to use for the cover image
 	 * @param meta
 	 *            the meta to describe

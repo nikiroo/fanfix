@@ -15,7 +15,7 @@ public class ConfigBundle extends Bundle<Config> {
 	 * Create a new {@link ConfigBundle}.
 	 */
 	public ConfigBundle() {
-		super(Config.class, Target.config, null);
+		super(Config.class, Target.config5, null);
 	}
 
 	/**
