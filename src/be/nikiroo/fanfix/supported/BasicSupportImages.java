@@ -9,6 +9,12 @@ import java.net.URL;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.utils.Image;
 
+/**
+ * Helper class for {@link BasicSupport}, mostly dedicated to images for
+ * the classes that implement {@link BasicSupport}.
+ * 
+ * @author niki
+ */
 public class BasicSupportImages {
 	/**
 	 * Check if the given resource can be a local image or a remote image, then
@@ -22,7 +28,7 @@ public class BasicSupportImages {
 	 * @return the image if found, or NULL
 	 * 
 	 */
-	static Image getImage(BasicSupport support, File dir, String line) {
+	public Image getImage(BasicSupport support, File dir, String line) {
 		URL url = getImageUrl(support, dir, line);
 		if (url != null) {
 			if ("file".equals(url.getProtocol())) {
@@ -60,7 +66,7 @@ public class BasicSupportImages {
 	 * @return the image URL if found, or NULL
 	 * 
 	 */
-	static URL getImageUrl(BasicSupport support, File dir, String line) {
+	public URL getImageUrl(BasicSupport support, File dir, String line) {
 		URL url = null;
 
 		if (line != null) {
@@ -151,7 +157,7 @@ public class BasicSupportImages {
 	 * 
 	 * @return the extensions
 	 */
-	static String[] getImageExt(boolean emptyAllowed) {
+	public String[] getImageExt(boolean emptyAllowed) {
 		if (emptyAllowed) {
 			return new String[] { "", ".png", ".jpg", ".jpeg", ".gif", ".bmp" };
 		}

@@ -1,7 +1,6 @@
 package be.nikiroo.fanfix.supported;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -17,8 +16,8 @@ import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
-import be.nikiroo.utils.streams.MarkableFileInputStream;
 import be.nikiroo.utils.StringUtils;
+import be.nikiroo.utils.streams.MarkableFileInputStream;
 
 /**
  * Support class for EPUB files created with this program (as we need some
@@ -112,7 +111,7 @@ class Epub extends InfoText {
 					String entryLName = entry.getName().toLowerCase();
 
 					boolean imageEntry = false;
-					for (String ext : BasicSupportImages.getImageExt(false)) {
+					for (String ext : bsImages.getImageExt(false)) {
 						if (entryLName.endsWith(ext)) {
 							imageEntry = true;
 						}

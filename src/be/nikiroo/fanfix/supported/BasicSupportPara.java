@@ -20,12 +20,11 @@ import be.nikiroo.utils.StringUtils;
 
 /**
  * Helper class for {@link BasicSupport}, mostly dedicated to {@link Paragraph}
- * and text formating for the {@link BasicSupport} class itself (not its
- * children).
+ * and text formating for the {@link BasicSupport} class.
  * 
  * @author niki
  */
-class BasicSupportPara {
+public class BasicSupportPara {
 	// quote chars
 	private static char openQuote = Instance.getTrans().getCharacter(
 			StringId.OPEN_SINGLE_QUOTE);
@@ -36,6 +35,15 @@ class BasicSupportPara {
 	private static char closeDoubleQuote = Instance.getTrans().getCharacter(
 			StringId.CLOSE_DOUBLE_QUOTE);
 
+	// used by this class:
+	BasicSupportHelper bsHelper;
+	BasicSupportImages bsImages;
+	
+	public BasicSupportPara(BasicSupportHelper bsHelper, BasicSupportImages bsImages) {
+		this.bsHelper = bsHelper;
+		this.bsImages = bsImages;
+	}
+	
 	/**
 	 * Create a {@link Chapter} object from the given information, formatting
 	 * the content as it should be.
@@ -43,7 +51,8 @@ class BasicSupportPara {
 	 * @param support
 	 *            the linked {@link BasicSupport}
 	 * @param source
-	 *            the source of the story
+	 *            the source of the story (for image lookup in the same path if
+	 *            the source is a file, can be NULL)
 	 * @param number
 	 *            the chapter number
 	 * @param name
@@ -60,13 +69,13 @@ class BasicSupportPara {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public static Chapter makeChapter(BasicSupport support, URL source,
+	public Chapter makeChapter(BasicSupport support, URL source,
 			int number, String name, String content, boolean html, Progress pg)
 			throws IOException {
 		// Chapter name: process it correctly, then remove the possible
 		// redundant "Chapter x: " in front of it, or "-" (as in
 		// "Chapter 5: - Fun!" after the ": " was automatically added)
-		String chapterName = BasicSupportPara.processPara(name, false)
+		String chapterName = processPara(name, false)
 				.getContent().trim();
 		for (String lang : Instance.getConfig().getList(Config.CONF_CHAPTER)) {
 			String chapterWord = Instance.getConfig().getStringX(
@@ -116,7 +125,7 @@ class BasicSupportPara {
 	 * 
 	 * @return the correctly (or so we hope) quotified paragraphs
 	 */
-	private static List<Paragraph> requotify(Paragraph para, boolean html) {
+	protected List<Paragraph> requotify(Paragraph para, boolean html) {
 		List<Paragraph> newParas = new ArrayList<Paragraph>();
 
 		if (para.getType() == ParagraphType.QUOTE
@@ -200,7 +209,7 @@ class BasicSupportPara {
 	 * 
 	 * @return the processed {@link Paragraph}
 	 */
-	private static Paragraph processPara(String line, boolean html) {
+	protected Paragraph processPara(String line, boolean html) {
 		if (html) {
 			line = StringUtils.unhtml(line).trim();
 		}
@@ -407,9 +416,11 @@ class BasicSupportPara {
 	 * Convert the given content into {@link Paragraph}s.
 	 * 
 	 * @param support
-	 *            the linked {@link BasicSupport}
+	 *            the linked {@link BasicSupport} (can be NULL), used to
+	 *            download optional image content in []
 	 * @param source
-	 *            the source URL of the story
+	 *            the source URL of the story (for image lookup in the same path
+	 *            if the source is a file, can be NULL)
 	 * @param content
 	 *            the textual content
 	 * @param html
@@ -422,7 +433,7 @@ class BasicSupportPara {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	private static List<Paragraph> makeParagraphs(BasicSupport support,
+	protected List<Paragraph> makeParagraphs(BasicSupport support,
 			URL source, String content, boolean html, Progress pg)
 			throws IOException {
 		if (pg == null) {
@@ -483,7 +494,7 @@ class BasicSupportPara {
 			// Check quotes for "bad" format
 			List<Paragraph> newParas = new ArrayList<Paragraph>();
 			for (Paragraph para : paras) {
-				newParas.addAll(BasicSupportPara.requotify(para, html));
+				newParas.addAll(requotify(para, html));
 			}
 			paras = newParas;
 
@@ -498,9 +509,11 @@ class BasicSupportPara {
 	 * Convert the given line into a single {@link Paragraph}.
 	 * 
 	 * @param support
-	 *            the linked {@link BasicSupport}
+	 *            the linked {@link BasicSupport} (can be NULL), used to
+	 *            download optional image content in []
 	 * @param source
-	 *            the source URL of the story
+	 *            the source URL of the story (for image lookup in the same path
+	 *            if the source is a file, can be NULL)
 	 * @param line
 	 *            the textual content of the paragraph
 	 * @param html
@@ -508,11 +521,11 @@ class BasicSupportPara {
 	 * 
 	 * @return the {@link Paragraph}
 	 */
-	private static Paragraph makeParagraph(BasicSupport support, URL source,
+	protected Paragraph makeParagraph(BasicSupport support, URL source,
 			String line, boolean html) {
 		Image image = null;
 		if (line.startsWith("[") && line.endsWith("]")) {
-			image = BasicSupportHelper.getImage(support, source, line
+			image = bsHelper.getImage(support, source, line
 					.substring(1, line.length() - 1).trim());
 		}
 
@@ -520,7 +533,7 @@ class BasicSupportPara {
 			return new Paragraph(image);
 		}
 
-		return BasicSupportPara.processPara(line, html);
+		return processPara(line, html);
 	}
 
 	/**
@@ -533,7 +546,7 @@ class BasicSupportPara {
 	 * @param paras
 	 *            the list of {@link Paragraph}s to fix
 	 */
-	private static void fixBlanksBreaks(List<Paragraph> paras) {
+	protected void fixBlanksBreaks(List<Paragraph> paras) {
 		boolean space = false;
 		boolean brk = true;
 		for (int i = 0; i < paras.size(); i++) {

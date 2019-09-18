@@ -37,6 +37,10 @@ public abstract class BasicSupport {
 	private URL source;
 	private SupportType type;
 	private URL currentReferer; // with only one 'r', as in 'HTTP'...
+	
+	static protected BasicSupportHelper bsHelper = new BasicSupportHelper();
+	static protected BasicSupportImages bsImages = new BasicSupportImages();
+	static protected BasicSupportPara bsPara = new BasicSupportPara(new BasicSupportHelper(), new BasicSupportImages());
 
 	/**
 	 * Check if the given resource is supported by this {@link BasicSupport}.
@@ -274,7 +278,7 @@ public abstract class BasicSupport {
 		pg.setProgress(50);
 
 		if (meta.getCover() == null) {
-			meta.setCover(BasicSupportHelper.getDefaultCover(meta.getSubject()));
+			meta.setCover(bsHelper.getDefaultCover(meta.getSubject()));
 		}
 
 		pg.setProgress(60);
@@ -283,7 +287,7 @@ public abstract class BasicSupport {
 			String descChapterName = Instance.getTrans().getString(
 					StringId.DESCRIPTION);
 			story.getMeta().setResume(
-					BasicSupportPara.makeChapter(this, source, 0,
+					bsPara.makeChapter(this, source, 0,
 							descChapterName, //
 							getDesc(), isHtml(), null));
 		}
@@ -375,7 +379,7 @@ public abstract class BasicSupport {
 				String content = getChapterContent(chapUrl, i,
 						pgGetChapterContent);
 				pgGetChapterContent.done();
-				Chapter cc = BasicSupportPara.makeChapter(this, chapUrl, i,
+				Chapter cc = bsPara.makeChapter(this, chapUrl, i,
 						chapName, content, isHtml(), pgMakeChapter);
 				pgMakeChapter.done();
 
@@ -414,7 +418,7 @@ public abstract class BasicSupport {
 	 */
 	public Chapter makeChapter(URL source, int number, String name,
 			String content) throws IOException {
-		return BasicSupportPara.makeChapter(this, source, number, name,
+		return bsPara.makeChapter(this, source, number, name,
 				content, isHtml(), null);
 	}
 

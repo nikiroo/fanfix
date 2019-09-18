@@ -13,6 +13,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
@@ -85,12 +86,12 @@ class Cbz extends Epub {
 						&& entry.getName().startsWith(getDataPrefix())) {
 					String entryLName = entry.getName().toLowerCase();
 					boolean imageEntry = false;
-					for (String ext : BasicSupportImages.getImageExt(false)) {
+					for (String ext : bsImages.getImageExt(false)) {
 						if (entryLName.endsWith(ext)) {
 							imageEntry = true;
 						}
 					}
-
+					
 					if (imageEntry) {
 						String uuid = meta.getUuid() + "_" + entry.getName();
 						try {
@@ -111,6 +112,14 @@ class Cbz extends Epub {
 					}
 				}
 			}
+			
+			String ext = "."
+					+ Instance.getConfig()
+							.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER)
+							.toLowerCase();
+			String coverName = meta.getUuid() + "_" + basename + ext;
+			Image cover = images.get(coverName);
+			images.remove(coverName);
 
 			pg.setProgress(85);
 
@@ -120,13 +129,16 @@ class Cbz extends Epub {
 
 			pg.setProgress(90);
 
-			// only the description is kept
+			// only the description/cover is kept
 			Story origStory = getStoryFromTxt(tmpDir, basename);
 			if (origStory != null) {
 				if (origStory.getMeta().getCover() == null) {
 					origStory.getMeta().setCover(story.getMeta().getCover());
 				}
 				story.setMeta(origStory.getMeta());
+			}
+			if (story.getMeta().getCover() == null) {
+				story.getMeta().setCover(cover);
 			}
 			story.setChapters(new ArrayList<Chapter>());
 

@@ -68,8 +68,10 @@ if [ "`whereis tput`" = "tput:" ]; then
 	ko='"[ !! ]"';
 	cols=80;
 else
-	ok='"`tput bold`[`tput setf 2` OK `tput init``tput bold`]`tput init`"';
-	ko='"`tput bold`[`tput setf 4` !! `tput init``tput bold`]`tput init`"';
+	#ok='"`tput bold`[`tput setf 2` OK `tput init``tput bold`]`tput init`"';
+	#ko='"`tput bold`[`tput setf 4` !! `tput init``tput bold`]`tput init`"';
+	ok='"`tput bold`[`tput setaf 2` OK `tput init``tput bold`]`tput init`"';
+	ko='"`tput bold`[`tput setaf 1` !! `tput init``tput bold`]`tput init`"';
 	cols='"`tput cols`"';
 fi;
 

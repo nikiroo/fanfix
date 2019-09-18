@@ -18,14 +18,20 @@ import be.nikiroo.utils.test.TestCase;
 import be.nikiroo.utils.test.TestLauncher;
 
 class ConversionTest extends TestLauncher {
-	private File testFile;
-	private File expectedDir;
-	private File resultDir;
+	private String testUri;
+	private String expectedDir;
+	private String resultDir;
 	private List<BasicOutput.OutputType> realTypes;
 	private Map<String, List<String>> skipCompare;
+	private Map<String, List<String>> skipCompareCross;
 
-	public ConversionTest(String[] args) {
-		super("Conversion", args);
+	public ConversionTest(String testName, final String testUri,
+			final String expectedDir, final String resultDir, String[] args) {
+		super("Conversion - " + testName, args);
+
+		this.testUri = testUri;
+		this.expectedDir = expectedDir;
+		this.resultDir = resultDir;
 
 		// Special mode SYSOUT is not a file type (System.out)
 		realTypes = new ArrayList<BasicOutput.OutputType>();
@@ -35,23 +41,28 @@ class ConversionTest extends TestLauncher {
 			}
 		}
 
-		addTest(new TestCase("Read the test file") {
-			@Override
-			public void test() throws Exception {
-				assertEquals("The test file \"" + testFile
-						+ "\" cannot be found", true, testFile.exists());
-			}
-		});
+		if (!testUri.startsWith("http://") && !testUri.startsWith("https://")) {
+			addTest(new TestCase("Read the test file") {
+				@Override
+				public void test() throws Exception {
+					assertEquals("The test file \"" + testUri
+							+ "\" cannot be found", true,
+							new File(testUri).exists());
+				}
+			});
+		}
 
 		addTest(new TestCase("Assure directories exist") {
 			@Override
 			public void test() throws Exception {
-				expectedDir.mkdirs();
-				resultDir.mkdirs();
+				new File(expectedDir).mkdirs();
+				new File(resultDir).mkdirs();
 				assertEquals("The Expected directory \"" + expectedDir
-						+ "\" cannot be created", true, expectedDir.exists());
+						+ "\" cannot be created", true,
+						new File(expectedDir).exists());
 				assertEquals("The Result directory \"" + resultDir
-						+ "\" cannot be created", true, resultDir.exists());
+						+ "\" cannot be created", true,
+						new File(resultDir).exists());
 			}
 		});
 
@@ -62,18 +73,28 @@ class ConversionTest extends TestLauncher {
 
 	@Override
 	protected void start() throws Exception {
-		testFile = new File("test/test.story");
-		expectedDir = new File("test/expected/");
-		resultDir = new File("test/result/");
-
 		skipCompare = new HashMap<String, List<String>>();
+		skipCompareCross = new HashMap<String, List<String>>();
+		
 		skipCompare.put("epb.ncx",
 				Arrays.asList("		<meta name=\"dtb:uid\" content="));
 		skipCompare.put("epb.opf", Arrays.asList("      <dc:subject>",
 				"      <dc:identifier id=\"BookId\" opf:scheme=\"URI\">"));
 		skipCompare.put(".info",
-				Arrays.asList("CREATION_DATE=", "SUBJECT=", "URL=", "UUID="));
+				Arrays.asList("CREATION_DATE=", "URL=\"file:/", "UUID="));
 		skipCompare.put("URL", Arrays.asList("file:/"));
+		
+		for (String key : skipCompare.keySet()) {
+			skipCompareCross.put(key, skipCompare.get(key));
+		}
+
+		skipCompareCross.put(".info", Arrays.asList(""));
+		skipCompareCross.put("epb.opf", Arrays.asList("      <dc:"));
+		skipCompareCross.put("title.xhtml",
+				Arrays.asList("			<div class=\"type\">"));
+		skipCompareCross.put("index.html",
+				Arrays.asList("			<div class=\"type\">"));
+		skipCompareCross.put("URL", Arrays.asList(""));
 	}
 
 	@Override
@@ -84,13 +105,13 @@ class ConversionTest extends TestLauncher {
 		return new TestCase(type + " output mode") {
 			@Override
 			public void test() throws Exception {
-				File target = generate(this, testFile, resultDir, type);
+				File target = generate(this, testUri, new File(resultDir), type);
 				target = new File(target.getAbsolutePath()
 						+ type.getDefaultExtension(false));
 
 				// Check conversion:
-				compareFiles(this, expectedDir, resultDir, type, "Generate "
-						+ type);
+				compareFiles(this, new File(expectedDir), new File(resultDir),
+						type, "Generate " + type);
 
 				// LATEX not supported as input
 				if (BasicOutput.OutputType.LATEX.equals(type)) {
@@ -101,16 +122,18 @@ class ConversionTest extends TestLauncher {
 				for (BasicOutput.OutputType crossType : realTypes) {
 					File crossDir = Test.tempFiles
 							.createTempDir("cross-result");
-					generate(this, target, crossDir, crossType);
-					compareFiles(this, resultDir, crossDir, crossType,
-							"Cross compare " + crossType + " generated from "
-									+ type);
+
+					generate(this, target.getAbsolutePath(), crossDir,
+							crossType);
+					compareFiles(this, new File(resultDir), crossDir,
+							crossType, "Cross compare " + crossType
+									+ " generated from " + type);
 				}
 			}
 		};
 	}
 
-	private File generate(TestCase testCase, File testFile, File resultDir,
+	private File generate(TestCase testCase, String testUri, File resultDir,
 			BasicOutput.OutputType type) throws Exception {
 		final List<String> errors = new ArrayList<String>();
 
@@ -137,8 +160,8 @@ class ConversionTest extends TestLauncher {
 
 		try {
 			File target = new File(resultDir, type.toString());
-			int code = Main.convert(testFile.getAbsolutePath(),
-					type.toString(), target.getAbsolutePath(), false, null);
+			int code = Main.convert(testUri, type.toString(),
+					target.getAbsolutePath(), false, null);
 
 			String error = "";
 			for (String err : errors) {
@@ -161,6 +184,10 @@ class ConversionTest extends TestLauncher {
 	private void compareFiles(TestCase testCase, File expectedDir,
 			File resultDir, final BasicOutput.OutputType limitTiFiles,
 			final String errMess) throws Exception {
+
+		Map<String, List<String>> skipCompare = errMess.startsWith("Cross") ? this.skipCompareCross
+				: this.skipCompare;
+
 		FilenameFilter filter = null;
 		if (limitTiFiles != null) {
 			filter = new FilenameFilter() {

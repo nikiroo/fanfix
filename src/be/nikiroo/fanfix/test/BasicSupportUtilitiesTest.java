@@ -2,27 +2,26 @@ package be.nikiroo.fanfix.test;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.StringId;
-import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.supported.BasicSupport;
-import be.nikiroo.fanfix.supported.BasicSupport_Deprecated;
+import be.nikiroo.fanfix.supported.BasicSupportHelper;
+import be.nikiroo.fanfix.supported.BasicSupportImages;
+import be.nikiroo.fanfix.supported.BasicSupportPara;
 import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.test.TestCase;
 import be.nikiroo.utils.test.TestLauncher;
 
-class BasicSupportTest extends TestLauncher {
+class BasicSupportUtilitiesTest extends TestLauncher {
 	// quote chars
 	private char openQuote = Instance.getTrans().getCharacter(
 			StringId.OPEN_SINGLE_QUOTE);
@@ -32,27 +31,22 @@ class BasicSupportTest extends TestLauncher {
 			StringId.OPEN_DOUBLE_QUOTE);
 	private char closeDoubleQuote = Instance.getTrans().getCharacter(
 			StringId.CLOSE_DOUBLE_QUOTE);
-
-	public BasicSupportTest(String[] args) {
-		super("BasicSupport", args);
-
+	
+	public BasicSupportUtilitiesTest(String[] args) {
+		super("BasicSupportUtilities", args);
+		
 		addSeries(new TestLauncher("General", args) {
 			{
 				addTest(new TestCase("BasicSupport.makeParagraphs()") {
 					@Override
 					public void test() throws Exception {
-						BasicSupportEmpty support = new BasicSupportEmpty() {
-							@Override
-							protected boolean isHtml() {
-								return true;
-							}
-
+						BasicSupportParaPublic bsPara = new BasicSupportParaPublic() {
 							@Override
 							public void fixBlanksBreaks(List<Paragraph> paras) {
 							}
 
 							@Override
-							public List<Paragraph> requotify(Paragraph para) {
+							public List<Paragraph> requotify(Paragraph para, boolean html) {
 								List<Paragraph> paras = new ArrayList<Paragraph>(
 										1);
 								paras.add(para);
@@ -62,13 +56,13 @@ class BasicSupportTest extends TestLauncher {
 
 						List<Paragraph> paras = null;
 
-						paras = support.makeParagraphs(null, "", null);
+						paras = bsPara.makeParagraphs(null, null, "", true, null);
 						assertEquals(
 								"An empty content should not generate paragraphs",
 								0, paras.size());
 
-						paras = support.makeParagraphs(null,
-								"Line 1</p><p>Line 2</p><p>Line 3</p>", null);
+						paras = bsPara.makeParagraphs(null, null,
+								"Line 1</p><p>Line 2</p><p>Line 3</p>", true, null);
 						assertEquals(5, paras.size());
 						assertEquals("Line 1", paras.get(0).getContent());
 						assertEquals(ParagraphType.BLANK, paras.get(1)
@@ -78,8 +72,8 @@ class BasicSupportTest extends TestLauncher {
 								.getType());
 						assertEquals("Line 3", paras.get(4).getContent());
 
-						paras = support.makeParagraphs(null,
-								"<p>Line1</p><p>Line2</p><p>Line3</p>", null);
+						paras = bsPara.makeParagraphs(null, null,
+								"<p>Line1</p><p>Line2</p><p>Line3</p>", true, null);
 						assertEquals(6, paras.size());
 					}
 				});
@@ -87,49 +81,48 @@ class BasicSupportTest extends TestLauncher {
 				addTest(new TestCase("BasicSupport.removeDoubleBlanks()") {
 					@Override
 					public void test() throws Exception {
-						BasicSupportEmpty support = new BasicSupportEmpty() {
-							@Override
-							protected boolean isHtml() {
-								return true;
-							}
-						};
+						BasicSupportParaPublic support = new BasicSupportParaPublic();
 
 						List<Paragraph> paras = null;
 
 						paras = support
 								.makeParagraphs(
 										null,
+										null,
 										"<p>Line1</p><p>Line2</p><p>Line3<br/><br><p></p>",
+										true,
 										null);
 						assertEquals(5, paras.size());
 
 						paras = support
 								.makeParagraphs(
 										null,
+										null,
 										"<p>Line1</p><p>Line2</p><p>Line3<br/><br><p></p>* * *",
+										true,
 										null);
 						assertEquals(5, paras.size());
 
-						paras = support.makeParagraphs(null, "1<p>* * *<p>2",
-								null);
+						paras = support.makeParagraphs(null, null, "1<p>* * *<p>2",
+								true, null);
 						assertEquals(3, paras.size());
 						assertEquals(ParagraphType.BREAK, paras.get(1)
 								.getType());
 
-						paras = support.makeParagraphs(null,
-								"1<p><br/><p>* * *<p>2", null);
+						paras = support.makeParagraphs(null, null,
+								"1<p><br/><p>* * *<p>2", true, null);
 						assertEquals(3, paras.size());
 						assertEquals(ParagraphType.BREAK, paras.get(1)
 								.getType());
 
-						paras = support.makeParagraphs(null,
-								"1<p>* * *<br/><p><br><p>2", null);
+						paras = support.makeParagraphs(null, null,
+								"1<p>* * *<br/><p><br><p>2", true, null);
 						assertEquals(3, paras.size());
 						assertEquals(ParagraphType.BREAK, paras.get(1)
 								.getType());
 
-						paras = support.makeParagraphs(null,
-								"1<p><br/><br>* * *<br/><p><br><p>2", null);
+						paras = support.makeParagraphs(null, null,
+								"1<p><br/><br>* * *<br/><p><br><p>2", true, null);
 						assertEquals(3, paras.size());
 						assertEquals(ParagraphType.BREAK, paras.get(1)
 								.getType());
@@ -139,36 +132,31 @@ class BasicSupportTest extends TestLauncher {
 				addTest(new TestCase("BasicSupport.processPara() quotes") {
 					@Override
 					public void test() throws Exception {
-						BasicSupportEmpty support = new BasicSupportEmpty() {
-							@Override
-							protected boolean isHtml() {
-								return true;
-							}
-						};
+						BasicSupportParaPublic support = new BasicSupportParaPublic();
 
 						Paragraph para;
 
 						// sanity check
-						para = support.processPara("");
+						para = support.processPara("", true);
 						assertEquals(ParagraphType.BLANK, para.getType());
 						//
 
-						para = support.processPara("\"Yes, my Lord!\"");
+						para = support.processPara("\"Yes, my Lord!\"", true);
 						assertEquals(ParagraphType.QUOTE, para.getType());
 						assertEquals(openDoubleQuote + "Yes, my Lord!"
 								+ closeDoubleQuote, para.getContent());
 
-						para = support.processPara("«Yes, my Lord!»");
+						para = support.processPara("«Yes, my Lord!»", true);
 						assertEquals(ParagraphType.QUOTE, para.getType());
 						assertEquals(openDoubleQuote + "Yes, my Lord!"
 								+ closeDoubleQuote, para.getContent());
 
-						para = support.processPara("'Yes, my Lord!'");
+						para = support.processPara("'Yes, my Lord!'", true);
 						assertEquals(ParagraphType.QUOTE, para.getType());
 						assertEquals(openQuote + "Yes, my Lord!" + closeQuote,
 								para.getContent());
 
-						para = support.processPara("‹Yes, my Lord!›");
+						para = support.processPara("‹Yes, my Lord!›", true);
 						assertEquals(ParagraphType.QUOTE, para.getType());
 						assertEquals(openQuote + "Yes, my Lord!" + closeQuote,
 								para.getContent());
@@ -191,21 +179,16 @@ class BasicSupportTest extends TestLauncher {
 
 					@Override
 					public void test() throws Exception {
-						BasicSupportEmpty support = new BasicSupportEmpty() {
-							@Override
-							protected boolean isHtml() {
-								return true;
-							}
-						};
+						BasicSupportParaPublic support = new BasicSupportParaPublic();
 
 						Paragraph para;
 
-						para = support.processPara("''Yes, my Lord!''");
+						para = support.processPara("''Yes, my Lord!''", true);
 						assertEquals(ParagraphType.QUOTE, para.getType());
 						assertEquals(openDoubleQuote + "Yes, my Lord!"
 								+ closeDoubleQuote, para.getContent());
 
-						para = support.processPara("‹‹Yes, my Lord!››");
+						para = support.processPara("‹‹Yes, my Lord!››", true);
 						assertEquals(ParagraphType.QUOTE, para.getType());
 						assertEquals(openDoubleQuote + "Yes, my Lord!"
 								+ closeDoubleQuote, para.getContent());
@@ -215,17 +198,12 @@ class BasicSupportTest extends TestLauncher {
 				addTest(new TestCase("BasicSupport.processPara() apostrophe") {
 					@Override
 					public void test() throws Exception {
-						BasicSupportEmpty support = new BasicSupportEmpty() {
-							@Override
-							protected boolean isHtml() {
-								return true;
-							}
-						};
+						BasicSupportParaPublic support = new BasicSupportParaPublic();
 
 						Paragraph para;
 
 						String text = "Nous étions en été, mais cela aurait être l'hiver quand nous n'étions encore qu'à Aubeuge";
-						para = support.processPara(text);
+						para = support.processPara(text, true);
 						assertEquals(ParagraphType.NORMAL, para.getType());
 						assertEquals(text, para.getContent());
 					}
@@ -234,19 +212,14 @@ class BasicSupportTest extends TestLauncher {
 				addTest(new TestCase("BasicSupport.processPara() words count") {
 					@Override
 					public void test() throws Exception {
-						BasicSupportEmpty support = new BasicSupportEmpty() {
-							@Override
-							protected boolean isHtml() {
-								return true;
-							}
-						};
+						BasicSupportParaPublic support = new BasicSupportParaPublic();
 
 						Paragraph para;
 
-						para = support.processPara("«Yes, my Lord!»");
+						para = support.processPara("«Yes, my Lord!»", true);
 						assertEquals(3, para.getWords());
 
-						para = support.processPara("One, twee, trois.");
+						para = support.processPara("One, twee, trois.", true);
 						assertEquals(3, para.getWords());
 					}
 				});
@@ -254,7 +227,7 @@ class BasicSupportTest extends TestLauncher {
 				addTest(new TestCase("BasicSupport.requotify() words count") {
 					@Override
 					public void test() throws Exception {
-						BasicSupportEmpty support = new BasicSupportEmpty();
+						BasicSupportParaPublic support = new BasicSupportParaPublic();
 
 						char openDoubleQuote = Instance.getTrans()
 								.getCharacter(StringId.OPEN_DOUBLE_QUOTE);
@@ -269,7 +242,7 @@ class BasicSupportTest extends TestLauncher {
 						content = "One, twee, trois.";
 						para = new Paragraph(ParagraphType.NORMAL, content,
 								content.split(" ").length);
-						paras = support.requotify(para);
+						paras = support.requotify(para, false);
 						words = 0;
 						for (Paragraph p : paras) {
 							words += p.getWords();
@@ -280,7 +253,7 @@ class BasicSupportTest extends TestLauncher {
 						content = "Such WoW! So Web2.0! With Colours!";
 						para = new Paragraph(ParagraphType.NORMAL, content,
 								content.split(" ").length);
-						paras = support.requotify(para);
+						paras = support.requotify(para, false);
 						words = 0;
 						for (Paragraph p : paras) {
 							words += p.getWords();
@@ -293,7 +266,7 @@ class BasicSupportTest extends TestLauncher {
 								+ ", she said. This ought to be a new para.";
 						para = new Paragraph(ParagraphType.QUOTE, content,
 								content.split(" ").length);
-						paras = support.requotify(para);
+						paras = support.requotify(para, false);
 						words = 0;
 						for (Paragraph p : paras) {
 							words += p.getWords();
@@ -392,64 +365,37 @@ class BasicSupportTest extends TestLauncher {
 			}
 		});
 	}
-
-	private class BasicSupportEmpty extends BasicSupport_Deprecated {
-		@Override
-		protected boolean supports(URL url) {
-			return false;
+	
+	class BasicSupportParaPublic extends BasicSupportPara {
+		public BasicSupportParaPublic() {
+			super(new BasicSupportHelper(), new BasicSupportImages());
 		}
-
+		
 		@Override
-		protected boolean isHtml() {
-			return false;
+		// and make it public!
+		public Paragraph makeParagraph(BasicSupport support, URL source,
+				String line, boolean html) {
+			return super.makeParagraph(support, source, line, html);
 		}
-
+		
 		@Override
-		protected MetaData getMeta(URL source, InputStream in)
+		// and make it public!
+		public List<Paragraph> makeParagraphs(BasicSupport support,
+				URL source, String content, boolean html, Progress pg)
 				throws IOException {
-			return null;
+			return super.makeParagraphs(support, source, content, html, pg);
 		}
-
-		@Override
-		protected String getDesc(URL source, InputStream in) throws IOException {
-			return null;
-		}
-
-		@Override
-		protected List<Entry<String, URL>> getChapters(URL source,
-				InputStream in, Progress pg) throws IOException {
-			return null;
-		}
-
-		@Override
-		protected String getChapterContent(URL source, InputStream in,
-				int number, Progress pg) throws IOException {
-			return null;
-		}
-
+		
 		@Override
 		// and make it public!
-		public List<Paragraph> makeParagraphs(URL source, String content,
-				Progress pg) throws IOException {
-			return super.makeParagraphs(source, content, pg);
+		public Paragraph processPara(String line, boolean html) {
+			return super.processPara(line, html);
 		}
-
+		
 		@Override
 		// and make it public!
-		public void fixBlanksBreaks(List<Paragraph> paras) {
-			super.fixBlanksBreaks(paras);
-		}
-
-		@Override
-		// and make it public!
-		public Paragraph processPara(String line) {
-			return super.processPara(line);
-		}
-
-		@Override
-		// and make it public!
-		public List<Paragraph> requotify(Paragraph para) {
-			return super.requotify(para);
+		public List<Paragraph> requotify(Paragraph para, boolean html) {
+			return super.requotify(para, html);
 		}
 	}
 }

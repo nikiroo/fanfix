@@ -112,6 +112,8 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 
 	/**
 	 * The story resume (a.k.a. description).
+	 * <p>
+	 * This can be NULL if we don't have a resume for this {@link Story}.
 	 * 
 	 * @return the resume
 	 */
@@ -470,7 +472,7 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 
 		String cover = "none";
 		if (getCover() != null) {
-			cover = StringUtils.formatNumber(getCover().getData().length)
+			cover = StringUtils.formatNumber(getCover().getSize())
 					+ "bytes";
 		}
 

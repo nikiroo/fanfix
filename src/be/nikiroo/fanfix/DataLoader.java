@@ -28,6 +28,7 @@ public class DataLoader {
 	private Downloader downloader;
 	private Downloader downloaderNoCache;
 	private Cache cache;
+	private boolean offline;
 
 	/**
 	 * Create a new {@link DataLoader} object.
@@ -69,6 +70,41 @@ public class DataLoader {
 		downloaderNoCache = downloader;
 		cache = new CacheMemory();
 	}
+	
+	/**
+	 * This {@link Downloader} is forbidden to try and connect to the network.
+	 * <p>
+	 * If TRUE, it will only check the cache (even in no-cache mode!).
+	 * <p>
+	 * Default is FALSE.
+	 * 
+	 * @return TRUE if offline
+	 */
+	public boolean isOffline() {
+		return offline;
+	}
+	
+	/**
+	 * This {@link Downloader} is forbidden to try and connect to the network.
+	 * <p>
+	 * If TRUE, it will only check the cache (even in no-cache mode!).
+	 * <p>
+	 * Default is FALSE.
+	 * 
+	 * @param offline TRUE for offline, FALSE for online
+	 */
+	public void setOffline(boolean offline) {
+		this.offline = offline;
+		downloader.setOffline(offline);
+		downloaderNoCache.setOffline(offline);
+		
+		// If we don't, we cannot support no-cache using code in OFFLINE mode
+		if (offline) {
+			downloaderNoCache.setCache(cache);
+		} else {
+			downloaderNoCache.setCache(null);
+		}
+	}
 
 	/**
 	 * The traces handler for this {@link Cache}.
@@ -95,7 +131,7 @@ public class DataLoader {
 	 * @param url
 	 *            the resource to open
 	 * @param support
-	 *            the support to use to download the resource
+	 *            the support to use to download the resource (can be NULL)
 	 * @param stable
 	 *            TRUE for more stable resources, FALSE when they often change
 	 * 
@@ -149,7 +185,7 @@ public class DataLoader {
 	 *            is also used for the cache ID if needed (so we can retrieve
 	 *            the content with this URL if needed)
 	 * @param support
-	 *            the support to use to download the resource
+	 *            the support to use to download the resource (can be NULL)
 	 * @param stable
 	 *            TRUE for more stable resources, FALSE when they often change
 	 * @param postParams
@@ -229,7 +265,7 @@ public class DataLoader {
 	 * @param url
 	 *            the resource to open
 	 * @param support
-	 *            the support to use to download the resource
+	 *            the support to use to download the resource (can be NULL)
 	 * @param stable
 	 *            TRUE for more stable resources, FALSE when they often change
 	 * 

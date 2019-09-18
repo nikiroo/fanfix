@@ -1,7 +1,6 @@
 package be.nikiroo.fanfix.supported;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,6 +17,10 @@ import be.nikiroo.utils.streams.MarkableFileInputStream;
 
 // not complete: no "description" tag
 public class InfoReader {
+	static protected BasicSupportHelper bsHelper = new BasicSupportHelper();
+	// static protected BasicSupportImages bsImages = new BasicSupportImages();
+	// static protected BasicSupportPara bsPara = new BasicSupportPara(new BasicSupportHelper(), new BasicSupportImages());
+
 	public static MetaData readMeta(File infoFile, boolean withCover)
 			throws IOException {
 		if (infoFile == null) {
@@ -58,7 +61,7 @@ public class InfoReader {
 		if (withCover) {
 			String infoTag = getInfoTag(in, "COVER");
 			if (infoTag != null && !infoTag.trim().isEmpty()) {
-				meta.setCover(BasicSupportHelper.getImage(null, sourceInfoFile,
+				meta.setCover(bsHelper.getImage(null, sourceInfoFile,
 						infoTag));
 			}
 			if (meta.getCover() == null) {
@@ -75,7 +78,7 @@ public class InfoReader {
 		meta.setFakeCover(Boolean.parseBoolean(getInfoTag(in, "FAKE_COVER")));
 
 		if (withCover && meta.getCover() == null) {
-			meta.setCover(BasicSupportHelper.getDefaultCover(meta.getSubject()));
+			meta.setCover(bsHelper.getDefaultCover(meta.getSubject()));
 		}
 
 		return meta;
@@ -99,7 +102,7 @@ public class InfoReader {
 						.toLowerCase();
 
 		// Without removing ext
-		cover = BasicSupportHelper.getImage(null, sourceInfoFile,
+		cover = bsHelper.getImage(null, sourceInfoFile,
 				basefile.getAbsolutePath() + ext);
 
 		// Try without ext
@@ -109,7 +112,7 @@ public class InfoReader {
 			name = name.substring(0, pos);
 			basefile = new File(basefile.getParent(), name);
 
-			cover = BasicSupportHelper.getImage(null, sourceInfoFile,
+			cover = bsHelper.getImage(null, sourceInfoFile,
 					basefile.getAbsolutePath() + ext);
 		}
 
