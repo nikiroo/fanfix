@@ -23,10 +23,11 @@ class ConversionTest extends TestLauncher {
 	private String resultDir;
 	private List<BasicOutput.OutputType> realTypes;
 	private Map<String, List<String>> skipCompare;
+	private Map<String, List<String>> skipCompareCross;
 
-	public ConversionTest(final String testUri, final String expectedDir,
-			final String resultDir, String[] args) {
-		super("Conversion", args);
+	public ConversionTest(String testName, final String testUri,
+			final String expectedDir, final String resultDir, String[] args) {
+		super("Conversion - " + testName, args);
 
 		this.testUri = testUri;
 		this.expectedDir = expectedDir;
@@ -40,14 +41,16 @@ class ConversionTest extends TestLauncher {
 			}
 		}
 
-		addTest(new TestCase("Read the test file") {
-			@Override
-			public void test() throws Exception {
-				assertEquals("The test file \"" + testUri
-						+ "\" cannot be found", true,
-						new File(testUri).exists());
-			}
-		});
+		if (!testUri.startsWith("http://") && !testUri.startsWith("https://")) {
+			addTest(new TestCase("Read the test file") {
+				@Override
+				public void test() throws Exception {
+					assertEquals("The test file \"" + testUri
+							+ "\" cannot be found", true,
+							new File(testUri).exists());
+				}
+			});
+		}
 
 		addTest(new TestCase("Assure directories exist") {
 			@Override
@@ -71,13 +74,27 @@ class ConversionTest extends TestLauncher {
 	@Override
 	protected void start() throws Exception {
 		skipCompare = new HashMap<String, List<String>>();
+		skipCompareCross = new HashMap<String, List<String>>();
+		
 		skipCompare.put("epb.ncx",
 				Arrays.asList("		<meta name=\"dtb:uid\" content="));
 		skipCompare.put("epb.opf", Arrays.asList("      <dc:subject>",
 				"      <dc:identifier id=\"BookId\" opf:scheme=\"URI\">"));
 		skipCompare.put(".info",
-				Arrays.asList("CREATION_DATE=", "SUBJECT=", "URL=", "UUID="));
+				Arrays.asList("CREATION_DATE=", "URL=\"file:/", "UUID="));
 		skipCompare.put("URL", Arrays.asList("file:/"));
+		
+		for (String key : skipCompare.keySet()) {
+			skipCompareCross.put(key, skipCompare.get(key));
+		}
+
+		skipCompareCross.put(".info", Arrays.asList(""));
+		skipCompareCross.put("epb.opf", Arrays.asList("      <dc:"));
+		skipCompareCross.put("title.xhtml",
+				Arrays.asList("			<div class=\"type\">"));
+		skipCompareCross.put("index.html",
+				Arrays.asList("			<div class=\"type\">"));
+		skipCompareCross.put("URL", Arrays.asList(""));
 	}
 
 	@Override
@@ -105,6 +122,7 @@ class ConversionTest extends TestLauncher {
 				for (BasicOutput.OutputType crossType : realTypes) {
 					File crossDir = Test.tempFiles
 							.createTempDir("cross-result");
+
 					generate(this, target.getAbsolutePath(), crossDir,
 							crossType);
 					compareFiles(this, new File(resultDir), crossDir,
@@ -166,6 +184,10 @@ class ConversionTest extends TestLauncher {
 	private void compareFiles(TestCase testCase, File expectedDir,
 			File resultDir, final BasicOutput.OutputType limitTiFiles,
 			final String errMess) throws Exception {
+
+		Map<String, List<String>> skipCompare = errMess.startsWith("Cross") ? this.skipCompareCross
+				: this.skipCompare;
+
 		FilenameFilter filter = null;
 		if (limitTiFiles != null) {
 			filter = new FilenameFilter() {

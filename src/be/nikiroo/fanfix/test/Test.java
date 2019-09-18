@@ -1,11 +1,10 @@
 package be.nikiroo.fanfix.test;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Properties;
 
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.ConfigBundle;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.TempFiles;
@@ -49,7 +48,7 @@ public class Test extends TestLauncher {
 		addSeries(new BasicSupportUtilitiesTest(args));
 		addSeries(new BasicSupportDeprecatedTest(args));
 		addSeries(new LibraryTest(args));
-
+		
 		File sources = new File("test/");
 		if (sources.isDirectory()) {
 			for (File file : sources.listFiles()) {
@@ -71,7 +70,8 @@ public class Test extends TestLauncher {
 					continue;
 				}
 
-				addSeries(new ConversionTest(uri, expectedDir, resultDir, args));
+				addSeries(new ConversionTest(file.getName(), uri, expectedDir,
+						resultDir, args));
 			}
 		}
 	}
@@ -107,24 +107,16 @@ public class Test extends TestLauncher {
 			}
 			localCache.mkdirs();
 
-			FileOutputStream out = null;
-			try {
-				out = new FileOutputStream(new File(tmpConfig,
-						"config.properties"));
-				Properties props = new Properties();
-				props.setProperty("CACHE_DIR", localCache.getAbsolutePath());
-				props.store(out, null);
-			} finally {
-				if (out != null) {
-					out.close();
-				}
-			}
-
 			ConfigBundle config = new ConfigBundle();
 			Bundles.setDirectory(tmpConfig.getAbsolutePath());
+			config.setString(Config.CACHE_DIR, localCache.getAbsolutePath());
+			config.setInteger(Config.CACHE_MAX_TIME_STABLE, -1);
+			config.setInteger(Config.CACHE_MAX_TIME_CHANGING, -1);
 			config.updateFile(tmpConfig.getPath());
-
 			System.setProperty("CONFIG_DIR", tmpConfig.getAbsolutePath());
+
+			Instance.init(true);
+			Instance.getCache().setOffline(offline);
 
 			TestLauncher tests = new Test(args);
 			tests.setDetails(verbose);
@@ -132,7 +124,6 @@ public class Test extends TestLauncher {
 			result = tests.launch();
 
 			IOUtils.deltree(tmpConfig);
-			IOUtils.deltree(localCache);
 		} finally {
 			// Test temp files
 			tempFiles.close();
