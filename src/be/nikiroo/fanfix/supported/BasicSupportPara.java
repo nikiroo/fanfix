@@ -51,7 +51,8 @@ public class BasicSupportPara {
 	 * @param support
 	 *            the linked {@link BasicSupport}
 	 * @param source
-	 *            the source of the story
+	 *            the source of the story (for image lookup in the same path if
+	 *            the source is a file, can be NULL)
 	 * @param number
 	 *            the chapter number
 	 * @param name
@@ -415,10 +416,11 @@ public class BasicSupportPara {
 	 * Convert the given content into {@link Paragraph}s.
 	 * 
 	 * @param support
-	 *            the linked {@link BasicSupport} (can be NULL),
-	 *            used to download optional image content in []
+	 *            the linked {@link BasicSupport} (can be NULL), used to
+	 *            download optional image content in []
 	 * @param source
-	 *            the source URL of the story
+	 *            the source URL of the story (for image lookup in the same path
+	 *            if the source is a file, can be NULL)
 	 * @param content
 	 *            the textual content
 	 * @param html
@@ -507,10 +509,11 @@ public class BasicSupportPara {
 	 * Convert the given line into a single {@link Paragraph}.
 	 * 
 	 * @param support
-	 *            the linked {@link BasicSupport} (can be NULL),
-	 *            used to download optional image content in []
+	 *            the linked {@link BasicSupport} (can be NULL), used to
+	 *            download optional image content in []
 	 * @param source
-	 *            the source URL of the story
+	 *            the source URL of the story (for image lookup in the same path
+	 *            if the source is a file, can be NULL)
 	 * @param line
 	 *            the textual content of the paragraph
 	 * @param html

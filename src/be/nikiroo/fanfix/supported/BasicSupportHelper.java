@@ -63,7 +63,8 @@ public class BasicSupportHelper {
 	 * @param support
 	 *            the linked {@link BasicSupport} (can be NULL)
 	 * @param source
-	 *            the story source
+	 *            the source of the story (for image lookup in the same path if
+	 *            the source is a file, can be NULL)
 	 * @param line
 	 *            the resource to check
 	 * 
@@ -103,7 +104,8 @@ public class BasicSupportHelper {
 	 * @param support
 	 *            the linked {@link BasicSupport} (can be NULL)
 	 * @param source
-	 *            the story source
+	 *            the source of the story (for image lookup in the same path if
+	 *            the source is a file, can be NULL)
 	 * @param line
 	 *            the resource to check
 	 * 
