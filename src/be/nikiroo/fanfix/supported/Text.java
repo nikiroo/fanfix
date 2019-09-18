@@ -15,7 +15,9 @@ import org.jsoup.nodes.Document;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
+import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.ImageUtils;
 import be.nikiroo.utils.Progress;
@@ -171,7 +173,20 @@ class Text extends BasicSupport {
 
 	@Override
 	protected String getDesc() throws IOException {
-		return getChapterContent(null, 0, null);
+		String content = getChapterContent(null, 0, null).trim();
+		if (!content.isEmpty()) {
+			Chapter desc = bsPara.makeChapter(this, null, 0, "Description",
+					content, isHtml(), null);
+			StringBuilder builder = new StringBuilder();
+			for (Paragraph para : desc) {
+				if (builder.length() > 0) {
+					builder.append("\n");
+				}
+				builder.append(para.getContent());
+			}
+		}
+
+		return content;
 	}
 
 	private Image getCover(File sourceFile) {
@@ -183,8 +198,7 @@ class Text extends BasicSupport {
 			}
 		}
 
-		Image cover = bsImages.getImage(this,
-				sourceFile.getParentFile(), path);
+		Image cover = bsImages.getImage(this, sourceFile.getParentFile(), path);
 		if (cover != null) {
 			try {
 				File tmp = Instance.getTempFiles().createTempFile(
@@ -237,9 +251,9 @@ class Text extends BasicSupport {
 		boolean inChap = false;
 		while (scan.hasNext()) {
 			String line = scan.next();
-			if (detectChapter(line, number) != null) {
+			if (!inChap && detectChapter(line, number) != null) {
 				inChap = true;
-			} else if (inChap && detectChapter(line, number + 1) != null) {
+			} else if (detectChapter(line, number + 1) != null) {
 				break;
 			} else if (inChap) {
 				builder.append(line);
@@ -325,20 +339,29 @@ class Text extends BasicSupport {
 	 * 
 	 * @param line
 	 *            the line to check
+	 * @param number
+	 *            the specific chapter number to check for
 	 * 
 	 * @return the language or NULL
 	 */
 	static private String detectChapter(String line, int number) {
 		line = line.toUpperCase();
 		for (String lang : Instance.getConfig().getList(Config.CONF_CHAPTER)) {
-			String chapter = Instance.getConfig().getStringX(Config.CONF_CHAPTER,
-					lang);
+			String chapter = Instance.getConfig().getStringX(
+					Config.CONF_CHAPTER, lang);
 			if (chapter != null && !chapter.isEmpty()) {
 				chapter = chapter.toUpperCase() + " ";
 				if (line.startsWith(chapter)) {
 					// We want "[CHAPTER] [number]: [name]", with ": [name]"
 					// optional
 					String test = line.substring(chapter.length()).trim();
+
+					String possibleNum = test.trim();
+					if (possibleNum.indexOf(':') > 0) {
+						possibleNum = possibleNum.substring(0,
+								possibleNum.indexOf(':')).trim();
+					}
+
 					if (test.startsWith(Integer.toString(number))) {
 						test = test
 								.substring(Integer.toString(number).length())
