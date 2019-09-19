@@ -75,15 +75,16 @@ class ConversionTest extends TestLauncher {
 	protected void start() throws Exception {
 		skipCompare = new HashMap<String, List<String>>();
 		skipCompareCross = new HashMap<String, List<String>>();
-		
-		skipCompare.put("epb.ncx",
-				Arrays.asList("		<meta name=\"dtb:uid\" content="));
+
+		skipCompare.put("epb.ncx", Arrays.asList(
+				"		<meta name=\"dtb:uid\" content=",
+				"		<meta name=\"epub-creator\" content=\""));
 		skipCompare.put("epb.opf", Arrays.asList("      <dc:subject>",
 				"      <dc:identifier id=\"BookId\" opf:scheme=\"URI\">"));
-		skipCompare.put(".info",
-				Arrays.asList("CREATION_DATE=", "URL=\"file:/", "UUID="));
+		skipCompare.put(".info", Arrays.asList("CREATION_DATE=",
+				"URL=\"file:/", "UUID=EPUBCREATOR=\"", ""));
 		skipCompare.put("URL", Arrays.asList("file:/"));
-		
+
 		for (String key : skipCompare.keySet()) {
 			skipCompareCross.put(key, skipCompare.get(key));
 		}
