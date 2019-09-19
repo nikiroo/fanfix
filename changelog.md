@@ -3,6 +3,7 @@
 ## Version WIP
 
 - Downloader: new Offline mode for cache accesses only
+- Cache: make sure an immedate SAVE/LOAD always work, even with 0 retention delays
 
 ## Version 5.0.0
 

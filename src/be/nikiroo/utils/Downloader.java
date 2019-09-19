@@ -397,6 +397,11 @@ public class Downloader {
 				}
 			}
 
+			if (in == null) {
+				throw new IOException(
+						"Cannot retrieve the file after storing it in the cache (??)");
+			}
+			
 			return in;
 		} catch (IOException e) {
 			throw new IOException(String.format(

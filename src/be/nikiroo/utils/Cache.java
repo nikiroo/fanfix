@@ -326,9 +326,12 @@ public class Cache {
 	 *             in case of I/O error
 	 */
 	private long save(InputStream in, File cached) throws IOException {
-		// We delete AFTER so not to remove the subdir we will use...
-		long bytes = IOUtils.write(in, cached);
+		// We want to force at least an immediate SAVE/LOAD to work for some
+		// workflows, even if we don't accept cached files (times set to "0"
+		// -- and not "-1" or a positive value)
 		clean(true, dir, 10);
+		cached.getParentFile().mkdirs(); // in case we deleted our own parent
+		long bytes = IOUtils.write(in, cached);
 		return bytes;
 	}
 
