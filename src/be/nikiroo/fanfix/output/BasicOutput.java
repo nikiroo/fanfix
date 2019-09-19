@@ -12,6 +12,7 @@ import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.Progress;
+import be.nikiroo.utils.Version;
 
 /**
  * This class is the base class used by the other output classes. It can be used
@@ -150,7 +151,8 @@ public abstract class BasicOutput {
 	}
 
 	/** The creator name (this program, by me!) */
-	static final String EPUB_CREATOR = "Fanfix (by Niki)";
+	protected String EPUB_CREATOR = "Fanfix " + Version.getCurrentVersion()
+			+ " (by Niki)";
 
 	/** The current best name for an image */
 	private String imageName;
