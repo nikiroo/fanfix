@@ -517,7 +517,8 @@ class GuiReaderMainPanel extends JPanel {
 				// No data will be handled
 			}
 
-			if (clipboard == null || !clipboard.startsWith("http")) {
+			if (clipboard == null || !(clipboard.startsWith("http://") || //
+					clipboard.startsWith("https://"))) {
 				clipboard = "";
 			}
 

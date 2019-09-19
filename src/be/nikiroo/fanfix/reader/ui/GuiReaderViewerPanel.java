@@ -16,7 +16,6 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
-import javax.swing.plaf.basic.BasicArrowButton;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.StringIdGui;
