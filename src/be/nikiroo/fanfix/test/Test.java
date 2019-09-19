@@ -18,7 +18,7 @@ import be.nikiroo.utils.test.TestLauncher;
  */
 public class Test extends TestLauncher {
 	//
-	// 3 files can control the test:
+	// 4 files can control the test:
 	// - test/VERBOSE: enable verbose mode
 	// - test/OFFLINE: to forbid any downloading
 	// - test/URLS: to allow testing URLs
