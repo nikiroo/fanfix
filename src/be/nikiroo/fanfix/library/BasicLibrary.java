@@ -751,14 +751,14 @@ abstract public class BasicLibrary {
 	 * @param pg
 	 *            the optional progress reporter
 	 * 
-	 * @return the imported {@link Story}
+	 * @return the imported Story {@link MetaData}
 	 * 
 	 * @throws UnknownHostException
 	 *             if the host is not supported
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public Story imprt(URL url, Progress pg) throws IOException {
+	public MetaData imprt(URL url, Progress pg) throws IOException {
 		if (pg == null)
 			pg = new Progress();
 
@@ -776,7 +776,7 @@ abstract public class BasicLibrary {
 		Story story = save(support.process(pgProcess), pgSave);
 		pg.done();
 
-		return story;
+		return story.getMeta();
 	}
 
 	/**

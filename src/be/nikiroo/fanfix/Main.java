@@ -12,6 +12,7 @@ import javax.net.ssl.SSLException;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.StringId;
 import be.nikiroo.fanfix.data.Chapter;
+import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.library.CacheLibrary;
@@ -644,10 +645,10 @@ public class Main {
 	 */
 	public static int imprt(String urlString, Progress pg) {
 		try {
-			Story story = Instance.getLibrary().imprt(
+			MetaData meta = Instance.getLibrary().imprt(
 					BasicReader.getUrl(urlString), pg);
-			System.out.println(story.getMeta().getLuid() + ": \""
-					+ story.getMeta().getTitle() + "\" imported.");
+			System.out.println(meta.getLuid() + ": \"" + meta.getTitle()
+					+ "\" imported.");
 		} catch (IOException e) {
 			Instance.getTraceHandler().error(e);
 			return 1;

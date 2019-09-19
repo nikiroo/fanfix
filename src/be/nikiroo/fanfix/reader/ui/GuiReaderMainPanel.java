@@ -108,18 +108,18 @@ class GuiReaderMainPanel extends JPanel {
 	}
 
 	/**
-	 * A {@link Runnable} with a {@link Story} parameter.
+	 * A {@link Runnable} with a {@link MetaData} parameter.
 	 * 
 	 * @author niki
 	 */
-	public interface StoryRunnable {
+	public interface MetaDataRunnable {
 		/**
 		 * Run the action.
 		 * 
-		 * @param story
-		 *            the story
+		 * @param meta
+		 *            the meta of the story
 		 */
-		public void run(Story story);
+		public void run(MetaData meta);
 	}
 
 	/**
@@ -548,7 +548,7 @@ class GuiReaderMainPanel extends JPanel {
 	 * @param onSuccessPgName
 	 *            the name to use for the onSuccess progress bar
 	 */
-	public void imprt(final String url, final StoryRunnable onSuccess,
+	public void imprt(final String url, final MetaDataRunnable onSuccess,
 			String onSuccessPgName) {
 		final Progress pg = new Progress();
 		final Progress pgImprt = new Progress();
@@ -560,9 +560,9 @@ class GuiReaderMainPanel extends JPanel {
 			@Override
 			public void run() {
 				Exception ex = null;
-				Story story = null;
+				MetaData meta = null;
 				try {
-					story = helper.getReader().getLibrary()
+					meta = helper.getReader().getLibrary()
 							.imprt(BasicReader.getUrl(url), pgImprt);
 				} catch (IOException e) {
 					ex = e;
@@ -586,7 +586,7 @@ class GuiReaderMainPanel extends JPanel {
 					}
 				} else {
 					if (onSuccess != null) {
-						onSuccess.run(story);
+						onSuccess.run(meta);
 					}
 				}
 				pgOnSuccess.done();

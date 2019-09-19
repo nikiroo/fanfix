@@ -36,7 +36,7 @@ import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.reader.ui.GuiReaderMainPanel.FrameHelper;
-import be.nikiroo.fanfix.reader.ui.GuiReaderMainPanel.StoryRunnable;
+import be.nikiroo.fanfix.reader.ui.GuiReaderMainPanel.MetaDataRunnable;
 import be.nikiroo.fanfix.searchable.BasicSearchable;
 import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Progress;
@@ -756,10 +756,9 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
 					final MetaData meta = selectedBook.getInfo().getMeta();
-					mainPanel.imprt(meta.getUrl(), new StoryRunnable() {
+					mainPanel.imprt(meta.getUrl(), new MetaDataRunnable() {
 						@Override
-						public void run(Story story) {
-							MetaData newMeta = story.getMeta();
+						public void run(MetaData newMeta) {
 							if (!newMeta.getSource().equals(meta.getSource())) {
 								reader.changeSource(newMeta.getLuid(),
 										meta.getSource());
