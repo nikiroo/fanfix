@@ -21,7 +21,12 @@ public class Test extends TestLauncher {
 	// 3 files can control the test:
 	// - test/VERBOSE: enable verbose mode
 	// - test/OFFLINE: to forbid any downloading
+	// - test/URLS: to allow testing URLs
 	// - test/FORCE_REFRESH: to force a clear of the cache
+	//
+	// Note that test/CACHE can be kept, as it will contain all internet related
+	// files you need (if you allow URLs, run the test once which will populate
+	// the CACHE then go OFFLINE, it will still work).
 	//
 	// The test files will be:
 	// - test/*.url: URL to download in text format, content = URL
@@ -39,16 +44,18 @@ public class Test extends TestLauncher {
 	 * @param args
 	 *            the arguments to configure the number of columns and the ok/ko
 	 *            {@link String}s
+	 * @param urlsAllowed
+	 *            allow testing URLs (<tt>.url</tt> files)
 	 * 
 	 * @throws IOException
 	 */
-	public Test(String[] args) throws IOException {
+	public Test(String[] args, boolean urlsAllowed) throws IOException {
 		super("Fanfix", args);
 		Instance.setTraceHandler(null);
 		addSeries(new BasicSupportUtilitiesTest(args));
 		addSeries(new BasicSupportDeprecatedTest(args));
 		addSeries(new LibraryTest(args));
-		
+
 		File sources = new File("test/");
 		if (sources.isDirectory()) {
 			for (File file : sources.listFiles()) {
@@ -62,7 +69,7 @@ public class Test extends TestLauncher {
 						+ file.getName()).getAbsolutePath();
 
 				String uri;
-				if (file.getName().endsWith(".url")) {
+				if (urlsAllowed && file.getName().endsWith(".url")) {
 					uri = IOUtils.readSmallFile(file).trim();
 				} else if (file.getName().endsWith(".story")) {
 					uri = file.getAbsolutePath();
@@ -93,19 +100,22 @@ public class Test extends TestLauncher {
 		// Can force refresh
 		boolean forceRefresh = new File("test/FORCE_REFRESH").exists();
 
+		// Allow URLs:
+		boolean urlsAllowed = new File("test/URLS").exists();
+
+		
 		// Only download files if allowed:
 		boolean offline = new File("test/OFFLINE").exists();
 		Instance.getCache().setOffline(offline);
 
+
+		
 		int result = 0;
 		tempFiles = new TempFiles("fanfix-test");
 		try {
 			File tmpConfig = tempFiles.createTempDir("fanfix-config");
 			File localCache = new File("test/CACHE");
-			if (forceRefresh) {
-				IOUtils.deltree(localCache);
-			}
-			localCache.mkdirs();
+			prepareCache(localCache, forceRefresh);
 
 			ConfigBundle config = new ConfigBundle();
 			Bundles.setDirectory(tmpConfig.getAbsolutePath());
@@ -118,12 +128,13 @@ public class Test extends TestLauncher {
 			Instance.init(true);
 			Instance.getCache().setOffline(offline);
 
-			TestLauncher tests = new Test(args);
+			TestLauncher tests = new Test(args, urlsAllowed);
 			tests.setDetails(verbose);
 
 			result = tests.launch();
 
 			IOUtils.deltree(tmpConfig);
+			prepareCache(localCache, forceRefresh);
 		} finally {
 			// Test temp files
 			tempFiles.close();
@@ -133,5 +144,34 @@ public class Test extends TestLauncher {
 		}
 
 		System.exit(result);
+	}
+
+	/**
+	 * Prepare the cache (or clean it up).
+	 * <p>
+	 * The cache directory will always exist if this method succeed
+	 * 
+	 * @param localCache
+	 *            the cache directory
+	 * @param forceRefresh
+	 *            TRUE to force acache refresh (delete all files)
+	 * 
+	 * @throw IOException if the cache cannot be created
+	 */
+	private static void prepareCache(File localCache, boolean forceRefresh)
+			throws IOException {
+		// if needed
+		localCache.mkdirs();
+
+		if (!localCache.isDirectory()) {
+			throw new IOException("Cannot get a cache");
+		}
+
+		// delete local cached files (_*) or all files if forceRefresh
+		for (File f : localCache.listFiles()) {
+			if (forceRefresh || f.getName().startsWith("_")) {
+				IOUtils.deltree(f);
+			}
+		}
 	}
 }
