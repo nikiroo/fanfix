@@ -281,7 +281,9 @@ public class Downloader {
 			}
 		}
 
-		if (offline) {
+		String protocol = originalUrl == null ? null : originalUrl
+				.getProtocol();
+		if (isOffline() && !"file".equalsIgnoreCase(protocol)) {
 			tracer.error("Downloader OFFLINE, cannot proceed to URL: " + url);
 			throw new IOException("Downloader is currently OFFLINE, cannot download: " + url);
 		}
