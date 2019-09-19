@@ -1,6 +1,6 @@
 # Fanfix
 
-# Version WIP
+# Version 3.0.0
 
 - new: now Android-compatible (see [companion project](https://gitlab.com/Rayman22/fanfix-android))
 - new: story search (not all sources yet)
