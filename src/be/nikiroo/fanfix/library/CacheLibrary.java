@@ -216,10 +216,16 @@ public class CacheLibrary extends BasicLibrary {
 	@Override
 	protected void updateInfo(MetaData meta) throws IOException {
 		if (meta != null && metas != null) {
+			boolean changed = false;
 			for (int i = 0; i < metas.size(); i++) {
 				if (metas.get(i).getLuid().equals(meta.getLuid())) {
 					metas.set(i, meta);
+					changed = true;
 				}
+			}
+
+			if (!changed) {
+				metas.add(meta);
 			}
 		}
 
@@ -360,7 +366,7 @@ public class CacheLibrary extends BasicLibrary {
 		updateInfo(meta);
 		
 		clearFromCache(meta.getLuid());
-
+		
 		pg.done();
 		return meta;
 	}
