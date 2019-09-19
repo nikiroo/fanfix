@@ -151,8 +151,8 @@ public abstract class BasicOutput {
 	}
 
 	/** The creator name (this program, by me!) */
-	protected String EPUB_CREATOR = "Fanfix " + Version.getCurrentVersion()
-			+ " (by Niki)";
+	static protected final String EPUB_CREATOR = "Fanfix "
+			+ Version.getCurrentVersion() + " (by Niki)";
 
 	/** The current best name for an image */
 	private String imageName;
