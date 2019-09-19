@@ -103,6 +103,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			popup.add(createMenuItemSetCoverForSource());
 			popup.add(createMenuItemSetCoverForAuthor());
 		}
+		popup.add(createMenuItemDownloadToCache());
 		popup.add(createMenuItemClearCache());
 		if (status.isWritable()) {
 			popup.add(createMenuItemRedownload());
@@ -184,6 +185,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 
 		edit.add(createMenuItemSetCoverForSource());
 		edit.add(createMenuItemSetCoverForAuthor());
+		edit.add(createMenuItemDownloadToCache());
 		edit.add(createMenuItemClearCache());
 		edit.add(createMenuItemRedownload());
 		edit.addSeparator();
@@ -771,6 +773,29 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 
 		return refresh;
 	}
+	
+	/**
+	 * Create the download to cache menu item.
+	 * 
+	 * @return the item
+	 */
+	private JMenuItem createMenuItemDownloadToCache() {
+		JMenuItem refresh = new JMenuItem(
+				GuiReader.trans(StringIdGui.MENU_EDIT_DOWNLOAD_TO_CACHE),
+				KeyEvent.VK_T);
+		refresh.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
+				if (selectedBook != null) {
+					mainPanel.prefetchBook(selectedBook);
+				}
+			}
+		});
+
+		return refresh;
+	}
+
 
 	/**
 	 * Create the delete menu item.

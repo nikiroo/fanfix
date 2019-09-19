@@ -12,6 +12,7 @@
 - gui: bg colour fix
 - gui: fix keyboard navigation support (up and down)
 - gui: configuration is now much easier
+- gui: can now prefetch to cache all the sories of a group at once
 - MangaLEL: website has changed
 - search: Fanfiction.net support
 - search: MangaLEL support
