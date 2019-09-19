@@ -120,6 +120,20 @@ Quelques tests unitaires sont disponibles :
 
 ```./configure.sh && make build test run-test```
 
+Si vous faites tourner les tests unitaires, sachez que certains fichiers flags peuvent les impacter:
+
+- ```test/VERBOSE```      : active le mode verbeux pour les erreurs
+- ```test/OFFLINE```      : ne permet pas au programme de télécharger des données
+- ```test/URLS```         : permet au programme de tester des URLs
+- ```test/FORCE_REFRESH```: force le nettoyage du cache
+
+Notez que le répertoire ```test/CACHE``` peut rester en place; il contient tous les fichiers téléchargés au moins une fois depuis le réseau par les tests unitaires (si vous autorisez les tests d'URLs, lancez les tests au moins une fois pour peupler le CACHE, puis activez le mode OFFLINE, ça marchera toujours).
+
+Les fichiers de test seront:
+
+- ```test/*.url```  : des URLs à télécharger en fichier texte (le contenu du fichier est l'URL)
+- ```test/*.story```: des histoires en mode texte (le contenu du fichier est l'histoire)
+
 ### Librairies dépendantes (incluses)
 
 Nécessaires :

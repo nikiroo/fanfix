@@ -317,8 +317,6 @@ class GuiReader extends BasicReader {
 	/**
 	 * "Open" the given {@link Story}. It usually involves starting an external
 	 * program adapted to the given file type.
-	 * <p>
-	 * Asynchronous method.
 	 * 
 	 * @param luid
 	 *            the luid of the {@link Story} to open
@@ -362,6 +360,24 @@ class GuiReader extends BasicReader {
 		}
 	}
 
+
+	/**
+	 * "Prefetch" the given {@link Story}.
+	 * <p>
+	 * Synchronous method.
+	 * 
+	 * @param luid
+	 *            the luid of the {@link Story} to prefetch
+	 * @param pg
+	 *            the optional progress (we may need to prepare the
+	 *            {@link Story} for reading
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
+	void prefetch(String luid, Progress pg) throws IOException {
+		cacheLib.getFile(luid, pg);
+	}
 	/**
 	 * Change the source of the given {@link Story} (the source is the main
 	 * information used to group the stories together).

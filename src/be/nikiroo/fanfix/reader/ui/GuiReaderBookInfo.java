@@ -53,6 +53,15 @@ public class GuiReaderBookInfo {
 		this.id = id;
 		this.value = value;
 	}
+	
+	/**
+	 * The type of {@link GuiReaderBookInfo}.
+	 * 
+	 * @return the type
+	 */
+	public Type getType() {
+		return type;
+	}
 
 	/**
 	 * Get the main info to display for this book (a title, an author, a

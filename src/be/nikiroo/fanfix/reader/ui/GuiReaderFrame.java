@@ -36,7 +36,7 @@ import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.reader.ui.GuiReaderMainPanel.FrameHelper;
-import be.nikiroo.fanfix.reader.ui.GuiReaderMainPanel.StoryRunnable;
+import be.nikiroo.fanfix.reader.ui.GuiReaderMainPanel.MetaDataRunnable;
 import be.nikiroo.fanfix.searchable.BasicSearchable;
 import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Progress;
@@ -103,6 +103,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			popup.add(createMenuItemSetCoverForSource());
 			popup.add(createMenuItemSetCoverForAuthor());
 		}
+		popup.add(createMenuItemDownloadToCache());
 		popup.add(createMenuItemClearCache());
 		if (status.isWritable()) {
 			popup.add(createMenuItemRedownload());
@@ -184,6 +185,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 
 		edit.add(createMenuItemSetCoverForSource());
 		edit.add(createMenuItemSetCoverForAuthor());
+		edit.add(createMenuItemDownloadToCache());
 		edit.add(createMenuItemClearCache());
 		edit.add(createMenuItemRedownload());
 		edit.addSeparator();
@@ -756,10 +758,9 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
 				if (selectedBook != null) {
 					final MetaData meta = selectedBook.getInfo().getMeta();
-					mainPanel.imprt(meta.getUrl(), new StoryRunnable() {
+					mainPanel.imprt(meta.getUrl(), new MetaDataRunnable() {
 						@Override
-						public void run(Story story) {
-							MetaData newMeta = story.getMeta();
+						public void run(MetaData newMeta) {
 							if (!newMeta.getSource().equals(meta.getSource())) {
 								reader.changeSource(newMeta.getLuid(),
 										meta.getSource());
@@ -772,6 +773,29 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 
 		return refresh;
 	}
+	
+	/**
+	 * Create the download to cache menu item.
+	 * 
+	 * @return the item
+	 */
+	private JMenuItem createMenuItemDownloadToCache() {
+		JMenuItem refresh = new JMenuItem(
+				GuiReader.trans(StringIdGui.MENU_EDIT_DOWNLOAD_TO_CACHE),
+				KeyEvent.VK_T);
+		refresh.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
+				if (selectedBook != null) {
+					mainPanel.prefetchBook(selectedBook);
+				}
+			}
+		});
+
+		return refresh;
+	}
+
 
 	/**
 	 * Create the delete menu item.

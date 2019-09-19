@@ -17,6 +17,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -42,6 +43,7 @@ import be.nikiroo.fanfix.library.BasicLibrary.Status;
 import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.reader.BasicReader;
 import be.nikiroo.fanfix.reader.ui.GuiReaderBook.BookActionListener;
+import be.nikiroo.fanfix.reader.ui.GuiReaderBookInfo.Type;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.ui.ProgressBar;
 
@@ -108,18 +110,18 @@ class GuiReaderMainPanel extends JPanel {
 	}
 
 	/**
-	 * A {@link Runnable} with a {@link Story} parameter.
+	 * A {@link Runnable} with a {@link MetaData} parameter.
 	 * 
 	 * @author niki
 	 */
-	public interface StoryRunnable {
+	public interface MetaDataRunnable {
 		/**
 		 * Run the action.
 		 * 
-		 * @param story
-		 *            the story
+		 * @param meta
+		 *            the meta of the story
 		 */
-		public void run(Story story);
+		public void run(MetaData meta);
 	}
 
 	/**
@@ -414,6 +416,70 @@ class GuiReaderMainPanel extends JPanel {
 			}
 		});
 	}
+	
+	/**
+	 * Prefetch a {@link GuiReaderBook} item (which can be a group, in which
+	 * case we prefetch all its members).
+	 * 
+	 * @param book
+	 *            the {@link GuiReaderBook} to open
+	 */
+	public void prefetchBook(final GuiReaderBook book) {
+		final List<String> luids = new LinkedList<String>();
+		try {
+			switch (book.getInfo().getType()) {
+			case STORY:
+				luids.add(book.getInfo().getMeta().getLuid());
+				break;
+			case SOURCE:
+				for (MetaData meta : helper.getReader().getLibrary()
+						.getListBySource(book.getInfo().getMainInfo())) {
+					luids.add(meta.getLuid());
+				}
+				break;
+			case AUTHOR:
+				for (MetaData meta : helper.getReader().getLibrary()
+						.getListByAuthor(book.getInfo().getMainInfo())) {
+					luids.add(meta.getLuid());
+				}
+				break;
+			}
+		} catch (IOException e) {
+			Instance.getTraceHandler().error(e);
+		}
+
+		final Progress pg = new Progress();
+		pg.setMax(luids.size());
+
+		outOfUi(pg, false, new Runnable() {
+			@Override
+			public void run() {
+				try {
+					for (String luid : luids) {
+						Progress pgStep = new Progress();
+						pg.addProgress(pgStep, 1);
+
+						helper.getReader().prefetch(luid, pgStep);
+					}
+
+					// TODO: also set the green button on sources/authors?
+					// requires to do the same when all stories inside are green
+					if (book.getInfo().getType() == Type.STORY) {
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								book.setCached(true);
+							}
+						});
+					}
+				} catch (IOException e) {
+					Instance.getTraceHandler().error(e);
+					error(GuiReader.trans(StringIdGui.ERROR_CANNOT_OPEN),
+							GuiReader.trans(StringIdGui.TITLE_ERROR), e);
+				}
+			}
+		});
+	}
 
 	/**
 	 * Process the given action out of the Swing UI thread and link the given
@@ -517,7 +583,8 @@ class GuiReaderMainPanel extends JPanel {
 				// No data will be handled
 			}
 
-			if (clipboard == null || !clipboard.startsWith("http")) {
+			if (clipboard == null || !(clipboard.startsWith("http://") || //
+					clipboard.startsWith("https://"))) {
 				clipboard = "";
 			}
 
@@ -548,7 +615,7 @@ class GuiReaderMainPanel extends JPanel {
 	 * @param onSuccessPgName
 	 *            the name to use for the onSuccess progress bar
 	 */
-	public void imprt(final String url, final StoryRunnable onSuccess,
+	public void imprt(final String url, final MetaDataRunnable onSuccess,
 			String onSuccessPgName) {
 		final Progress pg = new Progress();
 		final Progress pgImprt = new Progress();
@@ -560,9 +627,9 @@ class GuiReaderMainPanel extends JPanel {
 			@Override
 			public void run() {
 				Exception ex = null;
-				Story story = null;
+				MetaData meta = null;
 				try {
-					story = helper.getReader().getLibrary()
+					meta = helper.getReader().getLibrary()
 							.imprt(BasicReader.getUrl(url), pgImprt);
 				} catch (IOException e) {
 					ex = e;
@@ -586,7 +653,7 @@ class GuiReaderMainPanel extends JPanel {
 					}
 				} else {
 					if (onSuccess != null) {
-						onSuccess.run(story);
+						onSuccess.run(meta);
 					}
 				}
 				pgOnSuccess.done();

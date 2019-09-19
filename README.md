@@ -120,6 +120,21 @@ There are some unit tests you can run, too:
 
 ```./configure.sh && make build test run-test```
 
+If you run the unit tests, note that some flag files can impact them:
+
+- ```test/VERBOSE```      : enable verbose mode
+- ```test/OFFLINE```      : to forbid any downloading
+- ```test/URLS```         : to allow testing URLs
+- ```test/FORCE_REFRESH```: to force a clear of the cache
+
+Note that ```test/CACHE``` can be kept, as it will contain all internet related files you need (if you allow URLs, run the test once which will populate the CACHE then go OFFLINE, it will still work).
+
+The test files will be:
+
+- ```test/*.url```  : URL to download in text format, content = URL
+- ```test/*.story```: text mode story, content = story
+
+
 ### Dependant libraries (included)
 
 Required:

@@ -78,7 +78,7 @@ public class RemoteLibrary extends BasicLibrary {
 	 * <li><b>wl</b>: flag to allow access to all the stories (bypassing the
 	 * whitelist if it exists)</li>
 	 * </ul>
-	 * 
+	 * <p>
 	 * Some examples:
 	 * <ul>
 	 * <li><b>my_key</b>: normal connection, will take the default server
@@ -352,8 +352,9 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	// Could work (more slowly) without it
-	public Story imprt(final URL url, Progress pg) throws IOException {
+	public MetaData imprt(final URL url, Progress pg) throws IOException {
 		// Import the file locally if it is actually a file
+		
 		if (url == null || url.getProtocol().equalsIgnoreCase("file")) {
 			return super.imprt(url, pg);
 		}
@@ -364,13 +365,7 @@ public class RemoteLibrary extends BasicLibrary {
 			pg = new Progress();
 		}
 
-		pg.setMinMax(0, 2);
-		Progress pgImprt = new Progress();
-		Progress pgGet = new Progress();
-		pg.addProgress(pgImprt, 1);
-		pg.addProgress(pgGet, 1);
-
-		final Progress pgF = pgImprt;
+		final Progress pgF = pg;
 		final String[] luid = new String[1];
 
 		connectRemoteAction(new RemoteAction() {
@@ -399,11 +394,8 @@ public class RemoteLibrary extends BasicLibrary {
 			throw new IOException("Remote failure");
 		}
 
-		Story story = getStory(luid[0], pgGet);
-		pgGet.done();
-
 		pg.done();
-		return story;
+		return getInfo(luid[0]);
 	}
 
 	@Override

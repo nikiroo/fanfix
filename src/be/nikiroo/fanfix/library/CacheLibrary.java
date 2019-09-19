@@ -216,10 +216,16 @@ public class CacheLibrary extends BasicLibrary {
 	@Override
 	protected void updateInfo(MetaData meta) throws IOException {
 		if (meta != null && metas != null) {
+			boolean changed = false;
 			for (int i = 0; i < metas.size(); i++) {
 				if (metas.get(i).getLuid().equals(meta.getLuid())) {
 					metas.set(i, meta);
+					changed = true;
 				}
+			}
+
+			if (!changed) {
+				metas.add(meta);
 			}
 		}
 
@@ -345,7 +351,7 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public Story imprt(URL url, Progress pg) throws IOException {
+	public MetaData imprt(URL url, Progress pg) throws IOException {
 		if (pg == null) {
 			pg = new Progress();
 		}
@@ -356,13 +362,13 @@ public class CacheLibrary extends BasicLibrary {
 		pg.addProgress(pgImprt, 7);
 		pg.addProgress(pgCache, 3);
 
-		Story story = lib.imprt(url, pgImprt);
-		cacheLib.save(story, story.getMeta().getLuid(), pgCache);
-
-		updateInfo(story.getMeta());
-
+		MetaData meta = lib.imprt(url, pgImprt);
+		updateInfo(meta);
+		
+		clearFromCache(meta.getLuid());
+		
 		pg.done();
-		return story;
+		return meta;
 	}
 
 	// All the following methods are only used by Save and Delete in

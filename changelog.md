@@ -7,10 +7,12 @@
 - new: proxy support
 - fix: support hybrid CBZ (with text)
 - fix: fix DEBUG=0
+- fix: fix imported stories that don't immediatly appear on screen
 - gui: focus fix
 - gui: bg colour fix
 - gui: fix keyboard navigation support (up and down)
 - gui: configuration is now much easier
+- gui: can now prefetch to cache all the sories of a group at once
 - MangaLEL: website has changed
 - search: Fanfiction.net support
 - search: MangaLEL support

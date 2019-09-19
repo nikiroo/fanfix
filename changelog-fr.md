@@ -7,10 +7,12 @@
 - new: support d'un proxy
 - fix: support des CBZ contenant du texte
 - fix: correction de DEBUG=0
+- fix: correction des histoires importées qui n'arrivent pas immédiatement à l'affichage
 - gui: correction pour le focus 
 - gui: fix pour la couleur d'arrière plan
 - gui: fix pour la navigation au clavier (haut et bas)
 - gui: configuration beaucoup plus facile
+- gui: peut maintenant télécharger toutes les histoires d'un groupe en cache en une fois
 - MangaLEL: site web changé
 - search: supporte MangaLEL
 - search: supporte Fanfiction.net

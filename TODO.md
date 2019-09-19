@@ -85,10 +85,10 @@ My current planning for Fanfix (but not everything appears on this list):
     - [ ] Add the resume in the Properties page (maybe a second tab?)
 - [ ] Bugs
     - [x] Fix "Redownload also reset the source"
-    - [ ] Fix "Redownload remote does not show the new item before restart of client app"
+    - [x] Fix "Redownload remote does not show the new item before restart of client app"
     - [x] Fix eHentai "content warning" access (see 455)
     - [ ] Fix the configuration system (for new or changed options, new or changed languages)
-    - [ ] remote import also download the file in cache, why?
+    - [x] remote import also download the file in cache, why?
     - [x] import file in remote mode tries to import remote file!!
     - [ ] import file does not find author in cbz with SUMMARY file
     - [x] import file:// creates a tmp without auto-deletion in /tmp/fanfic-...

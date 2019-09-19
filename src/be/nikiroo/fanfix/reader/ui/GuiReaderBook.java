@@ -18,6 +18,8 @@ import be.nikiroo.fanfix.reader.Reader;
 
 /**
  * A book item presented in a {@link GuiReaderFrame}.
+ * <p>
+ * Can be a story, or a comic or... a group.
  * 
  * @author niki
  */

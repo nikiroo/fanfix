@@ -289,10 +289,10 @@ public class RemoteLibraryServer extends ServerObject {
 			}
 
 			Progress pg = createPgForwarder(action);
-			Story story = Instance.getLibrary().imprt(
+			MetaData meta = Instance.getLibrary().imprt(
 					new URL((String) args[0]), pg);
 			forcePgDoneSent(pg);
-			return story.getMeta().getLuid();
+			return meta.getLuid();
 		} else if ("DELETE_STORY".equals(command)) {
 			if (!rw) {
 				throw new RemoteLibraryException("Read-Only remote library: "
