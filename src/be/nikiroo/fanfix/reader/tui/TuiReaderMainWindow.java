@@ -339,11 +339,11 @@ class TuiReaderMainWindow extends TWindow {
 		MetaData meta = getSelectedMeta();
 		if (meta != null) {
 			switch (menu.getId()) {
-			case TuiReaderApplication.MENU_OPEN:
+			case TuiReaderApplication.MENU_FILE_OPEN:
 				readStory(meta);
 
 				return;
-			case TuiReaderApplication.MENU_EXPORT:
+			case TuiReaderApplication.MENU_FILE_EXPORT:
 
 				try {
 					// TODO: choose type, pg, error

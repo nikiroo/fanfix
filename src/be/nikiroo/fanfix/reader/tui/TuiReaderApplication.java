@@ -37,15 +37,15 @@ import be.nikiroo.utils.Progress;
  * @author niki
  */
 class TuiReaderApplication extends TApplication implements Reader {
-	public static final int MENU_OPEN = 1025;
-	public static final int MENU_IMPORT_URL = 1026;
-	public static final int MENU_IMPORT_FILE = 1027;
-	public static final int MENU_EXPORT = 1028;
-	public static final int MENU_DELETE = 1029;
-	public static final int MENU_LIBRARY = 1030;
-	public static final int MENU_EXIT = 1031;
+	public static final int MENU_FILE_OPEN = 1025;
+	public static final int MENU_FILE_IMPORT_URL = 1026;
+	public static final int MENU_FILE_IMPORT_FILE = 1027;
+	public static final int MENU_FILE_EXPORT = 1028;
+	public static final int MENU_FILE_DELETE = 1029;
+	public static final int MENU_FILE_LIBRARY = 1030;
+	public static final int MENU_FILE_EXIT = 1031;
 
-	public static final TCommand CMD_EXIT = new TCommand(MENU_EXIT) {
+	public static final TCommand CMD_EXIT = new TCommand(MENU_FILE_EXIT) {
 	};
 
 	private Reader reader;
@@ -219,17 +219,17 @@ class TuiReaderApplication extends TApplication implements Reader {
 
 		// Add the menus TODO: i18n
 		TMenu fileMenu = addMenu("&File");
-		fileMenu.addItem(MENU_OPEN, "&Open...");
-		fileMenu.addItem(MENU_EXPORT, "&Save as...");
-		fileMenu.addItem(MENU_DELETE, "&Delete...");
+		fileMenu.addItem(MENU_FILE_OPEN, "&Open...");
+		fileMenu.addItem(MENU_FILE_EXPORT, "&Save as...");
+		fileMenu.addItem(MENU_FILE_DELETE, "&Delete...");
 		// TODO: Move to...
 		fileMenu.addSeparator();
-		fileMenu.addItem(MENU_IMPORT_URL, "Import &URL...");
-		fileMenu.addItem(MENU_IMPORT_FILE, "Import &file...");
+		fileMenu.addItem(MENU_FILE_IMPORT_URL, "Import &URL...");
+		fileMenu.addItem(MENU_FILE_IMPORT_FILE, "Import &file...");
 		fileMenu.addSeparator();
-		fileMenu.addItem(MENU_LIBRARY, "Lib&rary");
+		fileMenu.addItem(MENU_FILE_LIBRARY, "Lib&rary");
 		fileMenu.addSeparator();
-		fileMenu.addItem(MENU_EXIT, "E&xit");
+		fileMenu.addItem(MENU_FILE_EXIT, "E&xit");
 
 		setStatusBar(fileMenu, "File-management "
 				+ "commands (Open, Save, Print, etc.)");
@@ -256,10 +256,10 @@ class TuiReaderApplication extends TApplication implements Reader {
 	protected boolean onMenu(TMenuEvent menu) {
 		// TODO: i18n
 		switch (menu.getId()) {
-		case MENU_EXIT:
+		case MENU_FILE_EXIT:
 			close(this);
 			return true;
-		case MENU_OPEN:
+		case MENU_FILE_OPEN:
 			String openfile = null;
 			try {
 				openfile = fileOpenBox(".");
@@ -273,7 +273,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 			}
 
 			return true;
-		case MENU_DELETE:
+		case MENU_FILE_DELETE:
 			String luid = null;
 			String story = null;
 			MetaData meta = null;
@@ -302,7 +302,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 			}
 
 			return true;
-		case MENU_IMPORT_URL:
+		case MENU_FILE_IMPORT_URL:
 			String clipboard = "";
 			try {
 				clipboard = ("" + Toolkit.getDefaultToolkit()
@@ -330,7 +330,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 			}
 
 			return true;
-		case MENU_IMPORT_FILE:
+		case MENU_FILE_IMPORT_FILE:
 			String filename = null;
 			try {
 				filename = fileOpenBox(".");
@@ -345,7 +345,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 						"Import error", e);
 			}
 			return true;
-		case MENU_LIBRARY:
+		case MENU_FILE_LIBRARY:
 			showMain();
 			return true;
 		}
