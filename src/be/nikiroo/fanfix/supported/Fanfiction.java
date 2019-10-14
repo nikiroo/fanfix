@@ -153,7 +153,7 @@ class Fanfiction extends BasicSupport_Deprecated {
 					line = line.substring(0, pos).trim();
 					try {
 						SimpleDateFormat sdf = new SimpleDateFormat(
-								"YYYY-MM-dd");
+								"yyyy-MM-dd");
 						return sdf
 								.format(new Date(1000 * Long.parseLong(line)));
 					} catch (NumberFormatException e) {
