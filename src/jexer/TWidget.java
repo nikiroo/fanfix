@@ -1368,7 +1368,7 @@ public abstract class TWidget implements Comparable<TWidget> {
      *
      * @param child TWidget to add
      */
-    private void addChild(final TWidget child) {
+    public void addChild(final TWidget child) {
         children.add(child);
 
         if ((child.enabled)
