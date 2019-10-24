@@ -184,14 +184,7 @@ public abstract class TWidget implements Comparable<TWidget> {
      * @param enabled if true assume enabled
      */
     protected TWidget(final TWidget parent, final boolean enabled) {
-        this.enabled = enabled;
-        this.parent = parent;
-        children = new ArrayList<TWidget>();
-
-        if (parent != null) {
-            this.window = parent.window;
-            parent.addChild(this);
-        }
+        this(parent, enabled, 0, 0, 0, 0);
     }
 
     /**
@@ -1145,6 +1138,7 @@ public abstract class TWidget implements Comparable<TWidget> {
      * @return difference between this.tabOrder and that.tabOrder, or
      * difference between this.z and that.z, or String.compareTo(text)
      */
+    @Override
     public final int compareTo(final TWidget that) {
         if ((this instanceof TWindow)
             && (that instanceof TWindow)
@@ -1397,6 +1391,29 @@ public abstract class TWidget implements Comparable<TWidget> {
         for (int i = 0; i < children.size(); i++) {
             children.get(i).tabOrder = i;
         }
+    }
+    
+    /**
+     * Remove and {@link TWidget#close()} the given child from this {@link TWidget}.
+     * <p>
+     * Will also reorder the tab values of the remaining children.
+     * 
+     * @param child the child to remove
+     * 
+     * @return TRUE if the child was removed, FALSE if it was not found
+     */
+    public boolean removeChild(final TWidget child) {
+        if (children.remove(child)) {
+                child.close();
+                child.parent = null;
+                child.window = null;
+                
+                resetTabOrder();
+                
+                return true;
+        }
+        
+        return false;
     }
 
     /**
