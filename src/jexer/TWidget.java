@@ -208,19 +208,8 @@ public abstract class TWidget implements Comparable<TWidget> {
         }
 
         this.enabled = enabled;
+        this.parent = parent;
         children = new ArrayList<TWidget>();
-
-        // Allow parentless widgets
-    	if (parent != null) {
-	        // Do not add TStatusBars, they are drawn by TApplication.
-	        if (this instanceof TStatusBar) {
-	            // We don't add the child to the children list here
-	            this.parent = parent;
-	            this.window = parent.window;
-	        } else {
-        		parent.addChild(this);
-	        }
-    	}
 
         this.x = x;
         this.y = y;
@@ -1375,8 +1364,6 @@ public abstract class TWidget implements Comparable<TWidget> {
      */
     private void addChild(final TWidget child) {
         children.add(child);
-        child.parent = this;
-        child.window = this.window;
 
         if ((child.enabled)
             && !(child instanceof THScroller)
