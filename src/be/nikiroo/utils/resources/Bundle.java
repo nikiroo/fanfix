@@ -95,8 +95,8 @@ public class Bundle<E extends Enum<E>> {
 	 * @param name
 	 *            the id of the setting to check
 	 * @param includeDefaultValue
-	 *            TRUE to only return false when the setting is not set AND
-	 *            there is no default value
+	 *            TRUE to only return false when the setting is explicitly set
+	 *            to NULL (and not just "no set") in the change maps
 	 * 
 	 * @return TRUE if the setting is set
 	 */
@@ -160,13 +160,7 @@ public class Bundle<E extends Enum<E>> {
 	public String getString(E id, String def, int item) {
 		String rep = getString(id.name(), null);
 		if (rep == null) {
-			try {
-				Meta meta = type.getDeclaredField(id.name()).getAnnotation(
-						Meta.class);
-				rep = meta.def();
-			} catch (NoSuchFieldException e) {
-			} catch (SecurityException e) {
-			}
+			rep = getMetaDef(id.name());
 		}
 
 		if (rep == null || rep.isEmpty()) {
@@ -938,8 +932,34 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
+	 * The default {@link MetaInfo.def} value for the given enumeration name.
+	 * 
+	 * @param id
+	 *            the enumeration name (the "id")
+	 * 
+	 * @return the def value in the {@link MetaInfo} or "" if none (never NULL)
+	 */
+	protected String getMetaDef(String id) {
+		String rep = "";
+		try {
+			Meta meta = type.getDeclaredField(id).getAnnotation(Meta.class);
+			rep = meta.def();
+		} catch (NoSuchFieldException e) {
+		} catch (SecurityException e) {
+		}
+
+		if (rep == null) {
+			rep = "";
+		}
+
+		return rep;
+	}
+
+	/**
 	 * Get the value for the given key if it exists in the internal map, or
 	 * <tt>def</tt> if not.
+	 * <p>
+	 * DO NOT get the default meta value (MetaInfo.def()).
 	 * 
 	 * @param key
 	 *            the key to check for

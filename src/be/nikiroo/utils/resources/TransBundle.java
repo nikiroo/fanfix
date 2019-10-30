@@ -138,6 +138,9 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 			result = "[" + key.toLowerCase() + "]";
 		} else if (containsKey(key)) {
 			result = getString(key, null);
+			if (result == null) {
+				result = getMetaDef(id.name());
+			}
 		} else {
 			result = null;
 		}
@@ -326,6 +329,9 @@ public class TransBundle<E extends Enum<E>> extends Bundle<E> {
 		String name = id.name() + "_NOUTF";
 		if (containsKey(name)) {
 			String value = getString(name, null);
+			if (value == null) {
+				value = getMetaDef(id.name());
+			}
 			boolean set = isSet(id, false);
 			writeValue(writer, name, value, set);
 		}

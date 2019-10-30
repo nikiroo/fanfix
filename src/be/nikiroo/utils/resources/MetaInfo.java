@@ -649,6 +649,15 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 		return children;
 	}
 
+	/**
+	 * The number of sub-items, if any.
+	 * 
+	 * @return the number or 0
+	 */
+	public int size() {
+		return children.size();
+	}
+
 	@Override
 	public Iterator<MetaInfo<E>> iterator() {
 		return children.iterator();
