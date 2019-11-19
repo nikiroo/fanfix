@@ -44,6 +44,10 @@ class TuiReaderApplication extends TApplication implements Reader {
 	public static final int MENU_FILE_DELETE = 1029;
 	public static final int MENU_FILE_LIBRARY = 1030;
 	public static final int MENU_FILE_EXIT = 1031;
+	//
+	public static final int MENU_OPT_FANFIX = 1032;
+	public static final int MENU_OPT_TUI = 1033;
+	
 
 	public static final TCommand CMD_EXIT = new TCommand(MENU_FILE_EXIT) {
 	};
@@ -230,9 +234,14 @@ class TuiReaderApplication extends TApplication implements Reader {
 		fileMenu.addItem(MENU_FILE_LIBRARY, "Lib&rary");
 		fileMenu.addSeparator();
 		fileMenu.addItem(MENU_FILE_EXIT, "E&xit");
+		
+		TMenu OptionsMenu = addMenu("&Options");
+		OptionsMenu.addItem(MENU_OPT_FANFIX, "&Fanfix Configuration");
+		OptionsMenu.addItem(MENU_OPT_TUI, "&UI Configuration");
 
 		setStatusBar(fileMenu, "File-management "
 				+ "commands (Open, Save, Print, etc.)");
+		
 
 		// TODO: Edit: re-download, delete
 
@@ -348,6 +357,15 @@ class TuiReaderApplication extends TApplication implements Reader {
 		case MENU_FILE_LIBRARY:
 			showMain();
 			return true;
+			
+		case MENU_OPT_FANFIX:
+			new TuiReaderOptionWindow(this, false).maximize();
+			return true;
+		
+		case MENU_OPT_TUI:
+			new TuiReaderOptionWindow(this, true).maximize();
+			return true;
+			
 		}
 
 		return super.onMenu(menu);
