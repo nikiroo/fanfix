@@ -39,7 +39,7 @@ class ConfigItemCombobox<E extends Enum<E>> extends ConfigItem<E> {
 
 	@Override
 	protected Object getFromInfo(int item) {
-		return info.getString(item, false);
+		return getInfo().getString(item, false);
 	}
 
 	@Override
@@ -54,7 +54,7 @@ class ConfigItemCombobox<E extends Enum<E>> extends ConfigItem<E> {
 
 	@Override
 	protected void setToInfo(Object value, int item) {
-		info.setString((String) value, item);
+		getInfo().setString((String) value, item);
 	}
 
 	// rawtypes for Java 1.6 (and 1.7 ?) support

@@ -48,7 +48,7 @@ class ConfigItemBrowse<E extends Enum<E>> extends ConfigItem<E> {
 
 	@Override
 	protected Object getFromInfo(int item) {
-		String path = info.getString(item, false);
+		String path = getInfo().getString(item, false);
 		if (path != null && !path.isEmpty()) {
 			return new File(path);
 		}
@@ -66,7 +66,7 @@ class ConfigItemBrowse<E extends Enum<E>> extends ConfigItem<E> {
 
 	@Override
 	protected void setToInfo(Object value, int item) {
-		info.setString(((File) value).getPath(), item);
+		getInfo().setString(((File) value).getPath(), item);
 	}
 
 	@Override

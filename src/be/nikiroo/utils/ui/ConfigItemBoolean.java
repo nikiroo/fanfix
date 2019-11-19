@@ -30,7 +30,7 @@ class ConfigItemBoolean<E extends Enum<E>> extends ConfigItem<E> {
 
 	@Override
 	protected Object getFromInfo(int item) {
-		return info.getBoolean(item, true);
+		return getInfo().getBoolean(item, true);
 	}
 
 	@Override
@@ -49,7 +49,7 @@ class ConfigItemBoolean<E extends Enum<E>> extends ConfigItem<E> {
 
 	@Override
 	protected void setToInfo(Object value, int item) {
-		info.setBoolean((Boolean) value, item);
+		getInfo().setBoolean((Boolean) value, item);
 	}
 
 	@Override
@@ -58,7 +58,8 @@ class ConfigItemBoolean<E extends Enum<E>> extends ConfigItem<E> {
 		if (getFromInfo(item) == null) {
 			System.err
 					.println("No default value given for BOOLEAN parameter \""
-							+ info.getName() + "\", we consider it is FALSE");
+							+ getInfo().getName()
+							+ "\", we consider it is FALSE");
 		}
 
 		return new JCheckBox();
