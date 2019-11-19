@@ -9,10 +9,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -93,23 +90,86 @@ public abstract class ConfigItem<E extends Enum<E>> extends JPanel {
 			+ "zhT8sfdKeehWkUQAeJ7WcH23xTz1uPBwf1hclA3mBZjPojFOIOSsVPpmN1OznfpA+Gn+2kCHqg/d"
 			+ "LhIA/AFU5d0V6gTjtQAAAABJRU5ErkJggg==";
 
-	/** The original value before current changes. */
-	private Object orig;
-	private List<Object> origs = new ArrayList<Object>();
-	private List<Integer> dirtyBits;
-
-	/** The fields (one for non-array, a list for arrays). */
-	private JComponent field;
-	private List<JComponent> fields = new ArrayList<JComponent>();
-
-	/** The fields to panel map to get the actual item added to 'main'. */
-	private Map<Integer, JComponent> itemFields = new HashMap<Integer, JComponent>();
+	/** The code base */
+	private final ConfigItemBase<JComponent, E> base;
 
 	/** The main panel with all the fields in it. */
 	private JPanel main;
 
-	/** The {@link MetaInfo} linked to the field. */
-	protected MetaInfo<E> info;
+	/**
+	 * Prepare a new {@link ConfigItem} instance, linked to the given
+	 * {@link MetaInfo}.
+	 * 
+	 * @param info
+	 *            the info
+	 * @param autoDirtyHandling
+	 *            TRUE to automatically manage the setDirty/Save operations,
+	 *            FALSE if you want to do it yourself via
+	 *            {@link ConfigItem#setDirtyItem(int)}
+	 */
+	protected ConfigItem(MetaInfo<E> info, boolean autoDirtyHandling) {
+		base = new ConfigItemBase<JComponent, E>(info, autoDirtyHandling) {
+			@Override
+			protected JComponent createEmptyField(int item) {
+				return ConfigItem.this.createEmptyField(item);
+			}
+
+			@Override
+			protected Object getFromInfo(int item) {
+				return ConfigItem.this.getFromInfo(item);
+			}
+
+			@Override
+			protected void setToInfo(Object value, int item) {
+				ConfigItem.this.setToInfo(value, item);
+			}
+
+			@Override
+			protected Object getFromField(int item) {
+				return ConfigItem.this.getFromField(item);
+			}
+
+			@Override
+			protected void setToField(Object value, int item) {
+				ConfigItem.this.setToField(value, item);
+			}
+
+			@Override
+			public JComponent createField(int item) {
+				JComponent field = super.createField(item);
+
+				int height = Math.max(getMinimumHeight(),
+						field.getMinimumSize().height);
+				field.setPreferredSize(new Dimension(200, height));
+
+				return field;
+			}
+
+			@Override
+			public List<JComponent> reload() {
+				List<JComponent> removed = base.reload();
+				if (!removed.isEmpty()) {
+					for (JComponent c : removed) {
+						main.remove(c);
+					}
+					main.revalidate();
+					main.repaint();
+				}
+
+				return removed;
+			}
+
+			@Override
+			protected JComponent removeItem(int item) {
+				JComponent removed = super.removeItem(item);
+				main.remove(removed);
+				main.revalidate();
+				main.repaint();
+
+				return removed;
+			}
+		};
+	}
 
 	/**
 	 * Create a new {@link ConfigItem} for the given {@link MetaInfo}.
@@ -121,16 +181,16 @@ public abstract class ConfigItem<E extends Enum<E>> extends JPanel {
 	 *            different horisontal position)
 	 */
 	public void init(int nhgap) {
-		if (info.isArray()) {
+		if (getInfo().isArray()) {
 			this.setLayout(new BorderLayout());
 			add(label(nhgap), BorderLayout.WEST);
 
 			main = new JPanel();
 
 			main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
-			int size = info.getListSize(false);
+			int size = getInfo().getListSize(false);
 			for (int i = 0; i < size; i++) {
-				addItem(i);
+				addItemWithMinusPanel(i);
 			}
 			main.revalidate();
 			main.repaint();
@@ -141,7 +201,7 @@ public abstract class ConfigItem<E extends Enum<E>> extends JPanel {
 			add.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					addItem(fields.size());
+					addItemWithMinusPanel(base.getFieldsSize());
 					main.revalidate();
 					main.repaint();
 				}
@@ -159,16 +219,74 @@ public abstract class ConfigItem<E extends Enum<E>> extends JPanel {
 			this.setLayout(new BorderLayout());
 			add(label(nhgap), BorderLayout.WEST);
 
-			JComponent field = createField(-1);
+			JComponent field = base.createField(-1);
 			add(field, BorderLayout.CENTER);
 		}
 	}
 
-	private void addItem(final int item) {
-		JPanel minusPanel = new JPanel(new BorderLayout());
-		itemFields.put(item, minusPanel);
+	/** The {@link MetaInfo} linked to the field. */
+	public MetaInfo<E> getInfo() {
+		return base.getInfo();
+	}
 
-		JComponent field = createField(item);
+	/**
+	 * Retrieve the associated graphical component that was created with
+	 * {@link ConfigItemBase#createEmptyField(int)}.
+	 * 
+	 * @param item
+	 *            the item number to get for an array of values, or -1 to get
+	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
+	 *            is FALSE)
+	 * 
+	 * @return the graphical component
+	 */
+	protected JComponent getField(int item) {
+		return base.getField(item);
+	}
+
+	/**
+	 * Manually specify that the given item is "dirty" and thus should be saved
+	 * when asked.
+	 * <p>
+	 * Has no effect if the class is using automatic dirty handling (see
+	 * {@link ConfigItemBase#ConfigItem(MetaInfo, boolean)}).
+	 * 
+	 * @param item
+	 *            the item number to get for an array of values, or -1 to get
+	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
+	 *            is FALSE)
+	 */
+	protected void setDirtyItem(int item) {
+		base.setDirtyItem(item);
+	}
+
+	/**
+	 * Check if the value changed since the last load/save into the linked
+	 * {@link MetaInfo}.
+	 * <p>
+	 * Note that we consider NULL and an Empty {@link String} to be equals.
+	 * 
+	 * @param value
+	 *            the value to test
+	 * @param item
+	 *            the item number to get for an array of values, or -1 to get
+	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
+	 *            is FALSE)
+	 * 
+	 * @return TRUE if it has
+	 */
+	protected boolean hasValueChanged(Object value, int item) {
+		return base.hasValueChanged(value, item);
+	}
+
+	private void addItemWithMinusPanel(int item) {
+		JPanel minusPanel = createMinusPanel(item);
+		JComponent field = base.addItem(item, minusPanel);
+		minusPanel.add(field, BorderLayout.CENTER);
+	}
+
+	private JPanel createMinusPanel(final int item) {
+		JPanel minusPanel = new JPanel(new BorderLayout());
 
 		final JButton remove = new JButton();
 		setImage(remove, img64remove, "-");
@@ -176,52 +294,17 @@ public abstract class ConfigItem<E extends Enum<E>> extends JPanel {
 		remove.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				removeItem(item);
+				base.removeItem(item);
 			}
 		});
 
-		minusPanel.add(field, BorderLayout.CENTER);
 		minusPanel.add(remove, BorderLayout.EAST);
 
 		main.add(minusPanel);
 		main.revalidate();
 		main.repaint();
-	}
 
-	private void removeItem(int item) {
-		int last = itemFields.size() - 1;
-
-		for (int i = item; i <= last; i++) {
-			Object value = null;
-			if (i < last) {
-				value = getFromField(i + 1);
-			}
-			setToField(value, i);
-			setToInfo(value, i);
-			setDirtyItem(i);
-		}
-
-		main.remove(itemFields.remove(last));
-		main.revalidate();
-		main.repaint();
-	}
-
-	/**
-	 * Prepare a new {@link ConfigItem} instance, linked to the given
-	 * {@link MetaInfo}.
-	 * 
-	 * @param info
-	 *            the info
-	 * @param autoDirtyHandling
-	 *            TRUE to automatically manage the setDirty/Save operations,
-	 *            FALSE if you want to do it yourself via
-	 *            {@link ConfigItem#setDirtyItem(int)}
-	 */
-	protected ConfigItem(MetaInfo<E> info, boolean autoDirtyHandling) {
-		this.info = info;
-		if (!autoDirtyHandling) {
-			dirtyBits = new ArrayList<Integer>();
-		}
+		return minusPanel;
 	}
 
 	/**
@@ -292,279 +375,6 @@ public abstract class ConfigItem<E extends Enum<E>> extends JPanel {
 	abstract protected void setToField(Object value, int item);
 
 	/**
-	 * Create a new field for the given graphical component at the given index
-	 * (note that the component is usually created by
-	 * {@link ConfigItem#createEmptyField(int)}).
-	 * 
-	 * @param item
-	 *            the item number to get for an array of values, or -1 to get
-	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
-	 *            is FALSE)
-	 * @param field
-	 *            the graphical component
-	 */
-	private void setField(int item, JComponent field) {
-		if (item < 0) {
-			this.field = field;
-			return;
-		}
-
-		for (int i = fields.size(); i <= item; i++) {
-			fields.add(null);
-		}
-
-		fields.set(item, field);
-	}
-
-	/**
-	 * Retrieve the associated graphical component that was created with
-	 * {@link ConfigItem#createEmptyField(int)}.
-	 * 
-	 * @param item
-	 *            the item number to get for an array of values, or -1 to get
-	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
-	 *            is FALSE)
-	 * 
-	 * @return the graphical component
-	 */
-	protected JComponent getField(int item) {
-		if (item < 0) {
-			return field;
-		}
-
-		if (item < fields.size()) {
-			return fields.get(item);
-		}
-
-		return null;
-	}
-
-	/**
-	 * The original value (before any changes to the {@link MetaInfo}) for this
-	 * item.
-	 * 
-	 * @param item
-	 *            the item number to get for an array of values, or -1 to get
-	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
-	 *            is FALSE)
-	 * 
-	 * @return the original value
-	 */
-	private Object getOrig(int item) {
-		if (item < 0) {
-			return orig;
-		}
-
-		if (item < origs.size()) {
-			return origs.get(item);
-		}
-
-		return null;
-	}
-
-	/**
-	 * The original value (before any changes to the {@link MetaInfo}) for this
-	 * item.
-	 * 
-	 * @param item
-	 *            the item number to get for an array of values, or -1 to get
-	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
-	 *            is FALSE)
-	 * @param value
-	 *            the new original value
-	 */
-	private void setOrig(Object value, int item) {
-		if (item < 0) {
-			orig = value;
-		} else {
-			while (item >= origs.size()) {
-				origs.add(null);
-			}
-
-			origs.set(item, value);
-		}
-	}
-
-	/**
-	 * Manually specify that the given item is "dirty" and thus should be saved
-	 * when asked.
-	 * <p>
-	 * Has no effect if the class is using automatic dirty handling (see
-	 * {@link ConfigItem#ConfigItem(MetaInfo, boolean)}).
-	 * 
-	 * @param item
-	 *            the item number to get for an array of values, or -1 to get
-	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
-	 *            is FALSE)
-	 */
-	protected void setDirtyItem(int item) {
-		if (dirtyBits != null) {
-			dirtyBits.add(item);
-		}
-	}
-
-	/**
-	 * Check if the value changed since the last load/save into the linked
-	 * {@link MetaInfo}.
-	 * <p>
-	 * Note that we consider NULL and an Empty {@link String} to be equals.
-	 * 
-	 * @param value
-	 *            the value to test
-	 * @param item
-	 *            the item number to get for an array of values, or -1 to get
-	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
-	 *            is FALSE)
-	 * 
-	 * @return TRUE if it has
-	 */
-	protected boolean hasValueChanged(Object value, int item) {
-		// We consider "" and NULL to be equals
-		Object orig = getOrig(item);
-		if (orig == null) {
-			orig = "";
-		}
-		return !orig.equals(value == null ? "" : value);
-	}
-
-	/**
-	 * Reload the values to what they currently are in the {@link MetaInfo}.
-	 */
-	private void reload() {
-		if (info.isArray()) {
-			while (!itemFields.isEmpty()) {
-				main.remove(itemFields.remove(itemFields.size() - 1));
-			}
-			main.revalidate();
-			main.repaint();
-			for (int item = 0; item < info.getListSize(false); item++) {
-				reload(item);
-			}
-		} else {
-			reload(-1);
-		}
-	}
-
-	/**
-	 * Reload the values to what they currently are in the {@link MetaInfo}.
-	 * 
-	 * @param item
-	 *            the item number to get for an array of values, or -1 to get
-	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
-	 *            is FALSE)
-	 */
-	private void reload(int item) {
-		if (item >= 0 && !itemFields.containsKey(item)) {
-			addItem(item);
-		}
-
-		Object value = getFromInfo(item);
-		setToField(value, item);
-		setOrig(value == null ? "" : value, item);
-	}
-
-	/**
-	 * If the item has been modified, set the {@link MetaInfo} to dirty then
-	 * modify it to, reflect the changes so it can be saved later.
-	 * <p>
-	 * This method does <b>not</b> call {@link MetaInfo#save(boolean)}.
-	 */
-	private void save() {
-		if (info.isArray()) {
-			boolean dirty = itemFields.size() != info.getListSize(false);
-			for (int item = 0; item < itemFields.size(); item++) {
-				if (getDirtyBit(item)) {
-					dirty = true;
-				}
-			}
-
-			if (dirty) {
-				info.setDirty();
-				info.setString(null, -1);
-
-				for (int item = 0; item < itemFields.size(); item++) {
-					Object value = null;
-					if (getField(item) != null) {
-						value = getFromField(item);
-						if ("".equals(value)) {
-							value = null;
-						}
-					}
-
-					setToInfo(value, item);
-					setOrig(value, item);
-				}
-			}
-		} else {
-			if (getDirtyBit(-1)) {
-				Object value = getFromField(-1);
-
-				info.setDirty();
-				setToInfo(value, -1);
-				setOrig(value, -1);
-			}
-		}
-	}
-
-	/**
-	 * Check if the item is dirty, and clear the dirty bit if set.
-	 * 
-	 * @param item
-	 *            the item number to get for an array of values, or -1 to get
-	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
-	 *            is FALSE)
-	 * 
-	 * @return TRUE if it was dirty, FALSE if not
-	 */
-	private boolean getDirtyBit(int item) {
-		if (dirtyBits != null) {
-			return dirtyBits.remove((Integer) item);
-		}
-
-		Object value = null;
-		if (getField(item) != null) {
-			value = getFromField(item);
-		}
-
-		return hasValueChanged(value, item);
-	}
-
-	/**
-	 * Create a new field for the given item.
-	 * 
-	 * @param item
-	 *            the item number to get for an array of values, or -1 to get
-	 *            the whole value (has no effect if {@link MetaInfo#isArray()}
-	 *            is FALSE)
-	 * 
-	 * @return the newly created field
-	 */
-	protected JComponent createField(final int item) {
-		JComponent field = createEmptyField(item);
-		setField(item, field);
-		reload(item);
-
-		info.addReloadedListener(new Runnable() {
-			@Override
-			public void run() {
-				reload();
-			}
-		});
-		info.addSaveListener(new Runnable() {
-			@Override
-			public void run() {
-				save();
-			}
-		});
-
-		int height = Math
-				.max(getMinimumHeight(), field.getMinimumSize().height);
-		field.setPreferredSize(new Dimension(200, height));
-
-		return field;
-	}
-
-	/**
 	 * Create a label which width is constrained in lock steps.
 	 * 
 	 * @param nhgap
@@ -576,7 +386,7 @@ public abstract class ConfigItem<E extends Enum<E>> extends JPanel {
 	 * @return the label
 	 */
 	protected JComponent label(int nhgap) {
-		final JLabel label = new JLabel(info.getName());
+		final JLabel label = new JLabel(getInfo().getName());
 
 		Dimension ps = label.getPreferredSize();
 		if (ps == null) {
@@ -598,7 +408,7 @@ public abstract class ConfigItem<E extends Enum<E>> extends JPanel {
 			@Override
 			public void run() {
 				StringBuilder builder = new StringBuilder();
-				String text = (info.getDescription().replace("\\n", "\n"))
+				String text = (getInfo().getDescription().replace("\\n", "\n"))
 						.trim();
 				for (String line : StringUtils.justifyText(text, 80,
 						Alignment.LEFT)) {
@@ -608,8 +418,8 @@ public abstract class ConfigItem<E extends Enum<E>> extends JPanel {
 					builder.append(line);
 				}
 				text = builder.toString();
-				JOptionPane.showMessageDialog(ConfigItem.this, text,
-						info.getName(), JOptionPane.INFORMATION_MESSAGE);
+				JOptionPane.showMessageDialog(ConfigItem.this, text, getInfo()
+						.getName(), JOptionPane.INFORMATION_MESSAGE);
 			}
 		};
 

@@ -49,7 +49,7 @@ class ConfigItemColor<E extends Enum<E>> extends ConfigItem<E> {
 
 	@Override
 	protected Object getFromInfo(int item) {
-		return info.getString(item, true);
+		return getInfo().getString(item, true);
 	}
 
 	@Override
@@ -67,7 +67,7 @@ class ConfigItemColor<E extends Enum<E>> extends ConfigItem<E> {
 
 	@Override
 	protected void setToInfo(Object value, int item) {
-		info.setString((String) value, item);
+		getInfo().setString((String) value, item);
 	}
 
 	/**
@@ -81,7 +81,7 @@ class ConfigItemColor<E extends Enum<E>> extends ConfigItem<E> {
 	 * @return a colour
 	 */
 	private int getFromInfoColor(int item) {
-		Integer color = info.getColor(item, true);
+		Integer color = getInfo().getColor(item, true);
 		if (color == null) {
 			return new Color(255, 255, 255, 255).getRGB();
 		}
@@ -102,11 +102,12 @@ class ConfigItemColor<E extends Enum<E>> extends ConfigItem<E> {
 				int icol = getFromInfoColor(item);
 				Color initialColor = new Color(icol, true);
 				Color newColor = JColorChooser.showDialog(ConfigItemColor.this,
-						info.getName(), initialColor);
+						getInfo().getName(), initialColor);
 				if (newColor != null) {
-					info.setColor(newColor.getRGB(), item);
-					field.setText(info.getString(item, false));
-					colorWheel.setIcon(getIcon(17, info.getColor(item, true)));
+					getInfo().setColor(newColor.getRGB(), item);
+					field.setText(getInfo().getString(item, false));
+					colorWheel.setIcon(getIcon(17,
+							getInfo().getColor(item, true)));
 				}
 			}
 		});
@@ -114,7 +115,7 @@ class ConfigItemColor<E extends Enum<E>> extends ConfigItem<E> {
 		field.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyTyped(KeyEvent e) {
-				info.setString(field.getText() + e.getKeyChar(), item);
+				getInfo().setString(field.getText() + e.getKeyChar(), item);
 				int color = getFromInfoColor(item);
 				colorWheel.setIcon(getIcon(17, color));
 			}
