@@ -10,7 +10,9 @@ import java.util.List;
 import javax.net.ssl.SSLException;
 
 import be.nikiroo.fanfix.bundles.Config;
+import be.nikiroo.fanfix.bundles.ConfigBundle;
 import be.nikiroo.fanfix.bundles.StringId;
+import be.nikiroo.fanfix.bundles.StringIdBundle;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
@@ -29,6 +31,8 @@ import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
+import be.nikiroo.utils.resources.Bundles;
+import be.nikiroo.utils.resources.TransBundle;
 import be.nikiroo.utils.serial.server.ServerObject;
 
 /**
