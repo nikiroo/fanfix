@@ -129,6 +129,20 @@ public class TButton extends TWidget {
         this(parent, text, x, y);
         this.action = action;
     }
+    
+    /**
+     * The action to call when the button is pressed.
+     **/
+    public TAction getAction() {
+		return action;
+	}
+    
+    /**
+     * The action to call when the button is pressed.
+     **/
+    public void setAction(TAction action) {
+		this.action = action;
+	}
 
     // ------------------------------------------------------------------------
     // Event handlers ---------------------------------------------------------
