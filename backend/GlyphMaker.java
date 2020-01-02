@@ -29,6 +29,7 @@
 package jexer.backend;
 
 import java.awt.Font;
+import java.awt.FontFormatException;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
@@ -139,7 +140,7 @@ class GlyphMakerFont {
 
         if (filename.length() == 0) {
             // Fallback font
-            font = new Font(Font.MONOSPACED, Font.PLAIN, fontSize);
+            font = new Font(Font.MONOSPACED, Font.PLAIN, fontSize - 2);
             return;
         }
 
@@ -148,16 +149,16 @@ class GlyphMakerFont {
             ClassLoader loader = Thread.currentThread().getContextClassLoader();
             InputStream in = loader.getResourceAsStream(filename);
             fontRoot = Font.createFont(Font.TRUETYPE_FONT, in);
-            font = fontRoot.deriveFont(Font.PLAIN, fontSize);
-        } catch (java.awt.FontFormatException e) {
+            font = fontRoot.deriveFont(Font.PLAIN, fontSize - 2);
+        } catch (FontFormatException e) {
             // Ideally we would report an error here, either via System.err
             // or TExceptionDialog.  However, I do not want GlyphMaker to
             // know about available backends, so we quietly fallback to
             // whatever is available as MONO.
-            font = new Font(Font.MONOSPACED, Font.PLAIN, fontSize);
-        } catch (java.io.IOException e) {
+            font = new Font(Font.MONOSPACED, Font.PLAIN, fontSize - 2);
+        } catch (IOException e) {
             // See comment above.
-            font = new Font(Font.MONOSPACED, Font.PLAIN, fontSize);
+            font = new Font(Font.MONOSPACED, Font.PLAIN, fontSize - 2);
         }
     }
 

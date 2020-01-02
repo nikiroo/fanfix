@@ -28,27 +28,21 @@
  */
 package jexer;
 
-import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-
-import java.io.InputStream;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 
 import jexer.backend.ECMA48Terminal;
 import jexer.backend.GlyphMaker;
-import jexer.backend.MultiScreen;
 import jexer.backend.SwingTerminal;
 import jexer.bits.Cell;
-import jexer.bits.CellAttributes;
+import jexer.event.TCommandEvent;
 import jexer.event.TKeypressEvent;
 import jexer.event.TMenuEvent;
 import jexer.event.TMouseEvent;
@@ -57,13 +51,14 @@ import jexer.menu.TMenu;
 import jexer.tterminal.DisplayLine;
 import jexer.tterminal.DisplayListener;
 import jexer.tterminal.ECMA48;
+import static jexer.TCommand.*;
 import static jexer.TKeypress.*;
 
 /**
  * TTerminalWidget exposes a ECMA-48 / ANSI X3.64 style terminal in a widget.
  */
 public class TTerminalWidget extends TScrollableWidget
-                             implements DisplayListener {
+                             implements DisplayListener, EditMenuUser {
 
     /**
      * Translated strings.
@@ -83,6 +78,11 @@ public class TTerminalWidget extends TScrollableWidget
      * The Process created by the shell spawning constructor.
      */
     private Process shell;
+
+    /**
+     * If true, something called 'ptypipe' is on the PATH and executable.
+     */
+    private static boolean ptypipeOnPath = false;
 
     /**
      * If true, we are using the ptypipe utility to support dynamic window
@@ -164,6 +164,13 @@ public class TTerminalWidget extends TScrollableWidget
     // ------------------------------------------------------------------------
 
     /**
+     * Static constructor.
+     */
+    static {
+        checkForPtypipe();
+    }
+
+    /**
      * Public constructor spawns a custom command line.
      *
      * @param parent parent widget
@@ -198,7 +205,7 @@ public class TTerminalWidget extends TScrollableWidget
      * @param x column relative to parent
      * @param y row relative to parent
      * @param command the command line to execute
-     * @param closeAction action to perform when the shell sxits
+     * @param closeAction action to perform when the shell exits
      */
     public TTerminalWidget(final TWidget parent, final int x, final int y,
         final String [] command, final TAction closeAction) {
@@ -215,7 +222,7 @@ public class TTerminalWidget extends TScrollableWidget
      * @param width width of widget
      * @param height height of widget
      * @param command the command line to execute
-     * @param closeAction action to perform when the shell sxits
+     * @param closeAction action to perform when the shell exits
      */
     public TTerminalWidget(final TWidget parent, final int x, final int y,
         final int width, final int height, final String [] command,
@@ -236,6 +243,14 @@ public class TTerminalWidget extends TScrollableWidget
             fullCommand = new String[command.length + 1];
             fullCommand[0] = "ptypipe";
             System.arraycopy(command, 0, fullCommand, 1, command.length);
+        } else if (System.getProperty("jexer.TTerminal.ptypipe",
+                "auto").equals("auto")
+            && (ptypipeOnPath == true)
+        ) {
+            ptypipe = true;
+            fullCommand = new String[command.length + 1];
+            fullCommand[0] = "ptypipe";
+            System.arraycopy(command, 0, fullCommand, 1, command.length);
         } else if (System.getProperty("os.name").startsWith("Windows")) {
             fullCommand = new String[3];
             fullCommand[0] = "cmd";
@@ -251,12 +266,24 @@ public class TTerminalWidget extends TScrollableWidget
             fullCommand[5] = stringArrayToString(command);
         } else {
             // Default: behave like Linux
-            fullCommand = new String[5];
-            fullCommand[0] = "script";
-            fullCommand[1] = "-fqe";
-            fullCommand[2] = "/dev/null";
-            fullCommand[3] = "-c";
-            fullCommand[4] = stringArrayToString(command);
+            if (System.getProperty("jexer.TTerminal.setsid",
+                    "true").equals("false")
+            ) {
+                fullCommand = new String[5];
+                fullCommand[0] = "script";
+                fullCommand[1] = "-fqe";
+                fullCommand[2] = "/dev/null";
+                fullCommand[3] = "-c";
+                fullCommand[4] = stringArrayToString(command);
+            } else {
+                fullCommand = new String[6];
+                fullCommand[0] = "setsid";
+                fullCommand[1] = "script";
+                fullCommand[2] = "-fqe";
+                fullCommand[3] = "/dev/null";
+                fullCommand[4] = "-c";
+                fullCommand[5] = stringArrayToString(command);
+            }
         }
         spawnShell(fullCommand);
     }
@@ -278,7 +305,7 @@ public class TTerminalWidget extends TScrollableWidget
      * @param parent parent widget
      * @param x column relative to parent
      * @param y row relative to parent
-     * @param closeAction action to perform when the shell sxits
+     * @param closeAction action to perform when the shell exits
      */
     public TTerminalWidget(final TWidget parent, final int x, final int y,
         final TAction closeAction) {
@@ -294,7 +321,7 @@ public class TTerminalWidget extends TScrollableWidget
      * @param y row relative to parent
      * @param width width of widget
      * @param height height of widget
-     * @param closeAction action to perform when the shell sxits
+     * @param closeAction action to perform when the shell exits
      */
     public TTerminalWidget(final TWidget parent, final int x, final int y,
         final int width, final int height, final TAction closeAction) {
@@ -320,6 +347,7 @@ public class TTerminalWidget extends TScrollableWidget
         // GNU differ on the '-f' vs '-F' flags, we need two different
         // commands.  Lovely.
         String cmdShellGNU = "script -fqe /dev/null";
+        String cmdShellGNUSetsid = "setsid script -fqe /dev/null";
         String cmdShellBSD = "script -q -F /dev/null";
 
         // ptypipe is another solution that permits dynamic window resizing.
@@ -332,12 +360,24 @@ public class TTerminalWidget extends TScrollableWidget
         ) {
             ptypipe = true;
             spawnShell(cmdShellPtypipe.split("\\s+"));
+        } else if (System.getProperty("jexer.TTerminal.ptypipe",
+                "auto").equals("auto")
+            && (ptypipeOnPath == true)
+        ) {
+            ptypipe = true;
+            spawnShell(cmdShellPtypipe.split("\\s+"));
         } else if (System.getProperty("os.name").startsWith("Windows")) {
             spawnShell(cmdShellWindows.split("\\s+"));
         } else if (System.getProperty("os.name").startsWith("Mac")) {
             spawnShell(cmdShellBSD.split("\\s+"));
         } else if (System.getProperty("os.name").startsWith("Linux")) {
-            spawnShell(cmdShellGNU.split("\\s+"));
+            if (System.getProperty("jexer.TTerminal.setsid",
+                    "true").equals("false")
+            ) {
+                spawnShell(cmdShellGNU.split("\\s+"));
+            } else {
+                spawnShell(cmdShellGNUSetsid.split("\\s+"));
+            }
         } else {
             // When all else fails, assume GNU.
             spawnShell(cmdShellGNU.split("\\s+"));
@@ -525,6 +565,32 @@ public class TTerminalWidget extends TScrollableWidget
         super.onMouseMotion(mouse);
     }
 
+    /**
+     * Handle posted command events.
+     *
+     * @param command command event
+     */
+    @Override
+    public void onCommand(final TCommandEvent command) {
+        if (emulator == null) {
+            return;
+        }
+
+        if (command.equals(cmPaste)) {
+            // Paste text from clipboard.
+            String text = getClipboard().pasteText();
+            if (text != null) {
+                for (int i = 0; i < text.length(); ) {
+                    int ch = text.codePointAt(i);
+                    emulator.addUserEvent(new TKeypressEvent(false, 0, ch,
+                            false, false, false));
+                    i += Character.charCount(ch);
+                }
+            }
+            return;
+        }
+    }
+
     // ------------------------------------------------------------------------
     // TScrollableWidget ------------------------------------------------------
     // ------------------------------------------------------------------------
@@ -541,9 +607,7 @@ public class TTerminalWidget extends TScrollableWidget
         int width = getDisplayWidth();
 
         boolean syncEmulator = false;
-        if ((System.currentTimeMillis() - lastUpdateTime >= 20)
-            && (dirty == true)
-        ) {
+        if (System.currentTimeMillis() - lastUpdateTime >= 50) {
             // Too much time has passed, draw it all.
             syncEmulator = true;
         } else if (emulator.isReading() && (dirty == false)) {
@@ -732,6 +796,43 @@ public class TTerminalWidget extends TScrollableWidget
     // ------------------------------------------------------------------------
 
     /**
+     * Check for 'ptypipe' on the path.  If available, set ptypipeOnPath.
+     */
+    private static void checkForPtypipe() {
+        String systemPath = System.getenv("PATH");
+        if (systemPath == null) {
+            return;
+        }
+
+        String [] paths = systemPath.split(File.pathSeparator);
+        if (paths == null) {
+            return;
+        }
+        if (paths.length == 0) {
+            return;
+        }
+        for (int i = 0; i < paths.length; i++) {
+            File path = new File(paths[i]);
+            if (path.exists() && path.isDirectory()) {
+                File [] files = path.listFiles();
+                if (files == null) {
+                    continue;
+                }
+                if (files.length == 0) {
+                    continue;
+                }
+                for (int j = 0; j < files.length; j++) {
+                    File file = files[j];
+                    if (file.canExecute() && file.getName().equals("ptypipe")) {
+                        ptypipeOnPath = true;
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Get the desired window title.
      *
      * @return the title
@@ -884,10 +985,7 @@ public class TTerminalWidget extends TScrollableWidget
                     }
                 });
             }
-            if (getApplication() != null) {
-                getApplication().postEvent(new TMenuEvent(
-                    TMenu.MID_REPAINT));
-            }
+            app.doRepaint();
         }
     }
 
@@ -955,6 +1053,19 @@ public class TTerminalWidget extends TScrollableWidget
             }
 
         } // synchronized (emulator)
+    }
+
+    /**
+     * Wait for a period of time to get output from the launched process.
+     *
+     * @param millis millis to wait for, or 0 to wait forever
+     * @return true if the launched process has emitted something
+     */
+    public boolean waitForOutput(final int millis) {
+        if (emulator == null) {
+            return false;
+        }
+        return emulator.waitForOutput(millis);
     }
 
     /**
@@ -1125,7 +1236,17 @@ public class TTerminalWidget extends TScrollableWidget
      * Called by emulator when fresh data has come in.
      */
     public void displayChanged() {
-        dirty = true;
+        if (emulator != null) {
+            // Force sync here: EMCA48.run() thread might be setting
+            // dirty=true while TTerminalWdiget.draw() is setting
+            // dirty=false.  If these writes start interleaving, the display
+            // stops getting updated.
+            synchronized (emulator) {
+                dirty = true;
+            }
+        } else {
+            dirty = true;
+        }
         getApplication().postEvent(new TMenuEvent(TMenu.MID_REPAINT));
     }
 
@@ -1151,6 +1272,55 @@ public class TTerminalWidget extends TScrollableWidget
             return getHeight();
         }
         return 24;
+    }
+
+    /**
+     * Get the exit value for the emulator.
+     *
+     * @return exit value
+     */
+    public int getExitValue() {
+        return exitValue;
+    }
+
+    // ------------------------------------------------------------------------
+    // EditMenuUser -----------------------------------------------------------
+    // ------------------------------------------------------------------------
+
+    /**
+     * Check if the cut menu item should be enabled.
+     *
+     * @return true if the cut menu item should be enabled
+     */
+    public boolean isEditMenuCut() {
+        return false;
+    }
+
+    /**
+     * Check if the copy menu item should be enabled.
+     *
+     * @return true if the copy menu item should be enabled
+     */
+    public boolean isEditMenuCopy() {
+        return false;
+    }
+
+    /**
+     * Check if the paste menu item should be enabled.
+     *
+     * @return true if the paste menu item should be enabled
+     */
+    public boolean isEditMenuPaste() {
+        return true;
+    }
+
+    /**
+     * Check if the clear menu item should be enabled.
+     *
+     * @return true if the clear menu item should be enabled
+     */
+    public boolean isEditMenuClear() {
+        return false;
     }
 
 }

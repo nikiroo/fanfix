@@ -199,6 +199,11 @@ public class TWindow extends TWidget {
      */
     private boolean hideMouse = false;
 
+    /**
+     * The help topic for this window.
+     */
+    protected String helpTopic = "Help";
+
     // ------------------------------------------------------------------------
     // Constructors -----------------------------------------------------------
     // ------------------------------------------------------------------------
@@ -541,12 +546,6 @@ public class TWindow extends TWidget {
         }
 
         if (inWindowResize) {
-            // Do not permit resizing below the status line
-            if (mouse.getAbsoluteY() == application.getDesktopBottom()) {
-                inWindowResize = false;
-                return;
-            }
-
             // Move window over
             setWidth(resizeWindowWidth + (mouse.getAbsoluteX()
                     - moveWindowMouseX));
@@ -566,23 +565,22 @@ public class TWindow extends TWidget {
             // Keep within min/max bounds
             if (getWidth() < minimumWindowWidth) {
                 setWidth(minimumWindowWidth);
-                inWindowResize = false;
             }
             if (getHeight() < minimumWindowHeight) {
                 setHeight(minimumWindowHeight);
-                inWindowResize = false;
             }
             if ((maximumWindowWidth > 0)
                 && (getWidth() > maximumWindowWidth)
             ) {
                 setWidth(maximumWindowWidth);
-                inWindowResize = false;
             }
             if ((maximumWindowHeight > 0)
                 && (getHeight() > maximumWindowHeight)
             ) {
                 setHeight(maximumWindowHeight);
-                inWindowResize = false;
+            }
+            if (getHeight() + getY() >= getApplication().getDesktopBottom()) {
+                setHeight(getApplication().getDesktopBottom() - getY());
             }
 
             // Pass a resize event to my children
@@ -1441,14 +1439,24 @@ public class TWindow extends TWidget {
     }
 
     /**
+     * Get this window's help topic to load.
+     *
+     * @return the topic name
+     */
+    public String getHelpTopic() {
+        return helpTopic;
+    }
+
+    /**
      * Generate a human-readable string for this window.
      *
      * @return a human-readable string
      */
     @Override
     public String toString() {
-        return String.format("%s(%8x) \'%s\' position (%d, %d) geometry %dx%d" +
-            " hidden %s modal %s", getClass().getName(), hashCode(), title,
+        return String.format("%s(%8x) \'%s\' Z %d position (%d, %d) " +
+            "geometry %dx%d  hidden %s modal %s",
+            getClass().getName(), hashCode(), title, getZ(),
             getX(), getY(), getWidth(), getHeight(), hidden, isModal());
     }
 

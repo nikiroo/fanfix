@@ -103,8 +103,9 @@ public class DemoCheckBoxWindow extends TWindow {
         TRadioGroup group = addRadioGroup(1, row,
             i18n.getString("radioGroupTitle"));
         group.addRadioButton(i18n.getString("radioOption1"));
-        group.addRadioButton(i18n.getString("radioOption2"));
+        group.addRadioButton(i18n.getString("radioOption2"), true);
         group.addRadioButton(i18n.getString("radioOption3"));
+        group.setRequiresSelection(true);
 
         List<String> comboValues = new ArrayList<String>();
         comboValues.add(i18n.getString("comboBoxString0"));

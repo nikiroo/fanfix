@@ -28,9 +28,11 @@
  */
 package jexer.tterminal;
 
-import java.awt.Graphics2D;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.CharArrayWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -45,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import javax.imageio.ImageIO;
 
 import jexer.TKeypress;
 import jexer.backend.GlyphMaker;
@@ -256,7 +259,7 @@ public class ECMA48 implements Runnable {
     /**
      * The type of emulator to be.
      */
-    private DeviceType type = DeviceType.VT102;
+    private final DeviceType type;
 
     /**
      * The scrollback buffer characters + attributes.
@@ -271,7 +274,7 @@ public class ECMA48 implements Runnable {
     /**
      * The maximum number of lines in the scrollback buffer.
      */
-    private int maxScrollback = 10000;
+    private int scrollbackMax = 10000;
 
     /**
      * The terminal's input.  For type == XTERM, this is an InputStreamReader
@@ -323,29 +326,29 @@ public class ECMA48 implements Runnable {
      * Physical display width.  We start at 80x24, but the user can resize us
      * bigger/smaller.
      */
-    private int width;
+    private int width = 80;
 
     /**
      * Physical display height.  We start at 80x24, but the user can resize
      * us bigger/smaller.
      */
-    private int height;
+    private int height = 24;
 
     /**
      * Top margin of the scrolling region.
      */
-    private int scrollRegionTop;
+    private int scrollRegionTop = 0;
 
     /**
      * Bottom margin of the scrolling region.
      */
-    private int scrollRegionBottom;
+    private int scrollRegionBottom = height - 1;
 
     /**
      * Right margin column number.  This can be selected by the remote side
      * to be 80/132 (rightMargin values 79/131), or it can be (width - 1).
      */
-    private int rightMargin;
+    private int rightMargin = 79;
 
     /**
      * Last character printed.
@@ -357,7 +360,7 @@ public class ECMA48 implements Runnable {
      * 132), but the line does NOT wrap until another character is written to
      * column 1 of the next line, after which the cursor moves to column 2.
      */
-    private boolean wrapLineFlag;
+    private boolean wrapLineFlag = false;
 
     /**
      * VT220 single shift flag.
@@ -394,7 +397,7 @@ public class ECMA48 implements Runnable {
     /**
      * Non-csi collect buffer.
      */
-    private StringBuilder collectBuffer;
+    private StringBuilder collectBuffer = new StringBuilder(128);
 
     /**
      * When true, use the G1 character set.
@@ -469,7 +472,7 @@ public class ECMA48 implements Runnable {
     /**
      * Sixel collection buffer.
      */
-    private StringBuilder sixelParseBuffer;
+    private StringBuilder sixelParseBuffer = new StringBuilder(2048);
 
     /**
      * Sixel shared palette.
@@ -502,6 +505,11 @@ public class ECMA48 implements Runnable {
      * side.
      */
     private ArrayList<TInputEvent> userQueue = new ArrayList<TInputEvent>();
+
+    /**
+     * Number of bytes/characters passed to consume().
+     */
+    private long readCount = 0;
 
     /**
      * DECSC/DECRC save/restore a subset of the total state.  This class
@@ -655,7 +663,8 @@ public class ECMA48 implements Runnable {
             this.inputStream  = new TimeoutInputStream(inputStream, 2000);
         }
         if (type == DeviceType.XTERM) {
-            this.input    = new InputStreamReader(this.inputStream, "UTF-8");
+            this.input    = new InputStreamReader(new BufferedInputStream(
+                this.inputStream, 1024 * 128), "UTF-8");
             this.output   = new OutputStreamWriter(new
                 BufferedOutputStream(outputStream), "UTF-8");
             this.outputStream = null;
@@ -669,6 +678,8 @@ public class ECMA48 implements Runnable {
         for (int i = 0; i < height; i++) {
             display.add(new DisplayLine(currentState.attr));
         }
+        assert (currentState.cursorY < height);
+        assert (currentState.cursorX < width);
 
         // Spin up the input reader
         readerThread = new Thread(this);
@@ -760,11 +771,28 @@ public class ECMA48 implements Runnable {
                                 int ch = Character.codePointAt(readBufferUTF8,
                                     i);
                                 i += Character.charCount(ch);
-                                consume(ch);
+
+                                // Special case for VT10x: 7-bit characters
+                                // only.
+                                if ((type == DeviceType.VT100)
+                                    || (type == DeviceType.VT102)
+                                ) {
+                                    consume(ch & 0x7F);
+                                } else {
+                                    consume(ch);
+                                }
                             }
                         } else {
                             for (int i = 0; i < rc; i++) {
-                                consume(readBuffer[i]);
+                                // Special case for VT10x: 7-bit characters
+                                // only.
+                                if ((type == DeviceType.VT100)
+                                    || (type == DeviceType.VT102)
+                                ) {
+                                    consume(readBuffer[i] & 0x7F);
+                                } else {
+                                    consume(readBuffer[i]);
+                                }
                             }
                         }
                     }
@@ -832,6 +860,34 @@ public class ECMA48 implements Runnable {
     // ------------------------------------------------------------------------
 
     /**
+     * Wait for a period of time to get output from the launched process.
+     *
+     * @param millis millis to wait for, or 0 to wait forever
+     * @return true if the launched process has emitted something
+     */
+    public boolean waitForOutput(final int millis) {
+        if (millis < 0) {
+            throw new IllegalArgumentException("timeout must be >= 0");
+        }
+        int waitedMillis = millis;
+        final int pollTimeout = 5;
+        while (true) {
+            if (readCount != 0) {
+                return true;
+            }
+            if ((millis > 0) && (waitedMillis < 0)){
+                return false;
+            }
+            try {
+                Thread.sleep(pollTimeout);
+            } catch (InterruptedException e) {
+                // SQUASH
+            }
+            waitedMillis -= pollTimeout;
+        }
+    }
+
+    /**
      * Process keyboard and mouse events from the user.
      *
      * @param event the input event to consume
@@ -874,14 +930,14 @@ public class ECMA48 implements Runnable {
 
         case VT220:
         case XTERM:
-            // "I am a VT220" - 7 bit version
+            // "I am a VT220" - 7 bit version, with sixel and Jexer image
+            // support.
             if (!s8c1t) {
-                return "\033[?62;1;6;9;4;22c";
-                // return "\033[?62;1;6;9;4;22;444c";
+                return "\033[?62;1;6;9;4;22;444c";
             }
-            // "I am a VT220" - 8 bit version
-            return "\u009b?62;1;6;9;4;22c";
-            // return "\u009b?62;1;6;9;4;22;444c";
+            // "I am a VT220" - 8 bit version, with sixel and Jexer image
+            // support.
+            return "\u009b?62;1;6;9;4;22;444c";
         default:
             throw new IllegalArgumentException("Invalid device type: " + type);
         }
@@ -1002,11 +1058,6 @@ public class ECMA48 implements Runnable {
         // the input streams.
         if (stopReaderThread == false) {
             stopReaderThread = true;
-            try {
-                readerThread.join(1000);
-            } catch (InterruptedException e) {
-                // SQUASH
-            }
         }
 
         // Now close the output stream.
@@ -1186,8 +1237,8 @@ public class ECMA48 implements Runnable {
         int delta = height - this.height;
         this.height = height;
         scrollRegionBottom += delta;
-        if (scrollRegionBottom < 0) {
-            scrollRegionBottom = height;
+        if ((scrollRegionBottom < 0) || (scrollRegionTop > height - 1)) {
+            scrollRegionBottom = height - 1;
         }
         if (scrollRegionTop >= scrollRegionBottom) {
             scrollRegionTop = 0;
@@ -1204,8 +1255,27 @@ public class ECMA48 implements Runnable {
             display.add(line);
         }
         while (display.size() > height) {
-            scrollback.add(display.remove(0));
+            appendScrollbackLine(display.remove(0));
         }
+    }
+
+    /**
+     * Get the maximum number of lines in the scrollback buffer.
+     *
+     * @return the maximum number of lines in the scrollback buffer
+     */
+    public int getScrollbackMax() {
+        return scrollbackMax;
+    }
+
+    /**
+     * Set the maximum number of lines for the scrollback buffer.
+     *
+     * @param scrollbackMax the maximum number of lines for the scrollback
+     * buffer
+     */
+    public final void setScrollbackMax(final int scrollbackMax) {
+        this.scrollbackMax = scrollbackMax;
     }
 
     /**
@@ -1242,7 +1312,7 @@ public class ECMA48 implements Runnable {
      */
     private void toGround() {
         csiParams.clear();
-        collectBuffer = new StringBuilder(8);
+        collectBuffer.setLength(0);
         scanState = ScanState.GROUND;
     }
 
@@ -1265,7 +1335,7 @@ public class ECMA48 implements Runnable {
             colors88.add(0);
         }
 
-        // Set default system colors.
+        // Set default system colors.  These match DOS colors.
         colors88.set(0, 0x00000000);
         colors88.set(1, 0x00a80000);
         colors88.set(2, 0x0000a800);
@@ -1283,6 +1353,249 @@ public class ECMA48 implements Runnable {
         colors88.set(13, 0x00fc54fc);
         colors88.set(14, 0x0054fcfc);
         colors88.set(15, 0x00fcfcfc);
+
+        // These match xterm's default colors from 256colres.h.
+        colors88.set(16, 0x000000);
+        colors88.set(17, 0x00005f);
+        colors88.set(18, 0x000087);
+        colors88.set(19, 0x0000af);
+        colors88.set(20, 0x0000d7);
+        colors88.set(21, 0x0000ff);
+        colors88.set(22, 0x005f00);
+        colors88.set(23, 0x005f5f);
+        colors88.set(24, 0x005f87);
+        colors88.set(25, 0x005faf);
+        colors88.set(26, 0x005fd7);
+        colors88.set(27, 0x005fff);
+        colors88.set(28, 0x008700);
+        colors88.set(29, 0x00875f);
+        colors88.set(30, 0x008787);
+        colors88.set(31, 0x0087af);
+        colors88.set(32, 0x0087d7);
+        colors88.set(33, 0x0087ff);
+        colors88.set(34, 0x00af00);
+        colors88.set(35, 0x00af5f);
+        colors88.set(36, 0x00af87);
+        colors88.set(37, 0x00afaf);
+        colors88.set(38, 0x00afd7);
+        colors88.set(39, 0x00afff);
+        colors88.set(40, 0x00d700);
+        colors88.set(41, 0x00d75f);
+        colors88.set(42, 0x00d787);
+        colors88.set(43, 0x00d7af);
+        colors88.set(44, 0x00d7d7);
+        colors88.set(45, 0x00d7ff);
+        colors88.set(46, 0x00ff00);
+        colors88.set(47, 0x00ff5f);
+        colors88.set(48, 0x00ff87);
+        colors88.set(49, 0x00ffaf);
+        colors88.set(50, 0x00ffd7);
+        colors88.set(51, 0x00ffff);
+        colors88.set(52, 0x5f0000);
+        colors88.set(53, 0x5f005f);
+        colors88.set(54, 0x5f0087);
+        colors88.set(55, 0x5f00af);
+        colors88.set(56, 0x5f00d7);
+        colors88.set(57, 0x5f00ff);
+        colors88.set(58, 0x5f5f00);
+        colors88.set(59, 0x5f5f5f);
+        colors88.set(60, 0x5f5f87);
+        colors88.set(61, 0x5f5faf);
+        colors88.set(62, 0x5f5fd7);
+        colors88.set(63, 0x5f5fff);
+        colors88.set(64, 0x5f8700);
+        colors88.set(65, 0x5f875f);
+        colors88.set(66, 0x5f8787);
+        colors88.set(67, 0x5f87af);
+        colors88.set(68, 0x5f87d7);
+        colors88.set(69, 0x5f87ff);
+        colors88.set(70, 0x5faf00);
+        colors88.set(71, 0x5faf5f);
+        colors88.set(72, 0x5faf87);
+        colors88.set(73, 0x5fafaf);
+        colors88.set(74, 0x5fafd7);
+        colors88.set(75, 0x5fafff);
+        colors88.set(76, 0x5fd700);
+        colors88.set(77, 0x5fd75f);
+        colors88.set(78, 0x5fd787);
+        colors88.set(79, 0x5fd7af);
+        colors88.set(80, 0x5fd7d7);
+        colors88.set(81, 0x5fd7ff);
+        colors88.set(82, 0x5fff00);
+        colors88.set(83, 0x5fff5f);
+        colors88.set(84, 0x5fff87);
+        colors88.set(85, 0x5fffaf);
+        colors88.set(86, 0x5fffd7);
+        colors88.set(87, 0x5fffff);
+        colors88.set(88, 0x870000);
+        colors88.set(89, 0x87005f);
+        colors88.set(90, 0x870087);
+        colors88.set(91, 0x8700af);
+        colors88.set(92, 0x8700d7);
+        colors88.set(93, 0x8700ff);
+        colors88.set(94, 0x875f00);
+        colors88.set(95, 0x875f5f);
+        colors88.set(96, 0x875f87);
+        colors88.set(97, 0x875faf);
+        colors88.set(98, 0x875fd7);
+        colors88.set(99, 0x875fff);
+        colors88.set(100, 0x878700);
+        colors88.set(101, 0x87875f);
+        colors88.set(102, 0x878787);
+        colors88.set(103, 0x8787af);
+        colors88.set(104, 0x8787d7);
+        colors88.set(105, 0x8787ff);
+        colors88.set(106, 0x87af00);
+        colors88.set(107, 0x87af5f);
+        colors88.set(108, 0x87af87);
+        colors88.set(109, 0x87afaf);
+        colors88.set(110, 0x87afd7);
+        colors88.set(111, 0x87afff);
+        colors88.set(112, 0x87d700);
+        colors88.set(113, 0x87d75f);
+        colors88.set(114, 0x87d787);
+        colors88.set(115, 0x87d7af);
+        colors88.set(116, 0x87d7d7);
+        colors88.set(117, 0x87d7ff);
+        colors88.set(118, 0x87ff00);
+        colors88.set(119, 0x87ff5f);
+        colors88.set(120, 0x87ff87);
+        colors88.set(121, 0x87ffaf);
+        colors88.set(122, 0x87ffd7);
+        colors88.set(123, 0x87ffff);
+        colors88.set(124, 0xaf0000);
+        colors88.set(125, 0xaf005f);
+        colors88.set(126, 0xaf0087);
+        colors88.set(127, 0xaf00af);
+        colors88.set(128, 0xaf00d7);
+        colors88.set(129, 0xaf00ff);
+        colors88.set(130, 0xaf5f00);
+        colors88.set(131, 0xaf5f5f);
+        colors88.set(132, 0xaf5f87);
+        colors88.set(133, 0xaf5faf);
+        colors88.set(134, 0xaf5fd7);
+        colors88.set(135, 0xaf5fff);
+        colors88.set(136, 0xaf8700);
+        colors88.set(137, 0xaf875f);
+        colors88.set(138, 0xaf8787);
+        colors88.set(139, 0xaf87af);
+        colors88.set(140, 0xaf87d7);
+        colors88.set(141, 0xaf87ff);
+        colors88.set(142, 0xafaf00);
+        colors88.set(143, 0xafaf5f);
+        colors88.set(144, 0xafaf87);
+        colors88.set(145, 0xafafaf);
+        colors88.set(146, 0xafafd7);
+        colors88.set(147, 0xafafff);
+        colors88.set(148, 0xafd700);
+        colors88.set(149, 0xafd75f);
+        colors88.set(150, 0xafd787);
+        colors88.set(151, 0xafd7af);
+        colors88.set(152, 0xafd7d7);
+        colors88.set(153, 0xafd7ff);
+        colors88.set(154, 0xafff00);
+        colors88.set(155, 0xafff5f);
+        colors88.set(156, 0xafff87);
+        colors88.set(157, 0xafffaf);
+        colors88.set(158, 0xafffd7);
+        colors88.set(159, 0xafffff);
+        colors88.set(160, 0xd70000);
+        colors88.set(161, 0xd7005f);
+        colors88.set(162, 0xd70087);
+        colors88.set(163, 0xd700af);
+        colors88.set(164, 0xd700d7);
+        colors88.set(165, 0xd700ff);
+        colors88.set(166, 0xd75f00);
+        colors88.set(167, 0xd75f5f);
+        colors88.set(168, 0xd75f87);
+        colors88.set(169, 0xd75faf);
+        colors88.set(170, 0xd75fd7);
+        colors88.set(171, 0xd75fff);
+        colors88.set(172, 0xd78700);
+        colors88.set(173, 0xd7875f);
+        colors88.set(174, 0xd78787);
+        colors88.set(175, 0xd787af);
+        colors88.set(176, 0xd787d7);
+        colors88.set(177, 0xd787ff);
+        colors88.set(178, 0xd7af00);
+        colors88.set(179, 0xd7af5f);
+        colors88.set(180, 0xd7af87);
+        colors88.set(181, 0xd7afaf);
+        colors88.set(182, 0xd7afd7);
+        colors88.set(183, 0xd7afff);
+        colors88.set(184, 0xd7d700);
+        colors88.set(185, 0xd7d75f);
+        colors88.set(186, 0xd7d787);
+        colors88.set(187, 0xd7d7af);
+        colors88.set(188, 0xd7d7d7);
+        colors88.set(189, 0xd7d7ff);
+        colors88.set(190, 0xd7ff00);
+        colors88.set(191, 0xd7ff5f);
+        colors88.set(192, 0xd7ff87);
+        colors88.set(193, 0xd7ffaf);
+        colors88.set(194, 0xd7ffd7);
+        colors88.set(195, 0xd7ffff);
+        colors88.set(196, 0xff0000);
+        colors88.set(197, 0xff005f);
+        colors88.set(198, 0xff0087);
+        colors88.set(199, 0xff00af);
+        colors88.set(200, 0xff00d7);
+        colors88.set(201, 0xff00ff);
+        colors88.set(202, 0xff5f00);
+        colors88.set(203, 0xff5f5f);
+        colors88.set(204, 0xff5f87);
+        colors88.set(205, 0xff5faf);
+        colors88.set(206, 0xff5fd7);
+        colors88.set(207, 0xff5fff);
+        colors88.set(208, 0xff8700);
+        colors88.set(209, 0xff875f);
+        colors88.set(210, 0xff8787);
+        colors88.set(211, 0xff87af);
+        colors88.set(212, 0xff87d7);
+        colors88.set(213, 0xff87ff);
+        colors88.set(214, 0xffaf00);
+        colors88.set(215, 0xffaf5f);
+        colors88.set(216, 0xffaf87);
+        colors88.set(217, 0xffafaf);
+        colors88.set(218, 0xffafd7);
+        colors88.set(219, 0xffafff);
+        colors88.set(220, 0xffd700);
+        colors88.set(221, 0xffd75f);
+        colors88.set(222, 0xffd787);
+        colors88.set(223, 0xffd7af);
+        colors88.set(224, 0xffd7d7);
+        colors88.set(225, 0xffd7ff);
+        colors88.set(226, 0xffff00);
+        colors88.set(227, 0xffff5f);
+        colors88.set(228, 0xffff87);
+        colors88.set(229, 0xffffaf);
+        colors88.set(230, 0xffffd7);
+        colors88.set(231, 0xffffff);
+        colors88.set(232, 0x080808);
+        colors88.set(233, 0x121212);
+        colors88.set(234, 0x1c1c1c);
+        colors88.set(235, 0x262626);
+        colors88.set(236, 0x303030);
+        colors88.set(237, 0x3a3a3a);
+        colors88.set(238, 0x444444);
+        colors88.set(239, 0x4e4e4e);
+        colors88.set(240, 0x585858);
+        colors88.set(241, 0x626262);
+        colors88.set(242, 0x6c6c6c);
+        colors88.set(243, 0x767676);
+        colors88.set(244, 0x808080);
+        colors88.set(245, 0x8a8a8a);
+        colors88.set(246, 0x949494);
+        colors88.set(247, 0x9e9e9e);
+        colors88.set(248, 0xa8a8a8);
+        colors88.set(249, 0xb2b2b2);
+        colors88.set(250, 0xbcbcbc);
+        colors88.set(251, 0xc6c6c6);
+        colors88.set(252, 0xd0d0d0);
+        colors88.set(253, 0xdadada);
+        colors88.set(254, 0xe4e4e4);
+        colors88.set(255, 0xeeeeee);
+
     }
 
     /**
@@ -1357,8 +1670,13 @@ public class ECMA48 implements Runnable {
         currentState            = new SaveableState();
         savedState              = new SaveableState();
         scanState               = ScanState.GROUND;
-        width                   = 80;
-        height                  = 24;
+        if (displayListener != null) {
+            width = displayListener.getDisplayWidth();
+            height = displayListener.getDisplayHeight();
+        } else {
+            width               = 80;
+            height              = 24;
+        }
         scrollRegionTop         = 0;
         scrollRegionBottom      = height - 1;
         rightMargin             = width - 1;
@@ -1366,11 +1684,6 @@ public class ECMA48 implements Runnable {
         arrowKeyMode            = ArrowKeyMode.ANSI;
         keypadMode              = KeypadMode.Numeric;
         wrapLineFlag            = false;
-        if (displayListener != null) {
-            width = displayListener.getDisplayWidth();
-            height = displayListener.getDisplayHeight();
-            rightMargin         = width - 1;
-        }
 
         // Flags
         shiftOut                = false;
@@ -1402,13 +1715,24 @@ public class ECMA48 implements Runnable {
     }
 
     /**
+     * Append a to the scrollback buffer, clearing image data for lines more
+     * than three screenfuls in.
+     */
+    private void appendScrollbackLine(DisplayLine line) {
+        scrollback.add(line);
+        if (scrollback.size() > height * 3) {
+            scrollback.get(scrollback.size() - (height * 3)).clearImages();
+        }
+    }
+
+    /**
      * Append a new line to the bottom of the display, adding lines off the
      * top to the scrollback buffer.
      */
     private void newDisplayLine() {
         // Scroll the top line off into the scrollback buffer
-        scrollback.add(display.get(0));
-        if (scrollback.size() > maxScrollback) {
+        appendScrollbackLine(display.get(0));
+        while (scrollback.size() > scrollbackMax) {
             scrollback.remove(0);
             scrollback.trimToSize();
         }
@@ -1453,7 +1777,6 @@ public class ECMA48 implements Runnable {
      * Handle a linefeed.
      */
     private void linefeed() {
-
         if (currentState.cursorY < scrollRegionBottom) {
             // Increment screen y
             currentState.cursorY++;
@@ -1664,35 +1987,45 @@ public class ECMA48 implements Runnable {
         if (mouseEncoding == MouseEncoding.SGR) {
             sb.append((char) 0x1B);
             sb.append("[<");
+            int buttons = 0;
 
             if (mouse.isMouse1()) {
                 if (mouse.getType() == TMouseEvent.Type.MOUSE_MOTION) {
-                    sb.append("32;");
+                    buttons = 32;
                 } else {
-                    sb.append("0;");
+                    buttons = 0;
                 }
             } else if (mouse.isMouse2()) {
                 if (mouse.getType() == TMouseEvent.Type.MOUSE_MOTION) {
-                    sb.append("33;");
+                    buttons = 33;
                 } else {
-                    sb.append("1;");
+                    buttons = 1;
                 }
             } else if (mouse.isMouse3()) {
                 if (mouse.getType() == TMouseEvent.Type.MOUSE_MOTION) {
-                    sb.append("34;");
+                    buttons = 34;
                 } else {
-                    sb.append("2;");
+                    buttons = 2;
                 }
             } else if (mouse.isMouseWheelUp()) {
-                sb.append("64;");
+                buttons = 64;
             } else if (mouse.isMouseWheelDown()) {
-                sb.append("65;");
+                buttons = 65;
             } else {
                 // This is motion with no buttons down.
-                sb.append("35;");
+                buttons = 35;
+            }
+            if (mouse.isAlt()) {
+                buttons |= 0x08;
+            }
+            if (mouse.isCtrl()) {
+                buttons |= 0x10;
+            }
+            if (mouse.isShift()) {
+                buttons |= 0x04;
             }
 
-            sb.append(String.format("%d;%d", mouse.getX() + 1,
+            sb.append(String.format("%d;%d;%d", buttons, mouse.getX() + 1,
                     mouse.getY() + 1));
 
             if (mouse.getType() == TMouseEvent.Type.MOUSE_UP) {
@@ -1706,35 +2039,46 @@ public class ECMA48 implements Runnable {
             sb.append((char) 0x1B);
             sb.append('[');
             sb.append('M');
+            int buttons = 0;
             if (mouse.getType() == TMouseEvent.Type.MOUSE_UP) {
-                sb.append((char) (0x03 + 32));
+                buttons = 0x03 + 32;
             } else if (mouse.isMouse1()) {
                 if (mouse.getType() == TMouseEvent.Type.MOUSE_MOTION) {
-                    sb.append((char) (0x00 + 32 + 32));
+                    buttons = 0x00 + 32 + 32;
                 } else {
-                    sb.append((char) (0x00 + 32));
+                    buttons = 0x00 + 32;
                 }
             } else if (mouse.isMouse2()) {
                 if (mouse.getType() == TMouseEvent.Type.MOUSE_MOTION) {
-                    sb.append((char) (0x01 + 32 + 32));
+                    buttons = 0x01 + 32 + 32;
                 } else {
-                    sb.append((char) (0x01 + 32));
+                    buttons = 0x01 + 32;
                 }
             } else if (mouse.isMouse3()) {
                 if (mouse.getType() == TMouseEvent.Type.MOUSE_MOTION) {
-                    sb.append((char) (0x02 + 32 + 32));
+                    buttons = 0x02 + 32 + 32;
                 } else {
-                    sb.append((char) (0x02 + 32));
+                    buttons = 0x02 + 32;
                 }
             } else if (mouse.isMouseWheelUp()) {
-                sb.append((char) (0x04 + 64));
+                buttons = 0x04 + 64;
             } else if (mouse.isMouseWheelDown()) {
-                sb.append((char) (0x05 + 64));
+                buttons = 0x05 + 64;
             } else {
                 // This is motion with no buttons down.
-                sb.append((char) (0x03 + 32));
+                buttons = 0x03 + 32;
+            }
+            if (mouse.isAlt()) {
+                buttons |= 0x08;
+            }
+            if (mouse.isCtrl()) {
+                buttons |= 0x10;
+            }
+            if (mouse.isShift()) {
+                buttons |= 0x04;
             }
 
+            sb.append((char) (buttons & 0xFF));
             sb.append((char) (mouse.getX() + 33));
             sb.append((char) (mouse.getY() + 33));
         }
@@ -3156,10 +3500,10 @@ public class ECMA48 implements Runnable {
                     if (decPrivateModeFlag == true) {
                         if (value == true) {
                             // Enable sixel scrolling (default).
-                            // TODO
+                            // Not supported
                         } else {
                             // Disable sixel scrolling.
-                            // TODO
+                            // Not supported
                         }
                     }
                 }
@@ -3939,14 +4283,14 @@ public class ECMA48 implements Runnable {
                      * RGB color mode.
                      */
                     rgbColor = true;
-                    break;
+                    continue;
 
                 case 5:
                     /*
                      * Indexed color mode.
                      */
                     idx88Color = true;
-                    break;
+                    continue;
 
                 default:
                     /*
@@ -3994,7 +4338,7 @@ public class ECMA48 implements Runnable {
 
                 case 8:
                     // Invisible
-                    // TODO
+                    // Not supported
                     break;
 
                 case 90:
@@ -4379,6 +4723,9 @@ public class ECMA48 implements Runnable {
             // DECSTBM
             int top = getCsiParam(0, 1, 1, height) - 1;
             int bottom = getCsiParam(1, height, 1, height) - 1;
+            if (bottom > height - 1) {
+                bottom = height - 1;
+            }
 
             if (top > bottom) {
                 top = bottom;
@@ -4732,13 +5079,22 @@ public class ECMA48 implements Runnable {
     private void oscPut(final char xtermChar) {
         // System.err.println("oscPut: " + xtermChar);
 
+        boolean oscEnd = false;
+
+        if (xtermChar == 0x07) {
+            oscEnd = true;
+        }
+        if ((xtermChar == '\\')
+            && (collectBuffer.charAt(collectBuffer.length() - 1) == '\033')
+        ) {
+            oscEnd = true;
+        }
+
         // Collect first
         collectBuffer.append(xtermChar);
 
         // Xterm cases...
-        if ((xtermChar == 0x07)
-            || (collectBuffer.toString().endsWith("\033\\"))
-        ) {
+        if (oscEnd) {
             String args = null;
             if (xtermChar == 0x07) {
                 args = collectBuffer.substring(0, collectBuffer.length() - 1);
@@ -4792,11 +5148,18 @@ public class ECMA48 implements Runnable {
                     }
                 }
 
-                if (p[0].equals("444") && (p.length == 5)) {
-                    // Jexer image
-                    parseJexerImage(p[1], p[2], p[3], p[4]);
+                if (p[0].equals("444")) {
+                    if (p[1].equals("0") && (p.length == 6)) {
+                        // Jexer image - RGB
+                        parseJexerImageRGB(p[2], p[3], p[4], p[5]);
+                    } else if (p[1].equals("1") && (p.length == 4)) {
+                        // Jexer image - PNG
+                        parseJexerImageFile(1, p[2], p[3]);
+                    } else if (p[1].equals("2") && (p.length == 4)) {
+                        // Jexer image - JPG
+                        parseJexerImageFile(2, p[2], p[3]);
+                    }
                 }
-
             }
 
             // Go to SCAN_GROUND state
@@ -4814,11 +5177,19 @@ public class ECMA48 implements Runnable {
     private void pmPut(final char pmChar) {
         // System.err.println("pmPut: " + pmChar);
 
+        boolean pmEnd = false;
+
+        if ((pmChar == '\\')
+            && (collectBuffer.charAt(collectBuffer.length() - 1) == '\033')
+        ) {
+            pmEnd = true;
+        }
+
         // Collect first
         collectBuffer.append(pmChar);
 
         // Xterm cases...
-        if (collectBuffer.toString().endsWith("\033\\")) {
+        if (pmEnd) {
             String arg = null;
             arg = collectBuffer.substring(0, collectBuffer.length() - 2);
 
@@ -4905,15 +5276,11 @@ public class ECMA48 implements Runnable {
      *
      * @param ch character from the remote side
      */
-    private void consume(int ch) {
+    private void consume(final int ch) {
+        readCount++;
 
         // DEBUG
         // System.err.printf("%c STATE = %s\n", ch, scanState);
-
-        // Special case for VT10x: 7-bit characters only
-        if ((type == DeviceType.VT100) || (type == DeviceType.VT102)) {
-            ch = (ch & 0x7F);
-        }
 
         // Special "anywhere" states
 
@@ -6687,7 +7054,7 @@ public class ECMA48 implements Runnable {
 
             // 0x71 goes to DCS_SIXEL
             if (ch == 0x71) {
-                sixelParseBuffer = new StringBuilder();
+                sixelParseBuffer.setLength(0);
                 scanState = ScanState.DCS_SIXEL;
             } else if ((ch >= 0x40) && (ch <= 0x7E)) {
                 // 0x40-7E goes to DCS_PASSTHROUGH
@@ -6772,7 +7139,7 @@ public class ECMA48 implements Runnable {
 
             // 0x71 goes to DCS_SIXEL
             if (ch == 0x71) {
-                sixelParseBuffer = new StringBuilder();
+                sixelParseBuffer.setLength(0);
                 scanState = ScanState.DCS_SIXEL;
             } else if ((ch >= 0x40) && (ch <= 0x7E)) {
                 // 0x40-7E goes to DCS_PASSTHROUGH
@@ -7036,87 +7403,19 @@ public class ECMA48 implements Runnable {
             // Sixel data was malformed in some way, bail out.
             return;
         }
-
-        /*
-         * Procedure:
-         *
-         * Break up the image into text cell sized pieces as a new array of
-         * Cells.
-         *
-         * Note original column position x0.
-         *
-         * For each cell:
-         *
-         * 1. Advance (printCharacter(' ')) for horizontal increment, or
-         *    index (linefeed() + cursorPosition(y, x0)) for vertical
-         *    increment.
-         *
-         * 2. Set (x, y) cell image data.
-         *
-         * 3. For the right and bottom edges:
-         *
-         *   a. Render the text to pixels using Terminus font.
-         *
-         *   b. Blit the image on top of the text, using alpha channel.
-         */
-        int cellColumns = image.getWidth() / textWidth;
-        if (cellColumns * textWidth < image.getWidth()) {
-            cellColumns++;
-        }
-        int cellRows = image.getHeight() / textHeight;
-        if (cellRows * textHeight < image.getHeight()) {
-            cellRows++;
+        if ((image.getWidth() < 1)
+            || (image.getWidth() > 10000)
+            || (image.getHeight() < 1)
+            || (image.getHeight() > 10000)
+        ) {
+            return;
         }
 
-        // Break the image up into an array of cells.
-        Cell [][] cells = new Cell[cellColumns][cellRows];
-
-        for (int x = 0; x < cellColumns; x++) {
-            for (int y = 0; y < cellRows; y++) {
-
-                int width = textWidth;
-                if ((x + 1) * textWidth > image.getWidth()) {
-                    width = image.getWidth() - (x * textWidth);
-                }
-                int height = textHeight;
-                if ((y + 1) * textHeight > image.getHeight()) {
-                    height = image.getHeight() - (y * textHeight);
-                }
-
-                Cell cell = new Cell();
-                cell.setImage(image.getSubimage(x * textWidth,
-                        y * textHeight, width, height));
-
-                cells[x][y] = cell;
-            }
-        }
-
-        int x0 = currentState.cursorX;
-        for (int y = 0; y < cellRows; y++) {
-            for (int x = 0; x < cellColumns; x++) {
-                assert (currentState.cursorX <= rightMargin);
-
-                // TODO: Render text of current cell first, then image over
-                // it (accounting for blank pixels).  For now, just copy the
-                // cell.
-                DisplayLine line = display.get(currentState.cursorY);
-                line.replace(currentState.cursorX, cells[x][y]);
-
-                // If at the end of the visible screen, stop.
-                if (currentState.cursorX == rightMargin) {
-                    break;
-                }
-                // Room for more image on the visible screen.
-                currentState.cursorX++;
-            }
-            linefeed();
-            cursorPosition(currentState.cursorY, x0);
-        }
-
+        imageToCells(image, true);
     }
 
     /**
-     * Parse a "Jexer" image string into a bitmap image, and overlay that
+     * Parse a "Jexer" RGB image string into a bitmap image, and overlay that
      * image onto the text cells.
      *
      * @param pw width token
@@ -7124,7 +7423,7 @@ public class ECMA48 implements Runnable {
      * @param ps scroll token
      * @param data pixel data
      */
-    private void parseJexerImage(final String pw, final String ph,
+    private void parseJexerImageRGB(final String pw, final String ph,
         final String ps, final String data) {
 
         int imageWidth = 0;
@@ -7152,8 +7451,7 @@ public class ECMA48 implements Runnable {
             return;
         }
 
-        java.util.Base64.Decoder base64 = java.util.Base64.getDecoder();
-        byte [] bytes = base64.decode(data);
+        byte [] bytes = StringUtils.fromBase64(data.getBytes());
         if (bytes.length != (imageWidth * imageHeight * 3)) {
             return;
         }
@@ -7179,6 +7477,93 @@ public class ECMA48 implements Runnable {
                 image.setRGB(x, y, rgb);
             }
         }
+
+        imageToCells(image, scroll);
+    }
+
+    /**
+     * Parse a "Jexer" PNG or JPG image string into a bitmap image, and
+     * overlay that image onto the text cells.
+     *
+     * @param type 1 for PNG, 2 for JPG
+     * @param ps scroll token
+     * @param data pixel data
+     */
+    private void parseJexerImageFile(final int type, final String ps,
+        final String data) {
+
+        int imageWidth = 0;
+        int imageHeight = 0;
+        boolean scroll = false;
+        BufferedImage image = null;
+        try {
+            byte [] bytes = StringUtils.fromBase64(data.getBytes());
+
+            switch (type) {
+            case 1:
+                if ((bytes[0] != (byte) 0x89)
+                    || (bytes[1] != 'P')
+                    || (bytes[2] != 'N')
+                    || (bytes[3] != 'G')
+                    || (bytes[4] != (byte) 0x0D)
+                    || (bytes[5] != (byte) 0x0A)
+                    || (bytes[6] != (byte) 0x1A)
+                    || (bytes[7] != (byte) 0x0A)
+                ) {
+                    // File does not have PNG header, bail out.
+                    return;
+                }
+                break;
+
+            case 2:
+                if ((bytes[0] != (byte) 0XFF)
+                    || (bytes[1] != (byte) 0xD8)
+                    || (bytes[2] != (byte) 0xFF)
+                ) {
+                    // File does not have JPG header, bail out.
+                    return;
+                }
+                break;
+
+            default:
+                // Unsupported type, bail out.
+                return;
+            }
+
+            image = ImageIO.read(new ByteArrayInputStream(bytes));
+        } catch (IOException e) {
+            // SQUASH
+            return;
+        }
+        assert (image != null);
+        imageWidth = image.getWidth();
+        imageHeight = image.getHeight();
+        if ((imageWidth < 1)
+            || (imageWidth > 10000)
+            || (imageHeight < 1)
+            || (imageHeight > 10000)
+        ) {
+            return;
+        }
+        if (ps.equals("1")) {
+            scroll = true;
+        } else if (ps.equals("0")) {
+            scroll = false;
+        } else {
+            return;
+        }
+
+        imageToCells(image, scroll);
+    }
+
+    /**
+     * Break up an image into the cells at the current cursor.
+     *
+     * @param image the image to display
+     * @param scroll if true, scroll the image and move the cursor
+     */
+    private void imageToCells(final BufferedImage image, final boolean scroll) {
+        assert (image != null);
 
         /*
          * Procedure:
@@ -7227,19 +7612,39 @@ public class ECMA48 implements Runnable {
                 }
 
                 Cell cell = new Cell();
-                cell.setImage(image.getSubimage(x * textWidth,
-                        y * textHeight, width, height));
+                if ((width != textWidth) || (height != textHeight)) {
+                    BufferedImage newImage;
+                    newImage = new BufferedImage(textWidth, textHeight,
+                        BufferedImage.TYPE_INT_ARGB);
+
+                    Graphics gr = newImage.getGraphics();
+                    gr.drawImage(image.getSubimage(x * textWidth,
+                            y * textHeight, width, height),
+                        0, 0, null, null);
+                    gr.dispose();
+                    cell.setImage(newImage);
+                } else {
+                    cell.setImage(image.getSubimage(x * textWidth,
+                            y * textHeight, width, height));
+                }
 
                 cells[x][y] = cell;
             }
         }
 
         int x0 = currentState.cursorX;
+        int y0 = currentState.cursorY;
         for (int y = 0; y < cellRows; y++) {
             for (int x = 0; x < cellColumns; x++) {
                 assert (currentState.cursorX <= rightMargin);
+
+                // A real sixel terminal would render the text of the current
+                // cell first, then image over it (accounting for blank
+                // pixels).  We do not support that.  A cell is either text,
+                // or image, but not a mix of image-over-text.
                 DisplayLine line = display.get(currentState.cursorY);
                 line.replace(currentState.cursorX, cells[x][y]);
+
                 // If at the end of the visible screen, stop.
                 if (currentState.cursorX == rightMargin) {
                     break;
@@ -7247,13 +7652,22 @@ public class ECMA48 implements Runnable {
                 // Room for more image on the visible screen.
                 currentState.cursorX++;
             }
-            if ((scroll == true)
-                || ((scroll == false)
-                    && (currentState.cursorY < scrollRegionBottom))
-            ) {
+            if (currentState.cursorY < scrollRegionBottom - 1) {
+                // Not at the bottom, down a line.
                 linefeed();
+            } else if (scroll == true) {
+                // At the bottom, scroll as needed.
+                linefeed();
+            } else {
+                // At the bottom, no more scrolling, done.
+                break;
             }
+
             cursorPosition(currentState.cursorY, x0);
+        }
+
+        if (scroll == false) {
+            cursorPosition(y0, x0);
         }
 
     }

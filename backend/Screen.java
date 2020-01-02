@@ -30,6 +30,7 @@ package jexer.backend;
 
 import jexer.bits.Cell;
 import jexer.bits.CellAttributes;
+import jexer.bits.Clipboard;
 
 /**
  * Drawing operations API.
@@ -408,5 +409,51 @@ public interface Screen {
      * @return the height in pixels of a character cell
      */
     public int getTextHeight();
+
+    /**
+     * Invert the cell color at a position, including both halves of a
+     * double-width cell.
+     *
+     * @param x column position
+     * @param y row position
+     */
+    public void invertCell(final int x, final int y);
+
+    /**
+     * Invert the cell color at a position.
+     *
+     * @param x column position
+     * @param y row position
+     * @param onlyThisCell if true, only invert this cell, otherwise invert
+     * both halves of a double-width cell if necessary
+     */
+    public void invertCell(final int x, final int y,
+        final boolean onlyThisCell);
+
+    /**
+     * Set a selection area on the screen.
+     *
+     * @param x0 the starting X position of the selection
+     * @param y0 the starting Y position of the selection
+     * @param x1 the ending X position of the selection
+     * @param y1 the ending Y position of the selection
+     * @param rectangle if true, this is a rectangle select
+     */
+    public void setSelection(final int x0, final int y0,
+        final int x1, final int y1, final boolean rectangle);
+
+    /**
+     * Copy the screen selection area to the clipboard.
+     *
+     * @param clipboard the clipboard to use
+     * @param x0 the starting X position of the selection
+     * @param y0 the starting Y position of the selection
+     * @param x1 the ending X position of the selection
+     * @param y1 the ending Y position of the selection
+     * @param rectangle if true, this is a rectangle select
+     */
+    public void copySelection(final Clipboard clipboard,
+        final int x0, final int y0, final int x1, final int y1,
+        final boolean rectangle);
 
 }

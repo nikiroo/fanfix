@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import jexer.backend.Screen;
 import jexer.bits.Cell;
 import jexer.bits.CellAttributes;
+import jexer.bits.Clipboard;
 import jexer.bits.ColorTheme;
 import jexer.event.TCommandEvent;
 import jexer.event.TInputEvent;
@@ -591,9 +592,8 @@ public abstract class TWidget implements Comparable<TWidget> {
      * @param command command event
      */
     public void onCommand(final TCommandEvent command) {
-        // Default: do nothing, pass to children instead
-        for (TWidget widget: children) {
-            widget.onCommand(command);
+        if (activeChild != null) {
+            activeChild.onCommand(command);
         }
     }
 
@@ -1127,6 +1127,18 @@ public abstract class TWidget implements Comparable<TWidget> {
     }
 
     /**
+     * Get the Clipboard.
+     *
+     * @return the Clipboard, or null if not assigned
+     */
+    public Clipboard getClipboard() {
+        if (window != null) {
+            return window.getApplication().getClipboard();
+        }
+        return null;
+    }
+
+    /**
      * Comparison operator.  For various subclasses it sorts on:
      * <ul>
      * <li>tabOrder for TWidgets</li>
@@ -1139,7 +1151,7 @@ public abstract class TWidget implements Comparable<TWidget> {
      * difference between this.z and that.z, or String.compareTo(text)
      */
     @Override
-    public final int compareTo(final TWidget that) {
+    public int compareTo(final TWidget that) {
         if ((this instanceof TWindow)
             && (that instanceof TWindow)
         ) {
@@ -1439,9 +1451,9 @@ public abstract class TWidget implements Comparable<TWidget> {
                 if (activeChild != null) {
                     activeChild.active = false;
                 }
-                child.active = true;
-                activeChild = child;
             }
+            child.active = true;
+            activeChild = child;
         }
     }
 
@@ -2166,6 +2178,21 @@ public abstract class TWidget implements Comparable<TWidget> {
         final String label) {
 
         return new TRadioGroup(this, x, y, label);
+    }
+
+    /**
+     * Convenience function to add a radio button group to this
+     * container/window.
+     *
+     * @param x column relative to parent
+     * @param y row relative to parent
+     * @param width width of group
+     * @param label label to display on the group box
+     */
+    public final TRadioGroup addRadioGroup(final int x, final int y,
+        final int width, final String label) {
+
+        return new TRadioGroup(this, x, y, width, label);
     }
 
     /**

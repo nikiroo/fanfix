@@ -28,35 +28,14 @@
  */
 package jexer;
 
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-
-import java.io.InputStream;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
 
-import jexer.backend.ECMA48Terminal;
-import jexer.backend.GlyphMaker;
-import jexer.backend.MultiScreen;
-import jexer.backend.SwingTerminal;
-import jexer.bits.Cell;
-import jexer.bits.CellAttributes;
+import jexer.menu.TMenu;
 import jexer.event.TKeypressEvent;
 import jexer.event.TMenuEvent;
 import jexer.event.TMouseEvent;
 import jexer.event.TResizeEvent;
-import jexer.menu.TMenu;
-import jexer.tterminal.DisplayLine;
-import jexer.tterminal.DisplayListener;
-import jexer.tterminal.ECMA48;
+import static jexer.TCommand.*;
 import static jexer.TKeypress.*;
 
 /**
@@ -163,10 +142,14 @@ public class TTerminalWindow extends TScrollableWindow {
         addShortcutKeys();
 
         // Add shortcut text
-        newStatusBar(i18n.getString("statusBarRunning"));
+        TStatusBar statusBar = newStatusBar(i18n.getString("statusBarRunning"));
+        statusBar.addShortcutKeypress(kbF1, cmHelp,
+            i18n.getString("statusBarHelp"));
+        statusBar.addShortcutKeypress(kbF10, cmMenu,
+            i18n.getString("statusBarMenu"));
 
         // Spin it up
-        terminal = new TTerminalWidget(this, 0, 0, new TAction() {
+        terminal = new TTerminalWidget(this, 0, 0, command, new TAction() {
             public void DO() {
                 onShellExit();
             }
@@ -215,7 +198,11 @@ public class TTerminalWindow extends TScrollableWindow {
         addShortcutKeys();
 
         // Add shortcut text
-        newStatusBar(i18n.getString("statusBarRunning"));
+        TStatusBar statusBar = newStatusBar(i18n.getString("statusBarRunning"));
+        statusBar.addShortcutKeypress(kbF1, cmHelp,
+            i18n.getString("statusBarHelp"));
+        statusBar.addShortcutKeypress(kbF10, cmMenu,
+            i18n.getString("statusBarMenu"));
 
         // Spin it up
         terminal = new TTerminalWidget(this, 0, 0, new TAction() {
@@ -283,7 +270,10 @@ public class TTerminalWindow extends TScrollableWindow {
      */
     @Override
     public void onKeypress(final TKeypressEvent keypress) {
-        if ((terminal != null) && (terminal.isReading())) {
+        if ((terminal != null)
+            && (terminal.isReading())
+            && (!inKeyboardResize)
+        ) {
             terminal.onKeypress(keypress);
         } else {
             super.onKeypress(keypress);
@@ -350,6 +340,16 @@ public class TTerminalWindow extends TScrollableWindow {
                 terminal.setVerticalValue(getVerticalValue());
             }
         }
+    }
+
+    /**
+     * Get this window's help topic to load.
+     *
+     * @return the topic name
+     */
+    @Override
+    public String getHelpTopic() {
+        return "Terminal Window";
     }
 
     // ------------------------------------------------------------------------
@@ -450,6 +450,31 @@ public class TTerminalWindow extends TScrollableWindow {
         }
         clearShortcutKeypresses();
         getApplication().postEvent(new TMenuEvent(TMenu.MID_REPAINT));
+    }
+
+    /**
+     * Wait for a period of time to get output from the launched process.
+     *
+     * @param millis millis to wait for, or 0 to wait forever
+     * @return true if the launched process has emitted something
+     */
+    public boolean waitForOutput(final int millis) {
+        if (terminal == null) {
+            return false;
+        }
+        return terminal.waitForOutput(millis);
+    }
+
+    /**
+     * Get the exit value for the emulator.
+     *
+     * @return exit value
+     */
+    public int getExitValue() {
+        if (terminal == null) {
+            return -1;
+        }
+        return terminal.getExitValue();
     }
 
 }
