@@ -6,6 +6,7 @@ import jexer.TPanel;
 import jexer.TScrollableWindow;
 import jexer.TVScroller;
 import jexer.TWidget;
+import jexer.event.TResizeEvent;
 
 public class TSimpleScrollableWindow extends TScrollableWindow {
 	protected TPanel mainPane;
@@ -27,7 +28,7 @@ public class TSimpleScrollableWindow extends TScrollableWindow {
 			int width, int height, int flags, int realWidth, int realHeight) {
 		super(application, title, width, height, flags);
 
-		mainPane = new TPanel(this, 0, 0, width, 80) {
+		mainPane = new TPanel(this, 0, 0, 1, 1) {
 			@Override
 			public void draw() {
 				for (TWidget children : mainPane.getChildren()) {
@@ -41,10 +42,8 @@ public class TSimpleScrollableWindow extends TScrollableWindow {
 			}
 		};
 
-		// // TODO: test
-		// for (int i = 0; i < 80; i++) {
-		// mainPane.addLabel("ligne " + i, i, i);
-		// }
+		mainPane.setWidth(getWidth());
+		mainPane.setHeight(getHeight());
 
 		setRealWidth(realWidth);
 		setRealHeight(realHeight);
@@ -91,6 +90,14 @@ public class TSimpleScrollableWindow extends TScrollableWindow {
 		}
 
 		reflowData();
+	}
+
+	@Override
+	public void onResize(TResizeEvent event) {
+		super.onResize(event);
+		mainPane.setWidth(getWidth());
+		mainPane.setHeight(getHeight());
+		mainPane.onResize(event);
 	}
 
 	@Override
