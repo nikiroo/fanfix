@@ -31,7 +31,6 @@ package jexer.tterminal;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -574,10 +573,10 @@ public class Sixel {
         case REPEAT:
             if ((ch >= '0') && (ch <= '9')) {
                 if (repeatCount == -1) {
-                    repeatCount = (int) (ch - '0');
+                    repeatCount = (ch - '0');
                 } else {
                     repeatCount *= 10;
-                    repeatCount += (int) (ch - '0');
+                    repeatCount += (ch - '0');
                 }
             }
             return;

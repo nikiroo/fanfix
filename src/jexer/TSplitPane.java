@@ -30,10 +30,8 @@ package jexer;
 
 import jexer.bits.CellAttributes;
 import jexer.bits.GraphicsChars;
-import jexer.event.TMenuEvent;
 import jexer.event.TMouseEvent;
 import jexer.event.TResizeEvent;
-import jexer.menu.TMenu;
 
 /**
  * TSplitPane contains two widgets with a draggable horizontal or vertical
@@ -225,7 +223,28 @@ public class TSplitPane extends TWidget {
         CellAttributes attr = getTheme().getColor("tsplitpane");
         if (vertical) {
             vLineXY(split, 0, getHeight(), GraphicsChars.WINDOW_SIDE, attr);
-            // TODO: draw intersections of children
+
+            // Draw intersections of children
+            if ((left instanceof TSplitPane)
+                && (((TSplitPane) left).vertical == false)
+                && (right instanceof TSplitPane)
+                && (((TSplitPane) right).vertical == false)
+                && (((TSplitPane) left).split == ((TSplitPane) right).split)
+            ) {
+                putCharXY(split, ((TSplitPane) left).split, '\u253C', attr);
+            } else {
+                if ((left instanceof TSplitPane)
+                    && (((TSplitPane) left).vertical == false)
+                ) {
+                    putCharXY(split, ((TSplitPane) left).split, '\u2524', attr);
+                }
+                if ((right instanceof TSplitPane)
+                    && (((TSplitPane) right).vertical == false)
+                ) {
+                    putCharXY(split, ((TSplitPane) right).split, '\u251C',
+                        attr);
+                }
+            }
 
             if ((mouse != null)
                 && (mouse.getAbsoluteX() == getAbsoluteX() + split)
@@ -237,7 +256,28 @@ public class TSplitPane extends TWidget {
             }
         } else {
             hLineXY(0, split, getWidth(), GraphicsChars.SINGLE_BAR, attr);
-            // TODO: draw intersections of children
+
+            // Draw intersections of children
+            if ((top instanceof TSplitPane)
+                && (((TSplitPane) top).vertical == true)
+                && (bottom instanceof TSplitPane)
+                && (((TSplitPane) bottom).vertical == true)
+                && (((TSplitPane) top).split == ((TSplitPane) bottom).split)
+            ) {
+                putCharXY(((TSplitPane) top).split, split, '\u253C', attr);
+            } else {
+                if ((top instanceof TSplitPane)
+                    && (((TSplitPane) top).vertical == true)
+                ) {
+                    putCharXY(((TSplitPane) top).split, split, '\u2534', attr);
+                }
+                if ((bottom instanceof TSplitPane)
+                    && (((TSplitPane) bottom).vertical == true)
+                ) {
+                    putCharXY(((TSplitPane) bottom).split, split, '\u252C',
+                        attr);
+                }
+            }
 
             if ((mouse != null)
                 && (mouse.getAbsoluteY() == getAbsoluteY() + split)
@@ -595,7 +635,7 @@ public class TSplitPane extends TWidget {
             keep.onResize(new TResizeEvent(TResizeEvent.Type.WIDGET, getWidth(),
                     getHeight()));
         }
-        
+
         return keep;
     }
 

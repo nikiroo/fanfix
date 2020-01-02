@@ -29,6 +29,7 @@
 package jexer;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -47,6 +48,7 @@ import java.util.ResourceBundle;
 
 import jexer.bits.Cell;
 import jexer.bits.CellAttributes;
+import jexer.bits.Clipboard;
 import jexer.bits.ColorTheme;
 import jexer.bits.StringUtils;
 import jexer.event.TCommandEvent;
@@ -61,6 +63,8 @@ import jexer.backend.Screen;
 import jexer.backend.SwingBackend;
 import jexer.backend.ECMA48Backend;
 import jexer.backend.TWindowBackend;
+import jexer.help.HelpFile;
+import jexer.help.Topic;
 import jexer.menu.TMenu;
 import jexer.menu.TMenuItem;
 import jexer.menu.TSubMenu;
@@ -149,6 +153,11 @@ public class TApplication implements Runnable {
     private Backend backend;
 
     /**
+     * The clipboard for copy and paste.
+     */
+    private Clipboard clipboard = new Clipboard();
+
+    /**
      * Actual mouse coordinate X.
      */
     private int mouseX;
@@ -157,16 +166,6 @@ public class TApplication implements Runnable {
      * Actual mouse coordinate Y.
      */
     private int mouseY;
-
-    /**
-     * Old version of mouse coordinate X.
-     */
-    private int oldMouseX;
-
-    /**
-     * Old version mouse coordinate Y.
-     */
-    private int oldMouseY;
 
     /**
      * Old drawn version of mouse coordinate X.
@@ -239,11 +238,6 @@ public class TApplication implements Runnable {
      * The top-level windows (but not menus).
      */
     private List<TWindow> windows;
-
-    /**
-     * The currently acive window.
-     */
-    private TWindow activeWindow = null;
 
     /**
      * Timers that are being ticked.
@@ -324,6 +318,46 @@ public class TApplication implements Runnable {
      * The last time the screen was resized.
      */
     private long screenResizeTime = 0;
+
+    /**
+     * If true, screen selection is a rectangle.
+     */
+    private boolean screenSelectionRectangle = false;
+
+    /**
+     * If true, the mouse is dragging a screen selection.
+     */
+    private boolean inScreenSelection = false;
+
+    /**
+     * Screen selection starting X.
+     */
+    private int screenSelectionX0;
+
+    /**
+     * Screen selection starting Y.
+     */
+    private int screenSelectionY0;
+
+    /**
+     * Screen selection ending X.
+     */
+    private int screenSelectionX1;
+
+    /**
+     * Screen selection ending Y.
+     */
+    private int screenSelectionY1;
+
+    /**
+     * The help file data.  Note package private access.
+     */
+    HelpFile helpFile;
+
+    /**
+     * The stack of help topics.  Note package private access.
+     */
+    ArrayList<Topic> helpTopics = new ArrayList<Topic>();
 
     /**
      * WidgetEventHandler is the main event consumer loop.  There are at most
@@ -773,6 +807,27 @@ public class TApplication implements Runnable {
             }
         }
 
+        // Load the help system
+        invokeLater(new Runnable() {
+            /*
+             * This isn't the best solution.  But basically if a TApplication
+             * subclass constructor throws and needs to use TExceptionDialog,
+             * it may end up at the bottom of the window stack with a bunch
+             * of modal windows on top of it if said constructors spawn their
+             * windows also via invokeLater().  But if they don't do that,
+             * and instead just conventionally construct their windows, then
+             * this exception dialog will end up on top where it should be.
+             */
+            public void run() {
+                try {
+                    ClassLoader loader = Thread.currentThread().getContextClassLoader();
+                    helpFile = new HelpFile();
+                    helpFile.load(loader.getResourceAsStream("help.xml"));
+                } catch (Exception e) {
+                    new TExceptionDialog(TApplication.this, e);
+                }
+            }
+        });
     }
 
     // ------------------------------------------------------------------------
@@ -904,6 +959,15 @@ public class TApplication implements Runnable {
             return true;
         }
 
+        if (command.equals(cmHelp)) {
+            if (getActiveWindow() != null) {
+                new THelpWindow(this, getActiveWindow().getHelpTopic());
+            } else {
+                new THelpWindow(this);
+            }
+            return true;
+        }
+
         if (command.equals(cmShell)) {
             openTerminal(0, 0, TWindow.RESIZABLE);
             return true;
@@ -955,6 +1019,62 @@ public class TApplication implements Runnable {
             return true;
         }
 
+        if (menu.getId() == TMenu.MID_HELP_HELP) {
+            new THelpWindow(this, THelpWindow.HELP_HELP);
+            return true;
+        }
+
+        if (menu.getId() == TMenu.MID_HELP_CONTENTS) {
+            new THelpWindow(this, helpFile.getTableOfContents());
+            return true;
+        }
+
+        if (menu.getId() == TMenu.MID_HELP_INDEX) {
+            new THelpWindow(this, helpFile.getIndex());
+            return true;
+        }
+
+        if (menu.getId() == TMenu.MID_HELP_SEARCH) {
+            TInputBox inputBox = inputBox(i18n.
+                getString("searchHelpInputBoxTitle"),
+                i18n.getString("searchHelpInputBoxCaption"), "",
+                TInputBox.Type.OKCANCEL);
+            if (inputBox.isOk()) {
+                new THelpWindow(this,
+                    helpFile.getSearchResults(inputBox.getText()));
+            }
+            return true;
+        }
+
+        if (menu.getId() == TMenu.MID_HELP_PREVIOUS) {
+            if (helpTopics.size() > 1) {
+                Topic previous = helpTopics.remove(helpTopics.size() - 2);
+                helpTopics.remove(helpTopics.size() - 1);
+                new THelpWindow(this, previous);
+            } else {
+                new THelpWindow(this, helpFile.getTableOfContents());
+            }
+            return true;
+        }
+
+        if (menu.getId() == TMenu.MID_HELP_ACTIVE_FILE) {
+            try {
+                List<String> filters = new ArrayList<String>();
+                filters.add("^.*\\.[Xx][Mm][Ll]$");
+                String filename = fileOpenBox(".", TFileOpenBox.Type.OPEN,
+                    filters);
+                if (filename != null) {
+                    helpTopics = new ArrayList<Topic>();
+                    helpFile = new HelpFile();
+                    helpFile.load(new FileInputStream(filename));
+                }
+            } catch (Exception e) {
+                // Show this exception to the user.
+                new TExceptionDialog(this, e);
+            }
+            return true;
+        }
+
         if (menu.getId() == TMenu.MID_SHELL) {
             openTerminal(0, 0, TWindow.RESIZABLE);
             return true;
@@ -989,6 +1109,24 @@ public class TApplication implements Runnable {
             new TFontChooserWindow(this);
             return true;
         }
+
+        if (menu.getId() == TMenu.MID_CUT) {
+            postMenuEvent(new TCommandEvent(cmCut));
+            return true;
+        }
+        if (menu.getId() == TMenu.MID_COPY) {
+            postMenuEvent(new TCommandEvent(cmCopy));
+            return true;
+        }
+        if (menu.getId() == TMenu.MID_PASTE) {
+            postMenuEvent(new TCommandEvent(cmPaste));
+            return true;
+        }
+        if (menu.getId() == TMenu.MID_CLEAR) {
+            postMenuEvent(new TCommandEvent(cmClear));
+            return true;
+        }
+
         return false;
     }
 
@@ -1033,6 +1171,48 @@ public class TApplication implements Runnable {
         if (debugThreads) {
             System.err.printf(System.currentTimeMillis() + " " +
                 Thread.currentThread() + " finishEventProcessing()\n");
+        }
+
+        // See if we need to enable/disable the edit menu.
+        EditMenuUser widget = null;
+        if (activeMenu == null) {
+            TWindow activeWindow = getActiveWindow();
+            if (activeWindow != null) {
+                if (activeWindow.getActiveChild() instanceof EditMenuUser) {
+                    widget = (EditMenuUser) activeWindow.getActiveChild();
+                }
+            } else if (desktop != null) {
+                if (desktop.getActiveChild() instanceof EditMenuUser) {
+                    widget = (EditMenuUser) desktop.getActiveChild();
+                }
+            }
+            if (widget == null) {
+                disableMenuItem(TMenu.MID_CUT);
+                disableMenuItem(TMenu.MID_COPY);
+                disableMenuItem(TMenu.MID_PASTE);
+                disableMenuItem(TMenu.MID_CLEAR);
+            } else {
+                if (widget.isEditMenuCut()) {
+                    enableMenuItem(TMenu.MID_CUT);
+                } else {
+                    disableMenuItem(TMenu.MID_CUT);
+                }
+                if (widget.isEditMenuCopy()) {
+                    enableMenuItem(TMenu.MID_COPY);
+                } else {
+                    disableMenuItem(TMenu.MID_COPY);
+                }
+                if (widget.isEditMenuPaste()) {
+                    enableMenuItem(TMenu.MID_PASTE);
+                } else {
+                    disableMenuItem(TMenu.MID_PASTE);
+                }
+                if (widget.isEditMenuClear()) {
+                    enableMenuItem(TMenu.MID_CLEAR);
+                } else {
+                    disableMenuItem(TMenu.MID_CLEAR);
+                }
+            }
         }
 
         // Process timers and call doIdle()'s
@@ -1101,8 +1281,6 @@ public class TApplication implements Runnable {
                     }
                     mouseX = 0;
                     mouseY = 0;
-                    oldMouseX = 0;
-                    oldMouseY = 0;
                 }
                 if (desktop != null) {
                     desktop.setDimensions(0, desktopTop, resize.getWidth(),
@@ -1157,9 +1335,29 @@ public class TApplication implements Runnable {
             typingHidMouse = false;
 
             TMouseEvent mouse = (TMouseEvent) event;
+            if (mouse.isMouse1() && (mouse.isShift() || mouse.isCtrl())) {
+                // Screen selection.
+                if (inScreenSelection) {
+                    screenSelectionX1 = mouse.getX();
+                    screenSelectionY1 = mouse.getY();
+                } else {
+                    inScreenSelection = true;
+                    screenSelectionX0 = mouse.getX();
+                    screenSelectionY0 = mouse.getY();
+                    screenSelectionX1 = mouse.getX();
+                    screenSelectionY1 = mouse.getY();
+                    screenSelectionRectangle = mouse.isCtrl();
+                }
+            } else {
+                if (inScreenSelection) {
+                    getScreen().copySelection(clipboard, screenSelectionX0,
+                        screenSelectionY0, screenSelectionX1, screenSelectionY1,
+                        screenSelectionRectangle);
+                }
+                inScreenSelection = false;
+            }
+
             if ((mouseX != mouse.getX()) || (mouseY != mouse.getY())) {
-                oldMouseX = mouseX;
-                oldMouseY = mouseY;
                 mouseX = mouse.getX();
                 mouseY = mouse.getY();
             } else {
@@ -1177,7 +1375,8 @@ public class TApplication implements Runnable {
                             mouse.getAbsoluteX(), mouse.getAbsoluteY(),
                             mouse.isMouse1(), mouse.isMouse2(),
                             mouse.isMouse3(),
-                            mouse.isMouseWheelUp(), mouse.isMouseWheelDown());
+                            mouse.isMouseWheelUp(), mouse.isMouseWheelDown(),
+                            mouse.isAlt(), mouse.isCtrl(), mouse.isShift());
 
                     } else {
                         // The first click of a potential double-click.
@@ -1235,6 +1434,7 @@ public class TApplication implements Runnable {
             // shortcutted by the active window, and if so dispatch the menu
             // event.
             boolean windowWillShortcut = false;
+            TWindow activeWindow = getActiveWindow();
             if (activeWindow != null) {
                 assert (activeWindow.isShown());
                 if (activeWindow.isShortcutKeypress(keypress.getKey())) {
@@ -1279,7 +1479,7 @@ public class TApplication implements Runnable {
 
         // Dispatch events to the active window -------------------------------
         boolean dispatchToDesktop = true;
-        TWindow window = activeWindow;
+        TWindow window = getActiveWindow();
         if (window != null) {
             assert (window.isActive());
             assert (window.isShown());
@@ -1347,8 +1547,6 @@ public class TApplication implements Runnable {
 
             TMouseEvent mouse = (TMouseEvent) event;
             if ((mouseX != mouse.getX()) || (mouseY != mouse.getY())) {
-                oldMouseX = mouseX;
-                oldMouseY = mouseY;
                 mouseX = mouse.getX();
                 mouseY = mouse.getY();
             } else {
@@ -1366,7 +1564,8 @@ public class TApplication implements Runnable {
                             mouse.getAbsoluteX(), mouse.getAbsoluteY(),
                             mouse.isMouse1(), mouse.isMouse2(),
                             mouse.isMouse3(),
-                            mouse.isMouseWheelUp(), mouse.isMouseWheelDown());
+                            mouse.isMouseWheelUp(), mouse.isMouseWheelDown(),
+                            mouse.isAlt(), mouse.isCtrl(), mouse.isShift());
 
                     } else {
                         // The first click of a potential double-click.
@@ -1474,13 +1673,17 @@ public class TApplication implements Runnable {
             desktop.onIdle();
         }
 
-        // Run any invokeLaters
+        // Run any invokeLaters.  We make a copy, and run that, because one
+        // of these Runnables might add call TApplication.invokeLater().
+        List<Runnable> invokes = new ArrayList<Runnable>();
         synchronized (invokeLaters) {
-            for (Runnable invoke: invokeLaters) {
-                invoke.run();
-            }
+            invokes.addAll(invokeLaters);
             invokeLaters.clear();
         }
+        for (Runnable invoke: invokes) {
+            invoke.run();
+        }
+        doRepaint();
 
     }
 
@@ -1583,6 +1786,15 @@ public class TApplication implements Runnable {
     }
 
     /**
+     * Get the clipboard.
+     *
+     * @return the clipboard
+     */
+    public final Clipboard getClipboard() {
+        return clipboard;
+    }
+
+    /**
      * Repaint the screen on the next update.
      */
     public void doRepaint() {
@@ -1638,7 +1850,12 @@ public class TApplication implements Runnable {
      * @return the active window, or null if it is not set
      */
     public final TWindow getActiveWindow() {
-        return activeWindow;
+        for (TWindow window: windows) {
+            if (window.isShown() && window.isActive()) {
+                return window;
+            }
+        }
+        return null;
     }
 
     /**
@@ -1679,7 +1896,7 @@ public class TApplication implements Runnable {
         String version = getClass().getPackage().getImplementationVersion();
         if (version == null) {
             // This is Java 9+, use a hardcoded string here.
-            version = "0.3.2";
+            version = "1.0.0";
         }
         messageBox(i18n.getString("aboutDialogTitle"),
             MessageFormat.format(i18n.getString("aboutDialogText"), version),
@@ -1724,27 +1941,16 @@ public class TApplication implements Runnable {
     // ------------------------------------------------------------------------
 
     /**
-     * Invert the cell color at a position.  This is used to track the mouse.
+     * Draw the text mouse at position.
      *
      * @param x column position
      * @param y row position
      */
-    private void invertCell(final int x, final int y) {
-        invertCell(x, y, false);
-    }
-
-    /**
-     * Invert the cell color at a position.  This is used to track the mouse.
-     *
-     * @param x column position
-     * @param y row position
-     * @param onlyThisCell if true, only invert this cell
-     */
-    private void invertCell(final int x, final int y,
-        final boolean onlyThisCell) {
+    private void drawTextMouse(final int x, final int y) {
+        TWindow activeWindow = getActiveWindow();
 
         if (debugThreads) {
-            System.err.printf("%d %s invertCell() %d %d\n",
+            System.err.printf("%d %s drawTextMouse() %d %d\n",
                 System.currentTimeMillis(), Thread.currentThread(), x, y);
 
             if (activeWindow != null) {
@@ -1779,44 +1985,7 @@ public class TApplication implements Runnable {
             }
         }
 
-        Cell cell = getScreen().getCharXY(x, y);
-        if (cell.isImage()) {
-            cell.invertImage();
-        }
-        if (cell.getForeColorRGB() < 0) {
-            cell.setForeColor(cell.getForeColor().invert());
-        } else {
-            cell.setForeColorRGB(cell.getForeColorRGB() ^ 0x00ffffff);
-        }
-        if (cell.getBackColorRGB() < 0) {
-            cell.setBackColor(cell.getBackColor().invert());
-        } else {
-            cell.setBackColorRGB(cell.getBackColorRGB() ^ 0x00ffffff);
-        }
-        getScreen().putCharXY(x, y, cell);
-        if ((onlyThisCell == true) || (cell.getWidth() == Cell.Width.SINGLE)) {
-            return;
-        }
-
-        // This cell is one half of a fullwidth glyph.  Invert the other
-        // half.
-        if (cell.getWidth() == Cell.Width.LEFT) {
-            if (x < getScreen().getWidth() - 1) {
-                Cell rightHalf = getScreen().getCharXY(x + 1, y);
-                if (rightHalf.getWidth() == Cell.Width.RIGHT) {
-                    invertCell(x + 1, y, true);
-                    return;
-                }
-            }
-        }
-        if (cell.getWidth() == Cell.Width.RIGHT) {
-            if (x > 0) {
-                Cell leftHalf = getScreen().getCharXY(x - 1, y);
-                if (leftHalf.getWidth() == Cell.Width.LEFT) {
-                    invertCell(x - 1, y, true);
-                }
-            }
-        }
+        getScreen().invertCell(x, y);
     }
 
     /**
@@ -1876,9 +2045,15 @@ public class TApplication implements Runnable {
                     }
                 }
 
+                if (inScreenSelection) {
+                    getScreen().setSelection(screenSelectionX0,
+                        screenSelectionY0, screenSelectionX1, screenSelectionY1,
+                        screenSelectionRectangle);
+                }
+
                 if ((textMouse == true) && (typingHidMouse == false)) {
                     // Draw mouse at the new position.
-                    invertCell(mouseX, mouseY);
+                    drawTextMouse(mouseX, mouseY);
                 }
 
                 oldDrawnMouseX = mouseX;
@@ -1972,7 +2147,9 @@ public class TApplication implements Runnable {
             // Draw the status bar of the top-level window
             TStatusBar statusBar = null;
             if (topLevel != null) {
-                statusBar = topLevel.getStatusBar();
+                if (topLevel.isShown()) {
+                    statusBar = topLevel.getStatusBar();
+                }
             }
             if (statusBar != null) {
                 getScreen().resetClipping();
@@ -2013,8 +2190,14 @@ public class TApplication implements Runnable {
                 getScreen().unsetImageRow(mouseY);
             }
         }
+
+        if (inScreenSelection) {
+            getScreen().setSelection(screenSelectionX0, screenSelectionY0,
+                screenSelectionX1, screenSelectionY1, screenSelectionRectangle);
+        }
+
         if ((textMouse == true) && (typingHidMouse == false)) {
-            invertCell(mouseX, mouseY);
+            drawTextMouse(mouseX, mouseY);
         }
         oldDrawnMouseX = mouseX;
         oldDrawnMouseY = mouseY;
@@ -2154,7 +2337,7 @@ public class TApplication implements Runnable {
      *
      * @param window the window to become the new active window
      */
-    public void activateWindow(final TWindow window) {
+    public final void activateWindow(final TWindow window) {
         if (hasWindow(window) == false) {
             /*
              * Someone has a handle to a window I don't have.  Ignore this
@@ -2163,68 +2346,61 @@ public class TApplication implements Runnable {
             return;
         }
 
-        // Whatever window might be moving/dragging, stop it now.
-        for (TWindow w: windows) {
-            if (w.inMovements()) {
-                w.stopMovements();
-            }
-        }
-
-        assert (windows.size() > 0);
-
-        if (window.isHidden()) {
-            // Unhiding will also activate.
-            showWindow(window);
-            return;
-        }
-        assert (window.isShown());
-
-        if (windows.size() == 1) {
-            assert (window == windows.get(0));
-            if (activeWindow == null) {
-                activeWindow = window;
-                window.setZ(0);
-                activeWindow.setActive(true);
-                activeWindow.onFocus();
-            }
-
-            assert (window.isActive());
-            assert (activeWindow == window);
+        if (modalWindowActive() && !window.isModal()) {
+            // Do not activate a non-modal on top of a modal.
             return;
         }
 
-        if (activeWindow == window) {
-            assert (window.isActive());
-
-            // Window is already active, do nothing.
-            return;
-        }
-
-        assert (!window.isActive());
-        if (activeWindow != null) {
-            activeWindow.setActive(false);
-
-            // Increment every window Z that is on top of window
+        synchronized (windows) {
+            // Whatever window might be moving/dragging, stop it now.
             for (TWindow w: windows) {
-                if (w == window) {
-                    continue;
-                }
-                if (w.getZ() < window.getZ()) {
-                    w.setZ(w.getZ() + 1);
+                if (w.inMovements()) {
+                    w.stopMovements();
                 }
             }
 
-            // Unset activeWindow now before unfocus, so that a window
-            // lifecycle change inside onUnfocus() doesn't call
-            // switchWindow() and lead to a stack overflow.
-            TWindow oldActiveWindow = activeWindow;
-            activeWindow = null;
-            oldActiveWindow.onUnfocus();
-        }
-        activeWindow = window;
-        activeWindow.setZ(0);
-        activeWindow.setActive(true);
-        activeWindow.onFocus();
+            assert (windows.size() > 0);
+
+            if (window.isHidden()) {
+                // Unhiding will also activate.
+                showWindow(window);
+                return;
+            }
+            assert (window.isShown());
+
+            if (windows.size() == 1) {
+                assert (window == windows.get(0));
+                window.setZ(0);
+                window.setActive(true);
+                window.onFocus();
+                return;
+            }
+
+            if (getActiveWindow() == window) {
+                assert (window.isActive());
+
+                // Window is already active, do nothing.
+                return;
+            }
+
+            assert (!window.isActive());
+
+            window.setZ(-1);
+            Collections.sort(windows);
+            int newZ = 0;
+            for (TWindow w: windows) {
+                w.setZ(newZ);
+                newZ++;
+                if ((w != window) && w.isActive()) {
+                    w.onUnfocus();
+                }
+                w.setActive(false);
+            }
+            window.setActive(true);
+            window.onFocus();
+
+        } // synchronized (windows)
+
         return;
     }
 
@@ -2242,28 +2418,39 @@ public class TApplication implements Runnable {
             return;
         }
 
-        // Whatever window might be moving/dragging, stop it now.
-        for (TWindow w: windows) {
-            if (w.inMovements()) {
-                w.stopMovements();
-            }
-        }
+        synchronized (windows) {
 
-        assert (windows.size() > 0);
-
-        if (!window.hidden) {
-            if (window == activeWindow) {
-                if (shownWindowCount() > 1) {
-                    switchWindow(true);
-                } else {
-                    activeWindow = null;
-                    window.setActive(false);
-                    window.onUnfocus();
+            // Whatever window might be moving/dragging, stop it now.
+            for (TWindow w: windows) {
+                if (w.inMovements()) {
+                    w.stopMovements();
                 }
             }
+
+            assert (windows.size() > 0);
+
+            if (window.hidden) {
+                return;
+            }
+
+            window.setActive(false);
             window.hidden = true;
             window.onHide();
-        }
+
+            TWindow activeWindow = null;
+            for (TWindow w: windows) {
+                if (w.isShown()) {
+                    activeWindow = w;
+                    break;
+                }
+            }
+            assert (activeWindow != window);
+            if (activeWindow != null) {
+                activateWindow(activeWindow);
+            }
+
+        } // synchronized (windows)
+
     }
 
     /**
@@ -2280,25 +2467,16 @@ public class TApplication implements Runnable {
             return;
         }
 
-        // Whatever window might be moving/dragging, stop it now.
-        for (TWindow w: windows) {
-            if (w.inMovements()) {
-                w.stopMovements();
-            }
-        }
-
-        assert (windows.size() > 0);
-
         if (window.hidden) {
             window.hidden = false;
             window.onShow();
             activateWindow(window);
         }
+
     }
 
     /**
-     * Close window.  Note that the window's destructor is NOT called by this
-     * method, instead the GC is assumed to do the cleanup.
+     * Close window.
      *
      * @param window the window to remove
      */
@@ -2316,23 +2494,16 @@ public class TApplication implements Runnable {
         window.onPreClose();
 
         synchronized (windows) {
-            // Whatever window might be moving/dragging, stop it now.
-            for (TWindow w: windows) {
-                if (w.inMovements()) {
-                    w.stopMovements();
-                }
-            }
 
-            int z = window.getZ();
-            window.setZ(-1);
+            window.stopMovements();
             window.onUnfocus();
             windows.remove(window);
             Collections.sort(windows);
-            activeWindow = null;
-            int newZ = 0;
-            boolean foundNextWindow = false;
 
+            TWindow nextWindow = null;
+            int newZ = 0;
             for (TWindow w: windows) {
+                w.stopMovements();
                 w.setZ(newZ);
                 newZ++;
 
@@ -2340,22 +2511,22 @@ public class TApplication implements Runnable {
                 if (w.isHidden()) {
                     continue;
                 }
-
-                if (foundNextWindow == false) {
-                    foundNextWindow = true;
-                    w.setActive(true);
-                    w.onFocus();
-                    assert (activeWindow == null);
-                    activeWindow = w;
-                    continue;
-                }
-
-                if (w.isActive()) {
-                    w.setActive(false);
-                    w.onUnfocus();
+                if (nextWindow == null) {
+                    nextWindow = w;
+                } else {
+                    if (w.isActive()) {
+                        w.setActive(false);
+                        w.onUnfocus();
+                    }
                 }
             }
-        }
+
+            if (nextWindow != null) {
+                nextWindow.setActive(true);
+                nextWindow.onFocus();
+            }
+
+        } // synchronized (windows)
 
         // Perform window cleanup
         window.onClose();
@@ -2373,7 +2544,8 @@ public class TApplication implements Runnable {
             synchronized (secondaryEventHandler) {
                 secondaryEventHandler.notify();
             }
-        }
+
+        } // synchronized (windows)
 
         // Permit desktop to be active if it is the only thing left.
         if (desktop != null) {
@@ -2394,53 +2566,50 @@ public class TApplication implements Runnable {
         if (shownWindowCount() < 2) {
             return;
         }
-        assert (activeWindow != null);
+
+        if (modalWindowActive()) {
+            // Do not switch if a window is modal
+            return;
+        }
 
         synchronized (windows) {
-            // Whatever window might be moving/dragging, stop it now.
-            for (TWindow w: windows) {
-                if (w.inMovements()) {
-                    w.stopMovements();
-                }
-            }
 
-            // Swap z/active between active window and the next in the list
-            int activeWindowI = -1;
-            for (int i = 0; i < windows.size(); i++) {
-                if (windows.get(i) == activeWindow) {
-                    assert (activeWindow.isActive());
-                    activeWindowI = i;
-                    break;
-                } else {
-                    assert (!windows.get(0).isActive());
-                }
-            }
-            assert (activeWindowI >= 0);
-
-            // Do not switch if a window is modal
-            if (activeWindow.isModal()) {
-                return;
-            }
-
-            int nextWindowI = activeWindowI;
-            for (;;) {
+            TWindow window = windows.get(0);
+            do {
+                assert (window != null);
                 if (forward) {
-                    nextWindowI++;
-                    nextWindowI %= windows.size();
+                    window.setZ(windows.size());
                 } else {
-                    nextWindowI--;
-                    if (nextWindowI < 0) {
-                        nextWindowI = windows.size() - 1;
-                    }
+                    TWindow lastWindow = windows.get(windows.size() - 1);
+                    lastWindow.setZ(-1);
                 }
 
-                if (windows.get(nextWindowI).isShown()) {
-                    activateWindow(windows.get(nextWindowI));
-                    break;
+                Collections.sort(windows);
+                int newZ = 0;
+                for (TWindow w: windows) {
+                    w.setZ(newZ);
+                    newZ++;
+                }
+
+                window = windows.get(0);
+            } while (!window.isShown());
+
+            // The next visible window is now on top.  Renumber the list.
+            for (TWindow w: windows) {
+                w.stopMovements();
+                if ((w != window) && w.isActive()) {
+                    assert (w.isShown());
+                    w.setActive(false);
+                    w.onUnfocus();
                 }
             }
-        } // synchronized (windows)
 
+            // Next visible window is on top.
+            assert (window.isShown());
+            window.setActive(true);
+            window.onFocus();
+
+        } // synchronized (windows)
     }
 
     /**
@@ -2490,13 +2659,13 @@ public class TApplication implements Runnable {
                     }
                     w.setZ(w.getZ() + 1);
                 }
-            }
-            windows.add(window);
-            if (window.isShown()) {
-                activeWindow = window;
-                activeWindow.setZ(0);
-                activeWindow.setActive(true);
-                activeWindow.onFocus();
+                window.setZ(0);
+                window.setActive(true);
+                window.onFocus();
+                windows.add(0, window);
+            } else {
+                window.setZ(windows.size());
+                windows.add(window);
             }
 
             if (((window.flags & TWindow.CENTERED) == 0)
@@ -2513,6 +2682,7 @@ public class TApplication implements Runnable {
         if (desktop != null) {
             desktop.setActive(false);
         }
+
     }
 
     /**
@@ -2540,6 +2710,7 @@ public class TApplication implements Runnable {
      * @return true if the active window is overriding the menu
      */
     private boolean overrideMenuWindowActive() {
+        TWindow activeWindow = getActiveWindow();
         if (activeWindow != null) {
             if (activeWindow.hasOverriddenMenu()) {
                 return true;
@@ -2910,7 +3081,6 @@ public class TApplication implements Runnable {
             || (mouse.getType() == TMouseEvent.Type.MOUSE_DOWN)
         ) {
             synchronized (windows) {
-                Collections.sort(windows);
                 if (windows.get(0).isModal()) {
                     // Modal windows don't switch
                     return;
@@ -2925,25 +3095,7 @@ public class TApplication implements Runnable {
                     }
 
                     if (window.mouseWouldHit(mouse)) {
-                        if (window == windows.get(0)) {
-                            // Clicked on the same window, nothing to do
-                            assert (window.isActive());
-                            return;
-                        }
-
-                        // We will be switching to another window
-                        assert (windows.get(0).isActive());
-                        assert (windows.get(0) == activeWindow);
-                        assert (!window.isActive());
-                        if (activeWindow != null) {
-                            activeWindow.onUnfocus();
-                            activeWindow.setActive(false);
-                            activeWindow.setZ(window.getZ());
-                        }
-                        activeWindow = window;
-                        window.setZ(0);
-                        window.setActive(true);
-                        window.onFocus();
+                        activateWindow(window);
                         return;
                     }
                 }
@@ -3278,10 +3430,13 @@ public class TApplication implements Runnable {
      */
     public final TMenu addEditMenu() {
         TMenu editMenu = addMenu(i18n.getString("editMenuTitle"));
-        editMenu.addDefaultItem(TMenu.MID_CUT);
-        editMenu.addDefaultItem(TMenu.MID_COPY);
-        editMenu.addDefaultItem(TMenu.MID_PASTE);
-        editMenu.addDefaultItem(TMenu.MID_CLEAR);
+        editMenu.addDefaultItem(TMenu.MID_UNDO, false);
+        editMenu.addDefaultItem(TMenu.MID_REDO, false);
+        editMenu.addSeparator();
+        editMenu.addDefaultItem(TMenu.MID_CUT, false);
+        editMenu.addDefaultItem(TMenu.MID_COPY, false);
+        editMenu.addDefaultItem(TMenu.MID_PASTE, false);
+        editMenu.addDefaultItem(TMenu.MID_CLEAR, false);
         TStatusBar statusBar = editMenu.newStatusBar(i18n.
             getString("editMenuStatus"));
         statusBar.addShortcutKeypress(kbF1, cmHelp, i18n.getString("Help"));

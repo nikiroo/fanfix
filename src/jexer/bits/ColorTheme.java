@@ -178,8 +178,11 @@ public class ColorTheme {
             return;
         }
 
-        while (token.equals("bold") || token.equals("blink")) {
-            if (token.equals("bold")) {
+        while (token.equals("bold")
+            || token.equals("bright")
+            || token.equals("blink")
+        ) {
+            if (token.equals("bold") || token.equals("bright")) {
                 bold = true;
                 token = tokenizer.nextToken();
             }
@@ -231,8 +234,8 @@ public class ColorTheme {
                 // Invalid line.
                 continue;
             }
-            String key = line.substring(0, line.indexOf(':')).trim();
-            String text = line.substring(line.indexOf(':') + 1);
+            String key = line.substring(0, line.indexOf('=')).trim();
+            String text = line.substring(line.indexOf('=') + 1);
             setColorFromString(key, text);
         }
         // All done.
@@ -633,6 +636,11 @@ public class ColorTheme {
         color.setBackColor(Color.BLUE);
         color.setBold(false);
         colors.put("teditor", color);
+        color = new CellAttributes();
+        color.setForeColor(Color.BLACK);
+        color.setBackColor(Color.CYAN);
+        color.setBold(false);
+        colors.put("teditor.selected", color);
 
         // TTable
         color = new CellAttributes();
@@ -672,6 +680,48 @@ public class ColorTheme {
         color.setBackColor(Color.BLUE);
         color.setBold(false);
         colors.put("tsplitpane", color);
+
+        // THelpWindow border - during window movement
+        color = new CellAttributes();
+        color.setForeColor(Color.GREEN);
+        color.setBackColor(Color.CYAN);
+        color.setBold(true);
+        colors.put("thelpwindow.windowmove", color);
+
+        // THelpWindow border
+        color = new CellAttributes();
+        color.setForeColor(Color.GREEN);
+        color.setBackColor(Color.CYAN);
+        color.setBold(true);
+        colors.put("thelpwindow.border", color);
+
+        // THelpWindow background
+        color = new CellAttributes();
+        color.setForeColor(Color.WHITE);
+        color.setBackColor(Color.CYAN);
+        color.setBold(true);
+        colors.put("thelpwindow.background", color);
+
+        // THelpWindow text
+        color = new CellAttributes();
+        color.setForeColor(Color.WHITE);
+        color.setBackColor(Color.BLUE);
+        color.setBold(false);
+        colors.put("thelpwindow.text", color);
+
+        // THelpWindow link
+        color = new CellAttributes();
+        color.setForeColor(Color.YELLOW);
+        color.setBackColor(Color.BLUE);
+        color.setBold(true);
+        colors.put("thelpwindow.link", color);
+
+        // THelpWindow link - active
+        color = new CellAttributes();
+        color.setForeColor(Color.YELLOW);
+        color.setBackColor(Color.CYAN);
+        color.setBold(true);
+        colors.put("thelpwindow.link.active", color);
 
     }
 
