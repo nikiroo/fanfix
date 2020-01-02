@@ -6,6 +6,7 @@ import jexer.TPanel;
 import jexer.TScrollableWindow;
 import jexer.TVScroller;
 import jexer.TWidget;
+import jexer.event.TMouseEvent;
 import jexer.event.TResizeEvent;
 
 public class TSimpleScrollableWindow extends TScrollableWindow {
@@ -70,7 +71,7 @@ public class TSimpleScrollableWindow extends TScrollableWindow {
 				// size/position will be fixed by placeScrollbars()
 				hScroller = new THScroller(this, 0, 0, 10);
 			}
-			hScroller.setRightValue(realWidth);
+			setRightValue(realWidth);
 		}
 
 		reflowData();
@@ -86,7 +87,7 @@ public class TSimpleScrollableWindow extends TScrollableWindow {
 				// size/position will be fixed by placeScrollbars()
 				vScroller = new TVScroller(this, 0, 0, 10);
 			}
-			vScroller.setBottomValue(realHeight);
+			setBottomValue(realHeight);
 		}
 
 		reflowData();
@@ -113,14 +114,37 @@ public class TSimpleScrollableWindow extends TScrollableWindow {
 	}
 
 	@Override
-	public void draw() {
+	public void onMouseUp(TMouseEvent mouse) {
+		super.onMouseUp(mouse);
+
+		// TODO: why? this should already be done by the scrollers
+		// it could also mean we do it twice if, somehow, it sometime works...
+		int mrx = mouse.getX();
+		int mry = mouse.getY();
+
+		int mx = mouse.getAbsoluteX();
+		int my = mouse.getAbsoluteY();
+
+		if (vScroller != null) {
+			mouse.setX(mx - vScroller.getAbsoluteX());
+			mouse.setY(my - vScroller.getAbsoluteY());
+			vScroller.onMouseUp(mouse);
+		}
+		if (hScroller != null) {
+			mouse.setX(mx - hScroller.getAbsoluteX());
+			mouse.setY(my - hScroller.getAbsoluteY());
+			hScroller.onMouseUp(mouse);
+		}
+
+		mouse.setX(mrx);
+		mouse.setY(mry);
+		//
+
 		if (prevHorizontal != getHorizontalValue()
 				|| prevVertical != getVerticalValue()) {
 			prevHorizontal = getHorizontalValue();
 			prevVertical = getVerticalValue();
 			reflowData();
 		}
-
-		super.draw();
 	}
 }
