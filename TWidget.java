@@ -1415,7 +1415,6 @@ public abstract class TWidget implements Comparable<TWidget> {
      * @return TRUE if the child was removed, FALSE if it was not found
      */
     public boolean removeChild(final TWidget child) {
-<<<<<<< HEAD:TWidget.java
         if (children.remove(child)) {
                 child.close();
                 child.parent = null;
@@ -1427,19 +1426,6 @@ public abstract class TWidget implements Comparable<TWidget> {
         }
         
         return false;
-=======
-    	if (children.remove(child)) {
-    		child.close();
-    		child.parent = null;
-    		child.window = null;
-    		
-    		resetTabOrder();
-    		
-    		return true;
-    	}
-    	
-    	return false;
->>>>>>> upstream-sep2019-tcombo:src/jexer/TWidget.java
     }
 
     /**
