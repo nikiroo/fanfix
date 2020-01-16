@@ -371,12 +371,29 @@ public class IOUtils {
 	}
 
 	/**
+	 * Open the resource next to the given {@link Class}.
+	 * 
+	 * @param location
+	 *            the location where to look for the resource
+	 * @param name
+	 *            the resource name (only the filename, no path)
+	 * 
+	 * @return the opened resource if found, NULL if not
+	 */
+	public static InputStream openResource(
+			@SuppressWarnings("rawtypes") Class location, String name) {
+		String loc = location.getName().replace(".", "/")
+				.replaceAll("/[^/]*$", "/");
+		return openResource(loc + name);
+	}
+
+	/**
 	 * Open the given /-separated resource (from the binary root).
 	 * 
 	 * @param name
-	 *            the resource name
+	 *            the resource name (the full path, with "/" as separator)
 	 * 
-	 * @return the opened resource if found, NLL if not
+	 * @return the opened resource if found, NULL if not
 	 */
 	public static InputStream openResource(String name) {
 		ClassLoader loader = IOUtils.class.getClassLoader();
