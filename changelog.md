@@ -1,5 +1,9 @@
 # Fanfix
 
+# Version WIP
+
+- fix: for unsupported URL, do not errors out with a "file://" related message
+
 # Version 3.0.0
 
 - new: now Android-compatible (see [companion project](https://gitlab.com/Rayman22/fanfix-android))
