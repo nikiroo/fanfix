@@ -2,6 +2,7 @@
 
 # Version WIP
 
+- fix: update pour e621 (et ce n'est plus un BasicSupport_Deprecated)
 - fix: en cas d'URL non supportée, n'affiche plus un message d'erreur relatif à "file://"
 
 # Version 3.0.0
