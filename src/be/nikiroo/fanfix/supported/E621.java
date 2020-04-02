@@ -3,6 +3,7 @@ package be.nikiroo.fanfix.supported;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.AbstractMap;
@@ -170,6 +171,13 @@ class E621 extends BasicSupport {
 			}
 		}
 
+		if (isPool(source)) {
+			try {
+				return new URL(source.toString().replace("/pool/show/", "/pools/"));
+			} catch (MalformedURLException e) {
+			}
+		}
+
 		return super.getCanonicalUrl(source);
 	}
 
@@ -287,7 +295,7 @@ class E621 extends BasicSupport {
 	}
 
 	private boolean isPool(URL url) {
-		return url.getPath().startsWith("/pools/");
+		return url.getPath().startsWith("/pools/") || url.getPath().startsWith("/pool/show/");
 	}
 
 	// set will be renamed into search by canonical url
