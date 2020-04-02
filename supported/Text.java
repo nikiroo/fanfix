@@ -288,6 +288,8 @@ class Text extends BasicSupport {
 	/**
 	 * Check if we supports this {@link URL}, that is, if the info file can be
 	 * found OR not found.
+	 * <p>
+	 * It must also be a file, not another kind of URL.
 	 * 
 	 * @param url
 	 *            the {@link URL} to check
@@ -297,20 +299,22 @@ class Text extends BasicSupport {
 	 * @return TRUE if it is supported
 	 */
 	protected boolean supports(URL url, boolean info) {
-		boolean infoPresent = false;
-		if ("file".equals(url.getProtocol())) {
-			File file;
-			try {
-				file = new File(url.toURI());
-				file = assureNoTxt(file);
-				file = new File(file.getPath() + ".info");
-			} catch (URISyntaxException e) {
-				Instance.getTraceHandler().error(e);
-				file = null;
-			}
-
-			infoPresent = (file != null && file.exists());
+		if (!"file".equals(url.getProtocol())) {
+			return false;
 		}
+
+		boolean infoPresent = false;
+		File file;
+		try {
+			file = new File(url.toURI());
+			file = assureNoTxt(file);
+			file = new File(file.getPath() + ".info");
+		} catch (URISyntaxException e) {
+			Instance.getTraceHandler().error(e);
+			file = null;
+		}
+
+		infoPresent = (file != null && file.exists());
 
 		return infoPresent == info;
 	}

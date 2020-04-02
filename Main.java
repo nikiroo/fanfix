@@ -788,7 +788,7 @@ public class Main {
 		try {
 			URL source = BasicReader.getUrl(urlString);
 			sourceName = source.toString();
-			if (source.toString().startsWith("file://")) {
+			if (sourceName.startsWith("file://")) {
 				sourceName = sourceName.substring("file://".length());
 			}
 
