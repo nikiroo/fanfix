@@ -20,16 +20,32 @@ public class BasicSupportImages {
 	 * Check if the given resource can be a local image or a remote image, then
 	 * refresh the cache with it if it is.
 	 * 
+	 * @param support
+	 *            the support to use to download the resource (can be NULL)
 	 * @param dir
 	 *            the local directory to search, if any
 	 * @param line
 	 *            the resource to check
 	 * 
 	 * @return the image if found, or NULL
-	 * 
 	 */
 	public Image getImage(BasicSupport support, File dir, String line) {
 		URL url = getImageUrl(support, dir, line);
+		return getImage(support,url);
+	}
+	
+	/**
+	 * Check if the given resource can be a local image or a remote image, then
+	 * refresh the cache with it if it is.
+	 * 
+	 * @param support
+	 *            the support to use to download the resource (can be NULL)
+	 * @param url
+	 *            the actual URL to check (file or remote, can be NULL)
+	 * 
+	 * @return the image if found, or NULL
+	 */
+	public Image getImage(BasicSupport support, URL url) {
 		if (url != null) {
 			if ("file".equals(url.getProtocol())) {
 				if (new File(url.getPath()).isDirectory()) {
@@ -58,6 +74,8 @@ public class BasicSupportImages {
 	 * Check if the given resource can be a local image or a remote image, then
 	 * refresh the cache with it if it is.
 	 * 
+	 * @param support
+	 *            the support to use to download the resource (can be NULL)
 	 * @param dir
 	 *            the local directory to search, if any
 	 * @param line
