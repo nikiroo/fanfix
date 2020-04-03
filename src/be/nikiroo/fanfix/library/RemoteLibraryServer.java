@@ -341,7 +341,7 @@ public class RemoteLibraryServer extends ServerObject {
 						"Read-Only remote library: EXIT", false);
 			}
 
-			stop(0, false);
+			stop(10000, false);
 		}
 
 		return null;
