@@ -9,12 +9,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 import org.jsoup.helper.DataUtil;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
@@ -31,33 +29,12 @@ class MangaFox extends BasicSupport {
 	@Override
 	protected MetaData getMeta() throws IOException {
 		MetaData meta = new MetaData();
-		Element doc = getSourceNode();
-
-		Element title = doc.getElementById("title");
-		Elements table = null;
-		if (title != null) {
-			table = title.getElementsByTag("table");
-		}
-		if (table != null) {
-			// Rows: header, data
-			Elements rows = table.first().getElementsByTag("tr");
-			if (rows.size() > 1) {
-				table = rows.get(1).getElementsByTag("td");
-				// Columns: Realeased, Authors, Artists, Genres
-				if (table.size() < 4) {
-					table = null;
-				}
-			}
-		}
 
 		meta.setTitle(getTitle());
-		if (table != null) {
-			meta.setAuthor(getAuthors(table.get(1).text() + ","
-					+ table.get(2).text()));
-
-			meta.setDate(StringUtils.unhtml(table.get(0).text()).trim());
-			meta.setTags(explode(table.get(3).text()));
-		}
+		// No date anymore on mangafox
+		// meta.setDate();
+		meta.setAuthor(getAuthor());
+		meta.setTags(getTags());
 		meta.setSource(getType().getSourceName());
 		meta.setUrl(getSource().toString());
 		meta.setPublisher(getType().getSourceName());
@@ -75,31 +52,47 @@ class MangaFox extends BasicSupport {
 	private String getTitle() {
 		Element doc = getSourceNode();
 
-		Element title = doc.getElementById("title");
-		Element h1 = title.getElementsByTag("h1").first();
-		if (h1 != null) {
-			return StringUtils.unhtml(h1.text()).trim();
+		Element el = doc.getElementsByClass("detail-info-right-title-font").first();
+		if (el != null) {
+			return StringUtils.unhtml(el.text()).trim();
 		}
 
 		return null;
 	}
 
-	private String getAuthors(String authorList) {
-		String author = "";
-		for (String auth : explode(authorList)) {
-			if (!author.isEmpty()) {
-				author = author + ", ";
-			}
-			author += auth;
+	private String getAuthor() {
+		StringBuilder builder = new StringBuilder();
+		for (String author : getListA("detail-info-right-say")) {
+			if (builder.length() > 0)
+				builder.append(", ");
+			builder.append(author);
 		}
 
-		return author;
+		return builder.toString();
+	}
+
+	private List<String> getTags() {
+		return getListA("detail-info-right-tag-list");
+	}
+
+	private List<String> getListA(String uniqueClass) {
+		List<String> list = new ArrayList<String>();
+
+		Element doc = getSourceNode();
+		Element el = doc.getElementsByClass(uniqueClass).first();
+		if (el != null) {
+			for (Element valueA : el.getElementsByTag("a")) {
+				list.add(StringUtils.unhtml(valueA.text()).trim());
+			}
+		}
+
+		return list;
 	}
 
 	@Override
 	protected String getDesc() {
 		Element doc = getSourceNode();
-		Element title = doc.getElementsByClass("summary").first();
+		Element title = doc.getElementsByClass("fullcontent").first();
 		if (title != null) {
 			return StringUtils.unhtml(title.text()).trim();
 		}
@@ -109,11 +102,7 @@ class MangaFox extends BasicSupport {
 
 	private Image getCover() {
 		Element doc = getSourceNode();
-		Element cover = doc.getElementsByClass("cover").first();
-		if (cover != null) {
-			cover = cover.getElementsByTag("img").first();
-		}
-
+		Element cover = doc.getElementsByClass("detail-info-cover-img").first();
 		if (cover != null) {
 			String coverUrl = cover.absUrl("src");
 
@@ -137,207 +126,144 @@ class MangaFox extends BasicSupport {
 	protected List<Entry<String, URL>> getChapters(Progress pg) {
 		List<Entry<String, URL>> urls = new ArrayList<Entry<String, URL>>();
 
-		String prefix = null; // each chapter starts with this prefix, then a
-								// chapter number (including "x.5"), then name
+		String prefix = getTitle(); // each chapter starts with this prefix, then a
+		// chapter number (including "x.5"), then name
 
+		// normally, only one list...
 		Element doc = getSourceNode();
-		for (Element li : doc.getElementsByTag("li")) {
-			Element el = li.getElementsByTag("h4").first();
-			if (el == null) {
-				el = li.getElementsByTag("h3").first();
-			}
-			if (el != null) {
-				Element a = el.getElementsByTag("a").first();
-				if (a != null) {
-					String title = StringUtils.unhtml(el.text()).trim();
-					try {
-						String url = a.absUrl("href");
-						if (url.endsWith("1.html")) {
-							url = url.substring(0,
-									url.length() - "1.html".length());
-						}
-						if (!url.endsWith("/")) {
-							url += "/";
-						}
+		for (Element list : doc.getElementsByClass("detail-main-list")) {
+			for (Element el : list.getElementsByTag("a")) {
+				String title = el.attr("title");
+				if (title.startsWith(prefix)) {
+					title = title.substring(prefix.length()).trim();
+				}
 
-						if (prefix == null || !prefix.isEmpty()) {
-							StringBuilder possiblePrefix = new StringBuilder(
-									StringUtils.unhtml(a.text()).trim());
-							while (possiblePrefix.length() > 0) {
-								char car = possiblePrefix.charAt(possiblePrefix
-										.length() - 1);
-								boolean punctuation = (car == '.' || car == ' ');
-								boolean digit = (car >= '0' && car <= '9');
-								if (!punctuation && !digit) {
-									break;
-								}
+				String url = el.absUrl("href");
 
-								possiblePrefix.setLength(possiblePrefix
-										.length() - 1);
-							}
-
-							if (prefix == null) {
-								prefix = possiblePrefix.toString();
-							}
-
-							if (!prefix.equalsIgnoreCase(possiblePrefix
-									.toString())) {
-								prefix = ""; // prefix not ok
-							}
-						}
-
-						urls.add(new AbstractMap.SimpleEntry<String, URL>(
-								title, new URL(url)));
-					} catch (Exception e) {
-						Instance.getTraceHandler().error(e);
-					}
+				try {
+					urls.add(new AbstractMap.SimpleEntry<String, URL>(title, new URL(url)));
+				} catch (Exception e) {
+					Instance.getTraceHandler().error(e);
 				}
 			}
 		}
 
-		if (prefix != null && !prefix.isEmpty()) {
-			try {
-				// We found a prefix, so everything should be sortable
-				SortedMap<Double, Entry<String, URL>> map = new TreeMap<Double, Entry<String, URL>>();
-				for (Entry<String, URL> entry : urls) {
-					String num = entry.getKey().substring(prefix.length() + 1)
-							.trim();
-					String name = "";
-					int pos = num.indexOf(' ');
-					if (pos >= 0) {
-						name = num.substring(pos).trim();
-						num = num.substring(0, pos).trim();
-					}
-
-					if (!name.isEmpty()) {
-						name = "Tome " + num + ": " + name;
-					} else {
-						name = "Tome " + num;
-					}
-
-					double key = Double.parseDouble(num);
-
-					map.put(key, new AbstractMap.SimpleEntry<String, URL>(name,
-							entry.getValue()));
-				}
-				urls = new ArrayList<Entry<String, URL>>(map.values());
-			} catch (NumberFormatException e) {
-				Instance.getTraceHandler()
-						.error(new IOException(
-								"Cannot find a tome number, revert to default sorting",
-								e));
-				// by default, the chapters are in reversed order
-				Collections.reverse(urls);
-			}
-		} else {
-			// by default, the chapters are in reversed order
-			Collections.reverse(urls);
-		}
+		// by default, the chapters are in reversed order
+		Collections.reverse(urls);
 
 		return urls;
 	}
 
 	@Override
-	protected String getChapterContent(URL chapUrl, int number, Progress pg)
-			throws IOException {
+	protected String getChapterContent(URL chapUrl, int number, Progress pg) throws IOException {
 		if (pg == null) {
 			pg = new Progress();
 		}
 
 		StringBuilder builder = new StringBuilder();
 
-		String url = chapUrl.toString();
-		InputStream imageIn = null;
-		Element imageDoc = null;
+		Document chapDoc = DataUtil.load(Instance.getCache().open(chapUrl, this, false), "UTF-8", chapUrl.toString());
 
-		// 1. find out how many images there are
-		int size;
-		try {
-			// note: when used, the base URL can be an ad-page
-			imageIn = openEx(url + "1.html");
-			imageDoc = DataUtil.load(imageIn, "UTF-8", url + "1.html");
-		} catch (IOException e) {
-			Instance.getTraceHandler().error(
-					new IOException("Cannot get image " + 1 + " of manga", e));
-		} finally {
-			if (imageIn != null) {
-				imageIn.close();
-			}
+		// Example of what we want:
+		// URL: http://fanfox.net/manga/solo_leveling/c110.5/1.html#ipg1
+		// IMAGE, not working:
+		// http://s.fanfox.net/store/manga/29037/110.5/compressed/s034.jpg?token=f630767b0c96f6cc793fc8f1fc177c0ae9342eb1&amp;ttl=1585929600
+		// IMAGE, working:
+		// http://s.fanfox.net/store/manga/29037/000.0/compressed/m2018110o_143554_925.jpg?token=7d74569986335d49651ef1040f7dcb9dbd559b1b&ttl=1585929600
+		// NOTE: (c110.5 -> 110.5, c000 -> 000.0)
+		// NOTE: image key: m2018110o_143554_925 can be found in the script, but not
+		// sorted
+
+		// 0. Get the javascript content
+		StringBuilder javascript = new StringBuilder();
+		for (Element script : chapDoc.getElementsByTag("script")) {
+			javascript.append(script.html());
+			javascript.append("\n");
 		}
-		Element select = imageDoc.getElementsByClass("m").first();
-		Elements options = select.getElementsByTag("option");
-		size = options.size() - 1; // last is "Comments"
 
-		pg.setMinMax(0, size);
+		// 1. Get the chapter url part
+		String chap = chapUrl.getPath();
+		chap = chap.split("#")[0];
+		if (chap.endsWith("/1.html")) {
+			chap = chap.substring(0, chap.length() - "/1.html".length());
+		}
+		int pos = chap.lastIndexOf("/");
+		chap = chap.substring(pos + 1);
+		if (!chap.contains(".")) {
+			chap = chap + ".0";
+		}
+		if (chap.startsWith("c")) {
+			chap = chap.substring(1);
+		}
 
-		// 2. list them
-		for (int i = 1; i <= size; i++) {
-			if (i > 1) { // because first one was opened for size
-				try {
-					imageIn = openEx(url + i + ".html");
-					imageDoc = DataUtil.load(imageIn, "UTF-8", url + i
-							+ ".html");
+		// 2. Token:
+		// <meta name="og:image"
+		// content="http://fmcdn.fanfox.net/store/manga/29037/cover.jpg?token=4b2056d83973716c715f2404940822dff942a7b4&ttl=1585998000&v=1584582495"
+		Element el = chapDoc.select("meta[name=\"og:image\"]").first();
+		String token = el.attr("content").split("\\?")[1];
 
-					String linkImage = imageDoc.getElementById("image").absUrl(
-							"src");
-					if (linkImage != null) {
-						builder.append("[");
-						// to help with the retry and the originalUrl, part 1
-						builder.append(withoutQuery(linkImage));
-						builder.append("]<br/>");
-					}
+		// 3. Comic ID
+		int comicId = getIntVar(javascript, "comicid");
 
-					// to help with the retry and the originalUrl, part 2
-					refresh(linkImage);
-				} catch (IOException e) {
-					Instance.getTraceHandler().error(
-							new IOException("Cannot get image " + i
-									+ " of manga", e));
-				} finally {
-					if (imageIn != null) {
-						imageIn.close();
-					}
-				}
-			}
+		// 4. Get images
+		List<String> chapKeys = getImageKeys(javascript);
+		// http://s.fanfox.net/store/manga/29037/000.0/compressed/m2018110o_143554_925.jpg?token=7d74569986335d49651ef1040f7dcb9dbd559b1b&ttl=1585929600
+		String base = "http://s.fanfox.net/store/manga/%s/%s/compressed/%s.jpg?%s";
+		for (String key : chapKeys) {
+			String img = String.format(base, comicId, chap, key, token);
+			builder.append("[");
+			builder.append(img);
+			builder.append("]<br/>");
 		}
 
 		return builder.toString();
 	}
 
-	/**
-	 * Refresh the {@link URL} by calling {@link MangaFox#openEx(String)}.
-	 * 
-	 * @param url
-	 *            the URL to refresh
-	 * 
-	 * @return TRUE if it was refreshed
-	 */
-	private boolean refresh(String url) {
-		try {
-			openEx(url).close();
-			return true;
-		} catch (Exception e) {
-			return false;
+	private int getIntVar(StringBuilder builder, String var) {
+		var = "var " + var;
+
+		int pos = builder.indexOf(var) + var.length();
+		String value = builder.subSequence(pos, pos + 20).toString();
+		value = value.split("=")[1].trim();
+		value = value.split(";")[0].trim();
+
+		return Integer.parseInt(value);
+	}
+
+	private List<String> getImageKeys(StringBuilder builder) {
+		List<String> chapKeys = new ArrayList<String>();
+
+		String start = "|compressed|";
+		String stop = ">";
+		int pos = builder.indexOf(start) + start.length();
+		int pos2 = builder.indexOf(stop, pos) - stop.length();
+
+		String data = builder.substring(pos, pos2);
+		data = data.replace("|", "'");
+		for (String key : data.split("'")) {
+			if (key.startsWith("m") && !key.equals("manga")) {
+				chapKeys.add(key);
+			}
 		}
+
+		Collections.sort(chapKeys);
+		return chapKeys;
 	}
 
 	/**
-	 * Open the URL through the cache, but: retry a second time after 100ms if
-	 * it fails, remove the query part of the {@link URL} before saving it to
-	 * the cache (so it can be recalled later).
+	 * Open the URL through the cache, but: retry a second time after 100ms if it
+	 * fails, remove the query part of the {@link URL} before saving it to the cache
+	 * (so it can be recalled later).
 	 * 
-	 * @param url
-	 *            the {@link URL}
+	 * @param url the {@link URL}
 	 * 
 	 * @return the resource
 	 * 
-	 * @throws IOException
-	 *             in case of I/O error
+	 * @throws IOException in case of I/O error
 	 */
 	private InputStream openEx(String url) throws IOException {
 		try {
-			return Instance.getCache().open(new URL(url), withoutQuery(url),
-					this, true);
+			return Instance.getCache().open(new URL(url), withoutQuery(url), this, true);
 		} catch (Exception e) {
 			// second chance
 			try {
@@ -345,16 +271,14 @@ class MangaFox extends BasicSupport {
 			} catch (InterruptedException ee) {
 			}
 
-			return Instance.getCache().open(new URL(url), withoutQuery(url),
-					this, true);
+			return Instance.getCache().open(new URL(url), withoutQuery(url), this, true);
 		}
 	}
 
 	/**
 	 * Return the same input {@link URL} but without the query part.
 	 * 
-	 * @param url
-	 *            the inpiut {@link URL} as a {@link String}
+	 * @param url the inpiut {@link URL} as a {@link String}
 	 * 
 	 * @return the input {@link URL} without query
 	 */
@@ -372,34 +296,9 @@ class MangaFox extends BasicSupport {
 		}
 	}
 
-	/**
-	 * Explode an HTML comma-separated list of values into a non-duplicate text
-	 * {@link List} .
-	 * 
-	 * @param values
-	 *            the comma-separated values in HTML format
-	 * 
-	 * @return the full list with no duplicate in text format
-	 */
-	private List<String> explode(String values) {
-		List<String> list = new ArrayList<String>();
-		if (values != null && !values.isEmpty()) {
-			for (String auth : values.split(",")) {
-				String a = StringUtils.unhtml(auth).trim();
-				if (!a.isEmpty() && !list.contains(a.trim())) {
-					list.add(a);
-				}
-			}
-		}
-
-		return list;
-	}
-
 	@Override
 	protected boolean supports(URL url) {
-		return "mangafox.me".equals(url.getHost())
-				|| "www.mangafox.me".equals(url.getHost())
-				|| "fanfox.net".equals(url.getHost())
-				|| "www.fanfox.net".equals(url.getHost());
+		return "mangafox.me".equals(url.getHost()) || "www.mangafox.me".equals(url.getHost())
+				|| "fanfox.net".equals(url.getHost()) || "www.fanfox.net".equals(url.getHost());
 	}
 }
