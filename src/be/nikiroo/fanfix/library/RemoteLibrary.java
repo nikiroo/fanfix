@@ -443,6 +443,7 @@ public class RemoteLibrary extends BasicLibrary {
 			public void action(ConnectActionClientObject action)
 					throws Exception {
 				action.send(new Object[] { subkey, "EXIT" });
+				Thread.sleep(100);
 			}
 		});
 	}
