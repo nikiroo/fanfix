@@ -597,10 +597,14 @@ public class Main {
 				}
 				return;
 			case STOP_SERVER:
-				key = Instance.getConfig().getString(Config.SERVER_KEY);
-				port = Instance.getConfig().getInteger(Config.SERVER_PORT);
+				// Can be given via "--remote XX XX XX"
+				if (key == null)
+					key = Instance.getConfig().getString(Config.SERVER_KEY);
+				if (port == null)
+					port = Instance.getConfig().getInteger(Config.SERVER_PORT);
+
 				if (port == null) {
-					System.err.println("No port configured in the config file");
+					System.err.println("No port given nor configured in the config file");
 					exitCode = 15;
 					break;
 				}
