@@ -2,13 +2,14 @@
 
 # Version WIP
 
-- new: MangaHub: un site de manga (English)
-- new: MangaFox: retrait du support (site désagréable)
+- MangaHub: new: un site de manga (English)
+- MangaFox: retrait du support (site désagréable)
+- e621: correction pour la cover non sauvée
 
 # Version 3.0.1
 
-- fix: update pour e621 (et ce n'est plus un BasicSupport_Deprecated)
 - fix: en cas d'URL non supportée, n'affiche plus un message d'erreur relatif à "file://"
+- e621: update pour e621 (et ce n'est plus un BasicSupport_Deprecated)
 
 # Version 3.0.0
 

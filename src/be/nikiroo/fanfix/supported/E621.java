@@ -282,8 +282,12 @@ class E621 extends BasicSupport {
 		Image image = null;
 		List<Entry<String, URL>> chapters = getChapters(null);
 		if (!chapters.isEmpty()) {
-			URL url = chapters.get(0).getValue();
-			image = bsImages.getImage(this, url);
+			URL chap1Url = chapters.get(0).getValue();
+			String imgsChap1 = getChapterContent(chap1Url, 1, null);
+			if (!imgsChap1.isEmpty()) {
+				imgsChap1 = imgsChap1.split("]")[0].substring(1).trim();
+				image = bsImages.getImage(this, new URL(imgsChap1));
+			}
 		}
 
 		return image;

@@ -2,8 +2,9 @@
 
 # Version WIP
 
-- new: MangaHub: a manga website (English)
-- new: MangaFox removed (too many unfriendly changes, bye)
+- MangaHub: a manga website (English)
+- MangaFox: removed (too many unfriendly changes, bye)
+- e621: fix cover not saved 
 
 # Version 3.0.1
 
