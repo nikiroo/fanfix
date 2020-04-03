@@ -13,6 +13,7 @@ import java.util.Map.Entry;
 import org.jsoup.nodes.Element;
 
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
@@ -186,14 +187,20 @@ class MangaHub extends BasicSupport {
 	}
 
 	// HTTP response code, or -1 if other error
+	// TODO: move that to Downloader?
 	private int getHttpStatus(URL url) {
 		try {
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			try {
-				connection.setRequestMethod("HEAD");
-				return connection.getResponseCode();
+				conn.setRequestMethod("HEAD");
+				conn.setRequestProperty("User-Agent", Instance.getConfig().getString(Config.NETWORK_USER_AGENT));
+				conn.setRequestProperty("Accept-Encoding", "gzip");
+				conn.setRequestProperty("Accept", "*/*");
+				conn.setRequestProperty("Charset", "utf-8");
+
+				return conn.getResponseCode();
 			} finally {
-				connection.disconnect();
+				conn.disconnect();
 			}
 		} catch (Exception e) {
 			return -1;
