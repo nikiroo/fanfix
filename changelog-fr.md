@@ -1,5 +1,10 @@
 # Fanfix
 
+# Version WIP
+
+- new: MangaHub: un site de manga (English)
+- new: MangaFox: retrait du support (site désagréable)
+
 # Version 3.0.1
 
 - fix: update pour e621 (et ce n'est plus un BasicSupport_Deprecated)

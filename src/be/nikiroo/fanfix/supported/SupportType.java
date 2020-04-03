@@ -20,7 +20,7 @@ public enum SupportType {
 	/** Fanfictions from a lot of different universes */
 	FANFICTION,
 	/** Website with lots of Mangas */
-	MANGAFOX,
+	MANGAHUB,
 	/** Furry website with comics support */
 	E621,
 	/** Furry website with stories */
@@ -59,8 +59,8 @@ public enum SupportType {
 			return "info-text";
 		case MANGA_LEL:
 			return "MangaLEL";
-		case MANGAFOX:
-			return "MangaFox.me";
+		case MANGAHUB:
+			return "MangaHub.io";
 		case TEXT:
 			return "text";
 		case YIFFSTAR:

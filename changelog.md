@@ -1,5 +1,10 @@
 # Fanfix
 
+# Version WIP
+
+- new: MangaHub: a manga website (English)
+- new: MangaFox removed (too many unfriendly changes, bye)
+
 # Version 3.0.1
 
 - fix: update for e621 (and it is no more a BasicSupport_Deprecated)

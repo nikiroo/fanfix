@@ -247,7 +247,7 @@ public abstract class BasicSearchable {
 			case FANFICTION:
 				support = new Fanfiction(type);
 				break;
-			case MANGAFOX:
+			case MANGAHUB:
 				// TODO
 				break;
 			case E621:

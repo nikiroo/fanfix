@@ -46,7 +46,7 @@ Currently, the following websites are supported:
 
 - http://FimFiction.net/: fan fictions devoted to the My Little Pony show
 - http://Fanfiction.net/: fan fictions of many, many different universes, from TV shows to novels to games
-- http://mangafox.me/: a well filled repository of mangas, or, as their website states: most popular manga scanlations read online for free at mangafox, as well as a close-knit community to chat and make friends
+- http://mangahub.io/: a well filled repository of mangas (English)
 - https://e621.net/: a Furry website supporting comics, including MLP
 - https://sofurry.com/: same thing, but story-oriented
 - https://e-hentai.org/: done upon request (so, feel free to ask for more websites!)

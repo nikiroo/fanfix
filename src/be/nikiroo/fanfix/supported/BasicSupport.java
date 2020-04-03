@@ -493,8 +493,8 @@ public abstract class BasicSupport {
 		case TEXT:
 			support = new Text();
 			break;
-		case MANGAFOX:
-			support = new MangaFox();
+		case MANGAHUB:
+			support = new MangaHub();
 			break;
 		case E621:
 			support = new E621();
