@@ -1,8 +1,8 @@
 # Fanfix
 
-# Version WIP
+# Version 3.1.0
 
-- MangaHub: new: un site de manga (English)
+- MangaHub: un nouvau site de manga (English)
 - MangaFox: retrait du support (site désagréable)
 - e621: correction pour la cover non sauvée
 

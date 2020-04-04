@@ -1,6 +1,6 @@
 # Fanfix
 
-# Version WIP
+# Version 3.1.0
 
 - MangaHub: a manga website (English)
 - MangaFox: removed (too many unfriendly changes, bye)
