@@ -1,5 +1,12 @@
 # nikiroo-utils
 
+## Version WIP
+
+- new: IOUtils: openResource with anchor class
+- new: ConfigItem: easier to extend
+- fix: CacheMemory: fix stackoverflow bug
+- fix: Bundles/TransBundles: def values
+
 ## Version 5.1.0
 
 - Downloader: new Offline mode for cache accesses only
