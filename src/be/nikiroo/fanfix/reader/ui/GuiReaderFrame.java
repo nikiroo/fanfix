@@ -388,8 +388,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				ConfigEditor<Config> ed = new ConfigEditor<Config>(
-						Config.class, Instance.getConfig(), GuiReader
-								.trans(StringIdGui.SUBTITLE_CONFIG));
+						Config.class, Instance.getInstance().getConfig(), GuiReader.trans(StringIdGui.SUBTITLE_CONFIG));
 				JFrame frame = new JFrame(title);
 				frame.add(ed);
 				frame.setSize(850, 600);
@@ -414,8 +413,8 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				ConfigEditor<UiConfig> ed = new ConfigEditor<UiConfig>(
-						UiConfig.class, Instance.getUiConfig(), GuiReader
-								.trans(StringIdGui.SUBTITLE_CONFIG_UI));
+						UiConfig.class, Instance.getInstance().getUiConfig(),
+						GuiReader.trans(StringIdGui.SUBTITLE_CONFIG_UI));
 				JFrame frame = new JFrame(title);
 				frame.add(ed);
 				frame.setSize(800, 600);
@@ -477,7 +476,7 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 											selectedBook.getInfo().getMeta()
 													.getLuid(), type, path, pg);
 								} catch (IOException e) {
-									Instance.getTraceHandler().error(e);
+									Instance.getInstance().getTraceHandler().error(e);
 								}
 							}
 						});
@@ -976,9 +975,9 @@ class GuiReaderFrame extends JFrame implements FrameHelper {
 	 *            the exception to log if any
 	 */
 	public void error(final String message, final String title, Exception e) {
-		Instance.getTraceHandler().error(title + ": " + message);
+		Instance.getInstance().getTraceHandler().error(title + ": " + message);
 		if (e != null) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 		}
 
 		SwingUtilities.invokeLater(new Runnable() {

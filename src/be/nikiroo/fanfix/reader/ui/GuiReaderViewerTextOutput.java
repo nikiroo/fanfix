@@ -121,7 +121,7 @@ public class GuiReaderViewerTextOutput {
 			fakeStory.setChapters(Arrays.asList(chap));
 			output.process(fakeStory, null, null);
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 		}
 		return builder.toString();
 	}

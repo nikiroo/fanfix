@@ -164,7 +164,7 @@ class TuiReaderMainWindow extends TWindow {
 							selectTargets.add(source);
 						}
 					} catch (IOException e) {
-						Instance.getTraceHandler().error(e);
+						Instance.getInstance().getTraceHandler().error(e);
 					}
 
 					showTarget = true;
@@ -176,7 +176,7 @@ class TuiReaderMainWindow extends TWindow {
 							selectTargets.add(author);
 						}
 					} catch (IOException e) {
-						Instance.getTraceHandler().error(e);
+						Instance.getInstance().getTraceHandler().error(e);
 					}
 
 					showTarget = true;
@@ -250,7 +250,7 @@ class TuiReaderMainWindow extends TWindow {
 				metas = reader.getLibrary().getList();
 			}
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 			metas = new ArrayList<MetaData>();
 		}
 
@@ -316,7 +316,7 @@ class TuiReaderMainWindow extends TWindow {
 			reader.setMeta(meta);
 			reader.read(false);
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 		}
 	}
 

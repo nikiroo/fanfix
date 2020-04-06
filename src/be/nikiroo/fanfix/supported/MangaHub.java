@@ -109,7 +109,7 @@ class MangaHub extends BasicSupport {
 			try {
 				return bsImages.getImage(this, new URL(cover.absUrl("src")));
 			} catch (MalformedURLException e) {
-				Instance.getTraceHandler().error(e);
+				Instance.getInstance().getTraceHandler().error(e);
 			}
 		}
 
@@ -137,7 +137,7 @@ class MangaHub extends BasicSupport {
 			try {
 				urls.add(new AbstractMap.SimpleEntry<String, URL>(title, new URL(url)));
 			} catch (Exception e) {
-				Instance.getTraceHandler().error(e);
+				Instance.getInstance().getTraceHandler().error(e);
 			}
 		}
 
@@ -193,7 +193,7 @@ class MangaHub extends BasicSupport {
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			try {
 				conn.setRequestMethod("HEAD");
-				conn.setRequestProperty("User-Agent", Instance.getConfig().getString(Config.NETWORK_USER_AGENT));
+				conn.setRequestProperty("User-Agent", Instance.getInstance().getConfig().getString(Config.NETWORK_USER_AGENT));
 				conn.setRequestProperty("Accept-Encoding", "gzip");
 				conn.setRequestProperty("Accept", "*/*");
 				conn.setRequestProperty("Charset", "utf-8");

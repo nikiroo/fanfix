@@ -51,9 +51,8 @@ class Html extends InfoText {
 			try {
 				source = txt.toURI().toURL();
 			} catch (MalformedURLException e) {
-				Instance.getTraceHandler().error(
-						new IOException("Cannot convert the right URL for "
-								+ source, e));
+				Instance.getInstance().getTraceHandler()
+						.error(new IOException("Cannot convert the right URL for " + source, e));
 			}
 		}
 

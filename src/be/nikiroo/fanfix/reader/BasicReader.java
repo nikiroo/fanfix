@@ -30,7 +30,7 @@ import be.nikiroo.utils.serial.SerialUtils;
  * @author niki
  */
 public abstract class BasicReader implements Reader {
-	private static BasicLibrary defaultLibrary = Instance.getLibrary();
+	private static BasicLibrary defaultLibrary = Instance.getInstance().getLibrary();
 	private static ReaderType defaultType = ReaderType.GUI;
 
 	private BasicLibrary lib;
@@ -42,7 +42,7 @@ public abstract class BasicReader implements Reader {
 	 * Take the default reader type configuration from the config file.
 	 */
 	static {
-		String typeString = Instance.getConfig().getString(Config.READER_TYPE);
+		String typeString = Instance.getInstance().getConfig().getString(Config.READER_TYPE);
 		if (typeString != null && !typeString.isEmpty()) {
 			try {
 				ReaderType type = ReaderType.valueOf(typeString.toUpperCase());
@@ -137,9 +137,8 @@ public abstract class BasicReader implements Reader {
 						.getTypeName());
 			}
 		} catch (Exception e) {
-			Instance.getTraceHandler().error(
-					new Exception("Cannot create a reader of type: "
-							+ defaultType + " (Not compiled in?)", e));
+			Instance.getInstance().getTraceHandler()
+					.error(new Exception("Cannot create a reader of type: " + defaultType + " (Not compiled in?)", e));
 		}
 
 		return null;
@@ -292,11 +291,9 @@ public abstract class BasicReader implements Reader {
 			throws IOException {
 		String program = null;
 		if (meta.isImageDocument()) {
-			program = Instance.getUiConfig().getString(
-					UiConfig.IMAGES_DOCUMENT_READER);
+			program = Instance.getInstance().getUiConfig().getString(UiConfig.IMAGES_DOCUMENT_READER);
 		} else {
-			program = Instance.getUiConfig().getString(
-					UiConfig.NON_IMAGES_DOCUMENT_READER);
+			program = Instance.getInstance().getUiConfig().getString(UiConfig.NON_IMAGES_DOCUMENT_READER);
 		}
 
 		if (program != null && program.trim().isEmpty()) {
@@ -330,10 +327,8 @@ public abstract class BasicReader implements Reader {
 			for (String starter : new String[] { "xdg-open", "open", "see",
 					"start", "run" }) {
 				try {
-					Instance.getTraceHandler().trace(
-							"starting external program");
-					proc = Runtime.getRuntime().exec(
-							new String[] { starter, target.getAbsolutePath() });
+					Instance.getInstance().getTraceHandler().trace("starting external program");
+					proc = Runtime.getRuntime().exec(new String[] { starter, target.getAbsolutePath() });
 					ok = true;
 					break;
 				} catch (IOException e) {
@@ -343,7 +338,7 @@ public abstract class BasicReader implements Reader {
 				throw new IOException("Cannot find a program to start the file");
 			}
 		} else {
-			Instance.getTraceHandler().trace("starting external program");
+			Instance.getInstance().getTraceHandler().trace("starting external program");
 			proc = Runtime.getRuntime().exec(
 					new String[] { program, target.getAbsolutePath() });
 		}

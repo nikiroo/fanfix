@@ -93,7 +93,7 @@ public class VersionCheck {
 	 * time has elapsed.
 	 */
 	public void ok() {
-		Instance.setVersionChecked();
+		Instance.getInstance().setVersionChecked();
 	}
 
 	/**
@@ -107,10 +107,10 @@ public class VersionCheck {
 		List<Version> newer = new ArrayList<Version>();
 		Map<Version, List<String>> changes = new HashMap<Version, List<String>>();
 
-		if (Instance.isVersionCheckNeeded()) {
+		if (Instance.getInstance().isVersionCheckNeeded()) {
 			try {
 				// Prepare the URLs according to the user's language
-				Locale lang = Instance.getTrans().getLocale();
+				Locale lang = Instance.getInstance().getTrans().getLocale();
 				String fr = lang.getLanguage();
 				String BE = lang.getCountry().replace(".UTF8", "");
 				String urlFrBE = base.replace("${LANG}", "-" + fr + "_" + BE);
@@ -120,8 +120,7 @@ public class VersionCheck {
 				InputStream in = null;
 				for (String url : new String[] { urlFrBE, urlFr, urlDefault }) {
 					try {
-						in = Instance.getCache()
-								.open(new URL(url), null, false);
+						in = Instance.getInstance().getCache().open(new URL(url), null, false);
 						break;
 					} catch (IOException e) {
 					}
@@ -162,10 +161,8 @@ public class VersionCheck {
 					reader.close();
 				}
 			} catch (IOException e) {
-				Instance.getTraceHandler()
-						.error(new IOException(
-								"Cannot download latest changelist on github.com",
-								e));
+				Instance.getInstance().getTraceHandler()
+						.error(new IOException("Cannot download latest changelist on github.com", e));
 			}
 		}
 

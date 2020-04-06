@@ -142,8 +142,7 @@ class GuiReaderMainPanel extends JPanel {
 		pane.setLayout(new BoxLayout(pane, BoxLayout.PAGE_AXIS));
 		JScrollPane scroll = new JScrollPane(pane);
 
-		Integer icolor = Instance.getUiConfig().getColor(
-				UiConfig.BACKGROUND_COLOR);
+		Integer icolor = Instance.getInstance().getUiConfig().getColor(UiConfig.BACKGROUND_COLOR);
 		if (icolor != null) {
 			color = new Color(icolor);
 			setBackground(color);
@@ -224,8 +223,7 @@ class GuiReaderMainPanel extends JPanel {
 							helper.createMenu(status);
 							validate();
 
-							String desc = Instance.getTransGui().getStringX(
-									StringIdGui.ERROR_LIB_STATUS,
+							String desc = Instance.getInstance().getTransGui().getStringX(StringIdGui.ERROR_LIB_STATUS,
 									status.toString());
 							if (desc == null) {
 								desc = GuiReader
@@ -409,7 +407,7 @@ class GuiReaderMainPanel extends JPanel {
 						}
 					});
 				} catch (IOException e) {
-					Instance.getTraceHandler().error(e);
+					Instance.getInstance().getTraceHandler().error(e);
 					error(GuiReader.trans(StringIdGui.ERROR_CANNOT_OPEN),
 							GuiReader.trans(StringIdGui.TITLE_ERROR), e);
 				}
@@ -445,7 +443,7 @@ class GuiReaderMainPanel extends JPanel {
 				break;
 			}
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 		}
 
 		final Progress pg = new Progress();
@@ -473,7 +471,7 @@ class GuiReaderMainPanel extends JPanel {
 						});
 					}
 				} catch (IOException e) {
-					Instance.getTraceHandler().error(e);
+					Instance.getInstance().getTraceHandler().error(e);
 					error(GuiReader.trans(StringIdGui.ERROR_CANNOT_OPEN),
 							GuiReader.trans(StringIdGui.TITLE_ERROR), e);
 				}
@@ -554,9 +552,9 @@ class GuiReaderMainPanel extends JPanel {
 			try {
 				EventQueue.invokeAndWait(run);
 			} catch (InterruptedException e) {
-				Instance.getTraceHandler().error(e);
+				Instance.getInstance().getTraceHandler().error(e);
 			} catch (InvocationTargetException e) {
-				Instance.getTraceHandler().error(e);
+				Instance.getInstance().getTraceHandler().error(e);
 			}
 		}
 	}
@@ -776,9 +774,9 @@ class GuiReaderMainPanel extends JPanel {
 	 *            the exception to log if any
 	 */
 	private void error(final String message, final String title, Exception e) {
-		Instance.getTraceHandler().error(title + ": " + message);
+		Instance.getInstance().getTraceHandler().error(title + ": " + message);
 		if (e != null) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 		}
 
 		SwingUtilities.invokeLater(new Runnable() {

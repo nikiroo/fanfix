@@ -285,7 +285,7 @@ public class GuiReaderViewerPanel extends JPanel {
 				}
 			});
 		} catch (Exception e) {
-			Instance.getTraceHandler().error(
+			Instance.getInstance().getTraceHandler().error(
 					new Exception("Failed to load image into label", e));
 			EventQueue.invokeLater(new Runnable() {
 				@Override

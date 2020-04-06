@@ -8,8 +8,7 @@ import be.nikiroo.fanfix.bundles.UiConfig;
 class TuiReaderOptionWindow extends TOptionWindow {
 	public TuiReaderOptionWindow(TuiReaderApplication reader, boolean uiOptions) {
 		super(reader, uiOptions ? UiConfig.class : Config.class,
-				uiOptions ? Instance.getUiConfig() : Instance.getConfig(),
-				"Options");
+				uiOptions ? Instance.getInstance().getUiConfig() : Instance.getInstance().getConfig(), "Options");
 
 		TStatusBar statusBar = reader.setStatusBar(this, "Options");
 	}

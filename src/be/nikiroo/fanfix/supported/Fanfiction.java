@@ -157,10 +157,8 @@ class Fanfiction extends BasicSupport_Deprecated {
 						return sdf
 								.format(new Date(1000 * Long.parseLong(line)));
 					} catch (NumberFormatException e) {
-						Instance.getTraceHandler().error(
-								new IOException(
-										"Cannot convert publication date: "
-												+ line, e));
+						Instance.getInstance().getTraceHandler()
+								.error(new IOException("Cannot convert publication date: " + line, e));
 					}
 				}
 			}
@@ -243,11 +241,8 @@ class Fanfiction extends BasicSupport_Deprecated {
 							urls.add(new AbstractMap.SimpleEntry<String, URL>(
 									name.trim(), new URL(base + i + suffix)));
 						} catch (MalformedURLException e) {
-							Instance.getTraceHandler()
-									.error(new IOException(
-											"Cannot parse chapter " + i
-													+ " url: "
-													+ (base + i + suffix), e));
+							Instance.getInstance().getTraceHandler().error(
+									new IOException("Cannot parse chapter " + i + " url: " + (base + i + suffix), e));
 						}
 					}
 				}
@@ -304,10 +299,9 @@ class Fanfiction extends BasicSupport_Deprecated {
 					int pos = line.indexOf("<hr");
 					if (pos >= 0) {
 						boolean chaptered = false;
-						for (String lang : Instance.getConfig().getList(
-								Config.CONF_CHAPTER)) {
-							String chapterWord = Instance.getConfig()
-									.getStringX(Config.CONF_CHAPTER, lang);
+						for (String lang : Instance.getInstance().getConfig().getList(Config.CONF_CHAPTER)) {
+							String chapterWord = Instance.getInstance().getConfig().getStringX(Config.CONF_CHAPTER,
+									lang);
 							int posChap = line.indexOf(chapterWord + " ");
 							if (posChap < pos) {
 								chaptered = true;

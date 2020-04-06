@@ -52,12 +52,11 @@ class CliReader extends BasicReader {
 		// TODO: progress?
 		for (Chapter chap : getStory(null)) {
 			if (chap.getName() != null && !chap.getName().isEmpty()) {
-				System.out.println(Instance.getTrans().getString(
-						StringId.CHAPTER_NAMED, chap.getNumber(),
+				System.out.println(Instance.getInstance().getTrans().getString(StringId.CHAPTER_NAMED, chap.getNumber(),
 						chap.getName()));
 			} else {
-				System.out.println(Instance.getTrans().getString(
-						StringId.CHAPTER_UNNAMED, chap.getNumber()));
+				System.out.println(
+						Instance.getInstance().getTrans().getString(StringId.CHAPTER_UNNAMED, chap.getNumber()));
 			}
 		}
 	}

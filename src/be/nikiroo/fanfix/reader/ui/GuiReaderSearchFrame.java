@@ -332,7 +332,7 @@ public class GuiReaderSearchFrame extends JFrame {
 	 *            the error
 	 */
 	static void error(Exception e) {
-		Instance.getTraceHandler().error(e);
+		Instance.getInstance().getTraceHandler().error(e);
 	}
 
 	/**
@@ -342,7 +342,7 @@ public class GuiReaderSearchFrame extends JFrame {
 	 *            the error message
 	 */
 	static void error(String e) {
-		Instance.getTraceHandler().error(e);
+		Instance.getInstance().getTraceHandler().error(e);
 	}
 
 	/**

@@ -13,6 +13,8 @@ import java.util.Map;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
+import be.nikiroo.fanfix.bundles.ConfigBundle;
+import be.nikiroo.fanfix.bundles.UiConfigBundle;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput;
@@ -42,13 +44,14 @@ public class LocalLibrary extends BasicLibrary {
 	/**
 	 * Create a new {@link LocalLibrary} with the given back-end directory.
 	 * 
-	 * @param baseDir
-	 *            the directory where to find the {@link Story} objects
+	 * @param baseDir the directory where to find the {@link Story} objects
+	 * @param config  the configuration used to know which kind of default
+	 *                {@link OutputType} to use for images and non-images stories
 	 */
-	public LocalLibrary(File baseDir) {
-		this(baseDir, Instance.getConfig().getString(
-				Config.FILE_FORMAT_NON_IMAGES_DOCUMENT_TYPE), Instance.getConfig()
-				.getString(Config.FILE_FORMAT_IMAGES_DOCUMENT_TYPE), false);
+	public LocalLibrary(File baseDir, ConfigBundle config) {
+		this(baseDir, //
+				config.getString(Config.FILE_FORMAT_NON_IMAGES_DOCUMENT_TYPE),
+				config.getString(Config.FILE_FORMAT_IMAGES_DOCUMENT_TYPE), false);
 	}
 
 	/**
@@ -101,8 +104,7 @@ public class LocalLibrary extends BasicLibrary {
 
 	@Override
 	public File getFile(String luid, Progress pg) throws IOException {
-		Instance.getTraceHandler().trace(
-				this.getClass().getSimpleName() + ": get file for " + luid);
+		Instance.getInstance().getTraceHandler().trace(this.getClass().getSimpleName() + ": get file for " + luid);
 
 		File file = null;
 		String mess = "no file found for ";
@@ -114,9 +116,8 @@ public class LocalLibrary extends BasicLibrary {
 			file = files[1];
 		}
 
-		Instance.getTraceHandler().trace(
-				this.getClass().getSimpleName() + ": " + mess + luid + " ("
-						+ meta.getTitle() + ")");
+		Instance.getInstance().getTraceHandler()
+				.trace(this.getClass().getSimpleName() + ": " + mess + luid + " (" + meta.getTitle() + ")");
 
 		return file;
 	}
@@ -137,7 +138,7 @@ public class LocalLibrary extends BasicLibrary {
 					meta = InfoReader.readMeta(infoFile, true);
 					return meta.getCover();
 				} catch (IOException e) {
-					Instance.getTraceHandler().error(e);
+					Instance.getInstance().getTraceHandler().error(e);
 				}
 			}
 		}
@@ -205,7 +206,7 @@ public class LocalLibrary extends BasicLibrary {
 					InfoCover.writeInfo(newDir, name, meta);
 					relatedFile.getParentFile().delete();
 				} catch (IOException e) {
-					Instance.getTraceHandler().error(e);
+					Instance.getInstance().getTraceHandler().error(e);
 				}
 			} else {
 				relatedFile.renameTo(new File(newDir, relatedFile.getName()));
@@ -242,10 +243,8 @@ public class LocalLibrary extends BasicLibrary {
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
-					Instance.getTraceHandler().error(
-							new IOException(
-									"Cannot load the existing custom source cover: "
-											+ cover, e));
+					Instance.getInstance().getTraceHandler()
+							.error(new IOException("Cannot load the existing custom source cover: " + cover, e));
 				}
 			}
 		}
@@ -277,10 +276,8 @@ public class LocalLibrary extends BasicLibrary {
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
-				Instance.getTraceHandler().error(
-						new IOException(
-								"Cannot load the existing custom author cover: "
-										+ cover, e));
+				Instance.getInstance().getTraceHandler()
+						.error(new IOException("Cannot load the existing custom author cover: " + cover, e));
 			}
 		}
 
@@ -310,12 +307,12 @@ public class LocalLibrary extends BasicLibrary {
 		dir.mkdirs();
 		File cover = new File(dir, ".cover");
 		try {
-			Instance.getCache().saveAsImage(coverImage, cover, true);
+			Instance.getInstance().getCache().saveAsImage(coverImage, cover, true);
 			if (sourceCovers != null) {
 				sourceCovers.put(source, coverImage);
 			}
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 		}
 	}
 
@@ -331,12 +328,12 @@ public class LocalLibrary extends BasicLibrary {
 		File cover = getAuthorCoverFile(author);
 		cover.getParentFile().mkdirs();
 		try {
-			Instance.getCache().saveAsImage(coverImage, cover, true);
+			Instance.getInstance().getCache().saveAsImage(coverImage, cover, true);
 			if (authorCovers != null) {
 				authorCovers.put(author, coverImage);
 			}
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 		}
 	}
 
@@ -516,7 +513,7 @@ public class LocalLibrary extends BasicLibrary {
 	private File getAuthorCoverFile(String author) {
 		File aDir = new File(baseDir, "_AUTHORS");
 		String hash = StringUtils.getMd5Hash(author);
-		String ext = Instance.getConfig().getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER);
+		String ext = Instance.getInstance().getConfig().getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER);
 		return new File(aDir, hash + "." + ext.toLowerCase());
 	}
 
@@ -562,8 +559,7 @@ public class LocalLibrary extends BasicLibrary {
 		}
 
 		String coverExt = "."
-				+ Instance.getConfig().getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER)
-						.toLowerCase();
+				+ Instance.getInstance().getConfig().getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER).toLowerCase();
 		File coverFile = new File(path + coverExt);
 		if (!coverFile.exists()) {
 			coverFile = new File(path.substring(0,
@@ -675,9 +671,8 @@ public class LocalLibrary extends BasicLibrary {
 				} catch (IOException e) {
 					// We should not have not-supported files in the
 					// library
-					Instance.getTraceHandler().error(
-							new IOException("Cannot load file from library: "
-									+ infoFileOrSubdir, e));
+					Instance.getInstance().getTraceHandler()
+							.error(new IOException("Cannot load file from library: " + infoFileOrSubdir, e));
 				}
 			}
 

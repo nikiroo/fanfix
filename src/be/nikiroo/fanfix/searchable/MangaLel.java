@@ -89,9 +89,8 @@ class MangaLel extends BasicSearchable {
 	private List<MetaData> getResults(String sourceUrl) throws IOException {
 		List<MetaData> metas = new ArrayList<MetaData>();
 
-		Document doc = DataUtil.load(
-				Instance.getCache().open(new URL(sourceUrl), getSupport(),
-						false), "UTF-8", sourceUrl);
+		Document doc = DataUtil.load(Instance.getInstance().getCache().open(new URL(sourceUrl), getSupport(), false),
+				"UTF-8", sourceUrl);
 
 		for (Element result : doc.getElementsByClass("rechercheAffichage")) {
 			Element a = result.getElementsByTag("a").first();
@@ -123,13 +122,8 @@ class MangaLel extends BasicSearchable {
 					meta.setAuthor(getVal(tab, 1));
 					meta.setTags(Arrays.asList(getVal(tab, 2).split(" ")));
 
-					meta.setResume(getSupport()
-							.makeChapter(
-									new URL(sourceUrl),
-									0,
-									Instance.getTrans().getString(
-											StringId.DESCRIPTION),
-									getVal(tab, 5)));
+					meta.setResume(getSupport().makeChapter(new URL(sourceUrl), 0,
+							Instance.getInstance().getTrans().getString(StringId.DESCRIPTION), getVal(tab, 5)));
 				}
 
 				Element img = result.getElementsByTag("img").first();
@@ -143,8 +137,8 @@ class MangaLel extends BasicSearchable {
 
 						String coverUrl = img.absUrl("src");
 						try {
-							InputStream in = Instance.getCache().open(
-									new URL(coverUrl), getSupport(), true);
+							InputStream in = Instance.getInstance().getCache().open(new URL(coverUrl), getSupport(),
+									true);
 							try {
 								meta.setCover(new Image(in));
 							} finally {
@@ -152,15 +146,13 @@ class MangaLel extends BasicSearchable {
 							}
 						} catch (Exception e) {
 							// Happen often on MangaLEL...
-							Instance.getTraceHandler().trace(
-									"Cannot download cover for MangaLEL story in search mode: "
-											+ meta.getTitle());
+							Instance.getInstance().getTraceHandler().trace(
+									"Cannot download cover for MangaLEL story in search mode: "	+ meta.getTitle());
 						}
 					} catch (Exception e) {
 						// no project id... cannot use the story :(
-						Instance.getTraceHandler().error(
-								"Cannot find ProjectId for MangaLEL story in search mode: "
-										+ meta.getTitle());
+						Instance.getInstance().getTraceHandler()
+								.error("Cannot find ProjectId for MangaLEL story in search mode: " + meta.getTitle());
 					}
 				}
 

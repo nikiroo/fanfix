@@ -730,10 +730,8 @@ abstract public class BasicLibrary {
 		} catch (IOException e) {
 			// We should not have not-supported files in the
 			// library
-			Instance.getTraceHandler().error(
-					new IOException(String.format(
-							"Cannot load file of type '%s' from library: %s",
-							meta.getType(), file), e));
+			Instance.getInstance().getTraceHandler().error(new IOException(
+					String.format("Cannot load file of type '%s' from library: %s", meta.getType(), file), e));
 		} finally {
 			pgProcess.done();
 			pg.done();
@@ -892,8 +890,7 @@ abstract public class BasicLibrary {
 	public synchronized Story save(Story story, String luid, Progress pg)
 			throws IOException {
 
-		Instance.getTraceHandler().trace(
-				this.getClass().getSimpleName() + ": saving story " + luid);
+		Instance.getInstance().getTraceHandler().trace(this.getClass().getSimpleName() + ": saving story " + luid);
 
 		// Do not change the original metadata, but change the original story
 		MetaData meta = story.getMeta().clone();
@@ -913,9 +910,8 @@ abstract public class BasicLibrary {
 
 		updateInfo(story.getMeta());
 
-		Instance.getTraceHandler().trace(
-				this.getClass().getSimpleName() + ": story saved (" + luid
-						+ ")");
+		Instance.getInstance().getTraceHandler()
+				.trace(this.getClass().getSimpleName() + ": story saved (" + luid + ")");
 
 		return story;
 	}
@@ -930,14 +926,13 @@ abstract public class BasicLibrary {
 	 *             in case of I/O error
 	 */
 	public synchronized void delete(String luid) throws IOException {
-		Instance.getTraceHandler().trace(
-				this.getClass().getSimpleName() + ": deleting story " + luid);
+		Instance.getInstance().getTraceHandler().trace(this.getClass().getSimpleName() + ": deleting story " + luid);
 
 		doDelete(luid);
 		invalidateInfo(luid);
 
-		Instance.getTraceHandler().trace(
-				this.getClass().getSimpleName() + ": story deleted (" + luid
+		Instance.getInstance().getTraceHandler()
+				.trace(this.getClass().getSimpleName() + ": story deleted (" + luid
 						+ ")");
 	}
 

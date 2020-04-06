@@ -224,8 +224,7 @@ public abstract class BasicSupport {
 	 */
 	protected Document loadDocument(URL source) throws IOException {
 		String url = getCanonicalUrl(source).toString();
-		return DataUtil.load(Instance.getCache().open(source, this, false),
-				"UTF-8", url.toString());
+		return DataUtil.load(Instance.getInstance().getCache().open(source, this, false), "UTF-8", url.toString());
 	}
 
 	/**
@@ -284,12 +283,9 @@ public abstract class BasicSupport {
 		pg.setProgress(60);
 
 		if (getDesc) {
-			String descChapterName = Instance.getTrans().getString(
-					StringId.DESCRIPTION);
-			story.getMeta().setResume(
-					bsPara.makeChapter(this, source, 0,
-							descChapterName, //
-							getDesc(), isHtml(), null));
+			String descChapterName = Instance.getInstance().getTrans().getString(StringId.DESCRIPTION);
+			story.getMeta().setResume(bsPara.makeChapter(this, source, 0, descChapterName, //
+					getDesc(), isHtml(), null));
 		}
 
 		pg.done();

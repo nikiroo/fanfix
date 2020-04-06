@@ -63,7 +63,7 @@ class GuiReader extends BasicReader {
 			nativeLookLoaded = true;
 		}
 
-		cacheDir = Instance.getReaderDir();
+		cacheDir = Instance.getInstance().getReaderDir();
 		cacheDir.mkdirs();
 		if (!cacheDir.exists()) {
 			throw new IOException(
@@ -79,7 +79,7 @@ class GuiReader extends BasicReader {
 			if (lib instanceof CacheLibrary) {
 				cacheLib = (CacheLibrary) lib;
 			} else {
-				cacheLib = new CacheLibrary(cacheDir, lib);
+				cacheLib = new CacheLibrary(cacheDir, lib, Instance.getInstance().getUiConfig());
 			}
 		}
 
@@ -150,9 +150,9 @@ class GuiReader extends BasicReader {
 						try {
 							Desktop.getDesktop().browse(e.getURL().toURI());
 						} catch (IOException ee) {
-							Instance.getTraceHandler().error(ee);
+							Instance.getInstance().getTraceHandler().error(ee);
 						} catch (URISyntaxException ee) {
-							Instance.getTraceHandler().error(ee);
+							Instance.getInstance().getTraceHandler().error(ee);
 						}
 				}
 			});
@@ -184,7 +184,7 @@ class GuiReader extends BasicReader {
 									GuiReader.this, typeFinal);
 							sync(gui);
 						} catch (Exception e) {
-							Instance.getTraceHandler().error(e);
+							Instance.getInstance().getTraceHandler().error(e);
 						} finally {
 							done[0] = true;
 						}
@@ -259,7 +259,7 @@ class GuiReader extends BasicReader {
 				try {
 					tag = searchable.getTag(tags);
 				} catch (IOException e) {
-					Instance.getTraceHandler().error(e);
+					Instance.getInstance().getTraceHandler().error(e);
 				}
 
 				search.searchTag(searchOn, page, item, tag);
@@ -293,7 +293,7 @@ class GuiReader extends BasicReader {
 		try {
 			cacheLib.clearFromCache(luid);
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 		}
 	}
 
@@ -310,7 +310,7 @@ class GuiReader extends BasicReader {
 		try {
 			cacheLib.delete(luid);
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 		}
 	}
 
@@ -333,10 +333,10 @@ class GuiReader extends BasicReader {
 	void read(String luid, boolean sync, Progress pg) throws IOException {
 		MetaData meta = cacheLib.getInfo(luid);
 
-		boolean textInternal = Instance.getUiConfig().getBoolean(
-				UiConfig.NON_IMAGES_DOCUMENT_USE_INTERNAL_READER, true);
-		boolean imageInternal = Instance.getUiConfig().getBoolean(
-				UiConfig.IMAGES_DOCUMENT_USE_INTERNAL_READER, true);
+		boolean textInternal = Instance.getInstance().getUiConfig()
+				.getBoolean(UiConfig.NON_IMAGES_DOCUMENT_USE_INTERNAL_READER, true);
+		boolean imageInternal = Instance.getInstance().getUiConfig()
+				.getBoolean(UiConfig.IMAGES_DOCUMENT_USE_INTERNAL_READER, true);
 
 		boolean useInternalViewer = true;
 		if (meta.isImageDocument() && !imageInternal) {
@@ -395,7 +395,7 @@ class GuiReader extends BasicReader {
 		try {
 			cacheLib.changeSource(luid, newSource, null);
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 		}
 	}
 
@@ -411,7 +411,7 @@ class GuiReader extends BasicReader {
 		try {
 			cacheLib.changeTitle(luid, newTitle, null);
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 		}
 	}
 
@@ -429,7 +429,7 @@ class GuiReader extends BasicReader {
 		try {
 			cacheLib.changeAuthor(luid, newAuthor, null);
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 		}
 	}
 
@@ -442,7 +442,7 @@ class GuiReader extends BasicReader {
 	 * @return the translated result
 	 */
 	static String trans(StringIdGui id, Object... params) {
-		return Instance.getTransGui().getString(id, params);
+		return Instance.getInstance().getTransGui().getString(id, params);
 	}
 
 	/**
@@ -484,7 +484,7 @@ class GuiReader extends BasicReader {
 				EventQueue.invokeLater(run);
 			}
 		} catch (Exception e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 			done[0] = true;
 		}
 

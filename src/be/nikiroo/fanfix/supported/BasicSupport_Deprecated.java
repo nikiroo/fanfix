@@ -42,14 +42,10 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 	private InputStream in;
 
 	// quote chars
-	private char openQuote = Instance.getTrans().getCharacter(
-			StringId.OPEN_SINGLE_QUOTE);
-	private char closeQuote = Instance.getTrans().getCharacter(
-			StringId.CLOSE_SINGLE_QUOTE);
-	private char openDoubleQuote = Instance.getTrans().getCharacter(
-			StringId.OPEN_DOUBLE_QUOTE);
-	private char closeDoubleQuote = Instance.getTrans().getCharacter(
-			StringId.CLOSE_DOUBLE_QUOTE);
+	private char openQuote = Instance.getInstance().getTrans().getCharacter(StringId.OPEN_SINGLE_QUOTE);
+	private char closeQuote = Instance.getInstance().getTrans().getCharacter(StringId.CLOSE_SINGLE_QUOTE);
+	private char openDoubleQuote = Instance.getInstance().getTrans().getCharacter(StringId.OPEN_DOUBLE_QUOTE);
+	private char closeDoubleQuote = Instance.getInstance().getTrans().getCharacter(StringId.CLOSE_DOUBLE_QUOTE);
 
 	// New methods not used in Deprecated mode
 	@Override
@@ -223,11 +219,8 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 			pg.setProgress(60);
 
 			if (getDesc) {
-				String descChapterName = Instance.getTrans().getString(
-						StringId.DESCRIPTION);
-				story.getMeta().setResume(
-						makeChapter(url, 0, descChapterName,
-								getDesc(url, getInput()), null));
+				String descChapterName = Instance.getInstance().getTrans().getString(StringId.DESCRIPTION);
+				story.getMeta().setResume(makeChapter(url, 0, descChapterName, getDesc(url, getInput()), null));
 			}
 
 			pg.setProgress(100);
@@ -299,8 +292,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 					InputStream chapIn = null;
 					if (chap.getValue() != null) {
 						setCurrentReferer(chap.getValue());
-						chapIn = Instance.getCache().open(chap.getValue(),
-								this, false);
+						chapIn = Instance.getInstance().getCache().open(chap.getValue(), this, false);
 					}
 					pgChaps.setProgress(i * 100);
 					try {
@@ -391,9 +383,8 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 		// redundant "Chapter x: " in front of it, or "-" (as in
 		// "Chapter 5: - Fun!" after the ": " was automatically added)
 		String chapterName = processPara(name).getContent().trim();
-		for (String lang : Instance.getConfig().getList(Config.CONF_CHAPTER)) {
-			String chapterWord = Instance.getConfig().getStringX(
-					Config.CONF_CHAPTER, lang);
+		for (String lang : Instance.getInstance().getConfig().getList(Config.CONF_CHAPTER)) {
+			String chapterWord = Instance.getInstance().getConfig().getStringX(Config.CONF_CHAPTER, lang);
 			if (chapterName.startsWith(chapterWord)) {
 				chapterName = chapterName.substring(chapterWord.length())
 						.trim();
@@ -591,10 +582,9 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 	 * @return the cover if any, or NULL
 	 */
 	static Image getDefaultCover(String subject) {
-		if (subject != null && !subject.isEmpty()
-				&& Instance.getCoverDir() != null) {
+		if (subject != null && !subject.isEmpty() && Instance.getInstance().getCoverDir() != null) {
 			try {
-				File fileCover = new File(Instance.getCoverDir(), subject);
+				File fileCover = new File(Instance.getInstance().getCoverDir(), subject);
 				return getImage(null, fileCover.toURI().toURL(), subject);
 			} catch (MalformedURLException e) {
 			}
@@ -644,7 +634,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 			}
 			InputStream in = null;
 			try {
-				in = Instance.getCache().open(url, getSupport(url), true);
+				in = Instance.getInstance().getCache().open(url, getSupport(url), true);
 				return new Image(in);
 			} catch (IOException e) {
 			} finally {
@@ -716,8 +706,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 				// try for URLs
 				try {
 					for (String ext : getImageExt(true)) {
-						if (Instance.getCache()
-								.check(new URL(line + ext), true)) {
+						if (Instance.getInstance().getCache().check(new URL(line + ext), true)) {
 							url = new URL(line + ext);
 							break;
 						}
@@ -728,7 +717,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 						for (String ext : getImageExt(true)) {
 							try {
 								url = new URL(line + ext);
-								Instance.getCache().refresh(url, support, true);
+								Instance.getInstance().getCache().refresh(url, support, true);
 								break;
 							} catch (IOException e) {
 								// no image with this ext
@@ -744,7 +733,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 			// refresh the cached file
 			if (url != null) {
 				try {
-					Instance.getCache().refresh(url, support, true);
+					Instance.getInstance().getCache().refresh(url, support, true);
 				} catch (IOException e) {
 					// woops, broken image
 					url = null;
@@ -770,7 +759,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 	 *             in case of I/O error
 	 */
 	protected InputStream openInput(URL source) throws IOException {
-		return Instance.getCache().open(source, this, false);
+		return Instance.getInstance().getCache().open(source, this, false);
 	}
 
 	/**

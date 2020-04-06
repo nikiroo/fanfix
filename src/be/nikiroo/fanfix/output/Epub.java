@@ -36,7 +36,7 @@ class Epub extends BasicOutput {
 		String targetNameOrig = targetName;
 		targetName += getDefaultExtension(false);
 
-		tmpDir = Instance.getTempFiles().createTempDir("fanfic-reader-epub");
+		tmpDir = Instance.getInstance().getTempFiles().createTempDir("fanfic-reader-epub");
 		tmpDir.delete();
 
 		if (!tmpDir.mkdir()) {
@@ -137,10 +137,9 @@ class Epub extends BasicOutput {
 		if (story.getMeta() != null && story.getMeta().getCover() != null) {
 			File file = new File(images, "cover");
 			try {
-				Instance.getCache().saveAsImage(story.getMeta().getCover(),
-						file, true);
+				Instance.getInstance().getCache().saveAsImage(story.getMeta().getCover(), file, true);
 			} catch (Exception e) {
-				Instance.getTraceHandler().error(e);
+				Instance.getInstance().getTraceHandler().error(e);
 			}
 		}
 
@@ -246,8 +245,7 @@ class Epub extends BasicOutput {
 			break;
 		case IMAGE:
 			File file = new File(images, getCurrentImageBestName(false));
-			Instance.getCache().saveAsImage(para.getContentImage(), file,
-					nextParaIsCover);
+			Instance.getInstance().getCache().saveAsImage(para.getContentImage(), file, nextParaIsCover);
 			writer.write("			<img alt='page image' class='page-image' src='images/"
 					+ getCurrentImageBestName(false) + "'/>");
 			break;
@@ -358,11 +356,10 @@ class Epub extends BasicOutput {
 	private void generateNcx(Chapter chap, StringBuilder builder, int navPoint) {
 		String name;
 		if (chap.getName() != null && !chap.getName().isEmpty()) {
-			name = Instance.getTrans().getString(StringId.CHAPTER_NAMED,
-					chap.getNumber(), chap.getName());
+			name = Instance.getInstance().getTrans().getString(StringId.CHAPTER_NAMED, chap.getNumber(),
+					chap.getName());
 		} else {
-			name = Instance.getTrans().getString(StringId.CHAPTER_UNNAMED,
-					chap.getNumber());
+			name = Instance.getInstance().getTrans().getString(StringId.CHAPTER_UNNAMED, chap.getNumber());
 		}
 
 		String nnn = String.format("%03d", (navPoint - 2));
@@ -440,7 +437,7 @@ class Epub extends BasicOutput {
 		builder.append("\n      <!-- Images -->");
 
 		if (story.getMeta() != null && story.getMeta().getCover() != null) {
-			String format = Instance.getConfig()
+			String format = Instance.getInstance().getConfig()
 					.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER)
 					.toLowerCase();
 			builder.append("\n      <item id=\"cover\" href=\"images/cover."
@@ -487,7 +484,7 @@ class Epub extends BasicOutput {
 			author = meta.getAuthor();
 		}
 
-		String format = Instance.getConfig()
+		String format = Instance.getInstance().getConfig()
 				.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER).toLowerCase();
 
 		builder.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");

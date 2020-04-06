@@ -54,7 +54,7 @@ public class BasicSupportImages {
 			}
 			InputStream in = null;
 			try {
-				in = Instance.getCache().open(url, support, true);
+				in = Instance.getInstance().getCache().open(url, support, true);
 				return new Image(in);
 			} catch (IOException e) {
 			} finally {
@@ -126,7 +126,7 @@ public class BasicSupportImages {
 				// try for URLs
 				try {
 					for (String ext : getImageExt(true)) {
-						if (Instance.getCache()
+						if (Instance.getInstance().getCache()
 								.check(new URL(line + ext), true)) {
 							url = new URL(line + ext);
 							break;
@@ -138,7 +138,7 @@ public class BasicSupportImages {
 						for (String ext : getImageExt(true)) {
 							try {
 								url = new URL(line + ext);
-								Instance.getCache().refresh(url, support, true);
+								Instance.getInstance().getCache().refresh(url, support, true);
 								break;
 							} catch (IOException e) {
 								// no image with this ext
@@ -154,7 +154,7 @@ public class BasicSupportImages {
 			// refresh the cached file
 			if (url != null) {
 				try {
-					Instance.getCache().refresh(url, support, true);
+					Instance.getInstance().getCache().refresh(url, support, true);
 				} catch (IOException e) {
 					// woops, broken image
 					url = null;

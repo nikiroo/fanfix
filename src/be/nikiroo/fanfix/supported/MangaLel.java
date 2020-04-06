@@ -149,15 +149,14 @@ class MangaLel extends BasicSupport {
 
 				InputStream coverIn;
 				try {
-					coverIn = Instance.getCache().open(new URL(coverUrl), this,
-							true);
+					coverIn = Instance.getInstance().getCache().open(new URL(coverUrl), this, true);
 					try {
 						return new Image(coverIn);
 					} finally {
 						coverIn.close();
 					}
 				} catch (IOException e) {
-					Instance.getTraceHandler().error(e);
+					Instance.getInstance().getTraceHandler().error(e);
 				}
 			}
 		}
@@ -209,7 +208,7 @@ class MangaLel extends BasicSupport {
 
 		StringBuilder builder = new StringBuilder();
 
-		InputStream in = Instance.getCache().open(chapUrl, this, false);
+		InputStream in = Instance.getInstance().getCache().open(chapUrl, this, false);
 		try {
 			Element pageDoc = DataUtil.load(in, "UTF-8", chapUrl.toString());
 			Element content = pageDoc.getElementById("content");

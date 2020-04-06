@@ -222,8 +222,7 @@ public abstract class BasicSearchable {
 	 *             in case of I/O error
 	 */
 	protected Document load(URL url, boolean stable) throws IOException {
-		return DataUtil.load(Instance.getCache().open(url, support, stable),
-				"UTF-8", url.toString());
+		return DataUtil.load(Instance.getInstance().getCache().open(url, support, stable), "UTF-8", url.toString());
 	}
 
 	/**

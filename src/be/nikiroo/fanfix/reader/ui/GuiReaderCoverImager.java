@@ -162,14 +162,14 @@ class GuiReaderCoverImager {
 		BufferedImage resizedImage = null;
 		String id = getIconId(info);
 
-		InputStream in = Instance.getCache().getFromCache(id);
+		InputStream in = Instance.getInstance().getCache().getFromCache(id);
 		if (in != null) {
 			try {
 				resizedImage = ImageUtilsAwt.fromImage(new Image(in));
 				in.close();
 				in = null;
 			} catch (IOException e) {
-				Instance.getTraceHandler().error(e);
+				Instance.getInstance().getTraceHandler().error(e);
 			}
 		}
 
@@ -204,14 +204,14 @@ class GuiReaderCoverImager {
 					ImageIO.write(resizedImage, "png", out);
 					byte[] imageBytes = out.toByteArray();
 					in = new ByteArrayInputStream(imageBytes);
-					Instance.getCache().addToCache(in, id);
+					Instance.getInstance().getCache().addToCache(in, id);
 					in.close();
 					in = null;
 				}
 			} catch (MalformedURLException e) {
-				Instance.getTraceHandler().error(e);
+				Instance.getInstance().getTraceHandler().error(e);
 			} catch (IOException e) {
-				Instance.getTraceHandler().error(e);
+				Instance.getInstance().getTraceHandler().error(e);
 			}
 		}
 
@@ -226,7 +226,7 @@ class GuiReaderCoverImager {
 	 */
 	static public void clearIcon(GuiReaderBookInfo info) {
 		String id = getIconId(info);
-		Instance.getCache().removeFromCache(id);
+		Instance.getInstance().getCache().removeFromCache(id);
 	}
 
 	/**

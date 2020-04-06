@@ -98,8 +98,7 @@ public class InfoReader {
 		File basefile = new File(sourceInfoFile.getFile());
 
 		String ext = "."
-				+ Instance.getConfig().getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER)
-						.toLowerCase();
+				+ Instance.getInstance().getConfig().getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER).toLowerCase();
 
 		// Without removing ext
 		cover = bsHelper.getImage(null, sourceInfoFile,

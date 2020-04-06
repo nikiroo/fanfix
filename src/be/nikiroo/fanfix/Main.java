@@ -10,9 +10,7 @@ import java.util.List;
 import javax.net.ssl.SSLException;
 
 import be.nikiroo.fanfix.bundles.Config;
-import be.nikiroo.fanfix.bundles.ConfigBundle;
 import be.nikiroo.fanfix.bundles.StringId;
-import be.nikiroo.fanfix.bundles.StringIdBundle;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
@@ -31,8 +29,6 @@ import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
-import be.nikiroo.utils.resources.Bundles;
-import be.nikiroo.utils.resources.TransBundle;
 import be.nikiroo.utils.serial.server.ServerObject;
 
 /**
@@ -126,9 +122,8 @@ public class Main {
 						action = MainAction.valueOf(args[i].substring(2)
 								.toUpperCase().replace("-", "_"));
 					} catch (Exception e) {
-						Instance.getTraceHandler().error(
-								new IllegalArgumentException("Unknown action: "
-										+ args[i], e));
+						Instance.getInstance().getTraceHandler()
+								.error(new IllegalArgumentException("Unknown action: " + args[i], e));
 						exitCode = 255;
 					}
 				}
@@ -229,15 +224,13 @@ public class Main {
 					searchOn = SupportType.valueOfAllOkUC(args[i]);
 
 					if (searchOn == null) {
-						Instance.getTraceHandler().error(
-								"Website not known: <" + args[i] + ">");
+						Instance.getInstance().getTraceHandler().error("Website not known: <" + args[i] + ">");
 						exitCode = 41;
 						break;
 					}
 
 					if (BasicSearchable.getSearchable(searchOn) == null) {
-						Instance.getTraceHandler().error(
-								"Website not supported: " + searchOn);
+						Instance.getInstance().getTraceHandler().error("Website not supported: " + searchOn);
 						exitCode = 42;
 						break;
 					}
@@ -272,14 +265,12 @@ public class Main {
 					searchOn = SupportType.valueOfAllOkUC(args[i]);
 
 					if (searchOn == null) {
-						Instance.getTraceHandler().error(
-								"Website not known: <" + args[i] + ">");
+						Instance.getInstance().getTraceHandler().error("Website not known: <" + args[i] + ">");
 						exitCode = 255;
 					}
 
 					if (BasicSearchable.getSearchable(searchOn) == null) {
-						Instance.getTraceHandler().error(
-								"Website not supported: " + searchOn);
+						Instance.getInstance().getTraceHandler().error("Website not supported: " + searchOn);
 						exitCode = 255;
 					}
 				} else if (page == null && item == null) {
@@ -292,8 +283,7 @@ public class Main {
 							int index = Integer.parseInt(args[i]);
 							tags.add(index);
 						} catch (NumberFormatException e) {
-							Instance.getTraceHandler().error(
-									"Invalid tag index: " + args[i]);
+							Instance.getInstance().getTraceHandler().error("Invalid tag index: " + args[i]);
 							exitCode = 255;
 						}
 					}
@@ -349,7 +339,8 @@ public class Main {
 					port = Integer.parseInt(args[i]);
 
 					BasicLibrary lib = new RemoteLibrary(key, host, port);
-					lib = new CacheLibrary(Instance.getRemoteDir(host), lib);
+					lib = new CacheLibrary(Instance.getInstance().getRemoteDir(host), lib,
+							Instance.getInstance().getUiConfig());
 
 					BasicReader.setDefaultLibrary(lib);
 
@@ -423,9 +414,7 @@ public class Main {
 				break;
 			case LIST:
 				if (BasicReader.getReader() == null) {
-					Instance.getTraceHandler()
-							.error(new Exception(
-									"No reader type has been configured"));
+					Instance.getInstance().getTraceHandler().error(new Exception("No reader type has been configured"));
 					exitCode = 10;
 					break;
 				}
@@ -433,33 +422,31 @@ public class Main {
 				break;
 			case SET_SOURCE:
 				try {
-					Instance.getLibrary().changeSource(luid, sourceString, pg);
+					Instance.getInstance().getLibrary().changeSource(luid, sourceString, pg);
 				} catch (IOException e1) {
-					Instance.getTraceHandler().error(e1);
+					Instance.getInstance().getTraceHandler().error(e1);
 					exitCode = 21;
 				}
 				break;
 			case SET_TITLE:
 				try {
-					Instance.getLibrary().changeTitle(luid, titleString, pg);
+					Instance.getInstance().getLibrary().changeTitle(luid, titleString, pg);
 				} catch (IOException e1) {
-					Instance.getTraceHandler().error(e1);
+					Instance.getInstance().getTraceHandler().error(e1);
 					exitCode = 22;
 				}
 				break;
 			case SET_AUTHOR:
 				try {
-					Instance.getLibrary().changeAuthor(luid, authorString, pg);
+					Instance.getInstance().getLibrary().changeAuthor(luid, authorString, pg);
 				} catch (IOException e1) {
-					Instance.getTraceHandler().error(e1);
+					Instance.getInstance().getTraceHandler().error(e1);
 					exitCode = 23;
 				}
 				break;
 			case READ:
 				if (BasicReader.getReader() == null) {
-					Instance.getTraceHandler()
-							.error(new Exception(
-									"No reader type has been configured"));
+					Instance.getInstance().getTraceHandler().error(new Exception("No reader type has been configured"));
 					exitCode = 10;
 					break;
 				}
@@ -467,9 +454,7 @@ public class Main {
 				break;
 			case READ_URL:
 				if (BasicReader.getReader() == null) {
-					Instance.getTraceHandler()
-							.error(new Exception(
-									"No reader type has been configured"));
+					Instance.getInstance().getTraceHandler().error(new Exception("No reader type has been configured"));
 					exitCode = 10;
 					break;
 				}
@@ -478,22 +463,20 @@ public class Main {
 			case SEARCH:
 				page = page == null ? 1 : page;
 				if (page < 0) {
-					Instance.getTraceHandler().error("Incorrect page number");
+					Instance.getInstance().getTraceHandler().error("Incorrect page number");
 					exitCode = 255;
 					break;
 				}
 
 				item = item == null ? 0 : item;
 				if (item < 0) {
-					Instance.getTraceHandler().error("Incorrect item number");
+					Instance.getInstance().getTraceHandler().error("Incorrect item number");
 					exitCode = 255;
 					break;
 				}
 
 				if (BasicReader.getReader() == null) {
-					Instance.getTraceHandler()
-							.error(new Exception(
-									"No reader type has been configured"));
+					Instance.getInstance().getTraceHandler().error(new Exception("No reader type has been configured"));
 					exitCode = 10;
 					break;
 				}
@@ -509,7 +492,7 @@ public class Main {
 						exitCode = 255;
 					}
 				} catch (IOException e1) {
-					Instance.getTraceHandler().error(e1);
+					Instance.getInstance().getTraceHandler().error(e1);
 					exitCode = 20;
 				}
 
@@ -522,22 +505,20 @@ public class Main {
 
 				page = page == null ? 1 : page;
 				if (page < 0) {
-					Instance.getTraceHandler().error("Incorrect page number");
+					Instance.getInstance().getTraceHandler().error("Incorrect page number");
 					exitCode = 255;
 					break;
 				}
 
 				item = item == null ? 0 : item;
 				if (item < 0) {
-					Instance.getTraceHandler().error("Incorrect item number");
+					Instance.getInstance().getTraceHandler().error("Incorrect item number");
 					exitCode = 255;
 					break;
 				}
 
 				if (BasicReader.getReader() == null) {
-					Instance.getTraceHandler()
-							.error(new Exception(
-									"No reader type has been configured"));
+					Instance.getInstance().getTraceHandler().error(new Exception("No reader type has been configured"));
 					exitCode = 10;
 					break;
 				}
@@ -546,7 +527,7 @@ public class Main {
 					BasicReader.getReader().searchTag(searchOn, page, item,
 							true, tags.toArray(new Integer[] {}));
 				} catch (IOException e1) {
-					Instance.getTraceHandler().error(e1);
+					Instance.getInstance().getTraceHandler().error(e1);
 				}
 
 				break;
@@ -567,22 +548,20 @@ public class Main {
 				break;
 			case START:
 				if (BasicReader.getReader() == null) {
-					Instance.getTraceHandler()
-							.error(new Exception(
-									"No reader type has been configured"));
+					Instance.getInstance().getTraceHandler().error(new Exception("No reader type has been configured"));
 					exitCode = 10;
 					break;
 				}
 				try {
 					BasicReader.getReader().browse(null);
 				} catch (IOException e) {
-					Instance.getTraceHandler().error(e);
+					Instance.getInstance().getTraceHandler().error(e);
 					exitCode = 66;
 				}
 				break;
 			case SERVER:
-				key = Instance.getConfig().getString(Config.SERVER_KEY);
-				port = Instance.getConfig().getInteger(Config.SERVER_PORT);
+				key = Instance.getInstance().getConfig().getString(Config.SERVER_KEY);
+				port = Instance.getInstance().getConfig().getInteger(Config.SERVER_PORT);
 				if (port == null) {
 					System.err.println("No port configured in the config file");
 					exitCode = 15;
@@ -590,18 +569,18 @@ public class Main {
 				}
 				try {
 					ServerObject server = new RemoteLibraryServer(key, port);
-					server.setTraceHandler(Instance.getTraceHandler());
+					server.setTraceHandler(Instance.getInstance().getTraceHandler());
 					server.run();
 				} catch (IOException e) {
-					Instance.getTraceHandler().error(e);
+					Instance.getInstance().getTraceHandler().error(e);
 				}
 				return;
 			case STOP_SERVER:
 				// Can be given via "--remote XX XX XX"
 				if (key == null)
-					key = Instance.getConfig().getString(Config.SERVER_KEY);
+					key = Instance.getInstance().getConfig().getString(Config.SERVER_KEY);
 				if (port == null)
-					port = Instance.getConfig().getInteger(Config.SERVER_PORT);
+					port = Instance.getInstance().getConfig().getInteger(Config.SERVER_PORT);
 
 				if (port == null) {
 					System.err.println("No port given nor configured in the config file");
@@ -611,11 +590,11 @@ public class Main {
 				try {
 					new RemoteLibrary(key, host, port).exit();
 				} catch (SSLException e) {
-					Instance.getTraceHandler().error(
+					Instance.getInstance().getTraceHandler().error(
 							"Bad access key for remote library");
 					exitCode = 43;
 				} catch (IOException e) {
-					Instance.getTraceHandler().error(e);
+					Instance.getInstance().getTraceHandler().error(e);
 					exitCode = 44;
 				}
 
@@ -627,11 +606,9 @@ public class Main {
 		}
 
 		try {
-			Instance.getTempFiles().close();
+			Instance.getInstance().getTempFiles().close();
 		} catch (IOException e) {
-			Instance.getTraceHandler()
-					.error(new IOException(
-							"Cannot dispose of the temporary files", e));
+			Instance.getInstance().getTraceHandler().error(new IOException("Cannot dispose of the temporary files", e));
 		}
 
 		if (exitCode == 255) {
@@ -653,12 +630,10 @@ public class Main {
 	 */
 	public static int imprt(String urlString, Progress pg) {
 		try {
-			MetaData meta = Instance.getLibrary().imprt(
-					BasicReader.getUrl(urlString), pg);
-			System.out.println(meta.getLuid() + ": \"" + meta.getTitle()
-					+ "\" imported.");
+			MetaData meta = Instance.getInstance().getLibrary().imprt(BasicReader.getUrl(urlString), pg);
+			System.out.println(meta.getLuid() + ": \"" + meta.getTitle() + "\" imported.");
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 			return 1;
 		}
 
@@ -684,15 +659,14 @@ public class Main {
 			Progress pg) {
 		OutputType type = OutputType.valueOfNullOkUC(typeString, null);
 		if (type == null) {
-			Instance.getTraceHandler().error(
-					new Exception(trans(StringId.OUTPUT_DESC, typeString)));
+			Instance.getInstance().getTraceHandler().error(new Exception(trans(StringId.OUTPUT_DESC, typeString)));
 			return 1;
 		}
 
 		try {
-			Instance.getLibrary().export(luid, type, target, pg);
+			Instance.getInstance().getLibrary().export(luid, type, target, pg);
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 			return 4;
 		}
 
@@ -714,7 +688,7 @@ public class Main {
 		try {
 			BasicReader.getReader().browse(source);
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 			return 66;
 		}
 
@@ -750,16 +724,15 @@ public class Main {
 					reader.setChapter(Integer.parseInt(chapString));
 					reader.read(true);
 				} catch (NumberFormatException e) {
-					Instance.getTraceHandler().error(
-							new IOException("Chapter number cannot be parsed: "
-									+ chapString, e));
+					Instance.getInstance().getTraceHandler()
+							.error(new IOException("Chapter number cannot be parsed: " + chapString, e));
 					return 2;
 				}
 			} else {
 				reader.read(true);
 			}
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 			return 1;
 		}
 
@@ -787,7 +760,7 @@ public class Main {
 			String target, boolean infoCover, Progress pg) {
 		int exitCode = 0;
 
-		Instance.getTraceHandler().trace("Convert: " + urlString);
+		Instance.getInstance().getTraceHandler().trace("Convert: " + urlString);
 		String sourceName = urlString;
 		try {
 			URL source = BasicReader.getUrl(urlString);
@@ -798,9 +771,8 @@ public class Main {
 
 			OutputType type = OutputType.valueOfAllOkUC(typeString, null);
 			if (type == null) {
-				Instance.getTraceHandler().error(
-						new IOException(trans(StringId.ERR_BAD_OUTPUT_TYPE,
-								typeString)));
+				Instance.getInstance().getTraceHandler()
+						.error(new IOException(trans(StringId.ERR_BAD_OUTPUT_TYPE, typeString)));
 
 				exitCode = 2;
 			} else {
@@ -808,8 +780,7 @@ public class Main {
 					BasicSupport support = BasicSupport.getSupport(source);
 
 					if (support != null) {
-						Instance.getTraceHandler().trace(
-								"Support found: " + support.getClass());
+						Instance.getInstance().getTraceHandler().trace("Support found: " + support.getClass());
 						Progress pgIn = new Progress();
 						Progress pgOut = new Progress();
 						if (pg != null) {
@@ -821,32 +792,26 @@ public class Main {
 						Story story = support.process(pgIn);
 						try {
 							target = new File(target).getAbsolutePath();
-							BasicOutput.getOutput(type, infoCover, infoCover)
-									.process(story, target, pgOut);
+							BasicOutput.getOutput(type, infoCover, infoCover).process(story, target, pgOut);
 						} catch (IOException e) {
-							Instance.getTraceHandler().error(
-									new IOException(trans(StringId.ERR_SAVING,
-											target), e));
+							Instance.getInstance().getTraceHandler()
+									.error(new IOException(trans(StringId.ERR_SAVING, target), e));
 							exitCode = 5;
 						}
 					} else {
-						Instance.getTraceHandler().error(
-								new IOException(trans(
-										StringId.ERR_NOT_SUPPORTED, source)));
+						Instance.getInstance().getTraceHandler()
+								.error(new IOException(trans(	StringId.ERR_NOT_SUPPORTED, source)));
 
 						exitCode = 4;
 					}
 				} catch (IOException e) {
-					Instance.getTraceHandler().error(
-							new IOException(trans(StringId.ERR_LOADING,
-									sourceName), e));
+					Instance.getInstance().getTraceHandler()
+							.error(new IOException(trans(StringId.ERR_LOADING, sourceName), e));
 					exitCode = 3;
 				}
 			}
 		} catch (MalformedURLException e) {
-			Instance.getTraceHandler()
-					.error(new IOException(trans(StringId.ERR_BAD_URL,
-							sourceName), e));
+			Instance.getInstance().getTraceHandler().error(new IOException(trans(StringId.ERR_BAD_URL, sourceName), e));
 			exitCode = 1;
 		}
 
@@ -862,7 +827,7 @@ public class Main {
 	 * @return the translated result
 	 */
 	private static String trans(StringId id, Object... params) {
-		return Instance.getTrans().getString(id, params);
+		return Instance.getInstance().getTrans().getString(id, params);
 	}
 
 	/**
@@ -912,9 +877,8 @@ public class Main {
 			BasicReader.setDefaultReaderType(readerType);
 			return 0;
 		} catch (IllegalArgumentException e) {
-			Instance.getTraceHandler().error(
-					new IOException("Unknown reader type: " + readerTypeString,
-							e));
+			Instance.getInstance().getTraceHandler()
+					.error(new IOException("Unknown reader type: " + readerTypeString,	e));
 			return 1;
 		}
 	}

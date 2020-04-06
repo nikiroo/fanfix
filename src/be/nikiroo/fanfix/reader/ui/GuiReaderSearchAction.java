@@ -77,7 +77,7 @@ public class GuiReaderSearchAction extends JFrame {
 						try {
 							lib.imprt(new URL(info.getMeta().getUrl()), null);
 						} catch (IOException e) {
-							Instance.getTraceHandler().error(e);
+							Instance.getInstance().getTraceHandler().error(e);
 						}
 
 						pg.done();

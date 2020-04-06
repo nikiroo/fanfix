@@ -259,7 +259,7 @@ public class GuiReaderNavBar extends JPanel {
 				listener.actionPerformed(new ActionEvent(this,
 						ActionEvent.ACTION_FIRST, "page changed"));
 			} catch (Exception e) {
-				Instance.getTraceHandler().error(e);
+				Instance.getInstance().getTraceHandler().error(e);
 			}
 		}
 	}

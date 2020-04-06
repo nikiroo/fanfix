@@ -7,8 +7,10 @@ import java.util.List;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.UiConfig;
+import be.nikiroo.fanfix.bundles.UiConfigBundle;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
+import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
 
@@ -25,19 +27,18 @@ public class CacheLibrary extends BasicLibrary {
 	/**
 	 * Create a cache library around the given one.
 	 * <p>
-	 * It will return the same result, but those will be saved to disk at the
-	 * same time to be fetched quicker the next time.
+	 * It will return the same result, but those will be saved to disk at the same
+	 * time to be fetched quicker the next time.
 	 * 
-	 * @param cacheDir
-	 *            the cache directory where to save the files to disk
-	 * @param lib
-	 *            the original library to wrap
+	 * @param cacheDir the cache directory where to save the files to disk
+	 * @param lib      the original library to wrap
+	 * @param config   the configuration used to know which kind of default
+	 *                 {@link OutputType} to use for images and non-images stories
 	 */
-	public CacheLibrary(File cacheDir, BasicLibrary lib) {
-		this.cacheLib = new LocalLibrary(cacheDir, Instance.getUiConfig()
-				.getString(UiConfig.GUI_NON_IMAGES_DOCUMENT_TYPE), Instance
-				.getUiConfig().getString(UiConfig.GUI_IMAGES_DOCUMENT_TYPE),
-				true);
+	public CacheLibrary(File cacheDir, BasicLibrary lib, UiConfigBundle config) {
+		this.cacheLib = new LocalLibrary(cacheDir, //
+				config.getString(UiConfig.GUI_NON_IMAGES_DOCUMENT_TYPE),
+				config.getString(UiConfig.GUI_IMAGES_DOCUMENT_TYPE), true);
 		this.lib = lib;
 	}
 
@@ -95,7 +96,7 @@ public class CacheLibrary extends BasicLibrary {
 				updateInfo(cacheLib.getInfo(luid));
 				pgImport.done();
 			} catch (IOException e) {
-				Instance.getTraceHandler().error(e);
+				Instance.getInstance().getTraceHandler().error(e);
 			}
 
 			pgImport.done();

@@ -9,14 +9,10 @@ import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 
 class InfoText extends Text {
 	// quote chars
-	private char openQuote = Instance.getTrans().getCharacter(
-			StringId.OPEN_SINGLE_QUOTE);
-	private char closeQuote = Instance.getTrans().getCharacter(
-			StringId.CLOSE_SINGLE_QUOTE);
-	private char openDoubleQuote = Instance.getTrans().getCharacter(
-			StringId.OPEN_DOUBLE_QUOTE);
-	private char closeDoubleQuote = Instance.getTrans().getCharacter(
-			StringId.CLOSE_DOUBLE_QUOTE);
+	private char openQuote = Instance.getInstance().getTrans().getCharacter(StringId.OPEN_SINGLE_QUOTE);
+	private char closeQuote = Instance.getInstance().getTrans().getCharacter(StringId.CLOSE_SINGLE_QUOTE);
+	private char openDoubleQuote = Instance.getInstance().getTrans().getCharacter(StringId.OPEN_DOUBLE_QUOTE);
+	private char closeDoubleQuote = Instance.getInstance().getTrans().getCharacter(StringId.CLOSE_DOUBLE_QUOTE);
 
 	@Override
 	public String getDefaultExtension(boolean readerTarget) {
@@ -28,11 +24,10 @@ class InfoText extends Text {
 		writer.write("\n");
 
 		if (chap.getName() != null && !chap.getName().isEmpty()) {
-			writer.write(Instance.getTrans().getString(StringId.CHAPTER_NAMED,
-					chap.getNumber(), chap.getName()));
+			writer.write(Instance.getInstance().getTrans().getString(StringId.CHAPTER_NAMED, chap.getNumber(),
+					chap.getName()));
 		} else {
-			writer.write(Instance.getTrans().getString(
-					StringId.CHAPTER_UNNAMED, chap.getNumber()));
+			writer.write(Instance.getInstance().getTrans().getString(StringId.CHAPTER_UNNAMED, chap.getNumber()));
 		}
 
 		writer.write("\n\n");

@@ -123,7 +123,7 @@ class E621 extends BasicSupport {
 		for (int i = 1; true; i++) {
 			URL url = new URL(baseUrl + i + parameters);
 			try {
-				InputStream pageI = Instance.getCache().open(url, this, false);
+				InputStream pageI = Instance.getInstance().getCache().open(url, this, false);
 				try {
 					if (IOUtils.readSmallStream(pageI).contains("Nobody here but us chickens!")) {
 						break;
@@ -159,7 +159,7 @@ class E621 extends BasicSupport {
 	protected URL getCanonicalUrl(URL source) {
 		if (isSetOriginalUrl(source)) {
 			try {
-				Document doc = DataUtil.load(Instance.getCache().open(source, this, false), "UTF-8", source.toString());
+				Document doc = DataUtil.load(Instance.getInstance().getCache().open(source, this, false), "UTF-8", source.toString());
 				for (Element shortname : doc.getElementsByClass("set-shortname")) {
 					for (Element el : shortname.getElementsByTag("a")) {
 						if (!el.attr("href").isEmpty())
@@ -167,7 +167,7 @@ class E621 extends BasicSupport {
 					}
 				}
 			} catch (IOException e) {
-				Instance.getTraceHandler().error(e);
+				Instance.getInstance().getTraceHandler().error(e);
 			}
 		}
 

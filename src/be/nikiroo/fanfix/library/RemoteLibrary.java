@@ -124,9 +124,9 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public Status getStatus() {
-		Instance.getTraceHandler().trace("Getting remote lib status...");
+		Instance.getInstance().getTraceHandler().trace("Getting remote lib status...");
 		Status status = getStatusDo();
-		Instance.getTraceHandler().trace("Remote lib status: " + status);
+		Instance.getInstance().getTraceHandler().trace("Remote lib status: " + status);
 		return status;
 	}
 
@@ -560,7 +560,7 @@ public class RemoteLibrary extends BasicLibrary {
 				@Override
 				protected void onError(Exception e) {
 					if (!(e instanceof IOException)) {
-						Instance.getTraceHandler().error(e);
+						Instance.getInstance().getTraceHandler().error(e);
 						return;
 					}
 

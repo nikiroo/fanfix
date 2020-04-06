@@ -77,11 +77,10 @@ public enum SupportType {
 	 * @return the description
 	 */
 	public String getDesc() {
-		String desc = Instance.getTrans().getStringX(StringId.INPUT_DESC,
-				this.name());
+		String desc = Instance.getInstance().getTrans().getStringX(StringId.INPUT_DESC, this.name());
 
 		if (desc == null) {
-			desc = Instance.getTrans().getString(StringId.INPUT_DESC, this);
+			desc = Instance.getInstance().getTrans().getString(StringId.INPUT_DESC, this);
 		}
 
 		return desc;

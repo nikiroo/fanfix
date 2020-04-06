@@ -23,14 +23,10 @@ import be.nikiroo.utils.test.TestLauncher;
 
 class BasicSupportUtilitiesTest extends TestLauncher {
 	// quote chars
-	private char openQuote = Instance.getTrans().getCharacter(
-			StringId.OPEN_SINGLE_QUOTE);
-	private char closeQuote = Instance.getTrans().getCharacter(
-			StringId.CLOSE_SINGLE_QUOTE);
-	private char openDoubleQuote = Instance.getTrans().getCharacter(
-			StringId.OPEN_DOUBLE_QUOTE);
-	private char closeDoubleQuote = Instance.getTrans().getCharacter(
-			StringId.CLOSE_DOUBLE_QUOTE);
+	private char openQuote = Instance.getInstance().getTrans().getCharacter(StringId.OPEN_SINGLE_QUOTE);
+	private char closeQuote = Instance.getInstance().getTrans().getCharacter(StringId.CLOSE_SINGLE_QUOTE);
+	private char openDoubleQuote = Instance.getInstance().getTrans().getCharacter(StringId.OPEN_DOUBLE_QUOTE);
+	private char closeDoubleQuote = Instance.getInstance().getTrans().getCharacter(StringId.CLOSE_DOUBLE_QUOTE);
 	
 	public BasicSupportUtilitiesTest(String[] args) {
 		super("BasicSupportUtilities", args);
@@ -229,9 +225,9 @@ class BasicSupportUtilitiesTest extends TestLauncher {
 					public void test() throws Exception {
 						BasicSupportParaPublic support = new BasicSupportParaPublic();
 
-						char openDoubleQuote = Instance.getTrans()
+						char openDoubleQuote = Instance.getInstance().getTrans()
 								.getCharacter(StringId.OPEN_DOUBLE_QUOTE);
-						char closeDoubleQuote = Instance.getTrans()
+						char closeDoubleQuote = Instance.getInstance().getTrans()
 								.getCharacter(StringId.CLOSE_DOUBLE_QUOTE);
 
 						String content = null;

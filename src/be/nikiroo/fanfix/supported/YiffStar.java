@@ -67,10 +67,8 @@ class YiffStar extends BasicSupport_Deprecated {
 	public void login() throws IOException {
 		// Note: this should not be necessary anymore
 		// (the "/guest" trick is enough)
-		String login = Instance.getConfig().getString(
-				Config.LOGIN_YIFFSTAR_USER);
-		String password = Instance.getConfig().getString(
-				Config.LOGIN_YIFFSTAR_PASS);
+		String login = Instance.getInstance().getConfig().getString(Config.LOGIN_YIFFSTAR_USER);
+		String password = Instance.getInstance().getConfig().getString(Config.LOGIN_YIFFSTAR_PASS);
 
 		if (login != null && !login.isEmpty() && password != null
 				&& !password.isEmpty()) {
@@ -84,9 +82,8 @@ class YiffStar extends BasicSupport_Deprecated {
 
 			// Cookies will actually be retained by the cache manager once
 			// logged in
-			Instance.getCache()
-					.openNoCache(new URL("https://www.sofurry.com/user/login"),
-							this, post, null, null).close();
+			Instance.getInstance().getCache()
+					.openNoCache(new URL("https://www.sofurry.com/user/login"), this, post, null, null).close();
 		}
 	}
 
@@ -96,8 +93,7 @@ class YiffStar extends BasicSupport_Deprecated {
 			if (source.getPath().startsWith("/view")) {
 				source = guest(source.toString());
 				// NO CACHE because we don't want the NotLoggedIn message later
-				InputStream in = Instance.getCache().openNoCache(source, this,
-						null, null, null);
+				InputStream in = Instance.getInstance().getCache().openNoCache(source, this, null, null, null);
 				String line = getLine(in, "/browse/folder/", 0);
 				if (line != null) {
 					String[] tab = line.split("\"");
@@ -109,7 +105,7 @@ class YiffStar extends BasicSupport_Deprecated {
 				}
 			}
 		} catch (Exception e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 		}
 
 		return super.getCanonicalUrl(source);
@@ -136,7 +132,7 @@ class YiffStar extends BasicSupport_Deprecated {
 
 		List<Entry<String, URL>> chaps = getChapters(source, in, null);
 		if (!chaps.isEmpty()) {
-			in = Instance.getCache().open(chaps.get(0).getValue(), this, true);
+			in = Instance.getInstance().getCache().open(chaps.get(0).getValue(), this, true);
 			String line = getLine(in, " name=\"og:image\"", 0);
 			if (line != null) {
 				int pos = -1;

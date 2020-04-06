@@ -120,7 +120,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 		try {
 			reader.browse(source);
 		} catch (IOException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 		}
 	}
 
@@ -219,7 +219,7 @@ class TuiReaderApplication extends TApplication implements Reader {
 		this.reader = reader;
 
 		// TODO: traces/errors?
-		Instance.setTraceHandler(null);
+		Instance.getInstance().setTraceHandler(null);
 
 		// Add the menus TODO: i18n
 		TMenu fileMenu = addMenu("&File");
@@ -423,9 +423,9 @@ class TuiReaderApplication extends TApplication implements Reader {
 	 *            the exception to log if any (can be NULL)
 	 */
 	private void error(String message, String title, Exception e) {
-		Instance.getTraceHandler().error(title + ": " + message);
+		Instance.getInstance().getTraceHandler().error(title + ": " + message);
 		if (e != null) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 		}
 
 		if (e != null) {

@@ -51,7 +51,7 @@ public class Test extends TestLauncher {
 	 */
 	public Test(String[] args, boolean urlsAllowed) throws IOException {
 		super("Fanfix", args);
-		Instance.setTraceHandler(null);
+		Instance.getInstance().setTraceHandler(null);
 		addSeries(new BasicSupportUtilitiesTest(args));
 		addSeries(new BasicSupportDeprecatedTest(args));
 		addSeries(new LibraryTest(args));
@@ -106,7 +106,7 @@ public class Test extends TestLauncher {
 		
 		// Only download files if allowed:
 		boolean offline = new File("test/OFFLINE").exists();
-		Instance.getCache().setOffline(offline);
+		Instance.getInstance().getCache().setOffline(offline);
 
 
 		
@@ -126,7 +126,7 @@ public class Test extends TestLauncher {
 			System.setProperty("CONFIG_DIR", tmpConfig.getAbsolutePath());
 
 			Instance.init(true);
-			Instance.getCache().setOffline(offline);
+			Instance.getInstance().getCache().setOffline(offline);
 
 			TestLauncher tests = new Test(args, urlsAllowed);
 			tests.setDetails(verbose);
@@ -140,7 +140,7 @@ public class Test extends TestLauncher {
 			tempFiles.close();
 
 			// This is usually done in Fanfix.Main:
-			Instance.getTempFiles().close();
+			Instance.getInstance().getTempFiles().close();
 		}
 
 		System.exit(result);
