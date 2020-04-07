@@ -317,15 +317,7 @@ public class CacheLibrary extends BasicLibrary {
 		invalidateInfo(luid);
 	}
 
-	/**
-	 * Check if the {@link Story} denoted by this Library UID is present in the
-	 * cache.
-	 * 
-	 * @param luid
-	 *            the Library UID
-	 * 
-	 * @return TRUE if it is
-	 */
+	@Override
 	public boolean isCached(String luid) {
 		try {
 			return cacheLib.getInfo(luid) != null;
@@ -334,18 +326,7 @@ public class CacheLibrary extends BasicLibrary {
 		}
 	}
 
-	/**
-	 * Clear the {@link Story} from the cache.
-	 * <p>
-	 * The next time we try to retrieve the {@link Story}, it may be required to
-	 * cache it again.
-	 * 
-	 * @param luid
-	 *            the story to clear
-	 * 
-	 * @throws IOException
-	 *             in case of I/O error
-	 */
+	@Override
 	public void clearFromCache(String luid) throws IOException {
 		if (isCached(luid)) {
 			cacheLib.delete(luid);

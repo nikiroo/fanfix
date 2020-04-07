@@ -1,6 +1,7 @@
 package be.nikiroo.fanfix.library;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -86,6 +87,15 @@ public class MetaResultList {
 		}
 
 		return authors;
+	}
+
+	// helper
+	public List<MetaData> filter(String source, String author, String tag) {
+		List<String> sources = source == null ? null : Arrays.asList(source);
+		List<String> authors = author == null ? null : Arrays.asList(author);
+		List<String> tags = tag == null ? null : Arrays.asList(tag);
+
+		return filter(sources, authors, tags);
 	}
 
 	// null or empty -> no check, rest = must be included

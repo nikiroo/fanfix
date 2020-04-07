@@ -345,6 +345,36 @@ abstract public class BasicLibrary {
 			// We will let it fail later
 		}
 	}
+	
+	/**
+	 * Check if the {@link Story} denoted by this Library UID is present in the
+	 * cache (if we have no cache, we default to </t>true</tt>).
+	 * 
+	 * @param luid
+	 *            the Library UID
+	 * 
+	 * @return TRUE if it is
+	 */
+	public boolean isCached(String luid) {
+		// By default, everything is cached
+		return true;
+	}
+	
+	/**
+	 * Clear the {@link Story} from the cache, if needed.
+	 * <p>
+	 * The next time we try to retrieve the {@link Story}, it may be required to
+	 * cache it again.
+	 * 
+	 * @param luid
+	 *            the story to clear
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public void clearFromCache(String luid) throws IOException {
+		// By default, this is a noop.
+	}
 
 	/**
 	 * List all the known types (sources) of stories.
@@ -584,17 +614,11 @@ abstract public class BasicLibrary {
 	 * @throws IOException in case of IOException
 	 * 
 	 * @deprecated use {@link BasicLibrary#getList(Progress)} and
-	 *             {@link MetaResultList#filter(List, List, List)}
+	 *             {@link MetaResultList#filter(String, String, String)}
 	 */
 	@Deprecated
 	public synchronized List<MetaData> getListBySource(String source) throws IOException {
-		List<String> sources = null;
-		if (source != null) {
-			sources = new ArrayList<String>();
-			sources.add(source);
-		}
-
-		return getList(null).filter(sources, null, null);
+		return getList(null).filter(source, null, null);
 	}
 
 	/**
@@ -612,16 +636,10 @@ abstract public class BasicLibrary {
 	 *             in case of IOException
 	 *             
 	 *             @deprecated use {@link BasicLibrary#getList(Progress)} and
-	 *             {@link MetaResultList#filter(List, List, List)}
+	 *             {@link MetaResultList#filter(String, String, String)}
 	 */
 	public synchronized List<MetaData> getListByAuthor(String author) throws IOException {
-		List<String> authors = null;
-		if (author != null) {
-			authors = new ArrayList<String>();
-			authors.add(author);
-		}
-
-		return getList(null).filter(null, authors, null);
+		return getList(null).filter(null, author, null);
 	}
 
 	/**
