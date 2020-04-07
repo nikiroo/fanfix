@@ -3,6 +3,7 @@ package be.nikiroo.fanfix.library;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 import be.nikiroo.fanfix.Instance;
@@ -63,7 +64,7 @@ public class CacheLibrary extends BasicLibrary {
 		}
 
 		pg.done();
-		return metas;
+		return new ArrayList<MetaData>(metas);
 	}
 
 	@Override

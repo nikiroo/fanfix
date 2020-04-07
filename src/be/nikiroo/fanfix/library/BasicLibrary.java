@@ -122,6 +122,13 @@ abstract public class BasicLibrary {
 	 */
 	public abstract Image getCover(String luid) throws IOException;
 
+	// TODO: ensure it is the main used interface
+	public synchronized MetaResultList getList(Progress pg) throws IOException {
+		return new MetaResultList(getMetas(pg));
+	}
+	
+	//TODO: make something for (normal and custom) not-story covers
+	
 	/**
 	 * Return the cover image associated to this source.
 	 * <p>
@@ -245,6 +252,8 @@ abstract public class BasicLibrary {
 	/**
 	 * Return the list of stories (represented by their {@link MetaData}, which
 	 * <b>MAY</b> not have the cover included).
+	 * <p>
+	 * The returned list <b>MUST</b> be a copy, not the original one.
 	 * 
 	 * @param pg
 	 *            the optional {@link Progress}
@@ -563,31 +572,29 @@ abstract public class BasicLibrary {
 	}
 
 	/**
-	 * List all the stories of the given source type in the {@link BasicLibrary}
-	 * , or all the stories if NULL is passed as a type.
+	 * List all the stories of the given source type in the {@link BasicLibrary} ,
+	 * or all the stories if NULL is passed as a type.
 	 * <p>
 	 * Cover images not included.
 	 * 
-	 * @param type
-	 *            the type of story to retrieve, or NULL for all
+	 * @param source the type of story to retrieve, or NULL for all
 	 * 
 	 * @return the stories
 	 * 
-	 * @throws IOException
-	 *             in case of IOException
+	 * @throws IOException in case of IOException
+	 * 
+	 * @deprecated use {@link BasicLibrary#getList(Progress)} and
+	 *             {@link MetaResultList#filter(List, List, List)}
 	 */
-	public synchronized List<MetaData> getListBySource(String type)
-			throws IOException {
-		List<MetaData> list = new ArrayList<MetaData>();
-		for (MetaData meta : getMetas(null)) {
-			String storyType = meta.getSource();
-			if (type == null || type.equalsIgnoreCase(storyType)) {
-				list.add(meta);
-			}
+	@Deprecated
+	public synchronized List<MetaData> getListBySource(String source) throws IOException {
+		List<String> sources = null;
+		if (source != null) {
+			sources = new ArrayList<String>();
+			sources.add(source);
 		}
 
-		Collections.sort(list);
-		return list;
+		return getList(null).filter(sources, null, null);
 	}
 
 	/**
@@ -603,19 +610,18 @@ abstract public class BasicLibrary {
 	 * 
 	 * @throws IOException
 	 *             in case of IOException
+	 *             
+	 *             @deprecated use {@link BasicLibrary#getList(Progress)} and
+	 *             {@link MetaResultList#filter(List, List, List)}
 	 */
-	public synchronized List<MetaData> getListByAuthor(String author)
-			throws IOException {
-		List<MetaData> list = new ArrayList<MetaData>();
-		for (MetaData meta : getMetas(null)) {
-			String storyAuthor = meta.getAuthor();
-			if (author == null || author.equalsIgnoreCase(storyAuthor)) {
-				list.add(meta);
-			}
+	public synchronized List<MetaData> getListByAuthor(String author) throws IOException {
+		List<String> authors = null;
+		if (author != null) {
+			authors = new ArrayList<String>();
+			authors.add(author);
 		}
 
-		Collections.sort(list);
-		return list;
+		return getList(null).filter(null, authors, null);
 	}
 
 	/**
