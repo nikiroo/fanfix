@@ -18,7 +18,6 @@ import java.util.concurrent.ExecutionException;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.ListCellRenderer;
@@ -33,6 +32,7 @@ import be.nikiroo.fanfix_swing.Actions;
 import be.nikiroo.fanfix_swing.gui.book.BookBlock;
 import be.nikiroo.fanfix_swing.gui.book.BookInfo;
 import be.nikiroo.fanfix_swing.gui.book.BookLine;
+import be.nikiroo.fanfix_swing.gui.book.BookPopup;
 import be.nikiroo.fanfix_swing.gui.utils.UiHelper;
 
 public class BooksPanel extends JPanel {
@@ -198,22 +198,34 @@ public class BooksPanel extends JPanel {
 	private JList<BookInfo> initList(boolean listMode) {
 		final JList<BookInfo> list = new JList<BookInfo>(data);
 
-		final JPopupMenu popup = new JPopupMenu();
-		JMenuItem open = popup.add("Open");
-		open.addActionListener(new ActionListener() {
+		final JPopupMenu popup = new BookPopup(Instance.getInstance().getLibrary(), new BookPopup.Informer() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				int[] selected = list.getSelectedIndices();
-				if (selected.length == 1) {
-					final BookInfo book = data.get(selected[0]);
-					BasicLibrary lib = Instance.getInstance().getLibrary();
-					Actions.openExternal(lib, book.getMeta(), BooksPanel.this, new Runnable() {
-						@Override
-						public void run() {
-							data.fireElementChanged(book);
-						}
-					});
+			public void setCached(BookInfo book, boolean cached) {
+				book.setCached(cached);
+				fireElementChanged(book);
+			}
+
+			public void fireElementChanged(BookInfo book) {
+				data.fireElementChanged(book);
+			}
+
+			@Override
+			public List<BookInfo> getSelected() {
+				List<BookInfo> selected = new ArrayList<BookInfo>();
+				for (int index : list.getSelectedIndices()) {
+					selected.add(data.get(index));
 				}
+
+				return selected;
+			}
+
+			@Override
+			public BookInfo getUniqueSelected() {
+				List<BookInfo> selected = getSelected();
+				if (selected.size() == 1) {
+					return selected.get(0);
+				}
+				return null;
 			}
 		});
 
@@ -266,6 +278,7 @@ public class BooksPanel extends JPanel {
 					Actions.openExternal(lib, book.getMeta(), BooksPanel.this, new Runnable() {
 						@Override
 						public void run() {
+							book.setCached(true);
 							data.fireElementChanged(book);
 						}
 					});

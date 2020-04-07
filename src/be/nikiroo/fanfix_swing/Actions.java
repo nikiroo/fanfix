@@ -15,15 +15,18 @@ import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.BasicLibrary;
+import be.nikiroo.fanfix_swing.gui.utils.UiHelper;
 
 public class Actions {
-	static public void openExternal(final BasicLibrary lib, MetaData meta, Container parent, final Runnable onDone) {
-		while (!(parent instanceof Window) && parent != null) {
-			parent = parent.getParent();
+	static public void openExternal(final BasicLibrary lib, MetaData meta, final Container parent,
+			final Runnable onDone) {
+		Container parentWindow = parent;
+		while (!(parentWindow instanceof Window) && parentWindow != null) {
+			parentWindow = parentWindow.getParent();
 		}
 
 		// TODO: UI
-		final JDialog wait = new JDialog((Window) parent);
+		final JDialog wait = new JDialog((Window) parentWindow);
 		wait.setTitle("Opening story");
 		wait.setSize(400, 300);
 		wait.setLayout(new BorderLayout());
@@ -65,10 +68,11 @@ public class Actions {
 			@Override
 			protected void done() {
 				try {
+					get();
 					openExternal(target, isImageDocument);
-				} catch (IOException e) {
-					// TODO: error?
-					e.printStackTrace();
+				} catch (Exception e) {
+					// TODO: i18n
+					UiHelper.error(parent, e.getLocalizedMessage(), "Cannot open the story", e);
 				}
 
 				synchronized (waitLock) {

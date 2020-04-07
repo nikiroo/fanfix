@@ -1,18 +1,15 @@
 package be.nikiroo.fanfix_swing.gui.utils;
 
 import java.awt.Color;
-import java.awt.Container;
-import java.awt.Frame;
-import java.awt.Window;
-import java.awt.event.ActionListener;
+import java.awt.Component;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
-import javax.swing.SwingWorker;
+import javax.swing.SwingUtilities;
 
-import be.nikiroo.utils.Progress;
+import be.nikiroo.fanfix.Instance;
 
 public class UiHelper {
 	static private Color buttonNormal;
@@ -44,5 +41,27 @@ public class UiHelper {
 		scroll.getVerticalScrollBar().setUnitIncrement(16);
 		scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		return scroll;
+	}
+
+	/**
+	 * Display an error message and log the linked {@link Exception}.
+	 * 
+	 * @param owner   the owner of the error (to link the messagebox to it)
+	 * @param message the message
+	 * @param title   the title of the error message
+	 * @param e       the exception to log if any
+	 */
+	static public void error(final Component owner, final String message, final String title, Exception e) {
+		Instance.getInstance().getTraceHandler().error(title + ": " + message);
+		if (e != null) {
+			Instance.getInstance().getTraceHandler().error(e);
+		}
+
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				JOptionPane.showMessageDialog(owner, message, title, JOptionPane.ERROR_MESSAGE);
+			}
+		});
 	}
 }
