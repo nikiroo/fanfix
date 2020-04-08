@@ -459,7 +459,7 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected List<MetaData> getMetas(Progress pg) throws IOException {
+	protected synchronized List<MetaData> getMetas(Progress pg) throws IOException {
 		return getMetasList("*", pg);
 	}
 

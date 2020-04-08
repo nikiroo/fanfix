@@ -98,7 +98,7 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected List<MetaData> getMetas(Progress pg) {
+	protected synchronized List<MetaData> getMetas(Progress pg) {
 		return new ArrayList<MetaData>(getStories(pg).keySet());
 	}
 
@@ -214,7 +214,7 @@ public class LocalLibrary extends BasicLibrary {
 			}
 		}
 
-		invalidateInfo();
+		updateInfo(meta);
 	}
 
 	@Override

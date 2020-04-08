@@ -243,11 +243,11 @@ class TuiReaderMainWindow extends TWindow {
 
 		try {
 			if (mode == Mode.SOURCE) {
-				metas = reader.getLibrary().getListBySource(target);
+				metas = reader.getLibrary().getList().filter(target, null, null);
 			} else if (mode == Mode.AUTHOR) {
-				metas = reader.getLibrary().getListByAuthor(target);
+				metas = reader.getLibrary().getList().filter(null, target, null);
 			} else {
-				metas = reader.getLibrary().getList();
+				metas = reader.getLibrary().getList().getMetas();
 			}
 		} catch (IOException e) {
 			Instance.getInstance().getTraceHandler().error(e);

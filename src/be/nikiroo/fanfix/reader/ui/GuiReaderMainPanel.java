@@ -363,9 +363,9 @@ class GuiReaderMainPanel extends JPanel {
 			List<MetaData> metas;
 			try {
 				if (currentType) {
-					metas = lib.getListBySource(value);
+					metas = lib.getList().filter(value, null, null);
 				} else {
-					metas = lib.getListByAuthor(value);
+					metas = lib.getList().filter(null, value, null);
 				}
 			} catch (IOException e) {
 				error(e.getLocalizedMessage(), "IOException", e);
@@ -431,13 +431,13 @@ class GuiReaderMainPanel extends JPanel {
 				break;
 			case SOURCE:
 				for (MetaData meta : helper.getReader().getLibrary()
-						.getListBySource(book.getInfo().getMainInfo())) {
+						.getList().filter(book.getInfo().getMainInfo(), null, null)) {
 					luids.add(meta.getLuid());
 				}
 				break;
 			case AUTHOR:
 				for (MetaData meta : helper.getReader().getLibrary()
-						.getListByAuthor(book.getInfo().getMainInfo())) {
+						.getList().filter(null, book.getInfo().getMainInfo(), null)) {
 					luids.add(meta.getLuid());
 				}
 				break;

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.UiConfig;
@@ -21,7 +22,8 @@ import be.nikiroo.utils.Progress;
  * @author niki
  */
 public class CacheLibrary extends BasicLibrary {
-	private List<MetaData> metas;
+	private List<MetaData> metasReal;
+	private List<MetaData> metasMixed;
 	private BasicLibrary lib;
 	private LocalLibrary cacheLib;
 
@@ -54,32 +56,37 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected List<MetaData> getMetas(Progress pg) throws IOException {
+	protected synchronized List<MetaData> getMetas(Progress pg) throws IOException {
+		// We make sure that cached metas have precedence
+
 		if (pg == null) {
 			pg = new Progress();
 		}
 
-		if (metas == null) {
-			metas = lib.getMetas(pg);
+		if (metasMixed == null) {
+			if (metasReal == null) {
+				metasReal = lib.getMetas(pg);
+			}
+			
+			metasMixed = new ArrayList<MetaData>();
+			TreeSet<String> cachedLuids = new TreeSet<String>();
+			for (MetaData cachedMeta : cacheLib.getMetas(null)) {
+				metasMixed.add(cachedMeta);
+				cachedLuids.add(cachedMeta.getLuid());
+			}
+			for (MetaData realMeta : metasReal) {
+				if (!cachedLuids.contains(realMeta.getLuid())) {
+					metasMixed.add(realMeta);
+				}
+			}
 		}
 
 		pg.done();
-		return new ArrayList<MetaData>(metas);
+		return new ArrayList<MetaData>(metasMixed);
 	}
 
 	@Override
-	public synchronized MetaData getInfo(String luid) throws IOException {
-		MetaData info = cacheLib.getInfo(luid);
-		if (info == null) {
-			info = lib.getInfo(luid);
-		}
-
-		return info;
-	}
-
-	@Override
-	public synchronized Story getStory(String luid, MetaData meta, Progress pg)
-			throws IOException {
+	public synchronized Story getStory(String luid, MetaData meta, Progress pg) throws IOException {
 		if (pg == null) {
 			pg = new Progress();
 		}
@@ -94,7 +101,7 @@ public class CacheLibrary extends BasicLibrary {
 		if (!isCached(luid)) {
 			try {
 				cacheLib.imprt(lib, luid, pgImport);
-				updateInfo(cacheLib.getInfo(luid));
+				updateMetaCache(metasMixed, cacheLib.getInfo(luid));
 				pgImport.done();
 			} catch (IOException e) {
 				Instance.getInstance().getTraceHandler().error(e);
@@ -112,8 +119,7 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public synchronized File getFile(final String luid, Progress pg)
-			throws IOException {
+	public synchronized File getFile(final String luid, Progress pg) throws IOException {
 		if (pg == null) {
 			pg = new Progress();
 		}
@@ -215,8 +221,29 @@ public class CacheLibrary extends BasicLibrary {
 		cacheLib.setAuthorCover(author, getCover(luid));
 	}
 
+	/**
+	 * Invalidate the {@link Story} cache (when the content has changed, but we
+	 * already have it) with the new given meta.
+	 * <p>
+	 * <b>Make sure to always use {@link MetaData} from the cached library 
+	 * in priority, here.</b>
+	 * 
+	 * @param meta
+	 *            the {@link Story} to clear from the cache
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
+	 */
 	@Override
+	@Deprecated
 	protected void updateInfo(MetaData meta) throws IOException {
+		throw new IOException(
+				"This method is not supported in a CacheLibrary, please use updateMetaCache");
+	}
+	
+	// relplace the meta in Metas by Meta, add it if needed
+	// return TRUE = added
+	private boolean updateMetaCache(List<MetaData> metas, MetaData meta) {
 		if (meta != null && metas != null) {
 			boolean changed = false;
 			for (int i = 0; i < metas.size(); i++) {
@@ -228,32 +255,40 @@ public class CacheLibrary extends BasicLibrary {
 
 			if (!changed) {
 				metas.add(meta);
+				return true;
 			}
 		}
-
-		cacheLib.updateInfo(meta);
-		lib.updateInfo(meta);
+		
+		return false;
 	}
 
 	@Override
 	protected void invalidateInfo(String luid) {
 		if (luid == null) {
-			metas = null;
-		} else if (metas != null) {
-			for (int i = 0; i < metas.size(); i++) {
-				if (metas.get(i).getLuid().equals(luid)) {
-					metas.remove(i--);
-				}
-			}
+			metasReal = null;
+			metasMixed = null;
+		} else {
+			invalidateInfo(metasReal, luid);
+			invalidateInfo(metasMixed, luid);
 		}
 
 		cacheLib.invalidateInfo(luid);
 		lib.invalidateInfo(luid);
 	}
 
+	// luid cannot be null
+	private void invalidateInfo(List<MetaData> metas, String luid) {
+		if (metas != null) {
+			for (int i = 0; i < metas.size(); i++) {
+				if (metas.get(i).getLuid().equals(luid)) {
+					metas.remove(i--);
+				}
+			}
+		}
+	}
+
 	@Override
-	public synchronized Story save(Story story, String luid, Progress pg)
-			throws IOException {
+	public synchronized Story save(Story story, String luid, Progress pg) throws IOException {
 		Progress pgLib = new Progress();
 		Progress pgCacheLib = new Progress();
 
@@ -266,9 +301,10 @@ public class CacheLibrary extends BasicLibrary {
 		pg.addProgress(pgCacheLib, 1);
 
 		story = lib.save(story, luid, pgLib);
+		updateMetaCache(metasReal, story.getMeta());
+		
 		story = cacheLib.save(story, story.getMeta().getLuid(), pgCacheLib);
-
-		updateInfo(story.getMeta());
+		updateMetaCache(metasMixed, story.getMeta());
 
 		return story;
 	}
@@ -284,8 +320,8 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected synchronized void changeSTA(String luid, String newSource,
-			String newTitle, String newAuthor, Progress pg) throws IOException {
+	protected synchronized void changeSTA(String luid, String newSource, String newTitle, String newAuthor, Progress pg)
+			throws IOException {
 		if (pg == null) {
 			pg = new Progress();
 		}
@@ -314,7 +350,12 @@ public class CacheLibrary extends BasicLibrary {
 		meta.setAuthor(newAuthor);
 		pg.done();
 
-		invalidateInfo(luid);
+		if (isCached(luid)) {
+			updateMetaCache(metasMixed, meta);
+			updateMetaCache(metasReal, lib.getInfo(luid));
+		} else {
+			updateMetaCache(metasReal, meta);
+		}
 	}
 
 	@Override
@@ -334,7 +375,7 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public MetaData imprt(URL url, Progress pg) throws IOException {
+	public synchronized MetaData imprt(URL url, Progress pg) throws IOException {
 		if (pg == null) {
 			pg = new Progress();
 		}
@@ -346,10 +387,10 @@ public class CacheLibrary extends BasicLibrary {
 		pg.addProgress(pgCache, 3);
 
 		MetaData meta = lib.imprt(url, pgImprt);
-		updateInfo(meta);
-		
+		updateMetaCache(metasReal, meta);
+		metasMixed = null;
 		clearFromCache(meta.getLuid());
-		
+
 		pg.done();
 		return meta;
 	}

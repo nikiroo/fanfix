@@ -17,6 +17,12 @@ import be.nikiroo.utils.StringUtils;
  * @author niki
  */
 public class GuiReaderBookInfo {
+	/**
+	 * The type of {@link GuiReaderBook} (i.e., related to a story or to something else that
+	 * can encompass stories).
+	 * 
+	 * @author niki
+	 */
 	public enum Type {
 		/** A normal story, which can be "read". */
 		STORY,
@@ -207,7 +213,7 @@ public class GuiReaderBookInfo {
 
 		int size = 0;
 		try {
-			size = lib.getListBySource(source).size();
+			size = lib.getList().filter(source, null, null).size();
 		} catch (IOException e) {
 		}
 
@@ -237,7 +243,7 @@ public class GuiReaderBookInfo {
 
 		int size = 0;
 		try {
-			size = lib.getListByAuthor(author).size();
+			size = lib.getList().filter(null, author, null).size();
 		} catch (IOException e) {
 		}
 

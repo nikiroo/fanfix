@@ -149,7 +149,7 @@ abstract public class BasicLibrary {
 			return custom;
 		}
 
-		List<MetaData> metas = getListBySource(source);
+		List<MetaData> metas = getList().filter(source, null, null);
 		if (metas.size() > 0) {
 			return getCover(metas.get(0).getLuid());
 		}
@@ -177,7 +177,7 @@ abstract public class BasicLibrary {
 			return custom;
 		}
 
-		List<MetaData> metas = getListByAuthor(author);
+		List<MetaData> metas = getList().filter(null, author, null);
 		if (metas.size() > 0) {
 			return getCover(metas.get(0).getLuid());
 		}
@@ -338,7 +338,7 @@ abstract public class BasicLibrary {
 	 * @param pg
 	 *            the optional progress reporter
 	 */
-	public void refresh(Progress pg) {
+	public synchronized void refresh(Progress pg) {
 		try {
 			getMetas(pg);
 		} catch (IOException e) {
@@ -597,49 +597,8 @@ abstract public class BasicLibrary {
 	 * @throws IOException
 	 *             in case of IOException
 	 */
-	public synchronized List<MetaData> getList() throws IOException {
-		return getMetas(null);
-	}
-
-	/**
-	 * List all the stories of the given source type in the {@link BasicLibrary} ,
-	 * or all the stories if NULL is passed as a type.
-	 * <p>
-	 * Cover images not included.
-	 * 
-	 * @param source the type of story to retrieve, or NULL for all
-	 * 
-	 * @return the stories
-	 * 
-	 * @throws IOException in case of IOException
-	 * 
-	 * @deprecated use {@link BasicLibrary#getList(Progress)} and
-	 *             {@link MetaResultList#filter(String, String, String)}
-	 */
-	@Deprecated
-	public synchronized List<MetaData> getListBySource(String source) throws IOException {
-		return getList(null).filter(source, null, null);
-	}
-
-	/**
-	 * List all the stories of the given author in the {@link BasicLibrary}, or
-	 * all the stories if NULL is passed as an author.
-	 * <p>
-	 * Cover images not included.
-	 * 
-	 * @param author
-	 *            the author of the stories to retrieve, or NULL for all
-	 * 
-	 * @return the stories
-	 * 
-	 * @throws IOException
-	 *             in case of IOException
-	 *             
-	 *             @deprecated use {@link BasicLibrary#getList(Progress)} and
-	 *             {@link MetaResultList#filter(String, String, String)}
-	 */
-	public synchronized List<MetaData> getListByAuthor(String author) throws IOException {
-		return getList(null).filter(null, author, null);
+	public MetaResultList getList() throws IOException {
+		return getList(null);
 	}
 
 	/**
@@ -1058,8 +1017,6 @@ abstract public class BasicLibrary {
 		meta.setTitle(newTitle);
 		meta.setAuthor(newAuthor);
 		saveMeta(meta, pg);
-
-		invalidateInfo(luid);
 	}
 
 	/**
