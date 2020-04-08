@@ -7,6 +7,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
+import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 
 import be.nikiroo.fanfix.Instance;

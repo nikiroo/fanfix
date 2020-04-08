@@ -1,10 +1,8 @@
 package be.nikiroo.fanfix_swing.gui;
 
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -12,9 +10,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-import javax.swing.SwingWorker;
 
 import be.nikiroo.utils.Version;
 
@@ -50,11 +46,20 @@ public class MainFrame extends JFrame {
 		}
 
 		books = new BooksPanel(true);
+
 		browser.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				books.load(browser.getSelectedSources(), browser.getSelectedAuthors(), browser.getSelectedTags());
 				details.setBook(browser.getHighlight());
+			}
+		});
+		books.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (BooksPanel.INVALIDATE_CACHE.equals(e.getActionCommand())) {
+					browser.reloadData();
+				}
 			}
 		});
 

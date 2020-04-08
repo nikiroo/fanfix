@@ -18,7 +18,6 @@ import java.util.concurrent.ExecutionException;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
@@ -33,10 +32,11 @@ import be.nikiroo.fanfix_swing.gui.book.BookBlock;
 import be.nikiroo.fanfix_swing.gui.book.BookInfo;
 import be.nikiroo.fanfix_swing.gui.book.BookLine;
 import be.nikiroo.fanfix_swing.gui.book.BookPopup;
+import be.nikiroo.fanfix_swing.gui.utils.ListenerPanel;
 import be.nikiroo.fanfix_swing.gui.utils.UiHelper;
 
-public class BooksPanel extends JPanel {
-	class ListModel extends DefaultListModel<BookInfo> {
+public class BooksPanel extends ListenerPanel {
+	private class ListModel extends DefaultListModel<BookInfo> {
 		public void fireElementChanged(BookInfo element) {
 			int index = indexOf(element);
 			if (index >= 0) {
@@ -44,6 +44,8 @@ public class BooksPanel extends JPanel {
 			}
 		}
 	}
+
+	static public final String INVALIDATE_CACHE = "invalidate_cache";
 
 	private List<BookInfo> bookInfos = new ArrayList<BookInfo>();
 	private Map<BookInfo, BookLine> books = new HashMap<BookInfo, BookLine>();
@@ -68,7 +70,7 @@ public class BooksPanel extends JPanel {
 		searchBar.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				reload(searchBar.getText());
+				filter(searchBar.getText());
 			}
 		});
 
@@ -155,11 +157,11 @@ public class BooksPanel extends JPanel {
 			updateBookQueue.clear();
 		}
 
-		reload(searchBar.getText());
+		filter(searchBar.getText());
 	}
 
 	// cannot be NULL
-	private void reload(String filter) {
+	private void filter(String filter) {
 		data.clear();
 		for (BookInfo bookInfo : bookInfos) {
 			if (filter.isEmpty() || bookInfo.getMainInfo().toLowerCase().contains(filter.toLowerCase())) {
@@ -226,6 +228,11 @@ public class BooksPanel extends JPanel {
 					return selected.get(0);
 				}
 				return null;
+			}
+
+			@Override
+			public void invalidateCache() {
+				fireActionPerformed(INVALIDATE_CACHE);
 			}
 		});
 

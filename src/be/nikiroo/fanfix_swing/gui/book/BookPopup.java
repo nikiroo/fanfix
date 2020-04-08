@@ -47,6 +47,7 @@ public class BookPopup extends JPopupMenu {
 
 		public void fireElementChanged(BookInfo book);
 
+		public void invalidateCache();
 	}
 
 	/**
@@ -438,7 +439,6 @@ public class BookPopup extends JPopupMenu {
 									lib.changeAuthor(luid, fChangeTo, null);
 								}
 							}
-							// TODO: ^-- this can create new sources/authors, update maybe required?
 
 							return null;
 						}
@@ -446,11 +446,15 @@ public class BookPopup extends JPopupMenu {
 						@Override
 						protected void done() {
 							try {
-								// Reload anyway
-								for (BookInfo book : selected) {
-									informer.fireElementChanged(book);
-								}
+								// this can create new sources/authors, so a simple fireElementChanged is not
+								// enough, we need to clear the whole cache (for BrowserPanel for instance)
+								informer.invalidateCache();
 
+								// TODO: not enough!!
+								// after move, item disappears in the list, probably caused by the Library
+								// itself
+
+								// Even if problems occurred, still invalidate the cache
 								get();
 							} catch (Exception e) {
 								UiHelper.error(BookPopup.this.getParent(), e.getLocalizedMessage(), "IOException", e);

@@ -8,10 +8,10 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
 import javax.swing.JButton;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import be.nikiroo.fanfix_swing.gui.utils.ListenerPanel;
 import be.nikiroo.fanfix_swing.gui.utils.UiHelper;
 import be.nikiroo.fanfix_swing.images.IconGenerator;
 import be.nikiroo.fanfix_swing.images.IconGenerator.Icon;
@@ -22,7 +22,7 @@ import be.nikiroo.fanfix_swing.images.IconGenerator.Size;
  * 
  * @author niki
  */
-public class SearchBar extends JPanel {
+public class SearchBar extends ListenerPanel {
 	static private final long serialVersionUID = 1L;
 
 	private JButton search;
@@ -47,7 +47,7 @@ public class SearchBar extends JPanel {
 				text.requestFocus();
 
 				if (realTime) {
-					fireActionPerformed();
+					fireActionPerformed(getText());
 				}
 			}
 		});
@@ -64,7 +64,7 @@ public class SearchBar extends JPanel {
 						clear.setVisible(!empty);
 
 						if (realTime) {
-							fireActionPerformed();
+							fireActionPerformed(getText());
 						}
 					}
 				});
@@ -74,7 +74,7 @@ public class SearchBar extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (!realTime) {
-					fireActionPerformed();
+					fireActionPerformed(getText());
 				}
 			}
 		});
@@ -89,46 +89,13 @@ public class SearchBar extends JPanel {
 				clear.setVisible(false);
 				text.requestFocus();
 
-				fireActionPerformed();
+				fireActionPerformed(getText());
 			}
 		});
 
 		add(search, BorderLayout.WEST);
 		add(text, BorderLayout.CENTER);
 		add(clear, BorderLayout.EAST);
-	}
-
-	/**
-	 * Adds the specified action listener to receive action events from this
-	 * {@link SearchBar}.
-	 *
-	 * @param listener the action listener to be added
-	 */
-	public synchronized void addActionListener(ActionListener listener) {
-		listenerList.add(ActionListener.class, listener);
-	}
-
-	/**
-	 * Removes the specified action listener so that it no longer receives action
-	 * events from this {@link SearchBar}.
-	 *
-	 * @param listener the action listener to be removed
-	 */
-	public synchronized void removeActionListener(ActionListener listener) {
-		listenerList.remove(ActionListener.class, listener);
-	}
-
-	/**
-	 * Notify the listeners of an action.
-	 */
-	protected void fireActionPerformed() {
-		ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, getText());
-		Object[] listeners = listenerList.getListenerList();
-		for (int i = listeners.length - 2; i >= 0; i -= 2) {
-			if (listeners[i] == ActionListener.class) {
-				((ActionListener) listeners[i + 1]).actionPerformed(e);
-			}
-		}
 	}
 
 	/**

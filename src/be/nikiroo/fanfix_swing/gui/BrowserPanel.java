@@ -145,19 +145,13 @@ public class BrowserPanel extends JPanel {
 	 */
 	public BookInfo getHighlight() {
 		BasicLibrary lib = Instance.getInstance().getLibrary();
-		if (tabs.getSelectedComponent() == sourceTab) {
-			List<String> sel = sourceTab.getSelectedElements();
-			if (!sel.isEmpty()) {
+		List<String> sel = sourceTab.getSelectedElements();
+		if (!sel.isEmpty()) {
+			if (tabs.getSelectedComponent() == sourceTab) {
 				return BookInfo.fromSource(lib, sel.get(0));
-			}
-		} else if (tabs.getSelectedComponent() == authorTab) {
-			List<String> sel = authorTab.getSelectedElements();
-			if (!sel.isEmpty()) {
+			} else if (tabs.getSelectedComponent() == authorTab) {
 				return BookInfo.fromAuthor(lib, sel.get(0));
-			}
-		} else if (tabs.getSelectedComponent() == tagsTab) {
-			List<String> sel = tagsTab.getSelectedElements();
-			if (!sel.isEmpty()) {
+			} else if (tabs.getSelectedComponent() == tagsTab) {
 				return BookInfo.fromTag(lib, sel.get(0));
 			}
 		}
@@ -190,6 +184,15 @@ public class BrowserPanel extends JPanel {
 	 */
 	public List<String> getSelectedTags() {
 		return tagsTab.getSelectedElements();
+	}
+
+	/**
+	 * Reload all the data from the 3 tabs.
+	 */
+	public void reloadData() {
+		sourceTab.reloadData();
+		authorTab.reloadData();
+		tagsTab.reloadData();
 	}
 
 	/**

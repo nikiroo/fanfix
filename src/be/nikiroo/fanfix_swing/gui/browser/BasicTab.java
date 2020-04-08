@@ -8,14 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.SwingWorker;
-import javax.swing.UIDefaults;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.plaf.TreeUI;
 import javax.swing.plaf.basic.BasicTreeUI;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -23,15 +19,16 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 
-import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix_swing.gui.SearchBar;
+import be.nikiroo.fanfix_swing.gui.utils.ListenerPanel;
 import be.nikiroo.fanfix_swing.gui.utils.TreeCellSpanner;
+import be.nikiroo.fanfix_swing.gui.utils.TreeSnapshot;
 import be.nikiroo.fanfix_swing.gui.utils.UiHelper;
 import be.nikiroo.fanfix_swing.images.IconGenerator;
 import be.nikiroo.fanfix_swing.images.IconGenerator.Icon;
 import be.nikiroo.fanfix_swing.images.IconGenerator.Size;
 
-public abstract class BasicTab<T> extends JPanel {
+public abstract class BasicTab<T> extends ListenerPanel {
 	private int totalCount = 0;
 	private List<String> selectedElements = new ArrayList<String>();
 	private T data;
@@ -40,6 +37,7 @@ public abstract class BasicTab<T> extends JPanel {
 	private int index;
 
 	private JTree tree;
+	private DefaultMutableTreeNode root;
 	private SearchBar searchBar;
 
 	public BasicTab(int index, String listenerCommand) {
@@ -51,7 +49,7 @@ public abstract class BasicTab<T> extends JPanel {
 		data = createEmptyData();
 		totalCount = 0;
 
-		final DefaultMutableTreeNode root = new DefaultMutableTreeNode();
+		root = new DefaultMutableTreeNode();
 
 		tree = new JTree(root);
 		tree.setUI(new BasicTreeUI());
@@ -81,7 +79,7 @@ public abstract class BasicTab<T> extends JPanel {
 
 				BasicTab.this.selectedElements = selectedElements;
 
-				fireActionPerformed();
+				fireActionPerformed(BasicTab.this.listenerCommand);
 			}
 		});
 
@@ -92,27 +90,39 @@ public abstract class BasicTab<T> extends JPanel {
 		searchBar.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				root.removeAllChildren();
-				loadData(root, data, searchBar.getText());
-				((DefaultTreeModel) tree.getModel()).reload();
-				fireActionPerformed();
+				reloadData();
 			}
 		});
 
+		reloadData();
+	}
+
+	public void reloadData() {
+		final TreeSnapshot snapshot = new TreeSnapshot(tree);
 		SwingWorker<Map<String, List<String>>, Integer> worker = new SwingWorker<Map<String, List<String>>, Integer>() {
 			@Override
 			protected Map<String, List<String>> doInBackground() throws Exception {
-				return Instance.getInstance().getLibrary().getSourcesGrouped();
+				fillData(data);
+				return null;
 			}
 
 			@Override
 			protected void done() {
-				fillData(data);
+				try {
+					get();
+				} catch (Exception e) {
+					// TODO: error
+				}
+
+				// TODO: update is flickering...
+
 				root.removeAllChildren();
 				totalCount = loadData(root, data, searchBar.getText());
 				((DefaultTreeModel) tree.getModel()).reload();
 
-				fireActionPerformed();
+				snapshot.apply();
+
+				fireActionPerformed(listenerCommand);
 			}
 		};
 		worker.execute();
@@ -156,39 +166,6 @@ public abstract class BasicTab<T> extends JPanel {
 
 	public void unselect() {
 		tree.clearSelection();
-	}
-
-	/**
-	 * Adds the specified action listener to receive action events from this
-	 * {@link SearchBar}.
-	 *
-	 * @param listener the action listener to be added
-	 */
-	public synchronized void addActionListener(ActionListener listener) {
-		listenerList.add(ActionListener.class, listener);
-	}
-
-	/**
-	 * Removes the specified action listener so that it no longer receives action
-	 * events from this {@link SearchBar}.
-	 *
-	 * @param listener the action listener to be removed
-	 */
-	public synchronized void removeActionListener(ActionListener listener) {
-		listenerList.remove(ActionListener.class, listener);
-	}
-
-	/**
-	 * Notify the listeners of an action.
-	 */
-	protected void fireActionPerformed() {
-		ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, listenerCommand);
-		Object[] listeners = listenerList.getListenerList();
-		for (int i = listeners.length - 2; i >= 0; i -= 2) {
-			if (listeners[i] == ActionListener.class) {
-				((ActionListener) listeners[i + 1]).actionPerformed(e);
-			}
-		}
 	}
 
 	protected boolean checkFilter(String filter, String value) {
