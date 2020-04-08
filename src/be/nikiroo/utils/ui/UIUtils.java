@@ -37,7 +37,7 @@ public class UIUtils {
 		} catch (IllegalAccessException e) {
 		}
 	}
-
+	
 	/**
 	 * Draw a 3D-looking ellipse at the given location, if the given
 	 * {@link Graphics} object is compatible (with {@link Graphics2D}); draw a
@@ -56,8 +56,32 @@ public class UIUtils {
 	 * @param height
 	 *            the height radius
 	 */
+	static public void drawEllipse3D(Graphics g, Color color, int x, int y, int width, int height) {
+		drawEllipse3D(g, color, x, y, width, height, true);
+	}
+
+	/**
+	 * Draw a 3D-looking ellipse at the given location, if the given
+	 * {@link Graphics} object is compatible (with {@link Graphics2D}); draw a
+	 * simple ellipse if not.
+	 * 
+	 * @param g
+	 *            the {@link Graphics} to draw on
+	 * @param color
+	 *            the base colour
+	 * @param x
+	 *            the X coordinate
+	 * @param y
+	 *            the Y coordinate
+	 * @param width
+	 *            the width radius
+	 * @param height
+	 *            the height radius
+     * @param fill
+     * 			  fill the content of the ellipse
+	 */
 	static public void drawEllipse3D(Graphics g, Color color, int x, int y,
-			int width, int height) {
+			int width, int height, boolean fill) {
 		if (g instanceof Graphics2D) {
 			Graphics2D g2 = (Graphics2D) g;
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -68,12 +92,16 @@ public class UIUtils {
 
 			// Base shape
 			g2.setColor(color);
-			g2.fillOval(x, y, width, height);
-
+			if (fill) {
+				g2.fillOval(x, y, width, height);
+			} else {
+				g2.drawOval(x, y, width, height);
+			}
+			
 			// Compute dark/bright colours
 			Paint p = null;
-			Color dark = color.darker();
-			Color bright = color.brighter();
+			Color dark = color.darker().darker();
+			Color bright = color.brighter().brighter();
 			Color darkEnd = new Color(dark.getRed(), dark.getGreen(),
 					dark.getBlue(), 0);
 			Color darkPartial = new Color(dark.getRed(), dark.getGreen(),
@@ -84,20 +112,31 @@ public class UIUtils {
 			// Adds shadows at the bottom left
 			p = new GradientPaint(0, height, dark, width, 0, darkEnd);
 			g2.setPaint(p);
-			g2.fillOval(x, y, width, height);
-
+			if (fill) {
+				g2.fillOval(x, y, width, height);
+			} else {
+				g2.drawOval(x, y, width, height);
+			}
 			// Adds highlights at the top right
 			p = new GradientPaint(width, 0, bright, 0, height, brightEnd);
 			g2.setPaint(p);
-			g2.fillOval(x, y, width, height);
-
+			if (fill) {
+				g2.fillOval(x, y, width, height);
+			} else {
+				g2.drawOval(x, y, width, height);
+			}
+			
 			// Darken the edges
 			p = new RadialGradientPaint(x + width / 2f, y + height / 2f,
 					Math.min(width / 2f, height / 2f), new float[] { 0f, 1f },
 					new Color[] { darkEnd, darkPartial },
 					RadialGradientPaint.CycleMethod.NO_CYCLE);
 			g2.setPaint(p);
-			g2.fillOval(x, y, width, height);
+			if (fill) {
+				g2.fillOval(x, y, width, height);
+			} else {
+				g2.drawOval(x, y, width, height);
+			}
 
 			// Adds inner highlight at the top right
 			p = new RadialGradientPaint(x + 3f * width / 4f, y + height / 4f,
@@ -106,13 +145,21 @@ public class UIUtils {
 					new Color[] { bright, brightEnd },
 					RadialGradientPaint.CycleMethod.NO_CYCLE);
 			g2.setPaint(p);
-			g2.fillOval(x * 2, y, width, height);
+			if (fill) {
+				g2.fillOval(x * 2, y, width, height);
+			} else {
+				g2.drawOval(x * 2, y, width, height);
+			}
 
 			// Reset original paint
 			g2.setPaint(oldPaint);
 		} else {
 			g.setColor(color);
-			g.fillOval(x, y, width, height);
+			if (fill) {
+				g.fillOval(x, y, width, height);
+			} else {
+				g.drawOval(x, y, width, height);
+			}
 		}
 	}
 }
