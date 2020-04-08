@@ -2,11 +2,11 @@ package be.nikiroo.fanfix_swing.gui.book;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix_swing.gui.BooksPanel;
@@ -52,19 +52,29 @@ public class BookLine extends JPanel {
 	 * Initialise this {@link BookLine}.
 	 */
 	protected void init() {
-		// TODO: image?
-		iconCached = new JLabel("   ");
-		iconNotCached = new JLabel(" * ");
+		iconCached = new JLabel(" ◉ ");
+		iconNotCached = new JLabel(" ○ ");
 
 		iconNotCached.setForeground(BookCoverImager.UNCACHED_ICON_COLOR);
+		iconCached.setForeground(BookCoverImager.UNCACHED_ICON_COLOR);
 		iconCached.setPreferredSize(iconNotCached.getPreferredSize());
 
 		title = new JLabel();
 		secondary = new JLabel();
 		secondary.setForeground(AUTHOR_COLOR);
 
+		JLabel id = new JLabel(info.getMeta().getLuid());
+		id.setPreferredSize(new JLabel(" 999 ").getPreferredSize());
+		id.setForeground(Color.gray);
+		id.setHorizontalAlignment(SwingConstants.CENTER);
+
+		JPanel idTitle = new JPanel(new BorderLayout());
+		idTitle.setOpaque(false);
+		idTitle.add(id, BorderLayout.WEST);
+		idTitle.add(title, BorderLayout.CENTER);
+
 		setLayout(new BorderLayout());
-		add(title, BorderLayout.CENTER);
+		add(idTitle, BorderLayout.CENTER);
 		add(secondary, BorderLayout.EAST);
 
 		updateMeta();
