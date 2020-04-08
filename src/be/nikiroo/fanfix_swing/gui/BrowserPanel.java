@@ -1,12 +1,14 @@
 package be.nikiroo.fanfix_swing.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
@@ -144,15 +146,24 @@ public class BrowserPanel extends JPanel {
 	 * @return the {@link BookInfo} to highlight, can be NULL
 	 */
 	public BookInfo getHighlight() {
-		BasicLibrary lib = Instance.getInstance().getLibrary();
-		List<String> sel = sourceTab.getSelectedElements();
-		if (!sel.isEmpty()) {
+		String selected1 = null;
+		Component selectedTab = tabs.getSelectedComponent();
+		if (selectedTab instanceof BasicTab) {
+			@SuppressWarnings({ "unchecked", "rawtypes" })
+			List<String> selectedAll = ((BasicTab) selectedTab).getSelectedElements();
+			if (!selectedAll.isEmpty()) {
+				selected1 = selectedAll.get(0);
+			}
+		}
+
+		if (selected1 != null) {
+			BasicLibrary lib = Instance.getInstance().getLibrary();
 			if (tabs.getSelectedComponent() == sourceTab) {
-				return BookInfo.fromSource(lib, sel.get(0));
+				return BookInfo.fromSource(lib, selected1);
 			} else if (tabs.getSelectedComponent() == authorTab) {
-				return BookInfo.fromAuthor(lib, sel.get(0));
+				return BookInfo.fromAuthor(lib, selected1);
 			} else if (tabs.getSelectedComponent() == tagsTab) {
-				return BookInfo.fromTag(lib, sel.get(0));
+				return BookInfo.fromTag(lib, selected1);
 			}
 		}
 
