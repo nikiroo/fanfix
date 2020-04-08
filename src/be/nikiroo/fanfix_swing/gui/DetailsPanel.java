@@ -31,6 +31,8 @@ public class DetailsPanel extends JPanel {
 	private JLabel name;
 	private JLabel opt;
 
+	private BookInfo info;
+
 	/**
 	 * Create a new {@link DetailsPanel}.
 	 */
@@ -77,25 +79,41 @@ public class DetailsPanel extends JPanel {
 	 * @param info the {@link BookInfo} to display
 	 */
 	public void setBook(final BookInfo info) {
+		this.info = info;
+
 		icon.setIcon(null);
 		if (info == null) {
 			name.setText(null);
 			opt.setText(null);
 		} else {
+			final String myId = info.getId();
+
 			name.setText(info.getMainInfo());
 			opt.setText(info.getSecondaryInfo(true));
 			new SwingWorker<Image, Void>() {
 				@Override
 				protected Image doInBackground() throws Exception {
-					return BookBlock.generateCoverImage(Instance.getInstance().getLibrary(), info);
+					Thread.sleep(20);
+
+					BookInfo current = DetailsPanel.this.info;
+					if (current != null && current.getId().equals(myId)) {
+						return BookBlock.generateCoverImage(Instance.getInstance().getLibrary(), info);
+					}
+
+					return null;
 				}
 
 				@Override
 				protected void done() {
-					try {
-						icon.setIcon(new ImageIcon(get()));
-					} catch (InterruptedException e) {
-					} catch (ExecutionException e) {
+					BookInfo current = DetailsPanel.this.info;
+					if (current != null && current.getId().equals(myId)) {
+						try {
+							Image img = get();
+							if (img != null)
+								icon.setIcon(new ImageIcon(img));
+						} catch (InterruptedException e) {
+						} catch (ExecutionException e) {
+						}
 					}
 				}
 			}.execute();
