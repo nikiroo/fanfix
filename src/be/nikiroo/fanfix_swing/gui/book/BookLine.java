@@ -2,6 +2,7 @@ package be.nikiroo.fanfix_swing.gui.book;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 
 import javax.swing.JLabel;
@@ -51,9 +52,12 @@ public class BookLine extends JPanel {
 	 * Initialise this {@link BookLine}.
 	 */
 	protected void init() {
-		// TODO: image
+		// TODO: image?
 		iconCached = new JLabel("   ");
 		iconNotCached = new JLabel(" * ");
+
+		iconNotCached.setForeground(BookCoverImager.UNCACHED_ICON_COLOR);
+		iconCached.setPreferredSize(iconNotCached.getPreferredSize());
 
 		title = new JLabel();
 		secondary = new JLabel();
@@ -154,7 +158,7 @@ public class BookLine extends JPanel {
 		String main = info.getMainInfo();
 		String optSecondary = info.getSecondaryInfo(seeWordCount);
 
-		//TODO: max size limit?
+		// TODO: max size limit?
 		title.setText(main);
 		secondary.setText(optSecondary + " ");
 
