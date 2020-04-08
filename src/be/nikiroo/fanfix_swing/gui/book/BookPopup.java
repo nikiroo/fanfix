@@ -69,12 +69,6 @@ public class BookPopup extends JPopupMenu {
 
 	private Informer informer;
 
-	private Object object;
-
-	private Object object2;
-
-	private Object object3;
-
 	public BookPopup(BasicLibrary lib, Informer informer) {
 		this.lib = lib;
 		this.informer = informer;
@@ -450,9 +444,7 @@ public class BookPopup extends JPopupMenu {
 								// enough, we need to clear the whole cache (for BrowserPanel for instance)
 								informer.invalidateCache();
 
-								// TODO: not enough!!
-								// after move, item disappears in the list, probably caused by the Library
-								// itself
+								// TODO: also refresh the Sources/Authors(/Tags?) list
 
 								// Even if problems occurred, still invalidate the cache
 								get();
@@ -517,17 +509,17 @@ public class BookPopup extends JPopupMenu {
 								luids.add(book.getMeta().getLuid());
 								break;
 							case SOURCE:
-								for (MetaData meta : lib.getListBySource(book.getMainInfo())) {
+								for (MetaData meta : lib.getList().filter(book.getMainInfo(), null, null)) {
 									luids.add(meta.getLuid());
 								}
 								break;
 							case AUTHOR:
-								for (MetaData meta : lib.getListByAuthor(book.getMainInfo())) {
+								for (MetaData meta : lib.getList().filter(null, book.getMainInfo(), null)) {
 									luids.add(meta.getLuid());
 								}
 								break;
 							case TAG:
-								for (MetaData meta : lib.getList(null).filter(null, null, book.getMainInfo())) {
+								for (MetaData meta : lib.getList().filter(null, null, book.getMainInfo())) {
 									luids.add(meta.getLuid());
 								}
 								break;

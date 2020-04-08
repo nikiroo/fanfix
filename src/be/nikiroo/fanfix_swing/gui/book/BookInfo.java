@@ -122,7 +122,7 @@ public class BookInfo {
 	/**
 	 * This item library cache state.
 	 * 
-	 * @return TRUE if it is present in the {@link GuiReader} cache
+	 * @return TRUE if it is present in the {@link CacheLibrary} cache
 	 */
 	public boolean isCached() {
 		return cached;
@@ -131,7 +131,7 @@ public class BookInfo {
 	/**
 	 * This item library cache state.
 	 * 
-	 * @param cached TRUE if it is present in the {@link GuiReader} cache
+	 * @param cached TRUE if it is present in the {@link CacheLibrary} cache
 	 */
 	public void setCached(boolean cached) {
 		this.cached = cached;
@@ -238,7 +238,7 @@ public class BookInfo {
 
 		int size = 0;
 		try {
-			size = lib.getListBySource(source).size();
+			size = lib.getList().filter(source, null, null).size();
 		} catch (IOException e) {
 		}
 
@@ -265,7 +265,7 @@ public class BookInfo {
 
 		int size = 0;
 		try {
-			size = lib.getListByAuthor(author).size();
+			size = lib.getList().filter(null, author, null).size();
 		} catch (IOException e) {
 		}
 
@@ -292,11 +292,7 @@ public class BookInfo {
 
 		int size = 0;
 		try {
-			for (MetaData meta : lib.getList()) {
-				if (meta.getTags().contains(tag)) {
-					size++;
-				}
-			}
+			size = lib.getList().filter(null, null, tag).size();
 		} catch (IOException e) {
 		}
 

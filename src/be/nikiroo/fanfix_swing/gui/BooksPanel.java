@@ -129,7 +129,7 @@ public class BooksPanel extends ListenerPanel {
 			protected List<BookInfo> doInBackground() throws Exception {
 				List<BookInfo> bookInfos = new ArrayList<BookInfo>();
 				BasicLibrary lib = Instance.getInstance().getLibrary();
-				for (MetaData meta : lib.getList(null).filter(sources, authors, tags)) {
+				for (MetaData meta : lib.getList().filter(sources, authors, tags)) {
 					bookInfos.add(BookInfo.fromMeta(lib, meta));
 				}
 
@@ -232,6 +232,7 @@ public class BooksPanel extends ListenerPanel {
 
 			@Override
 			public void invalidateCache() {
+				// TODO: also reset the popup menu for sources/author
 				fireActionPerformed(INVALIDATE_CACHE);
 			}
 		});
