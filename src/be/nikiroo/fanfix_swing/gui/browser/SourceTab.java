@@ -38,6 +38,10 @@ public class SourceTab extends BasicTab<Map<String, List<String>>> {
 
 	@Override
 	protected String keyToDisplay(String key) {
+		if (key.trim().isEmpty()) {
+			return "[*]"; // Root node
+		}
+
 		// Get and remove type
 		String type = key.substring(0, 1);
 		key = key.substring(1);

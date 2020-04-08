@@ -98,7 +98,20 @@ public abstract class BasicTab<T> extends ListenerPanel {
 	}
 
 	public void reloadData() {
-		final TreeSnapshot snapshot = new TreeSnapshot(tree);
+		final TreeSnapshot snapshot = new TreeSnapshot(tree) {
+			@Override
+			protected boolean isSamePath(TreePath oldPath, TreePath newPath) {
+				String oldString = oldPath.toString();
+				if (oldString.endsWith("/]"))
+					oldString = oldString.substring(0, oldString.length() - 2) + "]";
+
+				String newString = newPath.toString();
+				if (newString.endsWith("/]"))
+					newString = newString.substring(0, newString.length() - 2) + "]";
+
+				return oldString.equals(newString);
+			}
+		};
 		SwingWorker<Map<String, List<String>>, Integer> worker = new SwingWorker<Map<String, List<String>>, Integer>() {
 			@Override
 			protected Map<String, List<String>> doInBackground() throws Exception {
@@ -205,8 +218,7 @@ public abstract class BasicTab<T> extends ListenerPanel {
 				}
 
 				String display = value == null ? "" : value.toString();
-				if (!display.isEmpty())
-					display = keyToDisplay(display);
+				display = keyToDisplay(display);
 
 				return super.getTreeCellRendererComponent(tree, display, selected, expanded, leaf, row, hasFocus);
 			}

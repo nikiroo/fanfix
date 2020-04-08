@@ -54,7 +54,7 @@ public class TreeSnapshot {
 				TreePath newPath = nodeToPath(newNode);
 				if (newPath != null) {
 					for (TreePath path : selectionPaths) {
-						if (newPath.toString().equals(path.toString())) {
+						if (isSamePath(path, newPath)) {
 							newSlectionPaths.add(newPath);
 							if (expanded.contains(path)) {
 								newExpanded.add(newPath);
@@ -70,6 +70,11 @@ public class TreeSnapshot {
 		}
 
 		tree.setSelectionPaths(newSlectionPaths.toArray(new TreePath[0]));
+	}
+
+	// You can override this
+	protected boolean isSamePath(TreePath oldPath, TreePath newPath) {
+		return newPath.toString().equals(oldPath.toString());
 	}
 
 	private void forEach(JTree tree, NodeAction action) {
