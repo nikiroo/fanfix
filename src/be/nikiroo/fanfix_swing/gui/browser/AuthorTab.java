@@ -6,6 +6,7 @@ import java.util.List;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.bundles.StringIdGui;
 
 public class AuthorTab extends BasicTab<List<String>> {
 	public AuthorTab(int index, String listenerCommand) {
@@ -37,6 +38,10 @@ public class AuthorTab extends BasicTab<List<String>> {
 
 	@Override
 	protected String keyToDisplay(String key) {
+		if (key.trim().isEmpty()) {
+			key = Instance.getInstance().getTransGui().getString(StringIdGui.MENU_AUTHORS_UNKNOWN);
+		}
+		
 		return key;
 	}
 

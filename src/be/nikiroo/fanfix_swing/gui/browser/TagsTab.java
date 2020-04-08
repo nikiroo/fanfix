@@ -6,7 +6,9 @@ import java.util.List;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.bundles.StringIdGui;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.fanfix.library.MetaResultList;
 
 public class TagsTab extends BasicTab<List<String>> {
 	public TagsTab(int index, String listenerCommand) {
@@ -21,8 +23,9 @@ public class TagsTab extends BasicTab<List<String>> {
 	@Override
 	protected void fillData(List<String> data) {
 		try {
-			List<MetaData> metas = Instance.getInstance().getLibrary().getList();
-			for (MetaData meta : metas) {
+			MetaResultList metas = Instance.getInstance().getLibrary().getList();
+			// TODO: getTagList, getAuthorList... ?
+			for (MetaData meta : metas.getMetas()) {
 				List<String> tags = meta.getTags();
 				if (tags != null) {
 					for (String tag : tags) {
@@ -45,6 +48,11 @@ public class TagsTab extends BasicTab<List<String>> {
 
 	@Override
 	protected String keyToDisplay(String key) {
+		if (key.trim().isEmpty()) {
+			// TODO: new TAG_UNKNOWN needed
+			key = Instance.getInstance().getTransGui().getString(StringIdGui.MENU_AUTHORS_UNKNOWN);
+		}
+
 		return key;
 	}
 
