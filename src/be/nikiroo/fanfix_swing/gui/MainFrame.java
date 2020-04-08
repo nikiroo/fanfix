@@ -12,11 +12,13 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JSplitPane;
 
+import be.nikiroo.fanfix_swing.Actions;
 import be.nikiroo.utils.Version;
 
 public class MainFrame extends JFrame {
 	private BooksPanel books;
 	private DetailsPanel details;
+	private BrowserPanel browser;
 
 	public MainFrame(boolean sidePanel, boolean detailsPanel) {
 		super("Fanfix " + Version.getCurrentVersion());
@@ -26,7 +28,7 @@ public class MainFrame extends JFrame {
 		sidePanel = true;
 		detailsPanel = true;
 
-		final BrowserPanel browser = new BrowserPanel();
+		browser = new BrowserPanel();
 
 		JComponent other = null;
 		boolean orientationH = true;
@@ -86,15 +88,40 @@ public class MainFrame extends JFrame {
 		JMenu file = new JMenu("File");
 		file.setMnemonic(KeyEvent.VK_F);
 
-		JMenuItem item1 = new JMenuItem("Uuu", KeyEvent.VK_U);
+		JMenuItem item1 = new JMenuItem("Download", KeyEvent.VK_D);
 		item1.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				System.out.println("Uuu: ACTION");
+				Actions.imprt(MainFrame.this, true, new Runnable() {
+					@Override
+					public void run() {
+						browser.reloadData();
+						books.load(browser.getSelectedSources(), browser.getSelectedAuthors(),
+								browser.getSelectedTags());
+						details.setBook(browser.getHighlight());
+					}
+				});
+			}
+		});
+
+		JMenuItem item2 = new JMenuItem("Import file", KeyEvent.VK_I);
+		item2.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Actions.imprt(MainFrame.this, false, new Runnable() {
+					@Override
+					public void run() {
+						browser.reloadData();
+						books.load(browser.getSelectedSources(), browser.getSelectedAuthors(),
+								browser.getSelectedTags());
+						details.setBook(browser.getHighlight());
+					}
+				});
 			}
 		});
 
 		file.add(item1);
+		file.add(item2);
 
 		JMenu edit = new JMenu("Edit");
 		edit.setMnemonic(KeyEvent.VK_E);
