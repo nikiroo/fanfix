@@ -85,11 +85,15 @@ public class DetailsPanel extends JPanel {
 		if (info == null) {
 			name.setText(null);
 			opt.setText(null);
+		} else if (info.getMainInfo() == null) {
+			name.setText("All the " + info.getType().toString().toLowerCase() + "s");
+			opt.setText(info.getSecondaryInfo(true));
 		} else {
 			final String myId = info.getId();
 
 			name.setText(info.getMainInfo());
 			opt.setText(info.getSecondaryInfo(true));
+
 			new SwingWorker<Image, Void>() {
 				@Override
 				protected Image doInBackground() throws Exception {

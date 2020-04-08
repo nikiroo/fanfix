@@ -66,10 +66,12 @@ public class SourceTab extends BasicTab<Map<String, List<String>>> {
 		int count = 0;
 		for (String source : sourcesGrouped.keySet()) {
 			if (checkFilter(filter, source) || checkFilter(filter, sourcesGrouped.get(source))) {
-				boolean hasChildren = sourcesGrouped.get(source).size() > 1;
+				List<String> children = sourcesGrouped.get(source);
+				boolean hasChildren = (children.size() > 1)
+						|| (children.size() == 1 && !children.get(0).trim().isEmpty());
 				DefaultMutableTreeNode sourceNode = new DefaultMutableTreeNode(">" + source + (hasChildren ? "/" : ""));
 				root.add(sourceNode);
-				for (String subSource : sourcesGrouped.get(source)) {
+				for (String subSource : children) {
 					if (checkFilter(filter, source) || checkFilter(filter, subSource)) {
 						count = count + 1;
 						if (subSource.isEmpty() && sourcesGrouped.get(source).size() > 1) {

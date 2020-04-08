@@ -164,7 +164,8 @@ public class BooksPanel extends ListenerPanel {
 	private void filter(String filter) {
 		data.clear();
 		for (BookInfo bookInfo : bookInfos) {
-			if (filter.isEmpty() || bookInfo.getMainInfo().toLowerCase().contains(filter.toLowerCase())) {
+			if (bookInfo.getMainInfo() == null || filter.isEmpty()
+					|| bookInfo.getMainInfo().toLowerCase().contains(filter.toLowerCase())) {
 				data.addElement(bookInfo);
 			}
 		}

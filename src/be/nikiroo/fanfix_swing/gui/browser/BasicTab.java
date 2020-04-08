@@ -127,8 +127,6 @@ public abstract class BasicTab<T> extends ListenerPanel {
 					// TODO: error
 				}
 
-				// TODO: update is flickering...
-
 				root.removeAllChildren();
 				totalCount = loadData(root, data, searchBar.getText());
 				((DefaultTreeModel) tree.getModel()).reload();

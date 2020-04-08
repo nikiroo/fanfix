@@ -8,7 +8,6 @@ import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
@@ -21,6 +20,7 @@ import be.nikiroo.fanfix_swing.gui.browser.AuthorTab;
 import be.nikiroo.fanfix_swing.gui.browser.BasicTab;
 import be.nikiroo.fanfix_swing.gui.browser.SourceTab;
 import be.nikiroo.fanfix_swing.gui.browser.TagsTab;
+import be.nikiroo.fanfix_swing.gui.utils.ListenerPanel;
 import be.nikiroo.fanfix_swing.gui.utils.UiHelper;
 
 /**
@@ -29,7 +29,7 @@ import be.nikiroo.fanfix_swing.gui.utils.UiHelper;
  * 
  * @author niki
  */
-public class BrowserPanel extends JPanel {
+public class BrowserPanel extends ListenerPanel {
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -53,6 +53,13 @@ public class BrowserPanel extends JPanel {
 	 * the scope of a tag.
 	 */
 	static public final String TAGS_SELECTION = "tags_selection";
+	/**
+	 * The {@link ActionEvent} you receive from
+	 * {@link BrowserPanel#addActionListener(ActionListener)} can return this as a
+	 * command (see {@link ActionEvent#getActionCommand()}) if they were created in
+	 * the scope of a tab change.
+	 */
+	static public final String TAB_CHANGE = "tab_change";
 
 	private JTabbedPane tabs;
 	private SourceTab sourceTab;
@@ -75,9 +82,9 @@ public class BrowserPanel extends JPanel {
 		tabs.add(authorTab = new AuthorTab(index++, AUTHOR_SELECTION));
 		tabs.add(tagsTab = new TagsTab(index++, TAGS_SELECTION));
 
-		setText(tabs, sourceTab, "Sources", "Tooltip for Sources");
-		setText(tabs, authorTab, "Authors", "Tooltip for Authors");
-		setText(tabs, tagsTab, "Tags", "Tooltip for Tags");
+		configureTab(tabs, sourceTab, "Sources", "Tooltip for Sources");
+		configureTab(tabs, authorTab, "Authors", "Tooltip for Authors");
+		configureTab(tabs, tagsTab, "Tags", "Tooltip for Tags");
 
 		JPanel options = new JPanel();
 		options.setLayout(new BorderLayout());
@@ -107,6 +114,8 @@ public class BrowserPanel extends JPanel {
 				if (!keepSelection) {
 					unselect();
 				}
+
+				fireActionPerformed(TAB_CHANGE);
 			}
 		});
 	}
@@ -122,26 +131,30 @@ public class BrowserPanel extends JPanel {
 		}
 	}
 
-	private void setText(JTabbedPane tabs, @SuppressWarnings("rawtypes") BasicTab tab, String name, String tooltip) {
+	private void configureTab(JTabbedPane tabs, @SuppressWarnings("rawtypes") BasicTab tab, String name,
+			String tooltip) {
 		tab.setBaseTitle(name);
 		tabs.setTitleAt(tab.getIndex(), tab.getTitle());
 		tabs.setToolTipTextAt(tab.getIndex(), tooltip);
-		listenTitleChange(tabs, tab);
+		listenTabs(tabs, tab);
 	}
 
-	private void listenTitleChange(final JTabbedPane tabs, @SuppressWarnings("rawtypes") final BasicTab tab) {
+	private void listenTabs(final JTabbedPane tabs, @SuppressWarnings("rawtypes") final BasicTab tab) {
 		tab.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				tabs.setTitleAt(tab.getIndex(), tab.getTitle());
+				fireActionPerformed(e.getActionCommand());
 			}
 		});
 	}
 
 	/**
-	 * Get the {@link BookInfo} to highlight, even if more than one are selected.
+	 * Get the {@link BookInfo} to highlight, even if none or more than one are
+	 * selected.
 	 * <p>
-	 * Return NULL when nothing is selected.
+	 * Return a special "all" {@link BookInfo} of the correct type when nothing is
+	 * selected.
 	 * 
 	 * @return the {@link BookInfo} to highlight, can be NULL
 	 */
@@ -156,17 +169,16 @@ public class BrowserPanel extends JPanel {
 			}
 		}
 
-		if (selected1 != null) {
-			BasicLibrary lib = Instance.getInstance().getLibrary();
-			if (tabs.getSelectedComponent() == sourceTab) {
-				return BookInfo.fromSource(lib, selected1);
-			} else if (tabs.getSelectedComponent() == authorTab) {
-				return BookInfo.fromAuthor(lib, selected1);
-			} else if (tabs.getSelectedComponent() == tagsTab) {
-				return BookInfo.fromTag(lib, selected1);
-			}
+		BasicLibrary lib = Instance.getInstance().getLibrary();
+		if (tabs.getSelectedComponent() == sourceTab) {
+			return BookInfo.fromSource(lib, selected1);
+		} else if (tabs.getSelectedComponent() == authorTab) {
+			return BookInfo.fromAuthor(lib, selected1);
+		} else if (tabs.getSelectedComponent() == tagsTab) {
+			return BookInfo.fromTag(lib, selected1);
 		}
 
+		// ...what?
 		return null;
 	}
 
@@ -204,29 +216,5 @@ public class BrowserPanel extends JPanel {
 		sourceTab.reloadData();
 		authorTab.reloadData();
 		tagsTab.reloadData();
-	}
-
-	/**
-	 * Adds the specified action listener to receive action events from this
-	 * {@link SearchBar}.
-	 *
-	 * @param listener the action listener to be added
-	 */
-	public synchronized void addActionListener(ActionListener listener) {
-		sourceTab.addActionListener(listener);
-		authorTab.addActionListener(listener);
-		tagsTab.addActionListener(listener);
-	}
-
-	/**
-	 * Removes the specified action listener so that it no longer receives action
-	 * events from this {@link SearchBar}.
-	 *
-	 * @param listener the action listener to be removed
-	 */
-	public synchronized void removeActionListener(ActionListener listener) {
-		sourceTab.removeActionListener(listener);
-		authorTab.removeActionListener(listener);
-		tagsTab.removeActionListener(listener);
 	}
 }

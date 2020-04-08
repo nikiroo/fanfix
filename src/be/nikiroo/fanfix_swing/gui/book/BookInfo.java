@@ -234,7 +234,7 @@ public class BookInfo {
 	 * @return the book
 	 */
 	static public BookInfo fromSource(BasicLibrary lib, String source) {
-		BookInfo info = new BookInfo(Type.SOURCE, "source_" + source, source);
+		BookInfo info = new BookInfo(Type.SOURCE, "source_" + (source == null ? "" : source), source);
 
 		int size = 0;
 		try {
@@ -261,7 +261,7 @@ public class BookInfo {
 	 * @return the book
 	 */
 	static public BookInfo fromAuthor(BasicLibrary lib, String author) {
-		BookInfo info = new BookInfo(Type.AUTHOR, "author_" + author, author);
+		BookInfo info = new BookInfo(Type.AUTHOR, "author_" + (author == null ? "" : author), author);
 
 		int size = 0;
 		try {
@@ -288,7 +288,7 @@ public class BookInfo {
 	 * @return the book
 	 */
 	static public BookInfo fromTag(BasicLibrary lib, String tag) {
-		BookInfo info = new BookInfo(Type.TAG, "tag_" + tag, tag);
+		BookInfo info = new BookInfo(Type.TAG, "tag_" + (tag == null ? "" : tag), tag);
 
 		int size = 0;
 		try {
