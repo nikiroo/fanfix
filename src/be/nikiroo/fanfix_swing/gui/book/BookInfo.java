@@ -261,9 +261,11 @@ public class BookInfo {
 				"source_" + (source == null ? "" : source), source);
 
 		int size = 0;
-		try {
-			size = lib.getList().filter(source, null, null).size();
-		} catch (IOException e) {
+		if (lib != null) {
+			try {
+				size = lib.getList().filter(source, null, null).size();
+			} catch (IOException e) {
+			}
 		}
 
 		info.count = StringUtils.formatNumber(size);
@@ -292,9 +294,11 @@ public class BookInfo {
 				"author_" + (author == null ? "" : author), author);
 
 		int size = 0;
-		try {
-			size = lib.getList().filter(null, author, null).size();
-		} catch (IOException e) {
+		if (lib != null) {
+			try {
+				size = lib.getList().filter(null, author, null).size();
+			} catch (IOException e) {
+			}
 		}
 
 		info.count = StringUtils.formatNumber(size);

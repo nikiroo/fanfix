@@ -2,6 +2,7 @@ package be.nikiroo.fanfix_swing.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -330,8 +331,24 @@ public class BooksPanel extends ListenerPanel {
 		list.setLayoutOrientation(
 				listMode ? JList.VERTICAL : JList.HORIZONTAL_WRAP);
 
+		StringBuilder longString = new StringBuilder();
+		for (int i = 0; i < 20; i++) {
+			longString.append(
+					"Some long string, which is 50 chars long itself...");
+		}
 		if (listMode) {
 			bookCoverUpdater.clear();
+			Dimension sz = new BookLine(
+					BookInfo.fromSource(null, longString.toString()), true)
+							.getPreferredSize();
+			list.setFixedCellHeight((int) sz.getHeight());
+			list.setFixedCellWidth(list.getWidth());
+		} else {
+			Dimension sz = new BookBlock(
+					BookInfo.fromSource(null, longString.toString()), true)
+							.getPreferredSize();
+			list.setFixedCellHeight((int) sz.getHeight());
+			list.setFixedCellWidth((int) sz.getWidth());
 		}
 	}
 }

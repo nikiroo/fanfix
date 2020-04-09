@@ -21,6 +21,8 @@ import be.nikiroo.fanfix_swing.gui.BooksPanel;
 public class BookLine extends JPanel {
 	private static final long serialVersionUID = 1L;
 
+	private static final int MAX_DISPLAY_SIZE = 40;
+
 	/** Colour used for the seconday item (author/word count). */
 	protected static final Color AUTHOR_COLOR = new Color(128, 128, 128);
 
@@ -65,7 +67,11 @@ public class BookLine extends JPanel {
 		secondary = new JLabel();
 		secondary.setForeground(AUTHOR_COLOR);
 
-		JLabel id = new JLabel(info.getMeta().getLuid());
+		String luid = null;
+		if (info.getMeta() != null) {
+			luid = info.getMeta().getLuid();
+		}
+		JLabel id = new JLabel(luid);
 		id.setPreferredSize(new JLabel(" 999 ").getPreferredSize());
 		id.setForeground(Color.gray);
 		id.setHorizontalAlignment(SwingConstants.CENTER);
@@ -167,13 +173,34 @@ public class BookLine extends JPanel {
 	}
 
 	/**
+	 * Return a display-ready version of {@link BookInfo#getMainInfo()}.
+	 * 
+	 * @return the main info in a ready-to-display version
+	 */
+	protected String getMainInfoDisplay() {
+		return toDisplay(getInfo().getMainInfo());
+	}
+
+	/**
+	 * Return a display-ready version of
+	 * {@link BookInfo#getSecondaryInfo(boolean)}.
+	 * 
+	 * @param seeCount
+	 *            TRUE for word/image/story count, FALSE for author name
+	 * 
+	 * @return the main info in a ready-to-display version
+	 */
+	protected String getSecondaryInfoDisplay(boolean seeCount) {
+		return toDisplay(getInfo().getSecondaryInfo(seeCount));
+	}
+
+	/**
 	 * Update the title with the currently registered information.
 	 */
 	protected void updateMeta() {
-		String main = info.getMainInfo();
-		String optSecondary = info.getSecondaryInfo(seeWordCount);
+		String main = getMainInfoDisplay();
+		String optSecondary = getSecondaryInfoDisplay(isSeeWordCount());
 
-		// TODO: max size limit?
 		title.setText(main);
 		secondary.setText(optSecondary + " ");
 
@@ -185,5 +212,25 @@ public class BookLine extends JPanel {
 		add(getInfo().isCached() ? iconCached : iconNotCached,
 				BorderLayout.WEST);
 		validate();
+	}
+
+	/**
+	 * Make the given {@link String} display-ready (i.e., shorten it if it is
+	 * too long).
+	 * 
+	 * @param value
+	 *            the full value
+	 * 
+	 * @return the display-ready value
+	 */
+	private String toDisplay(String value) {
+		if (value == null)
+			value = "";
+
+		if (value.length() > MAX_DISPLAY_SIZE) {
+			value = value.substring(0, MAX_DISPLAY_SIZE - 3) + "...";
+		}
+
+		return value;
 	}
 }

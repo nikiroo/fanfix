@@ -29,6 +29,7 @@ public class MainFrame extends JFrame {
 		detailsPanel = true;
 
 		browser = new BrowserPanel();
+		books = new BooksPanel(true);
 
 		JComponent other = null;
 		boolean orientationH = true;
@@ -46,8 +47,6 @@ public class MainFrame extends JFrame {
 			details = new DetailsPanel();
 			other = split(goBack, details, false, 0.5, 1);
 		}
-
-		books = new BooksPanel(true);
 
 		browser.addActionListener(new ActionListener() {
 			@Override
