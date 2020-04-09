@@ -60,8 +60,10 @@ public class DetailsPanel extends JPanel {
 	/**
 	 * Configure a {@link JLabel} with the given colour.
 	 * 
-	 * @param label the label to configure
-	 * @param color the colour to use
+	 * @param label
+	 *            the label to configure
+	 * @param color
+	 *            the colour to use
 	 * 
 	 * @return the (same) configured label
 	 */
@@ -76,7 +78,8 @@ public class DetailsPanel extends JPanel {
 	/**
 	 * Set the {@link BookInfo} you want to see displayed here.
 	 * 
-	 * @param info the {@link BookInfo} to display
+	 * @param info
+	 *            the {@link BookInfo} to display
 	 */
 	public void setBook(final BookInfo info) {
 		this.info = info;
@@ -86,7 +89,8 @@ public class DetailsPanel extends JPanel {
 			name.setText(null);
 			opt.setText(null);
 		} else if (info.getMainInfo() == null) {
-			name.setText("All the " + info.getType().toString().toLowerCase() + "s");
+			name.setText(
+					"All the " + info.getType().toString().toLowerCase() + "s");
 			opt.setText(info.getSecondaryInfo(true));
 		} else {
 			final String myId = info.getId();
@@ -101,7 +105,8 @@ public class DetailsPanel extends JPanel {
 
 					BookInfo current = DetailsPanel.this.info;
 					if (current != null && current.getId().equals(myId)) {
-						return BookBlock.generateCoverImage(Instance.getInstance().getLibrary(), info);
+						return BookBlock.generateCoverImage(
+								Instance.getInstance().getLibrary(), info);
 					}
 
 					return null;

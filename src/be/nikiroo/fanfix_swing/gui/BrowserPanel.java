@@ -34,30 +34,30 @@ public class BrowserPanel extends ListenerPanel {
 
 	/**
 	 * The {@link ActionEvent} you receive from
-	 * {@link BrowserPanel#addActionListener(ActionListener)} can return this as a
-	 * command (see {@link ActionEvent#getActionCommand()}) if they were created in
-	 * the scope of a source.
+	 * {@link BrowserPanel#addActionListener(ActionListener)} can return this as
+	 * a command (see {@link ActionEvent#getActionCommand()}) if they were
+	 * created in the scope of a source.
 	 */
 	static public final String SOURCE_SELECTION = "source_selection";
 	/**
 	 * The {@link ActionEvent} you receive from
-	 * {@link BrowserPanel#addActionListener(ActionListener)} can return this as a
-	 * command (see {@link ActionEvent#getActionCommand()}) if they were created in
-	 * the scope of an author.
+	 * {@link BrowserPanel#addActionListener(ActionListener)} can return this as
+	 * a command (see {@link ActionEvent#getActionCommand()}) if they were
+	 * created in the scope of an author.
 	 */
 	static public final String AUTHOR_SELECTION = "author_selection";
 	/**
 	 * The {@link ActionEvent} you receive from
-	 * {@link BrowserPanel#addActionListener(ActionListener)} can return this as a
-	 * command (see {@link ActionEvent#getActionCommand()}) if they were created in
-	 * the scope of a tag.
+	 * {@link BrowserPanel#addActionListener(ActionListener)} can return this as
+	 * a command (see {@link ActionEvent#getActionCommand()}) if they were
+	 * created in the scope of a tag.
 	 */
 	static public final String TAGS_SELECTION = "tags_selection";
 	/**
 	 * The {@link ActionEvent} you receive from
-	 * {@link BrowserPanel#addActionListener(ActionListener)} can return this as a
-	 * command (see {@link ActionEvent#getActionCommand()}) if they were created in
-	 * the scope of a tab change.
+	 * {@link BrowserPanel#addActionListener(ActionListener)} can return this as
+	 * a command (see {@link ActionEvent#getActionCommand()}) if they were
+	 * created in the scope of a tab change.
 	 */
 	static public final String TAB_CHANGE = "tab_change";
 
@@ -131,7 +131,8 @@ public class BrowserPanel extends ListenerPanel {
 		}
 	}
 
-	private void configureTab(JTabbedPane tabs, @SuppressWarnings("rawtypes") BasicTab tab, String name,
+	private void configureTab(JTabbedPane tabs,
+			@SuppressWarnings("rawtypes") BasicTab tab, String name,
 			String tooltip) {
 		tab.setBaseTitle(name);
 		tabs.setTitleAt(tab.getIndex(), tab.getTitle());
@@ -139,7 +140,8 @@ public class BrowserPanel extends ListenerPanel {
 		listenTabs(tabs, tab);
 	}
 
-	private void listenTabs(final JTabbedPane tabs, @SuppressWarnings("rawtypes") final BasicTab tab) {
+	private void listenTabs(final JTabbedPane tabs,
+			@SuppressWarnings("rawtypes") final BasicTab tab) {
 		tab.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -153,8 +155,8 @@ public class BrowserPanel extends ListenerPanel {
 	 * Get the {@link BookInfo} to highlight, even if none or more than one are
 	 * selected.
 	 * <p>
-	 * Return a special "all" {@link BookInfo} of the correct type when nothing is
-	 * selected.
+	 * Return a special "all" {@link BookInfo} of the correct type when nothing
+	 * is selected.
 	 * 
 	 * @return the {@link BookInfo} to highlight, can be NULL
 	 */
@@ -163,7 +165,8 @@ public class BrowserPanel extends ListenerPanel {
 		Component selectedTab = tabs.getSelectedComponent();
 		if (selectedTab instanceof BasicTab) {
 			@SuppressWarnings({ "unchecked", "rawtypes" })
-			List<String> selectedAll = ((BasicTab) selectedTab).getSelectedElements();
+			List<String> selectedAll = ((BasicTab) selectedTab)
+					.getSelectedElements();
 			if (!selectedAll.isEmpty()) {
 				selected1 = selectedAll.get(0);
 			}

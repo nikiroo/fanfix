@@ -38,15 +38,16 @@ class BookCoverImager {
 	static final Color SPINE_COLOR_RIGHT = new Color(100, 100, 100);
 	static final Color BORDER = Color.black;
 
-	public static final Color UNCACHED_ICON_COLOR = Color.green.darker(); 
-			// new Color(0, 80, 220);
+	public static final Color UNCACHED_ICON_COLOR = Color.green.darker();
+	// new Color(0, 80, 220);
 
 	public static final int TEXT_HEIGHT = 50;
 	public static final int TEXT_WIDTH = COVER_WIDTH + 40;
 
 	//
 
-	static public Color getBackground(boolean enabled, boolean selected, boolean hovered) {
+	static public Color getBackground(boolean enabled, boolean selected,
+			boolean hovered) {
 		Color color = new Color(255, 255, 255, 0);
 		if (!enabled) {
 		} else if (selected && !hovered) {
@@ -61,17 +62,23 @@ class BookCoverImager {
 	}
 
 	/**
-	 * Draw a partially transparent overlay if needed depending upon the selection
-	 * and mouse-hover states on top of the normal component, as well as a possible
-	 * "cached" icon if the item is cached.
+	 * Draw a partially transparent overlay if needed depending upon the
+	 * selection and mouse-hover states on top of the normal component, as well
+	 * as a possible "cached" icon if the item is cached.
 	 * 
-	 * @param g        the {@link Graphics} to paint onto
-	 * @param enabled  draw an enabled overlay
-	 * @param selected draw a selected overlay
-	 * @param hovered  draw a hovered overlay
-	 * @param cached   draw a non-cached overlay if needed
+	 * @param g
+	 *            the {@link Graphics} to paint onto
+	 * @param enabled
+	 *            draw an enabled overlay
+	 * @param selected
+	 *            draw a selected overlay
+	 * @param hovered
+	 *            draw a hovered overlay
+	 * @param cached
+	 *            draw a non-cached overlay if needed
 	 */
-	static public void paintOverlay(Graphics g, boolean enabled, boolean selected, boolean hovered, boolean cached) {
+	static public void paintOverlay(Graphics g, boolean enabled,
+			boolean selected, boolean hovered, boolean cached) {
 		Rectangle clip = g.getClipBounds();
 		if (clip.getWidth() <= 0 || clip.getHeight() <= 0) {
 			return;
@@ -92,12 +99,16 @@ class BookCoverImager {
 			yOffset++;
 		}
 
-		int[] xs = new int[] { xOffset, xOffset + SPINE_WIDTH, xOffset + w + SPINE_WIDTH, xOffset + w };
-		int[] ys = new int[] { yOffset + h, yOffset + h + SPINE_HEIGHT, yOffset + h + SPINE_HEIGHT, yOffset + h };
+		int[] xs = new int[] { xOffset, xOffset + SPINE_WIDTH,
+				xOffset + w + SPINE_WIDTH, xOffset + w };
+		int[] ys = new int[] { yOffset + h, yOffset + h + SPINE_HEIGHT,
+				yOffset + h + SPINE_HEIGHT, yOffset + h };
 		g.setColor(SPINE_COLOR_BOTTOM);
 		g.fillPolygon(new Polygon(xs, ys, xs.length));
-		xs = new int[] { xOffset + w, xOffset + w + SPINE_WIDTH, xOffset + w + SPINE_WIDTH, xOffset + w };
-		ys = new int[] { yOffset, yOffset + SPINE_HEIGHT, yOffset + h + SPINE_HEIGHT, yOffset + h };
+		xs = new int[] { xOffset + w, xOffset + w + SPINE_WIDTH,
+				xOffset + w + SPINE_WIDTH, xOffset + w };
+		ys = new int[] { yOffset, yOffset + SPINE_HEIGHT,
+				yOffset + h + SPINE_HEIGHT, yOffset + h };
 		g.setColor(SPINE_COLOR_RIGHT);
 		g.fillPolygon(new Polygon(xs, ys, xs.length));
 
@@ -106,7 +117,8 @@ class BookCoverImager {
 		g.setColor(color);
 		g.fillRect(clip.x, clip.y, clip.width, clip.height);
 
-		UIUtils.drawEllipse3D(g, UNCACHED_ICON_COLOR, COVER_WIDTH + HOFFSET + 30, 10, 20, 20, cached);
+		UIUtils.drawEllipse3D(g, UNCACHED_ICON_COLOR,
+				COVER_WIDTH + HOFFSET + 30, 10, 20, 20, cached);
 	}
 
 	/**
@@ -130,12 +142,15 @@ class BookCoverImager {
 	/**
 	 * Generate a cover icon based upon the given {@link GuiReaderBookInfo}.
 	 * 
-	 * @param lib  the library the meta comes from (can be NULL)
-	 * @param info the {@link GuiReaderBookInfo}
+	 * @param lib
+	 *            the library the meta comes from (can be NULL)
+	 * @param info
+	 *            the {@link GuiReaderBookInfo}
 	 * 
 	 * @return the image
 	 */
-	static public java.awt.Image generateCoverImage(BasicLibrary lib, BookInfo info) {
+	static public java.awt.Image generateCoverImage(BasicLibrary lib,
+			BookInfo info) {
 		BufferedImage resizedImage = null;
 		String id = getIconId(info);
 
@@ -157,21 +172,26 @@ class BookCoverImager {
 					cover = info.getBaseImage(lib);
 				}
 
-				resizedImage = new BufferedImage(getCoverWidth(), getCoverHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+				resizedImage = new BufferedImage(getCoverWidth(),
+						getCoverHeight(), BufferedImage.TYPE_4BYTE_ABGR);
 
 				Graphics2D g = resizedImage.createGraphics();
 				try {
 					if (info != null && info.supportsCover()) {
 						g.setColor(Color.white);
 						g.fillRect(0, HOFFSET, COVER_WIDTH, COVER_HEIGHT);
-						
+
 						if (cover != null) {
-							BufferedImage coverb = ImageUtilsAwt.fromImage(cover);
-							g.drawImage(coverb, 0, HOFFSET, COVER_WIDTH, COVER_HEIGHT, null);
+							BufferedImage coverb = ImageUtilsAwt
+									.fromImage(cover);
+							g.drawImage(coverb, 0, HOFFSET, COVER_WIDTH,
+									COVER_HEIGHT, null);
 						} else {
 							g.setColor(Color.black);
-							g.drawLine(0, HOFFSET, COVER_WIDTH, HOFFSET + COVER_HEIGHT);
-							g.drawLine(COVER_WIDTH, HOFFSET, 0, HOFFSET + COVER_HEIGHT);
+							g.drawLine(0, HOFFSET, COVER_WIDTH,
+									HOFFSET + COVER_HEIGHT);
+							g.drawLine(COVER_WIDTH, HOFFSET, 0,
+									HOFFSET + COVER_HEIGHT);
 						}
 					}
 				} finally {
@@ -201,7 +221,8 @@ class BookCoverImager {
 	/**
 	 * Manually clear the icon set for this item.
 	 * 
-	 * @param info the info about the story or source/type or author
+	 * @param info
+	 *            the info about the story or source/type or author
 	 */
 	static public void clearIcon(BookInfo info) {
 		String id = getIconId(info);
@@ -209,14 +230,16 @@ class BookCoverImager {
 	}
 
 	/**
-	 * Get a unique ID from this {@link GuiReaderBookInfo} (note that it can be a
-	 * story, a fake item for a source/type or a fake item for an author).
+	 * Get a unique ID from this {@link GuiReaderBookInfo} (note that it can be
+	 * a story, a fake item for a source/type or a fake item for an author).
 	 * 
-	 * @param info the info or NULL for a generic (non unique!) ID
+	 * @param info
+	 *            the info or NULL for a generic (non unique!) ID
 	 * @return the unique ID
 	 */
 	static private String getIconId(BookInfo info) {
-		return (info == null ? "" : info.getId() + ".") + "book-thumb_" + SPINE_WIDTH + "x" + COVER_WIDTH + "+"
-				+ SPINE_HEIGHT + "+" + COVER_HEIGHT + "@" + HOFFSET;
+		return (info == null ? "" : info.getId() + ".") + "book-thumb_"
+				+ SPINE_WIDTH + "x" + COVER_WIDTH + "+" + SPINE_HEIGHT + "+"
+				+ COVER_HEIGHT + "@" + HOFFSET;
 	}
 }

@@ -23,7 +23,8 @@ public class TagsTab extends BasicTab<List<String>> {
 	@Override
 	protected void fillData(List<String> data) {
 		try {
-			MetaResultList metas = Instance.getInstance().getLibrary().getList();
+			MetaResultList metas = Instance.getInstance().getLibrary()
+					.getList();
 			// TODO: getTagList, getAuthorList... ?
 			for (MetaData meta : metas.getMetas()) {
 				List<String> tags = meta.getTags();
@@ -50,17 +51,20 @@ public class TagsTab extends BasicTab<List<String>> {
 	protected String keyToDisplay(String key) {
 		if (key.trim().isEmpty()) {
 			// TODO: new TAG_UNKNOWN needed
-			key = Instance.getInstance().getTransGui().getString(StringIdGui.MENU_AUTHORS_UNKNOWN);
+			key = Instance.getInstance().getTransGui()
+					.getString(StringIdGui.MENU_AUTHORS_UNKNOWN);
 		}
 
 		return key;
 	}
 
 	@Override
-	protected int loadData(DefaultMutableTreeNode root, List<String> tags, String filter) {
+	protected int loadData(DefaultMutableTreeNode root, List<String> tags,
+			String filter) {
 		for (String tag : tags) {
 			if (checkFilter(filter, tag)) {
-				DefaultMutableTreeNode sourceNode = new DefaultMutableTreeNode(tag);
+				DefaultMutableTreeNode sourceNode = new DefaultMutableTreeNode(
+						tag);
 				root.add(sourceNode);
 			}
 		}

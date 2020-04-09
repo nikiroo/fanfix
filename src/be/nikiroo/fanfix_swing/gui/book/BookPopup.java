@@ -113,7 +113,8 @@ public class BookPopup extends JPopupMenu {
 		item.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ConfigEditor<Config> ed = new ConfigEditor<Config>(Config.class, Instance.getInstance().getConfig(),
+				ConfigEditor<Config> ed = new ConfigEditor<Config>(Config.class,
+						Instance.getInstance().getConfig(),
 						trans(StringIdGui.SUBTITLE_CONFIG));
 				JFrame frame = new JFrame(title);
 				frame.add(ed);
@@ -138,8 +139,9 @@ public class BookPopup extends JPopupMenu {
 		item.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ConfigEditor<UiConfig> ed = new ConfigEditor<UiConfig>(UiConfig.class,
-						Instance.getInstance().getUiConfig(), trans(StringIdGui.SUBTITLE_CONFIG_UI));
+				ConfigEditor<UiConfig> ed = new ConfigEditor<UiConfig>(
+						UiConfig.class, Instance.getInstance().getUiConfig(),
+						trans(StringIdGui.SUBTITLE_CONFIG_UI));
 				JFrame frame = new JFrame(title);
 				frame.add(ed);
 				frame.setSize(800, 600);
@@ -180,22 +182,28 @@ public class BookPopup extends JPopupMenu {
 		}
 		//
 
-		JMenuItem export = new JMenuItem(trans(StringIdGui.MENU_FILE_EXPORT), KeyEvent.VK_S);
+		JMenuItem export = new JMenuItem(trans(StringIdGui.MENU_FILE_EXPORT),
+				KeyEvent.VK_S);
 		export.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				final BookInfo book = informer.getUniqueSelected();
 				if (book != null) {
-					fc.showDialog(BookPopup.this.getParent(), trans(StringIdGui.TITLE_SAVE));
+					fc.showDialog(BookPopup.this.getParent(),
+							trans(StringIdGui.TITLE_SAVE));
 					if (fc.getSelectedFile() != null) {
-						final OutputType type = otherFilters.get(fc.getFileFilter());
-						final String path = fc.getSelectedFile().getAbsolutePath() + type.getDefaultExtension(false);
+						final OutputType type = otherFilters
+								.get(fc.getFileFilter());
+						final String path = fc.getSelectedFile()
+								.getAbsolutePath()
+								+ type.getDefaultExtension(false);
 						final Progress pg = new Progress();
 
 						new SwingWorker<Void, Void>() {
 							@Override
 							protected Void doInBackground() throws Exception {
-								lib.export(book.getMeta().getLuid(), type, path, pg);
+								lib.export(book.getMeta().getLuid(), type, path,
+										pg);
 								return null;
 							}
 
@@ -204,8 +212,9 @@ public class BookPopup extends JPopupMenu {
 								try {
 									get();
 								} catch (Exception e) {
-									UiHelper.error(BookPopup.this.getParent(), e.getLocalizedMessage(), "IOException",
-											e);
+									UiHelper.error(BookPopup.this.getParent(),
+											e.getLocalizedMessage(),
+											"IOException", e);
 								}
 							}
 						}.execute();
@@ -221,7 +230,8 @@ public class BookPopup extends JPopupMenu {
 	 * Create a {@link FileFilter} that accepts all files and return the given
 	 * description.
 	 * 
-	 * @param desc the description
+	 * @param desc
+	 *            the description
 	 * 
 	 * @return the filter
 	 */
@@ -245,7 +255,8 @@ public class BookPopup extends JPopupMenu {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemClearCache() {
-		JMenuItem refresh = new JMenuItem(trans(StringIdGui.MENU_EDIT_CLEAR_CACHE), KeyEvent.VK_C);
+		JMenuItem refresh = new JMenuItem(
+				trans(StringIdGui.MENU_EDIT_CLEAR_CACHE), KeyEvent.VK_C);
 		refresh.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -269,7 +280,9 @@ public class BookPopup extends JPopupMenu {
 									informer.setCached(book, false);
 								}
 							} catch (Exception e) {
-								UiHelper.error(BookPopup.this.getParent(), e.getLocalizedMessage(), "IOException", e);
+								UiHelper.error(BookPopup.this.getParent(),
+										e.getLocalizedMessage(), "IOException",
+										e);
 							}
 						}
 					}.execute();
@@ -293,10 +306,12 @@ public class BookPopup extends JPopupMenu {
 		try {
 			groupedSources = lib.getSourcesGrouped();
 		} catch (IOException e) {
-			UiHelper.error(BookPopup.this.getParent(), e.getLocalizedMessage(), "IOException", e);
+			UiHelper.error(BookPopup.this.getParent(), e.getLocalizedMessage(),
+					"IOException", e);
 		}
 
-		JMenuItem item = new JMenuItem(trans(StringIdGui.MENU_FILE_MOVE_TO_NEW_TYPE));
+		JMenuItem item = new JMenuItem(
+				trans(StringIdGui.MENU_FILE_MOVE_TO_NEW_TYPE));
 		item.addActionListener(createMoveAction(ChangeAction.SOURCE, null));
 		changeTo.add(item);
 		changeTo.addSeparator();
@@ -305,7 +320,8 @@ public class BookPopup extends JPopupMenu {
 			List<String> list = groupedSources.get(type);
 			if (list.size() == 1 && list.get(0).isEmpty()) {
 				item = new JMenuItem(type);
-				item.addActionListener(createMoveAction(ChangeAction.SOURCE, type));
+				item.addActionListener(
+						createMoveAction(ChangeAction.SOURCE, type));
 				changeTo.add(item);
 			} else {
 				JMenu dir = new JMenu(type);
@@ -318,7 +334,8 @@ public class BookPopup extends JPopupMenu {
 					}
 
 					item = new JMenuItem(itemName);
-					item.addActionListener(createMoveAction(ChangeAction.SOURCE, actualType));
+					item.addActionListener(
+							createMoveAction(ChangeAction.SOURCE, actualType));
 					dir.add(item);
 				}
 				changeTo.add(dir);
@@ -338,7 +355,8 @@ public class BookPopup extends JPopupMenu {
 		changeTo.setMnemonic(KeyEvent.VK_A);
 
 		// New author
-		JMenuItem newItem = new JMenuItem(trans(StringIdGui.MENU_FILE_MOVE_TO_NEW_AUTHOR));
+		JMenuItem newItem = new JMenuItem(
+				trans(StringIdGui.MENU_FILE_MOVE_TO_NEW_AUTHOR));
 		changeTo.add(newItem);
 		changeTo.addSeparator();
 		newItem.addActionListener(createMoveAction(ChangeAction.AUTHOR, null));
@@ -349,7 +367,8 @@ public class BookPopup extends JPopupMenu {
 		try {
 			groupedAuthors = lib.getAuthorsGrouped();
 		} catch (IOException e) {
-			UiHelper.error(BookPopup.this.getParent(), e.getLocalizedMessage(), "IOException", e);
+			UiHelper.error(BookPopup.this.getParent(), e.getLocalizedMessage(),
+					"IOException", e);
 			groupedAuthors = new HashMap<String, List<String>>();
 
 		}
@@ -358,16 +377,22 @@ public class BookPopup extends JPopupMenu {
 			for (String key : groupedAuthors.keySet()) {
 				JMenu group = new JMenu(key);
 				for (String value : groupedAuthors.get(key)) {
-					JMenuItem item = new JMenuItem(value.isEmpty() ? trans(StringIdGui.MENU_AUTHORS_UNKNOWN) : value);
-					item.addActionListener(createMoveAction(ChangeAction.AUTHOR, value));
+					JMenuItem item = new JMenuItem(value.isEmpty()
+							? trans(StringIdGui.MENU_AUTHORS_UNKNOWN)
+							: value);
+					item.addActionListener(
+							createMoveAction(ChangeAction.AUTHOR, value));
 					group.add(item);
 				}
 				changeTo.add(group);
 			}
 		} else if (groupedAuthors.size() == 1) {
 			for (String value : groupedAuthors.values().iterator().next()) {
-				JMenuItem item = new JMenuItem(value.isEmpty() ? trans(StringIdGui.MENU_AUTHORS_UNKNOWN) : value);
-				item.addActionListener(createMoveAction(ChangeAction.AUTHOR, value));
+				JMenuItem item = new JMenuItem(value.isEmpty()
+						? trans(StringIdGui.MENU_AUTHORS_UNKNOWN)
+						: value);
+				item.addActionListener(
+						createMoveAction(ChangeAction.AUTHOR, value));
 				changeTo.add(item);
 			}
 		}
@@ -387,7 +412,8 @@ public class BookPopup extends JPopupMenu {
 		return changeTo;
 	}
 
-	private ActionListener createMoveAction(final ChangeAction what, final String type) {
+	private ActionListener createMoveAction(final ChangeAction what,
+			final String type) {
 		return new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -408,8 +434,10 @@ public class BookPopup extends JPopupMenu {
 							}
 						}
 
-						Object rep = JOptionPane.showInputDialog(BookPopup.this.getParent(),
-								trans(StringIdGui.SUBTITLE_MOVE_TO), trans(StringIdGui.TITLE_MOVE_TO),
+						Object rep = JOptionPane.showInputDialog(
+								BookPopup.this.getParent(),
+								trans(StringIdGui.SUBTITLE_MOVE_TO),
+								trans(StringIdGui.TITLE_MOVE_TO),
 								JOptionPane.QUESTION_MESSAGE, null, null, init);
 
 						if (rep == null) {
@@ -440,16 +468,22 @@ public class BookPopup extends JPopupMenu {
 						@Override
 						protected void done() {
 							try {
-								// this can create new sources/authors, so a simple fireElementChanged is not
-								// enough, we need to clear the whole cache (for BrowserPanel for instance)
+								// this can create new sources/authors, so a
+								// simple fireElementChanged is not
+								// enough, we need to clear the whole cache (for
+								// BrowserPanel for instance)
 								informer.invalidateCache();
 
-								// TODO: also refresh the Sources/Authors(/Tags?) list
+								// TODO: also refresh the
+								// Sources/Authors(/Tags?) list
 
-								// Even if problems occurred, still invalidate the cache
+								// Even if problems occurred, still invalidate
+								// the cache
 								get();
 							} catch (Exception e) {
-								UiHelper.error(BookPopup.this.getParent(), e.getLocalizedMessage(), "IOException", e);
+								UiHelper.error(BookPopup.this.getParent(),
+										e.getLocalizedMessage(), "IOException",
+										e);
 							}
 						}
 					}.execute();
@@ -464,22 +498,24 @@ public class BookPopup extends JPopupMenu {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemRedownload() {
-		JMenuItem refresh = new JMenuItem(trans(StringIdGui.MENU_EDIT_REDOWNLOAD), KeyEvent.VK_R);
+		JMenuItem refresh = new JMenuItem(
+				trans(StringIdGui.MENU_EDIT_REDOWNLOAD), KeyEvent.VK_R);
 		refresh.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-//				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
-//				if (selectedBook != null) {
-//					final MetaData meta = selectedBook.getInfo().getMeta();
-//					mainPanel.imprt(meta.getUrl(), new MetaDataRunnable() {
-//						@Override
-//						public void run(MetaData newMeta) {
-//							if (!newMeta.getSource().equals(meta.getSource())) {
-//								reader.changeSource(newMeta.getLuid(), meta.getSource());
-//							}
-//						}
-//					}, trans(StringIdGui.PROGRESS_CHANGE_SOURCE));
-//				}
+				// final GuiReaderBook selectedBook =
+				// mainPanel.getSelectedBook();
+				// if (selectedBook != null) {
+				// final MetaData meta = selectedBook.getInfo().getMeta();
+				// mainPanel.imprt(meta.getUrl(), new MetaDataRunnable() {
+				// @Override
+				// public void run(MetaData newMeta) {
+				// if (!newMeta.getSource().equals(meta.getSource())) {
+				// reader.changeSource(newMeta.getLuid(), meta.getSource());
+				// }
+				// }
+				// }, trans(StringIdGui.PROGRESS_CHANGE_SOURCE));
+				// }
 			}
 		});
 
@@ -492,7 +528,8 @@ public class BookPopup extends JPopupMenu {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemDownloadToCache() {
-		JMenuItem refresh = new JMenuItem(trans(StringIdGui.MENU_EDIT_DOWNLOAD_TO_CACHE), KeyEvent.VK_T);
+		JMenuItem refresh = new JMenuItem(
+				trans(StringIdGui.MENU_EDIT_DOWNLOAD_TO_CACHE), KeyEvent.VK_T);
 		refresh.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -509,17 +546,20 @@ public class BookPopup extends JPopupMenu {
 								luids.add(book.getMeta().getLuid());
 								break;
 							case SOURCE:
-								for (MetaData meta : lib.getList().filter(book.getMainInfo(), null, null)) {
+								for (MetaData meta : lib.getList().filter(
+										book.getMainInfo(), null, null)) {
 									luids.add(meta.getLuid());
 								}
 								break;
 							case AUTHOR:
-								for (MetaData meta : lib.getList().filter(null, book.getMainInfo(), null)) {
+								for (MetaData meta : lib.getList().filter(null,
+										book.getMainInfo(), null)) {
 									luids.add(meta.getLuid());
 								}
 								break;
 							case TAG:
-								for (MetaData meta : lib.getList().filter(null, null, book.getMainInfo())) {
+								for (MetaData meta : lib.getList().filter(null,
+										null, book.getMainInfo())) {
 									luids.add(meta.getLuid());
 								}
 								break;
@@ -547,7 +587,8 @@ public class BookPopup extends JPopupMenu {
 								informer.setCached(book, true);
 							}
 						} catch (Exception e) {
-							UiHelper.error(BookPopup.this.getParent(), e.getLocalizedMessage(), "IOException", e);
+							UiHelper.error(BookPopup.this.getParent(),
+									e.getLocalizedMessage(), "IOException", e);
 						}
 					}
 				}.execute();
@@ -563,28 +604,33 @@ public class BookPopup extends JPopupMenu {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemDelete() {
-		JMenuItem delete = new JMenuItem(trans(StringIdGui.MENU_EDIT_DELETE), KeyEvent.VK_D);
+		JMenuItem delete = new JMenuItem(trans(StringIdGui.MENU_EDIT_DELETE),
+				KeyEvent.VK_D);
 		delete.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-//				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
-//				if (selectedBook != null && selectedBook.getInfo().getMeta() != null) {
-//
-//					final MetaData meta = selectedBook.getInfo().getMeta();
-//					int rep = JOptionPane.showConfirmDialog(GuiReaderFrame.this,
-//							trans(StringIdGui.SUBTITLE_DELETE, meta.getLuid(), meta.getTitle()),
-//							trans(StringIdGui.TITLE_DELETE), JOptionPane.OK_CANCEL_OPTION);
-//
-//					if (rep == JOptionPane.OK_OPTION) {
-//						mainPanel.outOfUi(null, true, new Runnable() {
-//							@Override
-//							public void run() {
-//								reader.delete(meta.getLuid());
-//								mainPanel.unsetSelectedBook();
-//							}
-//						});
-//					}
-//				}
+				// final GuiReaderBook selectedBook =
+				// mainPanel.getSelectedBook();
+				// if (selectedBook != null && selectedBook.getInfo().getMeta()
+				// != null) {
+				//
+				// final MetaData meta = selectedBook.getInfo().getMeta();
+				// int rep = JOptionPane.showConfirmDialog(GuiReaderFrame.this,
+				// trans(StringIdGui.SUBTITLE_DELETE, meta.getLuid(),
+				// meta.getTitle()),
+				// trans(StringIdGui.TITLE_DELETE),
+				// JOptionPane.OK_CANCEL_OPTION);
+				//
+				// if (rep == JOptionPane.OK_OPTION) {
+				// mainPanel.outOfUi(null, true, new Runnable() {
+				// @Override
+				// public void run() {
+				// reader.delete(meta.getLuid());
+				// mainPanel.unsetSelectedBook();
+				// }
+				// });
+				// }
+				// }
 			}
 		});
 
@@ -597,20 +643,23 @@ public class BookPopup extends JPopupMenu {
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemProperties() {
-		JMenuItem delete = new JMenuItem(trans(StringIdGui.MENU_FILE_PROPERTIES), KeyEvent.VK_P);
+		JMenuItem delete = new JMenuItem(
+				trans(StringIdGui.MENU_FILE_PROPERTIES), KeyEvent.VK_P);
 		delete.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-//				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
-//				if (selectedBook != null) {
-//					mainPanel.outOfUi(null, false, new Runnable() {
-//						@Override
-//						public void run() {
-//							new GuiReaderPropertiesFrame(lib, selectedBook.getInfo().getMeta())
-//									.setVisible(true);
-//						}
-//					});
-//				}
+				// final GuiReaderBook selectedBook =
+				// mainPanel.getSelectedBook();
+				// if (selectedBook != null) {
+				// mainPanel.outOfUi(null, false, new Runnable() {
+				// @Override
+				// public void run() {
+				// new GuiReaderPropertiesFrame(lib,
+				// selectedBook.getInfo().getMeta())
+				// .setVisible(true);
+				// }
+				// });
+				// }
 			}
 		});
 
@@ -623,18 +672,20 @@ public class BookPopup extends JPopupMenu {
 	 * @return the item
 	 */
 	public JMenuItem createMenuItemOpenBook() {
-		JMenuItem open = new JMenuItem(trans(StringIdGui.MENU_FILE_OPEN), KeyEvent.VK_O);
+		JMenuItem open = new JMenuItem(trans(StringIdGui.MENU_FILE_OPEN),
+				KeyEvent.VK_O);
 		open.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				final BookInfo book = informer.getUniqueSelected();
 				if (book != null) {
-					Actions.openExternal(lib, book.getMeta(), BookPopup.this.getParent(), new Runnable() {
-						@Override
-						public void run() {
-							informer.setCached(book, true);
-						}
-					});
+					Actions.openExternal(lib, book.getMeta(),
+							BookPopup.this.getParent(), new Runnable() {
+								@Override
+								public void run() {
+									informer.setCached(book, true);
+								}
+							});
 				}
 			}
 		});
@@ -643,30 +694,35 @@ public class BookPopup extends JPopupMenu {
 	}
 
 	/**
-	 * Create the SetCover menu item for a book to change the linked source cover.
+	 * Create the SetCover menu item for a book to change the linked source
+	 * cover.
 	 * 
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemSetCoverForSource() {
-		JMenuItem open = new JMenuItem(trans(StringIdGui.MENU_EDIT_SET_COVER_FOR_SOURCE), KeyEvent.VK_C);
+		JMenuItem open = new JMenuItem(
+				trans(StringIdGui.MENU_EDIT_SET_COVER_FOR_SOURCE),
+				KeyEvent.VK_C);
 		open.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
-//				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
-//				if (selectedBook != null) {
-//					BasicLibrary lib = lib;
-//					String luid = selectedBook.getInfo().getMeta().getLuid();
-//					String source = selectedBook.getInfo().getMeta().getSource();
-//
-//					try {
-//						lib.setSourceCover(source, luid);
-//					} catch (IOException e) {
-//						error(e.getLocalizedMessage(), "IOException", e);
-//					}
-//
-//					GuiReaderBookInfo sourceInfo = GuiReaderBookInfo.fromSource(lib, source);
-//					GuiReaderCoverImager.clearIcon(sourceInfo);
-//				}
+				// final GuiReaderBook selectedBook =
+				// mainPanel.getSelectedBook();
+				// if (selectedBook != null) {
+				// BasicLibrary lib = lib;
+				// String luid = selectedBook.getInfo().getMeta().getLuid();
+				// String source = selectedBook.getInfo().getMeta().getSource();
+				//
+				// try {
+				// lib.setSourceCover(source, luid);
+				// } catch (IOException e) {
+				// error(e.getLocalizedMessage(), "IOException", e);
+				// }
+				//
+				// GuiReaderBookInfo sourceInfo =
+				// GuiReaderBookInfo.fromSource(lib, source);
+				// GuiReaderCoverImager.clearIcon(sourceInfo);
+				// }
 			}
 		});
 
@@ -674,29 +730,34 @@ public class BookPopup extends JPopupMenu {
 	}
 
 	/**
-	 * Create the SetCover menu item for a book to change the linked source cover.
+	 * Create the SetCover menu item for a book to change the linked source
+	 * cover.
 	 * 
 	 * @return the item
 	 */
 	private JMenuItem createMenuItemSetCoverForAuthor() {
-		JMenuItem open = new JMenuItem(trans(StringIdGui.MENU_EDIT_SET_COVER_FOR_AUTHOR), KeyEvent.VK_A);
+		JMenuItem open = new JMenuItem(
+				trans(StringIdGui.MENU_EDIT_SET_COVER_FOR_AUTHOR),
+				KeyEvent.VK_A);
 		open.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
-//				final GuiReaderBook selectedBook = mainPanel.getSelectedBook();
-//				if (selectedBook != null) {
-//					String luid = selectedBook.getInfo().getMeta().getLuid();
-//					String author = selectedBook.getInfo().getMeta().getAuthor();
-//
-//					try {
-//						lib.setAuthorCover(author, luid);
-//					} catch (IOException e) {
-//						error(e.getLocalizedMessage(), "IOException", e);
-//					}
-//
-//					GuiReaderBookInfo authorInfo = GuiReaderBookInfo.fromAuthor(lib, author);
-//					GuiReaderCoverImager.clearIcon(authorInfo);
-//				}
+				// final GuiReaderBook selectedBook =
+				// mainPanel.getSelectedBook();
+				// if (selectedBook != null) {
+				// String luid = selectedBook.getInfo().getMeta().getLuid();
+				// String author = selectedBook.getInfo().getMeta().getAuthor();
+				//
+				// try {
+				// lib.setAuthorCover(author, luid);
+				// } catch (IOException e) {
+				// error(e.getLocalizedMessage(), "IOException", e);
+				// }
+				//
+				// GuiReaderBookInfo authorInfo =
+				// GuiReaderBookInfo.fromAuthor(lib, author);
+				// GuiReaderCoverImager.clearIcon(authorInfo);
+				// }
 			}
 		});
 

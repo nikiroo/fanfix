@@ -21,8 +21,8 @@ import be.nikiroo.utils.StringUtils;
  */
 public class BookInfo {
 	/**
-	 * The type of {@link Book} (i.e., related to a story or to something else that
-	 * can encompass stories).
+	 * The type of {@link Book} (i.e., related to a story or to something else
+	 * that can encompass stories).
 	 * 
 	 * @author niki
 	 */
@@ -30,8 +30,8 @@ public class BookInfo {
 		/** A normal story, which can be "read". */
 		STORY,
 		/**
-		 * A special, empty story that represents a source/type common to one or more
-		 * normal stories.
+		 * A special, empty story that represents a source/type common to one or
+		 * more normal stories.
 		 */
 		SOURCE,
 		/** A special, empty story that represents an author. */
@@ -52,10 +52,13 @@ public class BookInfo {
 	/**
 	 * For private use; see the "fromXXX" constructors instead for public use.
 	 * 
-	 * @param type  the type of book
-	 * @param id    the main id, which must uniquely identify this book and will be
-	 *              used as a unique ID later on
-	 * @param value the main value to show (see {@link BookInfo#getMainInfo()})
+	 * @param type
+	 *            the type of book
+	 * @param id
+	 *            the main id, which must uniquely identify this book and will
+	 *            be used as a unique ID later on
+	 * @param value
+	 *            the main value to show (see {@link BookInfo#getMainInfo()})
 	 */
 	protected BookInfo(Type type, String id, String value) {
 		this.type = type;
@@ -73,12 +76,12 @@ public class BookInfo {
 	}
 
 	/**
-	 * Get the main info to display for this book (a title, an author, a source/type
-	 * name...).
+	 * Get the main info to display for this book (a title, an author, a
+	 * source/type name...).
 	 * <p>
-	 * Note that when {@link MetaData} about the book are present, the title inside
-	 * is returned instead of the actual value (that way, we can update the
-	 * {@link MetaData} and see the changes here).
+	 * Note that when {@link MetaData} about the book are present, the title
+	 * inside is returned instead of the actual value (that way, we can update
+	 * the {@link MetaData} and see the changes here).
 	 * 
 	 * @return the main info, usually the title
 	 */
@@ -93,7 +96,8 @@ public class BookInfo {
 	/**
 	 * Get the secondary info, of the given type.
 	 * 
-	 * @param seeCount TRUE for word/image/story count, FALSE for author name
+	 * @param seeCount
+	 *            TRUE for word/image/story count, FALSE for author name
 	 * 
 	 * @return the secondary info, never NULL
 	 */
@@ -131,7 +135,8 @@ public class BookInfo {
 	/**
 	 * This item library cache state.
 	 * 
-	 * @param cached TRUE if it is present in the {@link CacheLibrary} cache
+	 * @param cached
+	 *            TRUE if it is present in the {@link CacheLibrary} cache
 	 */
 	public void setCached(boolean cached) {
 		this.cached = cached;
@@ -156,11 +161,14 @@ public class BookInfo {
 	 * <p>
 	 * It can be NULL if no image can be found for this book.
 	 * 
-	 * @param lib the {@link BasicLibrary} to use to fetch the image (can be NULL)
+	 * @param lib
+	 *            the {@link BasicLibrary} to use to fetch the image (can be
+	 *            NULL)
 	 * 
 	 * @return the base image, or NULL if no library or no image
 	 * 
-	 * @throws IOException in case of I/O error
+	 * @throws IOException
+	 *             in case of I/O error
 	 */
 	public Image getBaseImage(BasicLibrary lib) throws IOException {
 		if (lib != null) {
@@ -186,7 +194,7 @@ public class BookInfo {
 
 		return null;
 	}
-	
+
 	/**
 	 * This {@link BookInfo} could have a cover (so we need to somehow represent
 	 * that to the user).
@@ -200,9 +208,11 @@ public class BookInfo {
 	/**
 	 * Create a new book describing the given {@link Story}.
 	 * 
-	 * @param lib  the {@link BasicLibrary} to use to retrieve some more information
-	 *             about the source
-	 * @param meta the {@link MetaData} representing the {@link Story}
+	 * @param lib
+	 *            the {@link BasicLibrary} to use to retrieve some more
+	 *            information about the source
+	 * @param meta
+	 *            the {@link MetaData} representing the {@link Story}
 	 * 
 	 * @return the book
 	 */
@@ -221,7 +231,8 @@ public class BookInfo {
 		info.count = StringUtils.formatNumber(meta.getWords());
 		if (!info.count.isEmpty()) {
 			info.count = Instance.getInstance().getTransGui().getString(
-					meta.isImageDocument() ? StringIdGui.BOOK_COUNT_IMAGES : StringIdGui.BOOK_COUNT_WORDS,
+					meta.isImageDocument() ? StringIdGui.BOOK_COUNT_IMAGES
+							: StringIdGui.BOOK_COUNT_WORDS,
 					new Object[] { info.count });
 		}
 
@@ -237,14 +248,17 @@ public class BookInfo {
 	/**
 	 * Create a new book describing the given source/type.
 	 * 
-	 * @param lib    the {@link BasicLibrary} to use to retrieve some more
-	 *               information about the source
-	 * @param source the source name
+	 * @param lib
+	 *            the {@link BasicLibrary} to use to retrieve some more
+	 *            information about the source
+	 * @param source
+	 *            the source name
 	 * 
 	 * @return the book
 	 */
 	static public BookInfo fromSource(BasicLibrary lib, String source) {
-		BookInfo info = new BookInfo(Type.SOURCE, "source_" + (source == null ? "" : source), source);
+		BookInfo info = new BookInfo(Type.SOURCE,
+				"source_" + (source == null ? "" : source), source);
 
 		int size = 0;
 		try {
@@ -254,7 +268,8 @@ public class BookInfo {
 
 		info.count = StringUtils.formatNumber(size);
 		if (!info.count.isEmpty()) {
-			info.count = Instance.getInstance().getTransGui().getString(StringIdGui.BOOK_COUNT_STORIES,
+			info.count = Instance.getInstance().getTransGui().getString(
+					StringIdGui.BOOK_COUNT_STORIES,
 					new Object[] { info.count });
 		}
 
@@ -264,14 +279,17 @@ public class BookInfo {
 	/**
 	 * Create a new book describing the given author.
 	 * 
-	 * @param lib    the {@link BasicLibrary} to use to retrieve some more
-	 *               information about the author
-	 * @param author the author name
+	 * @param lib
+	 *            the {@link BasicLibrary} to use to retrieve some more
+	 *            information about the author
+	 * @param author
+	 *            the author name
 	 * 
 	 * @return the book
 	 */
 	static public BookInfo fromAuthor(BasicLibrary lib, String author) {
-		BookInfo info = new BookInfo(Type.AUTHOR, "author_" + (author == null ? "" : author), author);
+		BookInfo info = new BookInfo(Type.AUTHOR,
+				"author_" + (author == null ? "" : author), author);
 
 		int size = 0;
 		try {
@@ -281,7 +299,8 @@ public class BookInfo {
 
 		info.count = StringUtils.formatNumber(size);
 		if (!info.count.isEmpty()) {
-			info.count = Instance.getInstance().getTransGui().getString(StringIdGui.BOOK_COUNT_STORIES,
+			info.count = Instance.getInstance().getTransGui().getString(
+					StringIdGui.BOOK_COUNT_STORIES,
 					new Object[] { info.count });
 		}
 
@@ -291,14 +310,17 @@ public class BookInfo {
 	/**
 	 * Create a new book describing the given tag.
 	 * 
-	 * @param lib the {@link BasicLibrary} to use to retrieve some more information
-	 *            about the tag
-	 * @param tag the tag name
+	 * @param lib
+	 *            the {@link BasicLibrary} to use to retrieve some more
+	 *            information about the tag
+	 * @param tag
+	 *            the tag name
 	 * 
 	 * @return the book
 	 */
 	static public BookInfo fromTag(BasicLibrary lib, String tag) {
-		BookInfo info = new BookInfo(Type.TAG, "tag_" + (tag == null ? "" : tag), tag);
+		BookInfo info = new BookInfo(Type.TAG,
+				"tag_" + (tag == null ? "" : tag), tag);
 
 		int size = 0;
 		try {
@@ -308,7 +330,8 @@ public class BookInfo {
 
 		info.count = StringUtils.formatNumber(size);
 		if (!info.count.isEmpty()) {
-			info.count = Instance.getInstance().getTransGui().getString(StringIdGui.BOOK_COUNT_STORIES,
+			info.count = Instance.getInstance().getTransGui().getString(
+					StringIdGui.BOOK_COUNT_STORIES,
 					new Object[] { info.count });
 		}
 

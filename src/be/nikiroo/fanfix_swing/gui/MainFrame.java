@@ -52,7 +52,9 @@ public class MainFrame extends JFrame {
 		browser.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				books.load(browser.getSelectedSources(), browser.getSelectedAuthors(), browser.getSelectedTags());
+				books.load(browser.getSelectedSources(),
+						browser.getSelectedAuthors(),
+						browser.getSelectedTags());
 				details.setBook(browser.getHighlight());
 			}
 		});
@@ -70,10 +72,12 @@ public class MainFrame extends JFrame {
 		this.add(split);
 	}
 
-	private JSplitPane split(JComponent leftTop, JComponent rightBottom, boolean horizontal, double ratio,
-			double weight) {
-		JSplitPane split = new JSplitPane(horizontal ? JSplitPane.HORIZONTAL_SPLIT : JSplitPane.VERTICAL_SPLIT, leftTop,
-				rightBottom);
+	private JSplitPane split(JComponent leftTop, JComponent rightBottom,
+			boolean horizontal, double ratio, double weight) {
+		JSplitPane split = new JSplitPane(
+				horizontal ? JSplitPane.HORIZONTAL_SPLIT
+						: JSplitPane.VERTICAL_SPLIT,
+				leftTop, rightBottom);
 		split.setOneTouchExpandable(true);
 		split.setResizeWeight(weight);
 		split.setContinuousLayout(true);
@@ -96,7 +100,8 @@ public class MainFrame extends JFrame {
 					@Override
 					public void run() {
 						browser.reloadData();
-						books.load(browser.getSelectedSources(), browser.getSelectedAuthors(),
+						books.load(browser.getSelectedSources(),
+								browser.getSelectedAuthors(),
 								browser.getSelectedTags());
 						details.setBook(browser.getHighlight());
 					}
@@ -112,7 +117,8 @@ public class MainFrame extends JFrame {
 					@Override
 					public void run() {
 						browser.reloadData();
-						books.load(browser.getSelectedSources(), browser.getSelectedAuthors(),
+						books.load(browser.getSelectedSources(),
+								browser.getSelectedAuthors(),
 								browser.getSelectedTags());
 						details.setBook(browser.getHighlight());
 					}

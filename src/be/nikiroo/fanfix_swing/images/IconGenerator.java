@@ -79,14 +79,17 @@ public class IconGenerator {
 	/**
 	 * Generate a new image.
 	 * 
-	 * @param name the name of the resource
-	 * @param size the requested size
+	 * @param name
+	 *            the name of the resource
+	 * @param size
+	 *            the requested size
 	 * 
 	 * @return the image, or NULL if it does not exist or does not exist at that
 	 *         size
 	 */
 	static public ImageIcon get(Icon name, Size size) {
-		String key = String.format("%s-%dx%d.png", name.name(), size.getSize(), size.getSize());
+		String key = String.format("%s-%dx%d.png", name.name(), size.getSize(),
+				size.getSize());
 		if (!map.containsKey(key)) {
 			map.put(key, generate(key));
 		}
@@ -97,14 +100,16 @@ public class IconGenerator {
 	/**
 	 * Generate a new image.
 	 * 
-	 * @param filename the file name of the resource (no directory)
+	 * @param filename
+	 *            the file name of the resource (no directory)
 	 * 
 	 * @return the image, or NULL if it does not exist or does not exist at that
 	 *         size
 	 */
 	static private ImageIcon generate(String filename) {
 		try {
-			InputStream in = IOUtils.openResource(IconGenerator.class, filename);
+			InputStream in = IOUtils.openResource(IconGenerator.class,
+					filename);
 			if (in != null) {
 				try {
 					return new ImageIcon(IOUtils.toByteArray(in));

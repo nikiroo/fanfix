@@ -40,19 +40,25 @@ public class UiHelper {
 	static public JComponent scroll(JComponent pane) {
 		JScrollPane scroll = new JScrollPane(pane);
 		scroll.getVerticalScrollBar().setUnitIncrement(16);
-		scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scroll.setHorizontalScrollBarPolicy(
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		return scroll;
 	}
 
 	/**
 	 * Display an error message and log the linked {@link Exception}.
 	 * 
-	 * @param owner   the owner of the error (to link the messagebox to it)
-	 * @param message the message
-	 * @param title   the title of the error message
-	 * @param e       the exception to log if any
+	 * @param owner
+	 *            the owner of the error (to link the messagebox to it)
+	 * @param message
+	 *            the message
+	 * @param title
+	 *            the title of the error message
+	 * @param e
+	 *            the exception to log if any
 	 */
-	static public void error(final Component owner, final String message, final String title, Exception e) {
+	static public void error(final Component owner, final String message,
+			final String title, Exception e) {
 		Instance.getInstance().getTraceHandler().error(title + ": " + message);
 		if (e != null) {
 			Instance.getInstance().getTraceHandler().error(e);
@@ -61,7 +67,8 @@ public class UiHelper {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				JOptionPane.showMessageDialog(owner, message, title, JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(owner, message, title,
+						JOptionPane.ERROR_MESSAGE);
 			}
 		});
 	}

@@ -21,7 +21,8 @@ public class SourceTab extends BasicTab<Map<String, List<String>>> {
 	@Override
 	protected void fillData(Map<String, List<String>> data) {
 		try {
-			Map<String, List<String>> sourcesGrouped = Instance.getInstance().getLibrary().getSourcesGrouped();
+			Map<String, List<String>> sourcesGrouped = Instance.getInstance()
+					.getLibrary().getSourcesGrouped();
 			for (String group : sourcesGrouped.keySet()) {
 				data.put(group, sourcesGrouped.get(group));
 			}
@@ -62,22 +63,30 @@ public class SourceTab extends BasicTab<Map<String, List<String>>> {
 	}
 
 	@Override
-	protected int loadData(DefaultMutableTreeNode root, Map<String, List<String>> sourcesGrouped, String filter) {
+	protected int loadData(DefaultMutableTreeNode root,
+			Map<String, List<String>> sourcesGrouped, String filter) {
 		int count = 0;
 		for (String source : sourcesGrouped.keySet()) {
-			if (checkFilter(filter, source) || checkFilter(filter, sourcesGrouped.get(source))) {
+			if (checkFilter(filter, source)
+					|| checkFilter(filter, sourcesGrouped.get(source))) {
 				List<String> children = sourcesGrouped.get(source);
 				boolean hasChildren = (children.size() > 1)
-						|| (children.size() == 1 && !children.get(0).trim().isEmpty());
-				DefaultMutableTreeNode sourceNode = new DefaultMutableTreeNode(">" + source + (hasChildren ? "/" : ""));
+						|| (children.size() == 1
+								&& !children.get(0).trim().isEmpty());
+				DefaultMutableTreeNode sourceNode = new DefaultMutableTreeNode(
+						">" + source + (hasChildren ? "/" : ""));
 				root.add(sourceNode);
 				for (String subSource : children) {
-					if (checkFilter(filter, source) || checkFilter(filter, subSource)) {
+					if (checkFilter(filter, source)
+							|| checkFilter(filter, subSource)) {
 						count = count + 1;
-						if (subSource.isEmpty() && sourcesGrouped.get(source).size() > 1) {
-							sourceNode.add(new DefaultMutableTreeNode(" " + source));
+						if (subSource.isEmpty()
+								&& sourcesGrouped.get(source).size() > 1) {
+							sourceNode.add(
+									new DefaultMutableTreeNode(" " + source));
 						} else if (!subSource.isEmpty()) {
-							sourceNode.add(new DefaultMutableTreeNode(" " + source + "/" + subSource));
+							sourceNode.add(new DefaultMutableTreeNode(
+									" " + source + "/" + subSource));
 						}
 					}
 				}

@@ -21,7 +21,8 @@ public class AuthorTab extends BasicTab<List<String>> {
 	@Override
 	protected void fillData(List<String> data) {
 		try {
-			List<String> authors = Instance.getInstance().getLibrary().getAuthors();
+			List<String> authors = Instance.getInstance().getLibrary()
+					.getAuthors();
 			for (String author : authors) {
 				data.add(author);
 			}
@@ -39,17 +40,20 @@ public class AuthorTab extends BasicTab<List<String>> {
 	@Override
 	protected String keyToDisplay(String key) {
 		if (key.trim().isEmpty()) {
-			key = Instance.getInstance().getTransGui().getString(StringIdGui.MENU_AUTHORS_UNKNOWN);
+			key = Instance.getInstance().getTransGui()
+					.getString(StringIdGui.MENU_AUTHORS_UNKNOWN);
 		}
-		
+
 		return key;
 	}
 
 	@Override
-	protected int loadData(DefaultMutableTreeNode root, List<String> authors, String filter) {
+	protected int loadData(DefaultMutableTreeNode root, List<String> authors,
+			String filter) {
 		for (String author : authors) {
 			if (checkFilter(filter, author)) {
-				DefaultMutableTreeNode sourceNode = new DefaultMutableTreeNode(author);
+				DefaultMutableTreeNode sourceNode = new DefaultMutableTreeNode(
+						author);
 				root.add(sourceNode);
 			}
 		}

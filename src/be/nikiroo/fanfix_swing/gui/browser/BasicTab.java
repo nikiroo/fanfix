@@ -53,7 +53,8 @@ public abstract class BasicTab<T> extends ListenerPanel {
 
 		tree = new JTree(root);
 		tree.setUI(new BasicTreeUI());
-		TreeCellSpanner spanner = new TreeCellSpanner(tree, generateCellRenderer());
+		TreeCellSpanner spanner = new TreeCellSpanner(tree,
+				generateCellRenderer());
 		tree.setCellRenderer(spanner);
 		tree.setRootVisible(false);
 		tree.setShowsRootHandles(false);
@@ -103,18 +104,21 @@ public abstract class BasicTab<T> extends ListenerPanel {
 			protected boolean isSamePath(TreePath oldPath, TreePath newPath) {
 				String oldString = oldPath.toString();
 				if (oldString.endsWith("/]"))
-					oldString = oldString.substring(0, oldString.length() - 2) + "]";
+					oldString = oldString.substring(0, oldString.length() - 2)
+							+ "]";
 
 				String newString = newPath.toString();
 				if (newString.endsWith("/]"))
-					newString = newString.substring(0, newString.length() - 2) + "]";
+					newString = newString.substring(0, newString.length() - 2)
+							+ "]";
 
 				return oldString.equals(newString);
 			}
 		};
 		SwingWorker<Map<String, List<String>>, Integer> worker = new SwingWorker<Map<String, List<String>>, Integer>() {
 			@Override
-			protected Map<String, List<String>> doInBackground() throws Exception {
+			protected Map<String, List<String>> doInBackground()
+					throws Exception {
 				fillData(data);
 				return null;
 			}
@@ -165,7 +169,8 @@ public abstract class BasicTab<T> extends ListenerPanel {
 		String count = "";
 		if (totalCount > 0) {
 			int selected = selectedElements.size();
-			count = " (" + (selected > 0 ? selected + "/" : "") + totalCount + ")";
+			count = " (" + (selected > 0 ? selected + "/" : "") + totalCount
+					+ ")";
 		}
 
 		return title + count;
@@ -180,7 +185,8 @@ public abstract class BasicTab<T> extends ListenerPanel {
 	}
 
 	protected boolean checkFilter(String filter, String value) {
-		return (filter == null || filter.isEmpty() || value.toLowerCase().contains(filter.toLowerCase()));
+		return (filter == null || filter.isEmpty()
+				|| value.toLowerCase().contains(filter.toLowerCase()));
 	}
 
 	protected boolean checkFilter(String filter, List<String> list) {
@@ -199,12 +205,14 @@ public abstract class BasicTab<T> extends ListenerPanel {
 
 	protected abstract String keyToDisplay(String key);
 
-	protected abstract int loadData(DefaultMutableTreeNode root, T data, String filter);
+	protected abstract int loadData(DefaultMutableTreeNode root, T data,
+			String filter);
 
 	private TreeCellRenderer generateCellRenderer() {
 		DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer() {
 			@Override
-			public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded,
+			public Component getTreeCellRendererComponent(JTree tree,
+					Object value, boolean selected, boolean expanded,
 					boolean leaf, int row, boolean hasFocus) {
 				if (value instanceof DefaultMutableTreeNode) {
 					if (((DefaultMutableTreeNode) value).getLevel() > 1) {
@@ -218,7 +226,8 @@ public abstract class BasicTab<T> extends ListenerPanel {
 				String display = value == null ? "" : value.toString();
 				display = keyToDisplay(display);
 
-				return super.getTreeCellRendererComponent(tree, display, selected, expanded, leaf, row, hasFocus);
+				return super.getTreeCellRendererComponent(tree, display,
+						selected, expanded, leaf, row, hasFocus);
 			}
 		};
 

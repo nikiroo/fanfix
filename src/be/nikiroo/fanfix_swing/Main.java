@@ -27,7 +27,8 @@ public class Main {
 				@Override
 				public DataLoader getCache() {
 					if (cache == null) {
-						cache = new DataLoader(getConfig().getString(Config.NETWORK_USER_AGENT));
+						cache = new DataLoader(getConfig()
+								.getString(Config.NETWORK_USER_AGENT));
 					}
 
 					return cache;

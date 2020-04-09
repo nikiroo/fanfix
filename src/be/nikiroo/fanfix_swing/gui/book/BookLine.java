@@ -38,8 +38,10 @@ public class BookLine extends JPanel {
 	/**
 	 * Create a new {@link BookLine} item for the given {@link Story}.
 	 * 
-	 * @param info         the information about the story to represent
-	 * @param seeWordCount TRUE to see word counts, FALSE to see authors
+	 * @param info
+	 *            the information about the story to represent
+	 * @param seeWordCount
+	 *            TRUE to see word counts, FALSE to see authors
 	 */
 	public BookLine(BookInfo info, boolean seeWordCount) {
 		this.info = info;
@@ -92,7 +94,8 @@ public class BookLine extends JPanel {
 	/**
 	 * The book current selection state,
 	 * 
-	 * @param selected TRUE if it is selected
+	 * @param selected
+	 *            TRUE if it is selected
 	 */
 	public void setSelected(boolean selected) {
 		if (this.selected != selected) {
@@ -113,7 +116,8 @@ public class BookLine extends JPanel {
 	/**
 	 * The item mouse-hover state.
 	 * 
-	 * @param hovered TRUE if it is mouse-hovered
+	 * @param hovered
+	 *            TRUE if it is mouse-hovered
 	 */
 	public void setHovered(boolean hovered) {
 		if (this.hovered != hovered) {
@@ -134,7 +138,8 @@ public class BookLine extends JPanel {
 	/**
 	 * The secondary value content: word count or author.
 	 * 
-	 * @param seeWordCount TRUE to see word counts, FALSE to see authors
+	 * @param seeWordCount
+	 *            TRUE to see word counts, FALSE to see authors
 	 */
 	public void setSeeWordCount(boolean seeWordCount) {
 		if (this.seeWordCount != seeWordCount) {
@@ -172,11 +177,13 @@ public class BookLine extends JPanel {
 		title.setText(main);
 		secondary.setText(optSecondary + " ");
 
-		setBackground(BookCoverImager.getBackground(isEnabled(), isSelected(), isHovered()));
+		setBackground(BookCoverImager.getBackground(isEnabled(), isSelected(),
+				isHovered()));
 
 		remove(iconCached);
 		remove(iconNotCached);
-		add(getInfo().isCached() ? iconCached : iconNotCached, BorderLayout.WEST);
+		add(getInfo().isCached() ? iconCached : iconNotCached,
+				BorderLayout.WEST);
 		validate();
 	}
 }
