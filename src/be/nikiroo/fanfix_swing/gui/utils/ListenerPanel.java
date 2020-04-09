@@ -14,7 +14,7 @@ import be.nikiroo.fanfix_swing.gui.SearchBar;
  * methods.
  * <p>
  * Note that it will queue all events until at least one listener comes (or
- * comes back!); this first (or at least curently unique) listener will drain
+ * comes back!); this first (or at least currently unique) listener will drain
  * the queue.
  * 
  * @author niki
@@ -22,6 +22,7 @@ import be.nikiroo.fanfix_swing.gui.SearchBar;
 public class ListenerPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 
+	/** Waiting queue until at least one listener is here to get the events. */
 	private final Queue<ActionEvent> waitingQueue;
 
 	/**
@@ -32,8 +33,8 @@ public class ListenerPanel extends JPanel {
 	}
 
 	/**
-	 * Check that this {@link ListenerPanel} currently has {@link ActionListener}s
-	 * that listen on it.
+	 * Check that this {@link ListenerPanel} currently has
+	 * {@link ActionListener}s that listen on it.
 	 * 
 	 * @return TRUE if it has
 	 */
@@ -42,7 +43,8 @@ public class ListenerPanel extends JPanel {
 	}
 
 	/**
-	 * Check how many events are currently waiting for an {@link ActionListener}.
+	 * Check how many events are currently waiting for an
+	 * {@link ActionListener}.
 	 * 
 	 * @return the number of waiting events (can be 0)
 	 */
@@ -54,7 +56,8 @@ public class ListenerPanel extends JPanel {
 	 * Adds the specified action listener to receive action events from this
 	 * {@link SearchBar}.
 	 *
-	 * @param listener the action listener to be added
+	 * @param listener
+	 *            the action listener to be added
 	 */
 	public synchronized void addActionListener(ActionListener listener) {
 		if (!hasListeners()) {
@@ -67,10 +70,11 @@ public class ListenerPanel extends JPanel {
 	}
 
 	/**
-	 * Removes the specified action listener so that it no longer receives action
-	 * events from this {@link SearchBar}.
+	 * Removes the specified action listener so that it no longer receives
+	 * action events from this {@link SearchBar}.
 	 *
-	 * @param listener the action listener to be removed
+	 * @param listener
+	 *            the action listener to be removed
 	 */
 	public synchronized void removeActionListener(ActionListener listener) {
 		listenerList.remove(ActionListener.class, listener);
@@ -79,11 +83,13 @@ public class ListenerPanel extends JPanel {
 	/**
 	 * Notify the listeners of an action.
 	 * 
-	 * @param listenerCommand A string that may specify a command (possibly one of
-	 *                        several) associated with the event
+	 * @param listenerCommand
+	 *            A string that may specify a command (possibly one of several)
+	 *            associated with the event
 	 */
 	protected synchronized void fireActionPerformed(String listenerCommand) {
-		ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, listenerCommand);
+		ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
+				listenerCommand);
 		if (hasListeners()) {
 			Object[] listeners = listenerList.getListenerList();
 			for (int i = listeners.length - 2; i >= 0; i -= 2) {
