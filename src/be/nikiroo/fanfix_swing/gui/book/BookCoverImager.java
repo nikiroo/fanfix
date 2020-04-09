@@ -15,7 +15,6 @@ import java.net.MalformedURLException;
 import javax.imageio.ImageIO;
 
 import be.nikiroo.fanfix.Instance;
-import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.reader.ui.GuiReaderBookInfo;
 import be.nikiroo.utils.Image;
@@ -111,18 +110,6 @@ class BookCoverImager {
 	}
 
 	/**
-	 * Generate a cover icon based upon the given {@link MetaData}.
-	 * 
-	 * @param lib  the library the meta comes from
-	 * @param meta the {@link MetaData}
-	 * 
-	 * @return the image
-	 */
-	static public java.awt.Image generateCoverImage(BasicLibrary lib, MetaData meta) {
-		return generateCoverImage(lib, BookInfo.fromMeta(lib, meta));
-	}
-
-	/**
 	 * The width of a cover image.
 	 * 
 	 * @return the width
@@ -174,16 +161,18 @@ class BookCoverImager {
 
 				Graphics2D g = resizedImage.createGraphics();
 				try {
-					g.setColor(Color.white);
-					g.fillRect(0, HOFFSET, COVER_WIDTH, COVER_HEIGHT);
-
-					if (cover != null) {
-						BufferedImage coverb = ImageUtilsAwt.fromImage(cover);
-						g.drawImage(coverb, 0, HOFFSET, COVER_WIDTH, COVER_HEIGHT, null);
-					} else {
-						g.setColor(Color.black);
-						g.drawLine(0, HOFFSET, COVER_WIDTH, HOFFSET + COVER_HEIGHT);
-						g.drawLine(COVER_WIDTH, HOFFSET, 0, HOFFSET + COVER_HEIGHT);
+					if (info != null && info.supportsCover()) {
+						g.setColor(Color.white);
+						g.fillRect(0, HOFFSET, COVER_WIDTH, COVER_HEIGHT);
+						
+						if (cover != null) {
+							BufferedImage coverb = ImageUtilsAwt.fromImage(cover);
+							g.drawImage(coverb, 0, HOFFSET, COVER_WIDTH, COVER_HEIGHT, null);
+						} else {
+							g.setColor(Color.black);
+							g.drawLine(0, HOFFSET, COVER_WIDTH, HOFFSET + COVER_HEIGHT);
+							g.drawLine(COVER_WIDTH, HOFFSET, 0, HOFFSET + COVER_HEIGHT);
+						}
 					}
 				} finally {
 					g.dispose();

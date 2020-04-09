@@ -10,10 +10,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.DefaultListModel;
@@ -21,7 +19,6 @@ import javax.swing.JList;
 import javax.swing.JPopupMenu;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 import be.nikiroo.fanfix.Instance;
@@ -32,6 +29,7 @@ import be.nikiroo.fanfix_swing.gui.book.BookBlock;
 import be.nikiroo.fanfix_swing.gui.book.BookInfo;
 import be.nikiroo.fanfix_swing.gui.book.BookLine;
 import be.nikiroo.fanfix_swing.gui.book.BookPopup;
+import be.nikiroo.fanfix_swing.gui.utils.DelayWorker;
 import be.nikiroo.fanfix_swing.gui.utils.ListenerPanel;
 import be.nikiroo.fanfix_swing.gui.utils.UiHelper;
 
@@ -55,11 +53,9 @@ public class BooksPanel extends ListenerPanel {
 	private JList<BookInfo> list;
 	private int hoveredIndex = -1;
 	private ListModel data = new ListModel();
+	private DelayWorker bookCoverUpdater;
 
 	private SearchBar searchBar;
-
-	private Queue<BookBlock> updateBookQueue = new LinkedList<BookBlock>();
-	private Object updateBookQueueLock = new Object();
 
 	public BooksPanel(boolean listMode) {
 		setLayout(new BorderLayout());
@@ -74,51 +70,9 @@ public class BooksPanel extends ListenerPanel {
 			}
 		});
 
+		bookCoverUpdater = new DelayWorker(20);
+		bookCoverUpdater.start();
 		add(UiHelper.scroll(initList(listMode)), BorderLayout.CENTER);
-
-		Thread bookBlocksUpdater = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (true) {
-					BasicLibrary lib = Instance.getInstance().getLibrary();
-					while (true) {
-						final BookBlock book;
-						synchronized (updateBookQueueLock) {
-							if (!updateBookQueue.isEmpty()) {
-								book = updateBookQueue.remove();
-							} else {
-								book = null;
-								break;
-							}
-						}
-
-						try {
-							final Image coverImage = BookBlock
-									.generateCoverImage(lib, book.getInfo());
-							SwingUtilities.invokeLater(new Runnable() {
-								@Override
-								public void run() {
-									try {
-										book.setCoverImage(coverImage);
-										data.fireElementChanged(book.getInfo());
-									} catch (Exception e) {
-									}
-								}
-							});
-						} catch (Exception e) {
-						}
-					}
-
-					try {
-						Thread.sleep(10);
-					} catch (InterruptedException e) {
-					}
-				}
-			}
-		});
-		bookBlocksUpdater.setName("BookBlocks visual updater");
-		bookBlocksUpdater.setDaemon(true);
-		bookBlocksUpdater.start();
 	}
 
 	// null or empty -> all sources
@@ -156,9 +110,7 @@ public class BooksPanel extends ListenerPanel {
 	public void load(List<BookInfo> bookInfos) {
 		this.bookInfos.clear();
 		this.bookInfos.addAll(bookInfos);
-		synchronized (updateBookQueueLock) {
-			updateBookQueue.clear();
-		}
+		bookCoverUpdater.clear();
 
 		filter(searchBar.getText());
 	}
@@ -335,9 +287,7 @@ public class BooksPanel extends ListenerPanel {
 						book = new BookLine(value, seeWordCount);
 					} else {
 						book = new BookBlock(value, seeWordCount);
-						synchronized (updateBookQueueLock) {
-							updateBookQueue.add((BookBlock) book);
-						}
+						startUpdateBookCover((BookBlock) book);
 					}
 					books.put(value, book);
 				}
@@ -347,6 +297,27 @@ public class BooksPanel extends ListenerPanel {
 				return book;
 			}
 		};
+	}
+
+	private void startUpdateBookCover(final BookBlock book) {
+		bookCoverUpdater.delay(book.getInfo().getId(),
+				new SwingWorker<Image, Void>() {
+					@Override
+					protected Image doInBackground() throws Exception {
+						BasicLibrary lib = Instance.getInstance().getLibrary();
+						return BookBlock.generateCoverImage(lib,
+								book.getInfo());
+					}
+
+					protected void done() {
+						try {
+							book.setCoverImage(get());
+							data.fireElementChanged(book.getInfo());
+						} catch (Exception e) {
+							// TODO ? probably just log
+						}
+					}
+				});
 	}
 
 	public boolean isListMode() {
@@ -360,9 +331,7 @@ public class BooksPanel extends ListenerPanel {
 				listMode ? JList.VERTICAL : JList.HORIZONTAL_WRAP);
 
 		if (listMode) {
-			synchronized (updateBookQueueLock) {
-				updateBookQueue.clear();
-			}
+			bookCoverUpdater.clear();
 		}
 	}
 }

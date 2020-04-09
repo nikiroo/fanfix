@@ -186,6 +186,16 @@ public class BookInfo {
 
 		return null;
 	}
+	
+	/**
+	 * This {@link BookInfo} could have a cover (so we need to somehow represent
+	 * that to the user).
+	 * 
+	 * @return TRUE if it does
+	 */
+	public boolean supportsCover() {
+		return type != Type.TAG;
+	}
 
 	/**
 	 * Create a new book describing the given {@link Story}.
