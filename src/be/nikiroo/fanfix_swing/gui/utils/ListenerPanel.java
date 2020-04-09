@@ -90,12 +90,11 @@ public class ListenerPanel extends JPanel {
 	protected synchronized void fireActionPerformed(String listenerCommand) {
 		ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
 				listenerCommand);
-		if (hasListeners()) {
-			Object[] listeners = listenerList.getListenerList();
-			for (int i = listeners.length - 2; i >= 0; i -= 2) {
-				if (listeners[i] == ActionListener.class) {
-					((ActionListener) listeners[i + 1]).actionPerformed(e);
-				}
+
+		ActionListener[] listeners = getListeners(ActionListener.class);
+		if (listeners.length > 0) {
+			for (ActionListener action : listeners) {
+				action.actionPerformed(e);
 			}
 		} else {
 			waitingQueue.add(e);
