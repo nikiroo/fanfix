@@ -93,7 +93,8 @@ public class BooksPanel extends ListenerPanel {
 						}
 
 						try {
-							final Image coverImage = BookBlock.generateCoverImage(lib, book.getInfo());
+							final Image coverImage = BookBlock
+									.generateCoverImage(lib, book.getInfo());
 							SwingUtilities.invokeLater(new Runnable() {
 								@Override
 								public void run() {
@@ -123,13 +124,15 @@ public class BooksPanel extends ListenerPanel {
 	// null or empty -> all sources
 	// sources hierarchy supported ("source/" will includes all "source" and
 	// "source/*")
-	public void load(final List<String> sources, final List<String> authors, final List<String> tags) {
+	public void load(final List<String> sources, final List<String> authors,
+			final List<String> tags) {
 		new SwingWorker<List<BookInfo>, Void>() {
 			@Override
 			protected List<BookInfo> doInBackground() throws Exception {
 				List<BookInfo> bookInfos = new ArrayList<BookInfo>();
 				BasicLibrary lib = Instance.getInstance().getLibrary();
-				for (MetaData meta : lib.getList().filter(sources, authors, tags)) {
+				for (MetaData meta : lib.getList().filter(sources, authors,
+						tags)) {
 					bookInfos.add(BookInfo.fromMeta(lib, meta));
 				}
 
@@ -165,7 +168,8 @@ public class BooksPanel extends ListenerPanel {
 		data.clear();
 		for (BookInfo bookInfo : bookInfos) {
 			if (bookInfo.getMainInfo() == null || filter.isEmpty()
-					|| bookInfo.getMainInfo().toLowerCase().contains(filter.toLowerCase())) {
+					|| bookInfo.getMainInfo().toLowerCase()
+							.contains(filter.toLowerCase())) {
 				data.addElement(bookInfo);
 			}
 		}
@@ -184,7 +188,8 @@ public class BooksPanel extends ListenerPanel {
 	/**
 	 * The secondary value content: word count or author.
 	 * 
-	 * @param seeWordCount TRUE to see word counts, FALSE to see authors
+	 * @param seeWordCount
+	 *            TRUE to see word counts, FALSE to see authors
 	 */
 	public void setSeeWordCount(boolean seeWordCount) {
 		if (this.seeWordCount != seeWordCount) {
@@ -201,42 +206,43 @@ public class BooksPanel extends ListenerPanel {
 	private JList<BookInfo> initList(boolean listMode) {
 		final JList<BookInfo> list = new JList<BookInfo>(data);
 
-		final JPopupMenu popup = new BookPopup(Instance.getInstance().getLibrary(), new BookPopup.Informer() {
-			@Override
-			public void setCached(BookInfo book, boolean cached) {
-				book.setCached(cached);
-				fireElementChanged(book);
-			}
+		final JPopupMenu popup = new BookPopup(
+				Instance.getInstance().getLibrary(), new BookPopup.Informer() {
+					@Override
+					public void setCached(BookInfo book, boolean cached) {
+						book.setCached(cached);
+						fireElementChanged(book);
+					}
 
-			public void fireElementChanged(BookInfo book) {
-				data.fireElementChanged(book);
-			}
+					public void fireElementChanged(BookInfo book) {
+						data.fireElementChanged(book);
+					}
 
-			@Override
-			public List<BookInfo> getSelected() {
-				List<BookInfo> selected = new ArrayList<BookInfo>();
-				for (int index : list.getSelectedIndices()) {
-					selected.add(data.get(index));
-				}
+					@Override
+					public List<BookInfo> getSelected() {
+						List<BookInfo> selected = new ArrayList<BookInfo>();
+						for (int index : list.getSelectedIndices()) {
+							selected.add(data.get(index));
+						}
 
-				return selected;
-			}
+						return selected;
+					}
 
-			@Override
-			public BookInfo getUniqueSelected() {
-				List<BookInfo> selected = getSelected();
-				if (selected.size() == 1) {
-					return selected.get(0);
-				}
-				return null;
-			}
+					@Override
+					public BookInfo getUniqueSelected() {
+						List<BookInfo> selected = getSelected();
+						if (selected.size() == 1) {
+							return selected.get(0);
+						}
+						return null;
+					}
 
-			@Override
-			public void invalidateCache() {
-				// TODO: also reset the popup menu for sources/author
-				fireActionPerformed(INVALIDATE_CACHE);
-			}
-		});
+					@Override
+					public void invalidateCache() {
+						// TODO: also reset the popup menu for sources/author
+						fireActionPerformed(INVALIDATE_CACHE);
+					}
+				});
 
 		list.addMouseMotionListener(new MouseAdapter() {
 			@Override
@@ -284,20 +290,22 @@ public class BooksPanel extends ListenerPanel {
 					final BookInfo book = data.get(index);
 					BasicLibrary lib = Instance.getInstance().getLibrary();
 
-					Actions.openExternal(lib, book.getMeta(), BooksPanel.this, new Runnable() {
-						@Override
-						public void run() {
-							book.setCached(true);
-							data.fireElementChanged(book);
-						}
-					});
+					Actions.openExternal(lib, book.getMeta(), BooksPanel.this,
+							new Runnable() {
+								@Override
+								public void run() {
+									book.setCached(true);
+									data.fireElementChanged(book);
+								}
+							});
 				}
 			}
 
 			private void check(MouseEvent e) {
 				if (e.isPopupTrigger()) {
 					if (list.getSelectedIndices().length <= 1) {
-						list.setSelectedIndex(list.locationToIndex(e.getPoint()));
+						list.setSelectedIndex(
+								list.locationToIndex(e.getPoint()));
 					}
 
 					popup.show(list, e.getX(), e.getY());
@@ -318,7 +326,8 @@ public class BooksPanel extends ListenerPanel {
 	private ListCellRenderer<BookInfo> generateRenderer() {
 		return new ListCellRenderer<BookInfo>() {
 			@Override
-			public Component getListCellRendererComponent(JList<? extends BookInfo> list, BookInfo value, int index,
+			public Component getListCellRendererComponent(
+					JList<? extends BookInfo> list, BookInfo value, int index,
 					boolean isSelected, boolean cellHasFocus) {
 				BookLine book = books.get(value);
 				if (book == null) {
@@ -347,7 +356,8 @@ public class BooksPanel extends ListenerPanel {
 	public void setListMode(boolean listMode) {
 		this.listMode = listMode;
 		books.clear();
-		list.setLayoutOrientation(listMode ? JList.VERTICAL : JList.HORIZONTAL_WRAP);
+		list.setLayoutOrientation(
+				listMode ? JList.VERTICAL : JList.HORIZONTAL_WRAP);
 
 		if (listMode) {
 			synchronized (updateBookQueueLock) {
