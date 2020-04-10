@@ -199,6 +199,8 @@ public abstract class BasicTab<T> extends ListenerPanel {
 
 	protected abstract T createEmptyData();
 
+	// beware: you should update it OR clean/re-add it, but previous data may
+	// still be there
 	protected abstract void fillData(T data);
 
 	protected abstract String keyToElement(String key);

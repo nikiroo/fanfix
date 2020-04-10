@@ -22,6 +22,7 @@ public class TagsTab extends BasicTab<List<String>> {
 
 	@Override
 	protected void fillData(List<String> data) {
+		data.clear();
 		try {
 			MetaResultList metas = Instance.getInstance().getLibrary()
 					.getList();

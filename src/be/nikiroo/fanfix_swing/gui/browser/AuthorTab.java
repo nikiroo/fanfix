@@ -20,6 +20,7 @@ public class AuthorTab extends BasicTab<List<String>> {
 
 	@Override
 	protected void fillData(List<String> data) {
+		data.clear();
 		try {
 			List<String> authors = Instance.getInstance().getLibrary()
 					.getAuthors();

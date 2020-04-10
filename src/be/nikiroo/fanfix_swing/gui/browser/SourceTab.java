@@ -20,6 +20,7 @@ public class SourceTab extends BasicTab<Map<String, List<String>>> {
 
 	@Override
 	protected void fillData(Map<String, List<String>> data) {
+		data.clear();
 		try {
 			Map<String, List<String>> sourcesGrouped = Instance.getInstance()
 					.getLibrary().getSourcesGrouped();
