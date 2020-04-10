@@ -37,6 +37,9 @@ public class SearchBar extends ListenerPanel {
 	public SearchBar() {
 		setLayout(new BorderLayout());
 
+		// TODO: option for this
+		realTime = true;
+
 		search = new JButton(IconGenerator.get(Icon.search, Size.x16));
 		UiHelper.setButtonPressed(search, realTime);
 		search.addActionListener(new ActionListener() {
