@@ -42,10 +42,8 @@ class Epub extends InfoText {
 		try {
 			return new File(fakeSource.toURI());
 		} catch (URISyntaxException e) {
-			Instance.getTraceHandler()
-					.error(new IOException(
-							"Cannot get the source file from the info-text URL",
-							e));
+			Instance.getInstance().getTraceHandler()
+					.error(new IOException("Cannot get the source file from the info-text URL", e));
 		}
 
 		return null;
@@ -57,9 +55,7 @@ class Epub extends InfoText {
 			try {
 				fakeIn.reset();
 			} catch (IOException e) {
-				Instance.getTraceHandler()
-						.error(new IOException(
-								"Cannot reset the Epub Text stream", e));
+				Instance.getInstance().getTraceHandler().error(new IOException("Cannot reset the Epub Text stream", e));
 			}
 
 			return fakeIn;
@@ -87,8 +83,7 @@ class Epub extends InfoText {
 		ZipInputStream zipIn = null;
 		try {
 			zipIn = new ZipInputStream(in);
-			tmpDir = Instance.getTempFiles().createTempDir(
-					"fanfic-reader-parser");
+			tmpDir = Instance.getInstance().getTempFiles().createTempDir("fanfic-reader-parser");
 			File tmp = new File(tmpDir, "file.txt");
 			File tmpInfo = new File(tmpDir, "file.info");
 
@@ -129,7 +124,7 @@ class Epub extends InfoText {
 							try {
 								cover = new Image(zipIn);
 							} catch (Exception e) {
-								Instance.getTraceHandler().error(e);
+								Instance.getInstance().getTraceHandler().error(e);
 							}
 						}
 					} else if (entry.getName().equals(getDataPrefix() + "URL")) {

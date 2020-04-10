@@ -230,7 +230,7 @@ class Fimfiction extends BasicSupport_Deprecated {
 						urls.add(new AbstractMap.SimpleEntry<String, URL>(name,
 								new URL("http://www.fimfiction.net" + line)));
 					} catch (MalformedURLException e) {
-						Instance.getTraceHandler().error(e);
+						Instance.getInstance().getTraceHandler().error(e);
 					}
 				}
 			}

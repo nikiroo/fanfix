@@ -20,16 +20,32 @@ public class BasicSupportImages {
 	 * Check if the given resource can be a local image or a remote image, then
 	 * refresh the cache with it if it is.
 	 * 
+	 * @param support
+	 *            the support to use to download the resource (can be NULL)
 	 * @param dir
 	 *            the local directory to search, if any
 	 * @param line
 	 *            the resource to check
 	 * 
 	 * @return the image if found, or NULL
-	 * 
 	 */
 	public Image getImage(BasicSupport support, File dir, String line) {
 		URL url = getImageUrl(support, dir, line);
+		return getImage(support,url);
+	}
+	
+	/**
+	 * Check if the given resource can be a local image or a remote image, then
+	 * refresh the cache with it if it is.
+	 * 
+	 * @param support
+	 *            the support to use to download the resource (can be NULL)
+	 * @param url
+	 *            the actual URL to check (file or remote, can be NULL)
+	 * 
+	 * @return the image if found, or NULL
+	 */
+	public Image getImage(BasicSupport support, URL url) {
 		if (url != null) {
 			if ("file".equals(url.getProtocol())) {
 				if (new File(url.getPath()).isDirectory()) {
@@ -38,7 +54,7 @@ public class BasicSupportImages {
 			}
 			InputStream in = null;
 			try {
-				in = Instance.getCache().open(url, support, true);
+				in = Instance.getInstance().getCache().open(url, support, true);
 				return new Image(in);
 			} catch (IOException e) {
 			} finally {
@@ -58,6 +74,8 @@ public class BasicSupportImages {
 	 * Check if the given resource can be a local image or a remote image, then
 	 * refresh the cache with it if it is.
 	 * 
+	 * @param support
+	 *            the support to use to download the resource (can be NULL)
 	 * @param dir
 	 *            the local directory to search, if any
 	 * @param line
@@ -108,7 +126,7 @@ public class BasicSupportImages {
 				// try for URLs
 				try {
 					for (String ext : getImageExt(true)) {
-						if (Instance.getCache()
+						if (Instance.getInstance().getCache()
 								.check(new URL(line + ext), true)) {
 							url = new URL(line + ext);
 							break;
@@ -120,7 +138,7 @@ public class BasicSupportImages {
 						for (String ext : getImageExt(true)) {
 							try {
 								url = new URL(line + ext);
-								Instance.getCache().refresh(url, support, true);
+								Instance.getInstance().getCache().refresh(url, support, true);
 								break;
 							} catch (IOException e) {
 								// no image with this ext
@@ -136,7 +154,7 @@ public class BasicSupportImages {
 			// refresh the cached file
 			if (url != null) {
 				try {
-					Instance.getCache().refresh(url, support, true);
+					Instance.getInstance().getCache().refresh(url, support, true);
 				} catch (IOException e) {
 					// woops, broken image
 					url = null;

@@ -255,10 +255,8 @@ class EHentai extends BasicSupport_Deprecated {
 				try {
 					pages.add(new URL(line));
 				} catch (MalformedURLException e) {
-					Instance.getTraceHandler().error(
-							new IOException(
-									"Parsing error, a link is not correctly parsed: "
-											+ line, e));
+					Instance.getInstance().getTraceHandler()
+							.error(new IOException("Parsing error, a link is not correctly parsed: " + line, e));
 				}
 			}
 		}
@@ -272,7 +270,7 @@ class EHentai extends BasicSupport_Deprecated {
 		StringBuilder builder = new StringBuilder();
 
 		for (URL page : pages) {
-			InputStream pageIn = Instance.getCache().open(page, this, false);
+			InputStream pageIn = Instance.getInstance().getCache().open(page, this, false);
 			try {
 				String link = getKeyLine(pageIn, "id=\"img\"", "src=\"", "\"");
 				if (link != null && !link.isEmpty()) {

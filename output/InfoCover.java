@@ -46,7 +46,7 @@ public class InfoCover {
 						meta.isImageDocument() ? "true" : "false");
 				writeMeta(infoWriter, "TYPE", meta.getType());
 				if (meta.getCover() != null) {
-					String format = Instance.getConfig()
+					String format = Instance.getInstance().getConfig()
 							.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER).toLowerCase();
 					writeMeta(infoWriter, "COVER", targetName + "." + format);
 				} else {
@@ -71,12 +71,10 @@ public class InfoCover {
 			MetaData meta) {
 		if (meta != null && meta.getCover() != null) {
 			try {
-				Instance.getCache().saveAsImage(meta.getCover(),
-						new File(targetDir, targetName), true);
+				Instance.getInstance().getCache().saveAsImage(meta.getCover(), new File(targetDir, targetName), true);
 			} catch (IOException e) {
 				// Allow to continue without cover
-				Instance.getTraceHandler().error(
-						new IOException("Failed to save the cover image", e));
+				Instance.getInstance().getTraceHandler().error(new IOException("Failed to save the cover image", e));
 			}
 		}
 	}

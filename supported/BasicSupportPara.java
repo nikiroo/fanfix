@@ -26,14 +26,10 @@ import be.nikiroo.utils.StringUtils;
  */
 public class BasicSupportPara {
 	// quote chars
-	private static char openQuote = Instance.getTrans().getCharacter(
-			StringId.OPEN_SINGLE_QUOTE);
-	private static char closeQuote = Instance.getTrans().getCharacter(
-			StringId.CLOSE_SINGLE_QUOTE);
-	private static char openDoubleQuote = Instance.getTrans().getCharacter(
-			StringId.OPEN_DOUBLE_QUOTE);
-	private static char closeDoubleQuote = Instance.getTrans().getCharacter(
-			StringId.CLOSE_DOUBLE_QUOTE);
+	private static char openQuote = Instance.getInstance().getTrans().getCharacter(StringId.OPEN_SINGLE_QUOTE);
+	private static char closeQuote = Instance.getInstance().getTrans().getCharacter(StringId.CLOSE_SINGLE_QUOTE);
+	private static char openDoubleQuote = Instance.getInstance().getTrans().getCharacter(StringId.OPEN_DOUBLE_QUOTE);
+	private static char closeDoubleQuote = Instance.getInstance().getTrans().getCharacter(StringId.CLOSE_DOUBLE_QUOTE);
 
 	// used by this class:
 	BasicSupportHelper bsHelper;
@@ -77,9 +73,8 @@ public class BasicSupportPara {
 		// "Chapter 5: - Fun!" after the ": " was automatically added)
 		String chapterName = processPara(name, false)
 				.getContent().trim();
-		for (String lang : Instance.getConfig().getList(Config.CONF_CHAPTER)) {
-			String chapterWord = Instance.getConfig().getStringX(
-					Config.CONF_CHAPTER, lang);
+		for (String lang : Instance.getInstance().getConfig().getList(Config.CONF_CHAPTER)) {
+			String chapterWord = Instance.getInstance().getConfig().getStringX(Config.CONF_CHAPTER, lang);
 			if (chapterName.startsWith(chapterWord)) {
 				chapterName = chapterName.substring(chapterWord.length())
 						.trim();

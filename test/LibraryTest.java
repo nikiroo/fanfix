@@ -43,7 +43,7 @@ class LibraryTest extends TestLauncher {
 				addTest(new TestCase("getList") {
 					@Override
 					public void test() throws Exception {
-						List<MetaData> metas = lib.getList();
+						List<MetaData> metas = lib.getList().getMetas();
 						assertEquals(errMess, Arrays.asList(),
 								titlesAsList(metas));
 					}
@@ -55,7 +55,7 @@ class LibraryTest extends TestLauncher {
 						lib.save(story(luid1, name1, source1, author1), luid1,
 								null);
 
-						List<MetaData> metas = lib.getList();
+						List<MetaData> metas = lib.getList().getMetas();
 						assertEquals(errMess, Arrays.asList(name1),
 								titlesAsList(metas));
 					}
@@ -69,14 +69,14 @@ class LibraryTest extends TestLauncher {
 						lib.save(story(luid2, name2, source2, author1), luid2,
 								null);
 
-						metas = lib.getList();
+						metas = lib.getList().getMetas();
 						assertEquals(errMess, Arrays.asList(name1, name2),
 								titlesAsList(metas));
 
 						lib.save(story(luid3, name3, source2, author1), luid3,
 								null);
 
-						metas = lib.getList();
+						metas = lib.getList().getMetas();
 						assertEquals(errMess,
 								Arrays.asList(name1, name2, name3),
 								titlesAsList(metas));
@@ -90,7 +90,7 @@ class LibraryTest extends TestLauncher {
 						lib.save(story(luid3, name3ex, source2, author2),
 								luid3, null);
 
-						List<MetaData> metas = lib.getList();
+						List<MetaData> metas = lib.getList().getMetas();
 						assertEquals(errMess,
 								Arrays.asList(name1, name2, name3ex),
 								titlesAsList(metas));
@@ -100,7 +100,7 @@ class LibraryTest extends TestLauncher {
 				addTest(new TestCase("getList with results") {
 					@Override
 					public void test() throws Exception {
-						List<MetaData> metas = lib.getList();
+						List<MetaData> metas = lib.getList().getMetas();
 						assertEquals(3, metas.size());
 					}
 				});
@@ -110,13 +110,13 @@ class LibraryTest extends TestLauncher {
 					public void test() throws Exception {
 						List<MetaData> metas = null;
 
-						metas = lib.getListBySource(source1);
+						metas = lib.getList().filter(source1, null, null);
 						assertEquals(1, metas.size());
 
-						metas = lib.getListBySource(source2);
+						metas = lib.getList().filter(source2, null, null);
 						assertEquals(2, metas.size());
 
-						metas = lib.getListBySource(null);
+						metas = lib.getList().filter((String)null, null, null);
 						assertEquals(3, metas.size());
 					}
 				});
@@ -126,13 +126,13 @@ class LibraryTest extends TestLauncher {
 					public void test() throws Exception {
 						List<MetaData> metas = null;
 
-						metas = lib.getListByAuthor(author1);
+						metas = lib.getList().filter(null, author1, null);
 						assertEquals(2, metas.size());
 
-						metas = lib.getListByAuthor(author2);
+						metas = lib.getList().filter(null, author2, null);
 						assertEquals(1, metas.size());
 
-						metas = lib.getListByAuthor(null);
+						metas = lib.getList().filter((String)null, null, null);
 						assertEquals(3, metas.size());
 					}
 				});
@@ -144,13 +144,13 @@ class LibraryTest extends TestLauncher {
 
 						lib.changeSource(luid3, source1, null);
 
-						metas = lib.getListBySource(source1);
+						metas = lib.getList().filter(source1, null, null);
 						assertEquals(2, metas.size());
 
-						metas = lib.getListBySource(source2);
+						metas = lib.getList().filter(source2, null, null);
 						assertEquals(1, metas.size());
 
-						metas = lib.getListBySource(null);
+						metas = lib.getList().filter((String)null, null, null);
 						assertEquals(3, metas.size());
 					}
 				});
@@ -164,13 +164,13 @@ class LibraryTest extends TestLauncher {
 						lib.save(story(luid3, "My story 3", source2, author2),
 								luid3, null);
 
-						metas = lib.getListBySource(source1);
+						metas = lib.getList().filter(source1, null, null);
 						assertEquals(1, metas.size());
 
-						metas = lib.getListBySource(source2);
+						metas = lib.getList().filter(source2, null, null);
 						assertEquals(2, metas.size());
 
-						metas = lib.getListBySource(null);
+						metas = lib.getList().filter((String)null, null, null);
 						assertEquals(3, metas.size());
 					}
 				});

@@ -26,10 +26,9 @@ public class BasicSupportHelper {
 	 * @return the cover if any, or NULL
 	 */
 	public Image getDefaultCover(String subject) {
-		if (subject != null && !subject.isEmpty()
-				&& Instance.getCoverDir() != null) {
+		if (subject != null && !subject.isEmpty() && Instance.getInstance().getCoverDir() != null) {
 			try {
-				File fileCover = new File(Instance.getCoverDir(), subject);
+				File fileCover = new File(Instance.getInstance().getCoverDir(), subject);
 				return getImage(null, fileCover.toURI().toURL(), subject);
 			} catch (MalformedURLException e) {
 			}
@@ -81,7 +80,7 @@ public class BasicSupportHelper {
 			}
 			InputStream in = null;
 			try {
-				in = Instance.getCache().open(url, support, true);
+				in = Instance.getInstance().getCache().open(url, support, true);
 				return new Image(in);
 			} catch (IOException e) {
 			} finally {
@@ -156,8 +155,7 @@ public class BasicSupportHelper {
 				// try for URLs
 				try {
 					for (String ext : getImageExt(true)) {
-						if (Instance.getCache()
-								.check(new URL(line + ext), true)) {
+						if (Instance.getInstance().getCache().check(new URL(line + ext), true)) {
 							url = new URL(line + ext);
 							break;
 						}
@@ -168,7 +166,7 @@ public class BasicSupportHelper {
 						for (String ext : getImageExt(true)) {
 							try {
 								url = new URL(line + ext);
-								Instance.getCache().refresh(url, support, true);
+								Instance.getInstance().getCache().refresh(url, support, true);
 								break;
 							} catch (IOException e) {
 								// no image with this ext
@@ -184,7 +182,7 @@ public class BasicSupportHelper {
 			// refresh the cached file
 			if (url != null) {
 				try {
-					Instance.getCache().refresh(url, support, true);
+					Instance.getInstance().getCache().refresh(url, support, true);
 				} catch (IOException e) {
 					// woops, broken image
 					url = null;
@@ -206,7 +204,7 @@ public class BasicSupportHelper {
 	public String fixAuthor(String author) {
 		if (author != null) {
 			for (String suffix : new String[] { " ", ":" }) {
-				for (String byString : Instance.getConfig().getList(Config.CONF_BYS)) {
+				for (String byString : Instance.getInstance().getConfig().getList(Config.CONF_BYS)) {
 					byString += suffix;
 					if (author.toUpperCase().startsWith(byString.toUpperCase())) {
 						author = author.substring(byString.length()).trim();

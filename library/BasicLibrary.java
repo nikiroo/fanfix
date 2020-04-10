@@ -122,6 +122,13 @@ abstract public class BasicLibrary {
 	 */
 	public abstract Image getCover(String luid) throws IOException;
 
+	// TODO: ensure it is the main used interface
+	public synchronized MetaResultList getList(Progress pg) throws IOException {
+		return new MetaResultList(getMetas(pg));
+	}
+	
+	//TODO: make something for (normal and custom) not-story covers
+	
 	/**
 	 * Return the cover image associated to this source.
 	 * <p>
@@ -142,7 +149,7 @@ abstract public class BasicLibrary {
 			return custom;
 		}
 
-		List<MetaData> metas = getListBySource(source);
+		List<MetaData> metas = getList().filter(source, null, null);
 		if (metas.size() > 0) {
 			return getCover(metas.get(0).getLuid());
 		}
@@ -170,7 +177,7 @@ abstract public class BasicLibrary {
 			return custom;
 		}
 
-		List<MetaData> metas = getListByAuthor(author);
+		List<MetaData> metas = getList().filter(null, author, null);
 		if (metas.size() > 0) {
 			return getCover(metas.get(0).getLuid());
 		}
@@ -245,6 +252,8 @@ abstract public class BasicLibrary {
 	/**
 	 * Return the list of stories (represented by their {@link MetaData}, which
 	 * <b>MAY</b> not have the cover included).
+	 * <p>
+	 * The returned list <b>MUST</b> be a copy, not the original one.
 	 * 
 	 * @param pg
 	 *            the optional {@link Progress}
@@ -329,12 +338,42 @@ abstract public class BasicLibrary {
 	 * @param pg
 	 *            the optional progress reporter
 	 */
-	public void refresh(Progress pg) {
+	public synchronized void refresh(Progress pg) {
 		try {
 			getMetas(pg);
 		} catch (IOException e) {
 			// We will let it fail later
 		}
+	}
+	
+	/**
+	 * Check if the {@link Story} denoted by this Library UID is present in the
+	 * cache (if we have no cache, we default to </t>true</tt>).
+	 * 
+	 * @param luid
+	 *            the Library UID
+	 * 
+	 * @return TRUE if it is
+	 */
+	public boolean isCached(String luid) {
+		// By default, everything is cached
+		return true;
+	}
+	
+	/**
+	 * Clear the {@link Story} from the cache, if needed.
+	 * <p>
+	 * The next time we try to retrieve the {@link Story}, it may be required to
+	 * cache it again.
+	 * 
+	 * @param luid
+	 *            the story to clear
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	public void clearFromCache(String luid) throws IOException {
+		// By default, this is a noop.
 	}
 
 	/**
@@ -558,64 +597,8 @@ abstract public class BasicLibrary {
 	 * @throws IOException
 	 *             in case of IOException
 	 */
-	public synchronized List<MetaData> getList() throws IOException {
-		return getMetas(null);
-	}
-
-	/**
-	 * List all the stories of the given source type in the {@link BasicLibrary}
-	 * , or all the stories if NULL is passed as a type.
-	 * <p>
-	 * Cover images not included.
-	 * 
-	 * @param type
-	 *            the type of story to retrieve, or NULL for all
-	 * 
-	 * @return the stories
-	 * 
-	 * @throws IOException
-	 *             in case of IOException
-	 */
-	public synchronized List<MetaData> getListBySource(String type)
-			throws IOException {
-		List<MetaData> list = new ArrayList<MetaData>();
-		for (MetaData meta : getMetas(null)) {
-			String storyType = meta.getSource();
-			if (type == null || type.equalsIgnoreCase(storyType)) {
-				list.add(meta);
-			}
-		}
-
-		Collections.sort(list);
-		return list;
-	}
-
-	/**
-	 * List all the stories of the given author in the {@link BasicLibrary}, or
-	 * all the stories if NULL is passed as an author.
-	 * <p>
-	 * Cover images not included.
-	 * 
-	 * @param author
-	 *            the author of the stories to retrieve, or NULL for all
-	 * 
-	 * @return the stories
-	 * 
-	 * @throws IOException
-	 *             in case of IOException
-	 */
-	public synchronized List<MetaData> getListByAuthor(String author)
-			throws IOException {
-		List<MetaData> list = new ArrayList<MetaData>();
-		for (MetaData meta : getMetas(null)) {
-			String storyAuthor = meta.getAuthor();
-			if (author == null || author.equalsIgnoreCase(storyAuthor)) {
-				list.add(meta);
-			}
-		}
-
-		Collections.sort(list);
-		return list;
+	public MetaResultList getList() throws IOException {
+		return getList(null);
 	}
 
 	/**
@@ -730,10 +713,8 @@ abstract public class BasicLibrary {
 		} catch (IOException e) {
 			// We should not have not-supported files in the
 			// library
-			Instance.getTraceHandler().error(
-					new IOException(String.format(
-							"Cannot load file of type '%s' from library: %s",
-							meta.getType(), file), e));
+			Instance.getInstance().getTraceHandler().error(new IOException(
+					String.format("Cannot load file of type '%s' from library: %s", meta.getType(), file), e));
 		} finally {
 			pgProcess.done();
 			pg.done();
@@ -892,8 +873,7 @@ abstract public class BasicLibrary {
 	public synchronized Story save(Story story, String luid, Progress pg)
 			throws IOException {
 
-		Instance.getTraceHandler().trace(
-				this.getClass().getSimpleName() + ": saving story " + luid);
+		Instance.getInstance().getTraceHandler().trace(this.getClass().getSimpleName() + ": saving story " + luid);
 
 		// Do not change the original metadata, but change the original story
 		MetaData meta = story.getMeta().clone();
@@ -913,9 +893,8 @@ abstract public class BasicLibrary {
 
 		updateInfo(story.getMeta());
 
-		Instance.getTraceHandler().trace(
-				this.getClass().getSimpleName() + ": story saved (" + luid
-						+ ")");
+		Instance.getInstance().getTraceHandler()
+				.trace(this.getClass().getSimpleName() + ": story saved (" + luid + ")");
 
 		return story;
 	}
@@ -930,14 +909,13 @@ abstract public class BasicLibrary {
 	 *             in case of I/O error
 	 */
 	public synchronized void delete(String luid) throws IOException {
-		Instance.getTraceHandler().trace(
-				this.getClass().getSimpleName() + ": deleting story " + luid);
+		Instance.getInstance().getTraceHandler().trace(this.getClass().getSimpleName() + ": deleting story " + luid);
 
 		doDelete(luid);
 		invalidateInfo(luid);
 
-		Instance.getTraceHandler().trace(
-				this.getClass().getSimpleName() + ": story deleted (" + luid
+		Instance.getInstance().getTraceHandler()
+				.trace(this.getClass().getSimpleName() + ": story deleted (" + luid
 						+ ")");
 	}
 
@@ -1039,8 +1017,6 @@ abstract public class BasicLibrary {
 		meta.setTitle(newTitle);
 		meta.setAuthor(newAuthor);
 		saveMeta(meta, pg);
-
-		invalidateInfo(luid);
 	}
 
 	/**

@@ -138,8 +138,8 @@ class ConversionTest extends TestLauncher {
 			BasicOutput.OutputType type) throws Exception {
 		final List<String> errors = new ArrayList<String>();
 
-		TraceHandler previousTraceHandler = Instance.getTraceHandler();
-		Instance.setTraceHandler(new TraceHandler(true, true, 0) {
+		TraceHandler previousTraceHandler = Instance.getInstance().getTraceHandler();
+		Instance.getInstance().setTraceHandler(new TraceHandler(true, true, 0) {
 			@Override
 			public void error(String message) {
 				errors.add(message);
@@ -178,7 +178,7 @@ class ConversionTest extends TestLauncher {
 
 			return target;
 		} finally {
-			Instance.setTraceHandler(previousTraceHandler);
+			Instance.getInstance().setTraceHandler(previousTraceHandler);
 		}
 	}
 

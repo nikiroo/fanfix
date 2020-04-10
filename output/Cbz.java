@@ -23,7 +23,7 @@ class Cbz extends BasicOutput {
 
 		File target = new File(targetDir, targetName);
 
-		dir = Instance.getTempFiles().createTempDir("fanfic-reader-cbz-dir");
+		dir = Instance.getInstance().getTempFiles().createTempDir("fanfic-reader-cbz-dir");
 		try {
 			// will also save the images! (except the cover -> false)
 			BasicOutput

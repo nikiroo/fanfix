@@ -29,55 +29,83 @@ import be.nikiroo.utils.resources.Bundles;
  * @author niki
  */
 public class Instance {
-	private static ConfigBundle config;
-	private static UiConfigBundle uiconfig;
-	private static StringIdBundle trans;
-	private static DataLoader cache;
-	private static StringIdGuiBundle transGui;
-	private static BasicLibrary lib;
-	private static File coverDir;
-	private static File readerTmp;
-	private static File remoteDir;
-	private static String configDir;
-	private static TraceHandler tracer;
-	private static TempFiles tempFiles;
+	static private Instance instance;
+	static private Object instancelock = new Object();
 
-	private static boolean init;
+	private ConfigBundle config;
+	private UiConfigBundle uiconfig;
+	private StringIdBundle trans;
+	private DataLoader cache;
+	private StringIdGuiBundle transGui;
+	private BasicLibrary lib;
+	private File coverDir;
+	private File readerTmp;
+	private File remoteDir;
+	private String configDir;
+	private TraceHandler tracer;
+	private TempFiles tempFiles;
 
 	/**
 	 * Initialise the instance -- if already initialised, nothing will happen.
 	 * <p>
-	 * Before calling this method, you may call
-	 * {@link Bundles#setDirectory(String)} if wanted.
+	 * Before calling this method, you may call {@link Bundles#setDirectory(String)}
+	 * if wanted.
 	 */
 	static public void init() {
 		init(false);
 	}
 
 	/**
-	 * Initialise the instance -- if already initialised, nothing will happen
-	 * unless you pass TRUE to <tt>force</tt>.
+	 * Initialise the instance -- if already initialised, nothing will happen unless
+	 * you pass TRUE to <tt>force</tt>.
 	 * <p>
-	 * Before calling this method, you may call
-	 * {@link Bundles#setDirectory(String)} if wanted.
+	 * Before calling this method, you may call {@link Bundles#setDirectory(String)}
+	 * if wanted.
 	 * <p>
-	 * Note: forcing the initialisation can be dangerous, so make sure to only
-	 * make it under controlled circumstances -- for instance, at the start of
-	 * the program, you could call {@link Instance#init()}, change some settings
-	 * because you want to force those settings (it will also forbid users to
-	 * change them!) and then call {@link Instance#init(boolean)} with
-	 * <tt>force</tt> set to TRUE.
+	 * Note: forcing the initialisation can be dangerous, so make sure to only make
+	 * it under controlled circumstances -- for instance, at the start of the
+	 * program, you could call {@link Instance#init()}, change some settings because
+	 * you want to force those settings (it will also forbid users to change them!)
+	 * and then call {@link Instance#init(boolean)} with <tt>force</tt> set to TRUE.
 	 * 
-	 * @param force
-	 *            force the initialisation even if already initialised
+	 * @param force force the initialisation even if already initialised
 	 */
 	static public void init(boolean force) {
-		if (init && !force) {
-			return;
+		synchronized (instancelock) {
+			if (instance == null || force) {
+				instance = new Instance();
+			}
 		}
 
-		init = true;
+	}
 
+	/**
+	 * Force-initialise the {@link Instance} to a known value.
+	 * <p>
+	 * Usually for DEBUG/Test purposes.
+	 * 
+	 * @param instance the actual Instance to use
+	 */
+	static public void init(Instance instance) {
+		Instance.instance = instance;
+	}
+
+	/**
+	 * The (mostly unique) instance of this {@link Instance}.
+	 * 
+	 * @return the (mostly unique) instance
+	 */
+	public static Instance getInstance() {
+		return instance;
+	}
+
+	/**
+	 * Actually initialise the instance.
+	 * <p>
+	 * Before calling this method, you may call {@link Bundles#setDirectory(String)}
+	 * if wanted.
+	 */
+	protected Instance() {
 		// Before we can configure it:
 		Boolean debug = checkEnv("DEBUG");
 		boolean trace = debug != null && debug;
@@ -93,12 +121,12 @@ public class Instance {
 		createConfigs(configDir, false);
 
 		// Proxy support
-		Proxy.use(Instance.getConfig().getString(Config.NETWORK_PROXY));
+		Proxy.use(config.getString(Config.NETWORK_PROXY));
 
 		// update tracer:
 		if (debug == null) {
-			debug = Instance.getConfig().getBoolean(Config.DEBUG_ERR, false);
-			trace = Instance.getConfig().getBoolean(Config.DEBUG_TRACE, false);
+			debug = config.getBoolean(Config.DEBUG_ERR, false);
+			trace = config.getBoolean(Config.DEBUG_TRACE, false);
 		}
 
 		tracer = new TraceHandler(true, debug, trace);
@@ -120,19 +148,16 @@ public class Instance {
 			int hoursLarge = config.getInteger(Config.CACHE_MAX_TIME_STABLE, 0);
 			cache = new DataLoader(tmp, ua, hours, hoursLarge);
 		} catch (IOException e) {
-			tracer.error(new IOException(
-					"Cannot create cache (will continue without cache)", e));
+			tracer.error(new IOException("Cannot create cache (will continue without cache)", e));
 			cache = new DataLoader(ua);
 		}
 
 		cache.setTraceHandler(tracer);
 
 		// readerTmp / coverDir
-		readerTmp = getFile(UiConfig.CACHE_DIR_LOCAL_READER, new File(
-				configDir, "tmp-reader"));
+		readerTmp = getFile(UiConfig.CACHE_DIR_LOCAL_READER, new File(configDir, "tmp-reader"));
 
-		coverDir = getFile(Config.DEFAULT_COVERS_DIR, new File(configDir,
-				"covers"));
+		coverDir = getFile(Config.DEFAULT_COVERS_DIR, new File(configDir, "covers"));
 		coverDir.mkdirs();
 
 		try {
@@ -149,22 +174,21 @@ public class Instance {
 	 * 
 	 * @return the traces handler (never NULL)
 	 */
-	public static TraceHandler getTraceHandler() {
+	public TraceHandler getTraceHandler() {
 		return tracer;
 	}
 
 	/**
 	 * The traces handler for this {@link Cache}.
 	 * 
-	 * @param tracer
-	 *            the new traces handler or NULL
+	 * @param tracer the new traces handler or NULL
 	 */
-	public static void setTraceHandler(TraceHandler tracer) {
+	public void setTraceHandler(TraceHandler tracer) {
 		if (tracer == null) {
 			tracer = new TraceHandler(false, false, false);
 		}
 
-		Instance.tracer = tracer;
+		this.tracer = tracer;
 		cache.setTraceHandler(tracer);
 	}
 
@@ -173,7 +197,7 @@ public class Instance {
 	 * 
 	 * @return the configuration service
 	 */
-	public static ConfigBundle getConfig() {
+	public ConfigBundle getConfig() {
 		return config;
 	}
 
@@ -182,17 +206,16 @@ public class Instance {
 	 * 
 	 * @return the configuration service
 	 */
-	public static UiConfigBundle getUiConfig() {
+	public UiConfigBundle getUiConfig() {
 		return uiconfig;
 	}
 
 	/**
 	 * Reset the configuration.
 	 * 
-	 * @param resetTrans
-	 *            also reset the translation files
+	 * @param resetTrans also reset the translation files
 	 */
-	public static void resetConfig(boolean resetTrans) {
+	public void resetConfig(boolean resetTrans) {
 		String dir = Bundles.getDirectory();
 		Bundles.setDirectory(null);
 		try {
@@ -227,7 +250,7 @@ public class Instance {
 	 * 
 	 * @return the {@link DataLoader}
 	 */
-	public static DataLoader getCache() {
+	public DataLoader getCache() {
 		return cache;
 	}
 
@@ -238,7 +261,7 @@ public class Instance {
 	 * 
 	 * @return the {link StringIdBundle}
 	 */
-	public static StringIdBundle getTrans() {
+	public StringIdBundle getTrans() {
 		return trans;
 	}
 
@@ -249,7 +272,7 @@ public class Instance {
 	 * 
 	 * @return the {link StringIdGuiBundle}
 	 */
-	public static StringIdGuiBundle getTransGui() {
+	public StringIdGuiBundle getTransGui() {
 		return transGui;
 	}
 
@@ -258,7 +281,7 @@ public class Instance {
 	 * 
 	 * @return the {@link LocalLibrary}
 	 */
-	public static BasicLibrary getLibrary() {
+	public BasicLibrary getLibrary() {
 		if (lib == null) {
 			throw new NullPointerException("We don't have a library to return");
 		}
@@ -271,7 +294,7 @@ public class Instance {
 	 * 
 	 * @return the default covers directory
 	 */
-	public static File getCoverDir() {
+	public File getCoverDir() {
 		return coverDir;
 	}
 
@@ -280,7 +303,7 @@ public class Instance {
 	 * 
 	 * @return the directory
 	 */
-	public static File getReaderDir() {
+	public File getReaderDir() {
 		return readerTmp;
 	}
 
@@ -288,12 +311,11 @@ public class Instance {
 	 * Return the directory where to store temporary files for the remote
 	 * {@link LocalLibrary}.
 	 * 
-	 * @param host
-	 *            the remote for this host
+	 * @param host the remote for this host
 	 * 
 	 * @return the directory
 	 */
-	public static File getRemoteDir(String host) {
+	public File getRemoteDir(String host) {
 		return getRemoteDir(remoteDir, host);
 	}
 
@@ -301,14 +323,12 @@ public class Instance {
 	 * Return the directory where to store temporary files for the remote
 	 * {@link LocalLibrary}.
 	 * 
-	 * @param remoteDir
-	 *            the base remote directory
-	 * @param host
-	 *            the remote for this host
+	 * @param remoteDir the base remote directory
+	 * @param host      the remote for this host
 	 * 
 	 * @return the directory
 	 */
-	private static File getRemoteDir(File remoteDir, String host) {
+	private File getRemoteDir(File remoteDir, String host) {
 		remoteDir.mkdirs();
 
 		if (host != null) {
@@ -323,15 +343,12 @@ public class Instance {
 	 * 
 	 * @return TRUE if we need to
 	 */
-	public static boolean isVersionCheckNeeded() {
+	public boolean isVersionCheckNeeded() {
 		try {
-			long wait = config.getInteger(Config.NETWORK_UPDATE_INTERVAL, 0)
-					* 24 * 60 * 60 * 1000;
+			long wait = config.getInteger(Config.NETWORK_UPDATE_INTERVAL, 0) * 24 * 60 * 60 * 1000;
 			if (wait >= 0) {
-				String lastUpString = IOUtils.readSmallFile(new File(configDir,
-						"LAST_UPDATE"));
-				long delay = new Date().getTime()
-						- Long.parseLong(lastUpString);
+				String lastUpString = IOUtils.readSmallFile(new File(configDir, "LAST_UPDATE"));
+				long delay = new Date().getTime() - Long.parseLong(lastUpString);
 				if (delay > wait) {
 					return true;
 				}
@@ -349,10 +366,9 @@ public class Instance {
 	/**
 	 * Notify that we checked for a new version of Fanfix.
 	 */
-	public static void setVersionChecked() {
+	public void setVersionChecked() {
 		try {
-			IOUtils.writeSmallFile(new File(configDir), "LAST_UPDATE",
-					Long.toString(new Date().getTime()));
+			IOUtils.writeSmallFile(new File(configDir), "LAST_UPDATE", Long.toString(new Date().getTime()));
 		} catch (IOException e) {
 			tracer.error(e);
 		}
@@ -365,18 +381,18 @@ public class Instance {
 	 * 
 	 * @return the facility
 	 */
-	public static TempFiles getTempFiles() {
+	public TempFiles getTempFiles() {
 		return tempFiles;
 	}
 
 	/**
-	 * The configuration directory (will check, in order of preference, the
-	 * system properties, the environment and then defaults to
+	 * The configuration directory (will check, in order of preference, the system
+	 * properties, the environment and then defaults to
 	 * {@link Instance#getHome()}/.fanfix).
 	 * 
 	 * @return the config directory
 	 */
-	private static String getConfigDir() {
+	private String getConfigDir() {
 		String configDir = System.getProperty("CONFIG_DIR");
 
 		if (configDir == null) {
@@ -395,13 +411,11 @@ public class Instance {
 	 * {@link Instance#uiconfig}, {@link Instance#trans} and
 	 * {@link Instance#transGui}).
 	 * 
-	 * @param configDir
-	 *            the directory where to find the configuration files
-	 * @param refresh
-	 *            TRUE to reset the configuration files from the default
-	 *            included ones
+	 * @param configDir the directory where to find the configuration files
+	 * @param refresh   TRUE to reset the configuration files from the default
+	 *                  included ones
 	 */
-	private static void createConfigs(String configDir, boolean refresh) {
+	private void createConfigs(String configDir, boolean refresh) {
 		if (!refresh) {
 			Bundles.setDirectory(configDir);
 		}
@@ -443,16 +457,14 @@ public class Instance {
 	/**
 	 * Create the default library as specified by the config.
 	 * 
-	 * @param remoteDir
-	 *            the base remote directory if needed
+	 * @param remoteDir the base remote directory if needed
 	 * 
 	 * @return the default {@link BasicLibrary}
 	 */
-	private static BasicLibrary createDefaultLibrary(File remoteDir) {
+	private BasicLibrary createDefaultLibrary(File remoteDir) {
 		BasicLibrary lib = null;
 
-		boolean useRemote = config.getBoolean(Config.REMOTE_LIBRARY_ENABLED,
-				false);
+		boolean useRemote = config.getBoolean(Config.REMOTE_LIBRARY_ENABLED, false);
 
 		if (useRemote) {
 			String host = null;
@@ -464,11 +476,9 @@ public class Instance {
 
 				tracer.trace("Selecting remote library " + host + ":" + port);
 				lib = new RemoteLibrary(key, host, port);
-				lib = new CacheLibrary(getRemoteDir(remoteDir, host), lib);
+				lib = new CacheLibrary(getRemoteDir(remoteDir, host), lib, uiconfig);
 			} catch (Exception e) {
-				tracer.error(new IOException(
-						"Cannot create remote library for: " + host + ":"
-								+ port, e));
+				tracer.error(new IOException("Cannot create remote library for: " + host + ":" + port, e));
 			}
 		} else {
 			String libDir = System.getenv("BOOKS_DIR");
@@ -479,11 +489,9 @@ public class Instance {
 				}
 			}
 			try {
-				lib = new LocalLibrary(getFile(libDir));
+				lib = new LocalLibrary(getFile(libDir), config);
 			} catch (Exception e) {
-				tracer.error(new IOException(
-						"Cannot create library for directory: "
-								+ getFile(libDir), e));
+				tracer.error(new IOException("Cannot create library for directory: " + getFile(libDir), e));
 			}
 		}
 
@@ -493,9 +501,11 @@ public class Instance {
 	/**
 	 * Return a path, but support the special $HOME variable.
 	 * 
-	 * @return the path
+	 * @param id  the key for the path, which may contain "$HOME"
+	 * @param def the default value if none
+	 * @return the path, with expanded "$HOME" if needed
 	 */
-	private static File getFile(Config id, File def) {
+	protected File getFile(Config id, File def) {
 		String path = config.getString(id, def.getPath());
 		return getFile(path);
 	}
@@ -503,9 +513,11 @@ public class Instance {
 	/**
 	 * Return a path, but support the special $HOME variable.
 	 * 
-	 * @return the path
+	 * @param id  the key for the path, which may contain "$HOME"
+	 * @param def the default value if none
+	 * @return the path, with expanded "$HOME" if needed
 	 */
-	private static File getFile(UiConfig id, File def) {
+	protected File getFile(UiConfig id, File def) {
 		String path = uiconfig.getString(id, def.getPath());
 		return getFile(path);
 	}
@@ -513,9 +525,10 @@ public class Instance {
 	/**
 	 * Return a path, but support the special $HOME variable.
 	 * 
-	 * @return the path
+	 * @param path the path, which may contain "$HOME"
+	 * @return the path, with expanded "$HOME" if needed
 	 */
-	private static File getFile(String path) {
+	protected File getFile(String path) {
 		File file = null;
 		if (path != null && !path.isEmpty()) {
 			path = path.replace('/', File.separatorChar);
@@ -534,12 +547,12 @@ public class Instance {
 	 * properties.
 	 * <p>
 	 * The environment variable is tested first. Then, the custom property
-	 * "fanfix.home" is tried, followed by the usual "user.home" then
-	 * "java.io.tmp" if nothing else is found.
+	 * "fanfix.home" is tried, followed by the usual "user.home" then "java.io.tmp"
+	 * if nothing else is found.
 	 * 
 	 * @return the home
 	 */
-	private static String getHome() {
+	protected String getHome() {
 		String home = System.getenv("FANFIX_DIR");
 		if (home != null && new File(home).isFile()) {
 			home = null;
@@ -578,12 +591,11 @@ public class Instance {
 	 * 
 	 * @return the language
 	 */
-	private static String getLang() {
+	protected String getLang() {
 		String lang = config.getString(Config.LANG);
 
 		if (lang == null || lang.isEmpty()) {
-			if (System.getenv("LANG") != null
-					&& !System.getenv("LANG").isEmpty()) {
+			if (System.getenv("LANG") != null && !System.getenv("LANG").isEmpty()) {
 				lang = System.getenv("LANG");
 			}
 		}
@@ -598,17 +610,15 @@ public class Instance {
 	/**
 	 * Check that the given environment variable is "enabled".
 	 * 
-	 * @param key
-	 *            the variable to check
+	 * @param key the variable to check
 	 * 
 	 * @return TRUE if it is
 	 */
-	private static Boolean checkEnv(String key) {
+	protected Boolean checkEnv(String key) {
 		String value = System.getenv(key);
 		if (value != null) {
 			value = value.trim().toLowerCase();
-			if ("yes".equals(value) || "true".equals(value)
-					|| "on".equals(value) || "1".equals(value)
+			if ("yes".equals(value) || "true".equals(value) || "on".equals(value) || "1".equals(value)
 					|| "y".equals(value)) {
 				return true;
 			}

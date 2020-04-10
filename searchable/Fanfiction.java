@@ -285,8 +285,7 @@ class Fanfiction extends BasicSearchable {
 					String coverUrl = cover.absUrl("src");
 
 					try {
-						InputStream in = Instance.getCache().open(
-								new URL(coverUrl), getSupport(), true);
+						InputStream in = Instance.getInstance().getCache().open(new URL(coverUrl), getSupport(), true);
 						try {
 							meta.setCover(new Image(in));
 						} finally {
@@ -294,10 +293,8 @@ class Fanfiction extends BasicSearchable {
 						}
 					} catch (Exception e) {
 						// Should not happen on Fanfiction.net
-						Instance.getTraceHandler().error(
-								new Exception(
-										"Cannot download cover for Fanfiction story in search mode: "
-												+ meta.getTitle(), e));
+						Instance.getInstance().getTraceHandler().error(new Exception(
+								"Cannot download cover for Fanfiction story in search mode: " + meta.getTitle(), e));
 					}
 				}
 			}
@@ -337,8 +334,7 @@ class Fanfiction extends BasicSearchable {
 				}
 
 				meta.setResume(getSupport().makeChapter(new URL(sourceUrl), 0,
-						Instance.getTrans().getString(StringId.DESCRIPTION),
-						resume));
+						Instance.getInstance().getTrans().getString(StringId.DESCRIPTION), resume));
 			}
 
 			// How are the tags ordered?

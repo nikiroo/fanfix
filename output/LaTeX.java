@@ -19,14 +19,10 @@ class LaTeX extends BasicOutput {
 	private boolean lastWasQuote = false;
 
 	// quote chars
-	private char openQuote = Instance.getTrans().getCharacter(
-			StringId.OPEN_SINGLE_QUOTE);
-	private char closeQuote = Instance.getTrans().getCharacter(
-			StringId.CLOSE_SINGLE_QUOTE);
-	private char openDoubleQuote = Instance.getTrans().getCharacter(
-			StringId.OPEN_DOUBLE_QUOTE);
-	private char closeDoubleQuote = Instance.getTrans().getCharacter(
-			StringId.CLOSE_DOUBLE_QUOTE);
+	private char openQuote = Instance.getInstance().getTrans().getCharacter(StringId.OPEN_SINGLE_QUOTE);
+	private char closeQuote = Instance.getInstance().getTrans().getCharacter(StringId.CLOSE_SINGLE_QUOTE);
+	private char openDoubleQuote = Instance.getInstance().getTrans().getCharacter(StringId.OPEN_DOUBLE_QUOTE);
+	private char closeDoubleQuote = Instance.getInstance().getTrans().getCharacter(StringId.CLOSE_DOUBLE_QUOTE);
 
 	@Override
 	public File process(Story story, File targetDir, String targetName)
@@ -66,10 +62,9 @@ class LaTeX extends BasicOutput {
 			author = "\\author{" + latexEncode(meta.getAuthor()) + "}";
 			lang = meta.getLang().toLowerCase();
 			if (lang != null && !lang.isEmpty()) {
-				lang = Instance.getConfig().getStringX(Config.CONF_LATEX_LANG, lang);
+				lang = Instance.getInstance().getConfig().getStringX(Config.CONF_LATEX_LANG, lang);
 				if (lang == null) {
-					System.err.println(Instance.getTrans().getString(
-							StringId.LATEX_LANG_UNKNOWN, lang));
+					System.err.println(Instance.getInstance().getTrans().getString(StringId.LATEX_LANG_UNKNOWN, lang));
 				}
 			}
 		}

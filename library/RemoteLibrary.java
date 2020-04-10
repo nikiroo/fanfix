@@ -124,9 +124,9 @@ public class RemoteLibrary extends BasicLibrary {
 
 	@Override
 	public Status getStatus() {
-		Instance.getTraceHandler().trace("Getting remote lib status...");
+		Instance.getInstance().getTraceHandler().trace("Getting remote lib status...");
 		Status status = getStatusDo();
-		Instance.getTraceHandler().trace("Remote lib status: " + status);
+		Instance.getInstance().getTraceHandler().trace("Remote lib status: " + status);
 		return status;
 	}
 
@@ -443,6 +443,7 @@ public class RemoteLibrary extends BasicLibrary {
 			public void action(ConnectActionClientObject action)
 					throws Exception {
 				action.send(new Object[] { subkey, "EXIT" });
+				Thread.sleep(100);
 			}
 		});
 	}
@@ -458,7 +459,7 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected List<MetaData> getMetas(Progress pg) throws IOException {
+	protected synchronized List<MetaData> getMetas(Progress pg) throws IOException {
 		return getMetasList("*", pg);
 	}
 
@@ -559,7 +560,7 @@ public class RemoteLibrary extends BasicLibrary {
 				@Override
 				protected void onError(Exception e) {
 					if (!(e instanceof IOException)) {
-						Instance.getTraceHandler().error(e);
+						Instance.getInstance().getTraceHandler().error(e);
 						return;
 					}
 

@@ -37,22 +37,17 @@ class FimfictionApi extends BasicSupport {
 	private Map<Integer, String> chapterContents;
 
 	public FimfictionApi() throws IOException {
-		if (Instance.getConfig().getBoolean(
-				Config.LOGIN_FIMFICTION_APIKEY_FORCE_HTML, false)) {
-			throw new IOException(
-					"Configuration is set to force HTML scrapping");
+		if (Instance.getInstance().getConfig().getBoolean(Config.LOGIN_FIMFICTION_APIKEY_FORCE_HTML, false)) {
+			throw new IOException("Configuration is set to force HTML scrapping");
 		}
 
-		String oauth = Instance.getConfig().getString(
-				Config.LOGIN_FIMFICTION_APIKEY_TOKEN);
+		String oauth = Instance.getInstance().getConfig().getString(Config.LOGIN_FIMFICTION_APIKEY_TOKEN);
 
 		if (oauth == null || oauth.isEmpty()) {
-			String clientId = Instance.getConfig().getString(
-					Config.LOGIN_FIMFICTION_APIKEY_CLIENT_ID)
+			String clientId = Instance.getInstance().getConfig().getString(Config.LOGIN_FIMFICTION_APIKEY_CLIENT_ID)
 					+ "";
-			String clientSecret = Instance.getConfig().getString(
-					Config.LOGIN_FIMFICTION_APIKEY_CLIENT_SECRET)
-					+ "";
+			String clientSecret = Instance.getInstance().getConfig()
+					.getString(Config.LOGIN_FIMFICTION_APIKEY_CLIENT_SECRET) + "";
 
 			if (clientId.trim().isEmpty() || clientSecret.trim().isEmpty()) {
 				throw new IOException("API key required for the beta API v2");
@@ -60,9 +55,8 @@ class FimfictionApi extends BasicSupport {
 
 			oauth = generateOAuth(clientId, clientSecret);
 
-			Instance.getConfig().setString(
-					Config.LOGIN_FIMFICTION_APIKEY_TOKEN, oauth);
-			Instance.getConfig().updateFile();
+			Instance.getInstance().getConfig().setString(Config.LOGIN_FIMFICTION_APIKEY_TOKEN, oauth);
+			Instance.getInstance().getConfig().updateFile();
 		}
 
 		this.oauth = oauth;
@@ -116,7 +110,7 @@ class FimfictionApi extends BasicSupport {
 		urlString = urlString.replace("[", "%5B").replace("]", "%5D");
 
 		URL url = new URL(urlString);
-		InputStream jsonIn = Instance.getCache().open(url, this, false);
+		InputStream jsonIn = Instance.getInstance().getCache().open(url, this, false);
 		try {
 			return IOUtils.readSmallStream(jsonIn);
 		} finally {
@@ -150,17 +144,15 @@ class FimfictionApi extends BasicSupport {
 			// No need to use the oauth, cookies... for the cover
 			// Plus: it crashes on Android because of the referer
 			try {
-				InputStream in = Instance.getCache().open(coverImageUrl, null,
-						true);
+				InputStream in = Instance.getInstance().getCache().open(coverImageUrl, null, true);
 				try {
 					meta.setCover(new Image(in));
 				} finally {
 					in.close();
 				}
 			} catch (IOException e) {
-				Instance.getTraceHandler().error(
-						new IOException(
-								"Cannot get the story cover, ignoring...", e));
+				Instance.getInstance().getTraceHandler()
+						.error(new IOException("Cannot get the story cover, ignoring...", e));
 			}
 		}
 
@@ -258,8 +250,7 @@ class FimfictionApi extends BasicSupport {
 		params.put("client_id", clientId);
 		params.put("client_secret", clientSecret);
 		params.put("grant_type", "client_credentials");
-		InputStream in = Instance.getCache().openNoCache(url, null, params,
-				null, null);
+		InputStream in = Instance.getInstance().getCache().openNoCache(url, null, params, null, null);
 
 		String jsonToken = IOUtils.readSmallStream(in);
 		in.close();

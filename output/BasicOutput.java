@@ -63,10 +63,10 @@ public abstract class BasicOutput {
 			StringId id = longDesc ? StringId.OUTPUT_DESC
 					: StringId.OUTPUT_DESC_SHORT;
 
-			String desc = Instance.getTrans().getStringX(id, this.name());
+			String desc = Instance.getInstance().getTrans().getStringX(id, this.name());
 
 			if (desc == null) {
-				desc = Instance.getTrans().getString(id, this.toString());
+				desc = Instance.getInstance().getTrans().getString(id, this.toString());
 			}
 
 			if (desc == null || desc.isEmpty()) {

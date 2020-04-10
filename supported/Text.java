@@ -53,8 +53,7 @@ class Text extends BasicSupport {
 			try {
 				in.reset();
 			} catch (IOException e) {
-				Instance.getTraceHandler().error(
-						new IOException("Cannot reset the Text stream", e));
+				Instance.getInstance().getTraceHandler().error(new IOException("Cannot reset the Text stream", e));
 			}
 
 			return in;
@@ -201,8 +200,7 @@ class Text extends BasicSupport {
 		Image cover = bsImages.getImage(this, sourceFile.getParentFile(), path);
 		if (cover != null) {
 			try {
-				File tmp = Instance.getTempFiles().createTempFile(
-						"test_cover_image");
+				File tmp = Instance.getInstance().getTempFiles().createTempFile("test_cover_image");
 				ImageUtils.getInstance().saveAsImage(cover, tmp, "png");
 				tmp.delete();
 			} catch (IOException e) {
@@ -271,9 +269,8 @@ class Text extends BasicSupport {
 			try {
 				in.close();
 			} catch (IOException e) {
-				Instance.getTraceHandler().error(
-						new IOException(
-								"Cannot close the text source file input", e));
+				Instance.getInstance().getTraceHandler()
+						.error(new IOException("Cannot close the text source file input", e));
 			}
 		}
 
@@ -310,7 +307,7 @@ class Text extends BasicSupport {
 			file = assureNoTxt(file);
 			file = new File(file.getPath() + ".info");
 		} catch (URISyntaxException e) {
-			Instance.getTraceHandler().error(e);
+			Instance.getInstance().getTraceHandler().error(e);
 			file = null;
 		}
 
@@ -350,9 +347,8 @@ class Text extends BasicSupport {
 	 */
 	static private String detectChapter(String line, int number) {
 		line = line.toUpperCase();
-		for (String lang : Instance.getConfig().getList(Config.CONF_CHAPTER)) {
-			String chapter = Instance.getConfig().getStringX(
-					Config.CONF_CHAPTER, lang);
+		for (String lang : Instance.getInstance().getConfig().getList(Config.CONF_CHAPTER)) {
+			String chapter = Instance.getInstance().getConfig().getStringX(Config.CONF_CHAPTER, lang);
 			if (chapter != null && !chapter.isEmpty()) {
 				chapter = chapter.toUpperCase() + " ";
 				if (line.startsWith(chapter)) {

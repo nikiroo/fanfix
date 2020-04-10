@@ -50,8 +50,7 @@ class Html extends BasicOutput {
 				.process(story, dir, targetNameOrig);
 
 		if (story.getMeta().getCover() != null) {
-			Instance.getCache().saveAsImage(story.getMeta().getCover(),
-					new File(dir, "cover"), true);
+			Instance.getInstance().getCache().saveAsImage(story.getMeta().getCover(), new File(dir, "cover"), true);
 		}
 
 		return target;
@@ -91,7 +90,7 @@ class Html extends BasicOutput {
 			author = meta.getAuthor();
 		}
 
-		String format = Instance.getConfig()
+		String format = Instance.getInstance().getConfig()
 				.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER).toLowerCase();
 
 		InputStream inStyle = getClass().getResourceAsStream("html.style.css");

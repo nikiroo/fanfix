@@ -62,8 +62,7 @@ class Text extends BasicOutput {
 		writer.write(title);
 		writer.write("\n");
 		if (author != null && !author.isEmpty()) {
-			writer.write(Instance.getTrans().getString(StringId.BY) + " "
-					+ author);
+			writer.write(Instance.getInstance().getTrans().getString(StringId.BY) + " " + author);
 		}
 		if (date != null && !date.isEmpty()) {
 			writer.write(" (");
@@ -82,11 +81,9 @@ class Text extends BasicOutput {
 	protected void writeChapterHeader(Chapter chap) throws IOException {
 		String txt;
 		if (chap.getName() != null && !chap.getName().isEmpty()) {
-			txt = Instance.getTrans().getString(StringId.CHAPTER_NAMED,
-					chap.getNumber(), chap.getName());
+			txt = Instance.getInstance().getTrans().getString(StringId.CHAPTER_NAMED, chap.getNumber(), chap.getName());
 		} else {
-			txt = Instance.getTrans().getString(StringId.CHAPTER_UNNAMED,
-					chap.getNumber());
+			txt = Instance.getInstance().getTrans().getString(StringId.CHAPTER_UNNAMED, chap.getNumber());
 		}
 
 		writer.write("\n" + txt + "\n");
@@ -106,11 +103,9 @@ class Text extends BasicOutput {
 		if (para.getType() == ParagraphType.IMAGE) {
 			File file = new File(targetDir, getCurrentImageBestName(true));
 			try {
-				Instance.getCache().saveAsImage(para.getContentImage(), file,
-						nextParaIsCover);
+				Instance.getInstance().getCache().saveAsImage(para.getContentImage(), file, nextParaIsCover);
 			} catch (IOException e) {
-				Instance.getTraceHandler().error(
-						new IOException("Cannot save an image", e));
+				Instance.getInstance().getTraceHandler().error(new IOException("Cannot save an image", e));
 			}
 		}
 

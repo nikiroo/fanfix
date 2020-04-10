@@ -71,7 +71,7 @@ class Cbz extends Epub {
 
 		pgMeta.done(); // 10%
 
-		File tmpDir = Instance.getTempFiles().createTempDir("info-text");
+		File tmpDir = Instance.getInstance().getTempFiles().createTempDir("info-text");
 		String basename = null;
 
 		Map<String, Image> images = new HashMap<String, Image>();
@@ -97,7 +97,7 @@ class Cbz extends Epub {
 						try {
 							images.put(uuid, new Image(zipIn));
 						} catch (Exception e) {
-							Instance.getTraceHandler().error(e);
+							Instance.getInstance().getTraceHandler().error(e);
 						}
 
 						if (pg.getProgress() < 85) {
@@ -114,9 +114,7 @@ class Cbz extends Epub {
 			}
 			
 			String ext = "."
-					+ Instance.getConfig()
-							.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER)
-							.toLowerCase();
+					+ Instance.getInstance().getConfig().getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER).toLowerCase();
 			String coverName = meta.getUuid() + "_" + basename + ext;
 			Image cover = images.get(coverName);
 			images.remove(coverName);
@@ -176,7 +174,7 @@ class Cbz extends Epub {
 						chap.getParagraphs().add(
 								new Paragraph(images.get(uuid)));
 					} catch (Exception e) {
-						Instance.getTraceHandler().error(e);
+						Instance.getInstance().getTraceHandler().error(e);
 					}
 				}
 			}
