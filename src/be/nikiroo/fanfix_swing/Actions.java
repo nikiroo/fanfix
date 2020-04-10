@@ -2,18 +2,14 @@ package be.nikiroo.fanfix_swing;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.Toolkit;
 import java.awt.Window;
-import java.awt.datatransfer.DataFlavor;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.UnknownHostException;
 
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
 import be.nikiroo.fanfix.Instance;
@@ -184,89 +180,40 @@ public class Actions {
 	}
 
 	/**
-	 * Import a {@link Story} into the main {@link LocalLibrary}.
-	 * <p>
-	 * Should be called inside the UI thread.
-	 * 
-	 * @param askUrl
-	 *            TRUE for an {@link URL}, false for a {@link File}
-	 */
-	static public void imprt(final Container parent, boolean askUrl,
-			final Runnable onSuccess) {
-		JFileChooser fc = new JFileChooser();
-
-		Object url;
-		if (askUrl) {
-			String clipboard = "";
-			try {
-				clipboard = ("" + Toolkit.getDefaultToolkit()
-						.getSystemClipboard().getData(DataFlavor.stringFlavor))
-								.trim();
-			} catch (Exception e) {
-				// No data will be handled
-			}
-
-			if (clipboard == null || !(clipboard.startsWith("http://") || //
-					clipboard.startsWith("https://"))) {
-				clipboard = "";
-			}
-
-			url = JOptionPane.showInputDialog(parent,
-					Instance.getInstance().getTransGui()
-							.getString(StringIdGui.SUBTITLE_IMPORT_URL),
-					Instance.getInstance().getTransGui()
-							.getString(StringIdGui.TITLE_IMPORT_URL),
-					JOptionPane.QUESTION_MESSAGE, null, null, clipboard);
-		} else if (fc.showOpenDialog(parent) != JFileChooser.CANCEL_OPTION) {
-			url = fc.getSelectedFile().getAbsolutePath();
-		} else {
-			url = null;
-		}
-
-		if (url != null && !url.toString().isEmpty()) {
-			imprt(parent, url.toString(), null, null);
-		}
-	}
-
-	/**
 	 * Actually import the {@link Story} into the main {@link LocalLibrary}.
 	 * <p>
-	 * Should be called inside the UI thread.
+	 * Should be called inside the UI thread, will start a worker (i.e., this is
+	 * asynchronous).
 	 * 
+	 * @param parent
+	 *            a container we can use to show error messages if any
 	 * @param url
 	 *            the {@link Story} to import by {@link URL}
+	 * @param pg
+	 *            the optional progress reporter
 	 * @param onSuccess
 	 *            Action to execute on success
-	 * @param onSuccessPgName
-	 *            the name to use for the onSuccess progress bar
 	 */
 	static public void imprt(final Container parent, final String url,
-			final Runnable onSuccess, String onSuccessPgName) {
-		final Progress pg = new Progress();
-		final Progress pgImprt = new Progress();
-		final Progress pgOnSuccess = new Progress(onSuccessPgName);
-		pg.addProgress(pgImprt, 95);
-		pg.addProgress(pgOnSuccess, 5);
-
+			final Progress pg, final Runnable onSuccess) {
+		final Progress fpg = pg;
 		new SwingWorker<Void, Void>() {
 			@Override
 			protected Void doInBackground() throws Exception {
-				Exception ex = null;
-				MetaData meta = null;
+				Progress pg = fpg;
+				if (pg == null)
+					pg = new Progress();
+
 				try {
-					meta = Instance.getInstance().getLibrary()
-							.imprt(BasicReader.getUrl(url), pgImprt);
+					Instance.getInstance().getLibrary()
+							.imprt(BasicReader.getUrl(url), fpg);
+
+					fpg.done();
+					if (onSuccess != null) {
+						onSuccess.run();
+					}
 				} catch (IOException e) {
-					e.printStackTrace();
-					ex = e;
-				}
-
-				final Exception e = ex;
-
-				final boolean ok = (e == null);
-
-				pgOnSuccess.setProgress(0);
-				if (!ok) {
+					fpg.done();
 					if (e instanceof UnknownHostException) {
 						UiHelper.error(parent,
 								Instance.getInstance().getTransGui().getString(
@@ -284,12 +231,7 @@ public class Actions {
 										.getString(StringIdGui.TITLE_ERROR),
 								e);
 					}
-				} else {
-					if (onSuccess != null) {
-						onSuccess.run();
-					}
 				}
-				pgOnSuccess.done();
 
 				return null;
 			}

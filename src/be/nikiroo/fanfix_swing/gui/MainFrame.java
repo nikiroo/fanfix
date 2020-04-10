@@ -12,7 +12,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JSplitPane;
 
-import be.nikiroo.fanfix_swing.Actions;
 import be.nikiroo.utils.Version;
 
 public class MainFrame extends JFrame {
@@ -95,7 +94,8 @@ public class MainFrame extends JFrame {
 		item1.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Actions.imprt(MainFrame.this, true, new Runnable() {
+				// TODO: correctly use the importer (wip)
+				new ImporterFrame().imprtUrl(MainFrame.this, new Runnable() {
 					@Override
 					public void run() {
 						browser.reloadData();
@@ -112,7 +112,8 @@ public class MainFrame extends JFrame {
 		item2.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Actions.imprt(MainFrame.this, false, new Runnable() {
+				// TODO: correctly use the importer (wip)
+				new ImporterFrame().imprtFile(MainFrame.this, new Runnable() {
 					@Override
 					public void run() {
 						browser.reloadData();
