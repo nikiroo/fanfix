@@ -1,6 +1,7 @@
 package be.nikiroo.fanfix_swing.gui.browser;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -37,6 +38,8 @@ public class TagsTab extends BasicTab<List<String>> {
 					}
 				}
 			}
+
+			sort(data);
 		} catch (Exception e) {
 			// TODO
 			e.printStackTrace();

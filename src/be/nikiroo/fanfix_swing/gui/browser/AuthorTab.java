@@ -27,6 +27,8 @@ public class AuthorTab extends BasicTab<List<String>> {
 			for (String author : authors) {
 				data.add(author);
 			}
+
+			sort(data);
 		} catch (Exception e) {
 			// TODO
 			e.printStackTrace();

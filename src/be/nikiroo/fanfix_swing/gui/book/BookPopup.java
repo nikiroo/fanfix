@@ -473,6 +473,12 @@ public class BookPopup extends JPopupMenu {
 								// enough, we need to clear the whole cache (for
 								// BrowserPanel for instance)
 								informer.invalidateCache();
+								
+								// But we ALSO fire those, because they appear
+								// before the whole refresh...
+								for (BookInfo book : selected) {
+									informer.fireElementChanged(book);
+								}
 
 								// TODO: also refresh the
 								// Sources/Authors(/Tags?) list

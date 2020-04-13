@@ -5,6 +5,9 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -209,6 +212,15 @@ public abstract class BasicTab<T> extends ListenerPanel {
 
 	protected abstract int loadData(DefaultMutableTreeNode root, T data,
 			String filter);
+
+	protected void sort(List<String> values) {
+		Collections.sort(values, new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				return ("" + o1).compareToIgnoreCase("" + o2);
+			}
+		});
+	}
 
 	private TreeCellRenderer generateCellRenderer() {
 		DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer() {

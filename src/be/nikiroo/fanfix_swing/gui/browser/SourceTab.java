@@ -1,5 +1,9 @@
 package be.nikiroo.fanfix_swing.gui.browser;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +71,9 @@ public class SourceTab extends BasicTab<Map<String, List<String>>> {
 	protected int loadData(DefaultMutableTreeNode root,
 			Map<String, List<String>> sourcesGrouped, String filter) {
 		int count = 0;
-		for (String source : sourcesGrouped.keySet()) {
+		List<String> sources = new ArrayList<String>(sourcesGrouped.keySet());
+		sort(sources);
+		for (String source : sources) {
 			if (checkFilter(filter, source)
 					|| checkFilter(filter, sourcesGrouped.get(source))) {
 				List<String> children = sourcesGrouped.get(source);
@@ -77,6 +83,7 @@ public class SourceTab extends BasicTab<Map<String, List<String>>> {
 				DefaultMutableTreeNode sourceNode = new DefaultMutableTreeNode(
 						">" + source + (hasChildren ? "/" : ""));
 				root.add(sourceNode);
+				sort(children);
 				for (String subSource : children) {
 					if (checkFilter(filter, source)
 							|| checkFilter(filter, subSource)) {
