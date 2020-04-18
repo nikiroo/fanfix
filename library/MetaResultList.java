@@ -3,6 +3,7 @@ package be.nikiroo.fanfix.library;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import be.nikiroo.fanfix.data.MetaData;
@@ -39,8 +40,9 @@ public class MetaResultList {
 				if (!sources.contains(meta.getSource()))
 					sources.add(meta.getSource());
 			}
+			sort(sources);
 		}
-
+		
 		return sources;
 	}
 
@@ -60,6 +62,7 @@ public class MetaResultList {
 			}
 		}
 
+		sort(linked);
 		return linked;
 	}
 
@@ -70,8 +73,9 @@ public class MetaResultList {
 				if (!authors.contains(meta.getAuthor()))
 					authors.add(meta.getAuthor());
 			}
+			sort(authors);
 		}
-
+		
 		return authors;
 	}
 
@@ -84,9 +88,10 @@ public class MetaResultList {
 						tags.add(tag);
 				}
 			}
+			sort(tags);
 		}
-
-		return authors;
+		
+		return tags;
 	}
 
 	// helper
@@ -99,10 +104,12 @@ public class MetaResultList {
 	}
 
 	// null or empty -> no check, rest = must be included
-	// source: a source ending in "/" means "this or any source starting with this",
+	// source: a source ending in "/" means "this or any source starting with
+	// this",
 	// i;e., to enable source hierarchy
 	// + sorted
-	public List<MetaData> filter(List<String> sources, List<String> authors, List<String> tags) {
+	public List<MetaData> filter(List<String> sources, List<String> authors,
+			List<String> tags) {
 		if (sources != null && sources.isEmpty())
 			sources = null;
 		if (authors != null && authors.isEmpty())
@@ -164,5 +171,20 @@ public class MetaResultList {
 
 		Collections.sort(result);
 		return result;
+	}
+	
+	/**
+	 * Sort the given {@link String} values, ignoring case.
+	 * 
+	 * @param values
+	 *            the values to sort
+	 */
+	private void sort(List<String> values) {
+		Collections.sort(values, new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				return ("" + o1).compareToIgnoreCase("" + o2);
+			}
+		});
 	}
 }
