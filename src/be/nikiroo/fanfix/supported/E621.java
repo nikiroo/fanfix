@@ -106,7 +106,11 @@ class E621 extends BasicSupport {
 		} else if (isSearchOrSet(getSource())) {
 			String baseUrl = "https://e621.net/posts/?page=";
 			String search = "&tags=" + getTagsFromUrl(getSource());
-			return getChapters(getSource(), pg, baseUrl, search);
+			// sets are sorted in reverse order on the website
+			List<Entry<String, URL>> urls = getChapters(getSource(), pg,
+					baseUrl, search);
+			Collections.reverse(urls);
+			return urls;
 		}
 
 		return new LinkedList<Entry<String, URL>>();
@@ -137,8 +141,6 @@ class E621 extends BasicSupport {
 			}
 		}
 
-		// They are sorted in reverse order on the website
-		Collections.reverse(urls);
 		return urls;
 	}
 
