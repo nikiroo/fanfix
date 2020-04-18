@@ -14,7 +14,6 @@ import java.util.Map;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.bundles.ConfigBundle;
-import be.nikiroo.fanfix.bundles.UiConfigBundle;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.output.BasicOutput;
@@ -33,6 +32,7 @@ import be.nikiroo.utils.StringUtils;
  */
 public class LocalLibrary extends BasicLibrary {
 	private int lastId;
+	private Object lock = new Object();
 	private Map<MetaData, File[]> stories; // Files: [ infoFile, TargetFile ]
 	private Map<String, Image> sourceCovers;
 	private Map<String, Image> authorCovers;
@@ -44,14 +44,17 @@ public class LocalLibrary extends BasicLibrary {
 	/**
 	 * Create a new {@link LocalLibrary} with the given back-end directory.
 	 * 
-	 * @param baseDir the directory where to find the {@link Story} objects
-	 * @param config  the configuration used to know which kind of default
-	 *                {@link OutputType} to use for images and non-images stories
+	 * @param baseDir
+	 *            the directory where to find the {@link Story} objects
+	 * @param config
+	 *            the configuration used to know which kind of default
+	 *            {@link OutputType} to use for images and non-images stories
 	 */
 	public LocalLibrary(File baseDir, ConfigBundle config) {
 		this(baseDir, //
 				config.getString(Config.FILE_FORMAT_NON_IMAGES_DOCUMENT_TYPE),
-				config.getString(Config.FILE_FORMAT_IMAGES_DOCUMENT_TYPE), false);
+				config.getString(Config.FILE_FORMAT_IMAGES_DOCUMENT_TYPE),
+				false);
 	}
 
 	/**
@@ -69,8 +72,9 @@ public class LocalLibrary extends BasicLibrary {
 	 */
 	public LocalLibrary(File baseDir, String text, String image,
 			boolean defaultIsHtml) {
-		this(baseDir, OutputType.valueOfAllOkUC(text,
-				defaultIsHtml ? OutputType.HTML : OutputType.INFO_TEXT),
+		this(baseDir,
+				OutputType.valueOfAllOkUC(text,
+						defaultIsHtml ? OutputType.HTML : OutputType.INFO_TEXT),
 				OutputType.valueOfAllOkUC(image,
 						defaultIsHtml ? OutputType.HTML : OutputType.CBZ));
 	}
@@ -98,26 +102,30 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected synchronized List<MetaData> getMetas(Progress pg) {
+	protected List<MetaData> getMetas(Progress pg) {
 		return new ArrayList<MetaData>(getStories(pg).keySet());
 	}
 
 	@Override
 	public File getFile(String luid, Progress pg) throws IOException {
-		Instance.getInstance().getTraceHandler().trace(this.getClass().getSimpleName() + ": get file for " + luid);
+		Instance.getInstance().getTraceHandler().trace(
+				this.getClass().getSimpleName() + ": get file for " + luid);
 
 		File file = null;
 		String mess = "no file found for ";
 
 		MetaData meta = getInfo(luid);
-		File[] files = getStories(pg).get(meta);
-		if (files != null) {
-			mess = "file retrieved for ";
-			file = files[1];
+		if (meta != null) {
+			File[] files = getStories(pg).get(meta);
+			if (files != null) {
+				mess = "file retrieved for ";
+				file = files[1];
+			}
 		}
 
 		Instance.getInstance().getTraceHandler()
-				.trace(this.getClass().getSimpleName() + ": " + mess + luid + " (" + meta.getTitle() + ")");
+				.trace(this.getClass().getSimpleName() + ": " + mess + luid
+						+ " (" + meta.getTitle() + ")");
 
 		return file;
 	}
@@ -147,20 +155,25 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected synchronized void updateInfo(MetaData meta) {
+	protected void updateInfo(MetaData meta) {
 		invalidateInfo();
 	}
 
 	@Override
 	protected void invalidateInfo(String luid) {
-		stories = null;
-		sourceCovers = null;
+		synchronized (lock) {
+			stories = null;
+			sourceCovers = null;
+		}
 	}
 
 	@Override
-	protected synchronized int getNextId() {
+	protected int getNextId() {
 		getStories(null); // make sure lastId is set
-		return ++lastId;
+
+		synchronized (lock) {
+			return ++lastId;
+		}
 	}
 
 	@Override
@@ -200,8 +213,8 @@ public class LocalLibrary extends BasicLibrary {
 			// Maybe also adding some rollback cleanup if possible
 			if (relatedFile.getName().endsWith(".info")) {
 				try {
-					String name = relatedFile.getName().replaceFirst(
-							"\\.info$", "");
+					String name = relatedFile.getName().replaceFirst("\\.info$",
+							"");
 					relatedFile.delete();
 					InfoCover.writeInfo(newDir, name, meta);
 					relatedFile.getParentFile().delete();
@@ -218,14 +231,18 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public synchronized Image getCustomSourceCover(String source) {
-		if (sourceCovers == null) {
-			sourceCovers = new HashMap<String, Image>();
+	public Image getCustomSourceCover(String source) {
+		synchronized (lock) {
+			if (sourceCovers == null) {
+				sourceCovers = new HashMap<String, Image>();
+			}
 		}
 
-		Image img = sourceCovers.get(source);
-		if (img != null) {
-			return img;
+		synchronized (lock) {
+			Image img = sourceCovers.get(source);
+			if (img != null) {
+				return img;
+			}
 		}
 
 		File coverDir = getExpectedDir(source);
@@ -236,7 +253,9 @@ public class LocalLibrary extends BasicLibrary {
 				try {
 					in = new FileInputStream(cover);
 					try {
-						sourceCovers.put(source, new Image(in));
+						synchronized (lock) {
+							sourceCovers.put(source, new Image(in));
+						}
 					} finally {
 						in.close();
 					}
@@ -244,23 +263,32 @@ public class LocalLibrary extends BasicLibrary {
 					e.printStackTrace();
 				} catch (IOException e) {
 					Instance.getInstance().getTraceHandler()
-							.error(new IOException("Cannot load the existing custom source cover: " + cover, e));
+							.error(new IOException(
+									"Cannot load the existing custom source cover: "
+											+ cover,
+									e));
 				}
 			}
 		}
 
-		return sourceCovers.get(source);
+		synchronized (lock) {
+			return sourceCovers.get(source);
+		}
 	}
 
 	@Override
-	public synchronized Image getCustomAuthorCover(String author) {
-		if (authorCovers == null) {
-			authorCovers = new HashMap<String, Image>();
+	public Image getCustomAuthorCover(String author) {
+		synchronized (lock) {
+			if (authorCovers == null) {
+				authorCovers = new HashMap<String, Image>();
+			}
 		}
 
-		Image img = authorCovers.get(author);
-		if (img != null) {
-			return img;
+		synchronized (lock) {
+			Image img = authorCovers.get(author);
+			if (img != null) {
+				return img;
+			}
 		}
 
 		File cover = getAuthorCoverFile(author);
@@ -269,7 +297,9 @@ public class LocalLibrary extends BasicLibrary {
 			try {
 				in = new FileInputStream(cover);
 				try {
-					authorCovers.put(author, new Image(in));
+					synchronized (lock) {
+						authorCovers.put(author, new Image(in));
+					}
 				} finally {
 					in.close();
 				}
@@ -277,11 +307,16 @@ public class LocalLibrary extends BasicLibrary {
 				e.printStackTrace();
 			} catch (IOException e) {
 				Instance.getInstance().getTraceHandler()
-						.error(new IOException("Cannot load the existing custom author cover: " + cover, e));
+						.error(new IOException(
+								"Cannot load the existing custom author cover: "
+										+ cover,
+								e));
 			}
 		}
 
-		return authorCovers.get(author);
+		synchronized (lock) {
+			return authorCovers.get(author);
+		}
 	}
 
 	@Override
@@ -302,14 +337,17 @@ public class LocalLibrary extends BasicLibrary {
 	 * @param coverImage
 	 *            the cover image
 	 */
-	synchronized void setSourceCover(String source, Image coverImage) {
+	void setSourceCover(String source, Image coverImage) {
 		File dir = getExpectedDir(source);
 		dir.mkdirs();
 		File cover = new File(dir, ".cover");
 		try {
-			Instance.getInstance().getCache().saveAsImage(coverImage, cover, true);
-			if (sourceCovers != null) {
-				sourceCovers.put(source, coverImage);
+			Instance.getInstance().getCache().saveAsImage(coverImage, cover,
+					true);
+			synchronized (lock) {
+				if (sourceCovers != null) {
+					sourceCovers.put(source, coverImage);
+				}
 			}
 		} catch (IOException e) {
 			Instance.getInstance().getTraceHandler().error(e);
@@ -324,13 +362,16 @@ public class LocalLibrary extends BasicLibrary {
 	 * @param coverImage
 	 *            the cover image
 	 */
-	synchronized void setAuthorCover(String author, Image coverImage) {
+	void setAuthorCover(String author, Image coverImage) {
 		File cover = getAuthorCoverFile(author);
 		cover.getParentFile().mkdirs();
 		try {
-			Instance.getInstance().getCache().saveAsImage(coverImage, cover, true);
-			if (authorCovers != null) {
-				authorCovers.put(author, coverImage);
+			Instance.getInstance().getCache().saveAsImage(coverImage, cover,
+					true);
+			synchronized (lock) {
+				if (authorCovers != null) {
+					authorCovers.put(author, coverImage);
+				}
 			}
 		} catch (IOException e) {
 			Instance.getInstance().getTraceHandler().error(e);
@@ -465,8 +506,8 @@ public class LocalLibrary extends BasicLibrary {
 		if (title.length() > 40) {
 			title = title.substring(0, 40);
 		}
-		return new File(getExpectedDir(key.getSource()), key.getLuid() + "_"
-				+ title);
+		return new File(getExpectedDir(key.getSource()),
+				key.getLuid() + "_" + title);
 	}
 
 	/**
@@ -513,7 +554,8 @@ public class LocalLibrary extends BasicLibrary {
 	private File getAuthorCoverFile(String author) {
 		File aDir = new File(baseDir, "_AUTHORS");
 		String hash = StringUtils.getMd5Hash(author);
-		String ext = Instance.getInstance().getConfig().getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER);
+		String ext = Instance.getInstance().getConfig()
+				.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER);
 		return new File(aDir, hash + "." + ext.toLowerCase());
 	}
 
@@ -558,13 +600,13 @@ public class LocalLibrary extends BasicLibrary {
 			}
 		}
 
-		String coverExt = "."
-				+ Instance.getInstance().getConfig().getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER).toLowerCase();
+		String coverExt = "." + Instance.getInstance().getConfig()
+				.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER).toLowerCase();
 		File coverFile = new File(path + coverExt);
 		if (!coverFile.exists()) {
-			coverFile = new File(path.substring(0,
-					path.length() - fileExt.length())
-					+ coverExt);
+			coverFile = new File(
+					path.substring(0, path.length() - fileExt.length())
+							+ coverExt);
 		}
 
 		if (coverFile.exists()) {
@@ -587,48 +629,76 @@ public class LocalLibrary extends BasicLibrary {
 	 * @return the list of stories (for each item, the first {@link File} is the
 	 *         info file, the second file is the target {@link File})
 	 */
-	private synchronized Map<MetaData, File[]> getStories(Progress pg) {
+	private Map<MetaData, File[]> getStories(Progress pg) {
 		if (pg == null) {
 			pg = new Progress();
 		} else {
 			pg.setMinMax(0, 100);
 		}
 
-		if (stories == null) {
-			stories = new HashMap<MetaData, File[]>();
-
-			lastId = 0;
-
-			File[] dirs = baseDir.listFiles(new FileFilter() {
-				@Override
-				public boolean accept(File file) {
-					return file != null && file.isDirectory();
-				}
-			});
-
-			if (dirs != null) {
-				Progress pgDirs = new Progress(0, 100 * dirs.length);
-				pg.addProgress(pgDirs, 100);
-
-				for (File dir : dirs) {
-					Progress pgFiles = new Progress();
-					pgDirs.addProgress(pgFiles, 100);
-					pgDirs.setName("Loading from: " + dir.getName());
-
-					addToStories(pgFiles, dir);
-
-					pgFiles.setName(null);
-				}
-
-				pgDirs.setName("Loading directories");
+		Map<MetaData, File[]> stories = this.stories;
+		synchronized (lock) {
+			if (stories == null) {
+				stories = getStoriesDo(pg);
+				this.stories = stories;
 			}
 		}
 
 		pg.done();
 		return stories;
+
 	}
 
-	private void addToStories(Progress pgFiles, File dir) {
+	/**
+	 * Actually do the work of {@link LocalLibrary#getStories(Progress)} (i.e.,
+	 * do not retrieve the cache).
+	 * 
+	 * @param pg
+	 *            the optional {@link Progress}
+	 * 
+	 * @return the list of stories (for each item, the first {@link File} is the
+	 *         info file, the second file is the target {@link File})
+	 */
+	private synchronized Map<MetaData, File[]> getStoriesDo(Progress pg) {
+		if (pg == null) {
+			pg = new Progress();
+		} else {
+			pg.setMinMax(0, 100);
+		}
+
+		Map<MetaData, File[]> stories = new HashMap<MetaData, File[]>();
+
+		File[] dirs = baseDir.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File file) {
+				return file != null && file.isDirectory();
+			}
+		});
+
+		if (dirs != null) {
+			Progress pgDirs = new Progress(0, 100 * dirs.length);
+			pg.addProgress(pgDirs, 100);
+
+			for (File dir : dirs) {
+				Progress pgFiles = new Progress();
+				pgDirs.addProgress(pgFiles, 100);
+				pgDirs.setName("Loading from: " + dir.getName());
+
+				addToStories(stories, pgFiles, dir);
+
+				pgFiles.setName(null);
+			}
+
+			pgDirs.setName("Loading directories");
+		}
+
+		pg.done();
+
+		return stories;
+	}
+
+	private void addToStories(Map<MetaData, File[]> stories, Progress pgFiles,
+			File dir) {
 		File[] infoFilesAndSubdirs = dir.listFiles(new FileFilter() {
 			@Override
 			public boolean accept(File file) {
@@ -650,11 +720,11 @@ public class LocalLibrary extends BasicLibrary {
 			}
 
 			if (infoFileOrSubdir.isDirectory()) {
-				addToStories(null, infoFileOrSubdir);
+				addToStories(stories, null, infoFileOrSubdir);
 			} else {
 				try {
-					MetaData meta = InfoReader
-							.readMeta(infoFileOrSubdir, false);
+					MetaData meta = InfoReader.readMeta(infoFileOrSubdir,
+							false);
 					try {
 						int id = Integer.parseInt(meta.getLuid());
 						if (id > lastId) {
@@ -671,8 +741,9 @@ public class LocalLibrary extends BasicLibrary {
 				} catch (IOException e) {
 					// We should not have not-supported files in the
 					// library
-					Instance.getInstance().getTraceHandler()
-							.error(new IOException("Cannot load file from library: " + infoFileOrSubdir, e));
+					Instance.getInstance().getTraceHandler().error(
+							new IOException("Cannot load file from library: "
+									+ infoFileOrSubdir, e));
 				}
 			}
 

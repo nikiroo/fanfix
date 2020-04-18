@@ -426,7 +426,7 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public synchronized File getFile(final String luid, Progress pg) {
+	public File getFile(final String luid, Progress pg) {
 		throw new java.lang.InternalError(
 				"Operation not supportorted on remote Libraries");
 	}
@@ -449,7 +449,7 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public synchronized MetaData getInfo(String luid) throws IOException {
+	public MetaData getInfo(String luid) throws IOException {
 		List<MetaData> metas = getMetasList(luid, null);
 		if (!metas.isEmpty()) {
 			return metas.get(0);
@@ -459,7 +459,7 @@ public class RemoteLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected synchronized List<MetaData> getMetas(Progress pg) throws IOException {
+	protected List<MetaData> getMetas(Progress pg) throws IOException {
 		return getMetasList("*", pg);
 	}
 
