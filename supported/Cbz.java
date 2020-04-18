@@ -63,6 +63,8 @@ class Cbz extends Epub {
 		} else {
 			pg.setMinMax(0, 100);
 		}
+		
+		pg.setName("Initialising");
 
 		Progress pgMeta = new Progress();
 		pg.addProgress(pgMeta, 10);
@@ -70,6 +72,8 @@ class Cbz extends Epub {
 		MetaData meta = story.getMeta();
 
 		pgMeta.done(); // 10%
+		
+		pg.setName(meta.getTitle());
 
 		File tmpDir = Instance.getInstance().getTempFiles().createTempDir("info-text");
 		String basename = null;
@@ -193,7 +197,9 @@ class Cbz extends Epub {
 			}
 		}
 
-		pg.setProgress(100);
+		pg.setName(meta.getTitle());
+		pg.done();
+		
 		return story;
 	}
 
