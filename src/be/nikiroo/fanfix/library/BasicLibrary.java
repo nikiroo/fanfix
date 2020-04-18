@@ -755,6 +755,7 @@ abstract public class BasicLibrary {
 		}
 
 		Story story = save(support.process(pgProcess), pgSave);
+		pg.setName(story.getMeta().getTitle());
 		pg.done();
 
 		return story.getMeta();
@@ -872,13 +873,18 @@ abstract public class BasicLibrary {
 	 */
 	public synchronized Story save(Story story, String luid, Progress pg)
 			throws IOException {
-
+		if (pg == null) {
+			pg = new Progress();
+		}
+		
 		Instance.getInstance().getTraceHandler().trace(this.getClass().getSimpleName() + ": saving story " + luid);
 
 		// Do not change the original metadata, but change the original story
 		MetaData meta = story.getMeta().clone();
 		story.setMeta(meta);
 
+		pg.setName("Saving story");
+		
 		if (luid == null || luid.isEmpty()) {
 			meta.setLuid(String.format("%03d", getNextId()));
 		} else {
@@ -896,6 +902,8 @@ abstract public class BasicLibrary {
 		Instance.getInstance().getTraceHandler()
 				.trace(this.getClass().getSimpleName() + ": story saved (" + luid + ")");
 
+		pg.setName(meta.getTitle());
+		pg.done();
 		return story;
 	}
 

@@ -336,6 +336,8 @@ public abstract class BasicSupport {
 		} else {
 			pg.setMinMax(0, 100);
 		}
+		
+		pg.setName("Initialising");
 
 		pg.setProgress(1);
 		Progress pgMeta = new Progress();
@@ -343,7 +345,7 @@ public abstract class BasicSupport {
 		Story story = processMeta(true, pgMeta);
 		pgMeta.done(); // 10%
 
-		pg.setName("Retrieving " + story.getMeta().getTitle());
+		pg.setName(story.getMeta().getTitle());
 
 		Progress pgGetChapters = new Progress();
 		pg.addProgress(pgGetChapters, 10);
@@ -390,6 +392,7 @@ public abstract class BasicSupport {
 			pgChaps.done();
 		}
 
+		pg.setName(story.getMeta().getTitle());
 		pg.done();
 
 		return story;
