@@ -42,7 +42,7 @@ My current planning for Fanfix (but not everything appears on this list):
     - [x] properties page
     - [x] external launcher
     - [ ] jexer sixels?
-- [_] Move the GUI parts out of fanfix itself (see fanfix-swing)
+- [ ] Move the GUI parts out of fanfix itself (see fanfix-swing)
     - [x] Make new project: fanfix-swing
     - [x] Fix the UI issues we had (UI thread)
     - [x] Make it able to browse already downloaded stories
