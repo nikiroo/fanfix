@@ -5,6 +5,7 @@ My current planning for Fanfix (but not everything appears on this list):
   - [ ] [Two Kinds](http://twokinds.keenspot.com/)
   - [ ] [Slightly damned](http://www.sdamned.com/)
   - [x] New API on FimFiction.net (faster)
+  - [x] Replace MangaFox which is causing issues all the time
   - [ ] Others? Any ideas? I'm open for requests
     - [x] [e-Hentai](https://e-hentai.org/) requested
     - [x] Find some FR comics/manga websites
@@ -41,6 +42,16 @@ My current planning for Fanfix (but not everything appears on this list):
     - [x] properties page
     - [x] external launcher
     - [ ] jexer sixels?
+- [_] Move the GUI parts out of fanfix itself (see fanfix-swing)
+    - [x] Make new project: fanfix-swing
+    - [x] Fix the UI issues we had (UI thread)
+    - [x] Make it able to browse already downloaded stories
+    - [x] Make it able to download stories
+    - [ ] See what config options to use
+    - [ ] Import all previous menus end functions
+    - [ ] Feature parity with original GUI
+- [ ] Move the TUI parts out of fanfix itself
+    - [ ] Make new project
 - [x] Network support
   - [x] A server that can send the stories
   - [x] A network implementation of the Library

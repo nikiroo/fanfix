@@ -29,7 +29,7 @@ Fanfix is a small Java program that can download stories from some supported web
 
 ![Main GUI](screenshots/fanfix-1.3.2.png?raw=true "Main GUI")
 
-A screenshots cgallery an be found [here](screenshots/README.md).
+A screenshots gallery can be found [here](screenshots/README.md).
 
 It will convert from a (supported) URL to an .epub file for stories or a .cbz file for comics (a few other output types are also available, like Plain Text, LaTeX, HTML...).
 
