@@ -1,5 +1,11 @@
 # Fanfix
 
+# Version 3.1.1
+
+- e621: fix chapters in reverse order for pools
+- fix: sort the stories by title and not by date
+- fix: expose the story name on progress bars
+
 # Version 3.1.0
 
 - MangaHub: a manga website (English)

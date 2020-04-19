@@ -1,5 +1,11 @@
 # Fanfix
 
+# Version 3.1.1
+
+-e621: correction pour les chapitres des pools dans l'ordre inverse
+- fix: trie les histores par nom et plus par date
+- fix: affiche le nom de l'histoire dans les barres de progrès
+
 # Version 3.1.0
 
 - MangaHub: un nouvau site de manga (English)
