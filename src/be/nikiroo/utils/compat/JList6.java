@@ -27,7 +27,7 @@ public class JList6<E> extends JList {
 	 *             instead
 	 */
 	public void setCellRenderer(ListCellRenderer cellRenderer) {
-		setCellRenderer((ListCellRenderer6<E>) cellRenderer);
+		super.setCellRenderer(cellRenderer);
 	}
 
 	/**
@@ -59,7 +59,7 @@ public class JList6<E> extends JList {
 	@Override
 	@Deprecated
 	public void setModel(ListModel model) {
-		setModel((ListModel6<E>) model);
+		super.setModel(model);
 	}
 
 	/**
