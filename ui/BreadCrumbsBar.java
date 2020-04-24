@@ -13,7 +13,6 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JToggleButton;
@@ -23,24 +22,27 @@ import javax.swing.event.PopupMenuListener;
 
 public class BreadCrumbsBar<T> extends ListenerPanel {
 	private class BreadCrumb extends JPanel {
-		private JButton button;
+		private JToggleButton button;
 		private JToggleButton down;
 
 		public BreadCrumb(final DataNode<T> node) {
 			this.setLayout(new BorderLayout());
 
-			button = new JButton(node.toString());
 			if (!node.isRoot()) {
-				// TODO: allow clicking on root? option?
+				button = new JToggleButton(node.toString());
 				button.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						setSelectedNode(node);
+						button.setSelected(false);
+						if (!node.isRoot()) {
+							// TODO: allow clicking on root? option?
+							setSelectedNode(node);
+						}
 					}
 				});
+				
+				this.add(button, BorderLayout.CENTER);
 			}
-
-			this.add(button, BorderLayout.CENTER);
 
 			if (!node.getChildren().isEmpty()) {
 				// TODO (see things with icons included in viewer)
@@ -49,7 +51,6 @@ public class BreadCrumbsBar<T> extends ListenerPanel {
 
 				for (final DataNode<T> child : node.getChildren()) {
 					popup.add(new AbstractAction(child.toString()) {
-
 						private static final long serialVersionUID = 1L;
 
 						@Override
@@ -60,7 +61,6 @@ public class BreadCrumbsBar<T> extends ListenerPanel {
 				}
 
 				down.addActionListener(new ActionListener() {
-
 					@Override
 					public void actionPerformed(ActionEvent ev) {
 						if (down.isSelected()) {
