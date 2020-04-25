@@ -60,6 +60,16 @@ public @interface Meta {
 	 * @return what it is
 	 */
 	String description() default "";
+	
+	/**
+	 * This item should be hidden from the user (she will still be able to
+	 * modify it if she opens the file manually).
+	 * <p>
+	 * Defaults to FALSE (visible).
+	 * 
+	 * @return TRUE if it should stay hidden
+	 */
+	boolean hidden() default false;
 
 	/**
 	 * This item is only used as a group, not as an option.
