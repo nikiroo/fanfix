@@ -1,5 +1,9 @@
 # Fanfix
 
+# Version WIP
+
+- e621: fix order again
+
 # Version 3.1.1
 
 - e621: fix chapters in reverse order for pools
