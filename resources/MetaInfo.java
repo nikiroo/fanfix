@@ -27,6 +27,7 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	private List<Runnable> saveListeners = new ArrayList<Runnable>();
 
 	private String name;
+	private boolean hidden;
 	private String description;
 
 	private boolean dirty;
@@ -90,6 +91,7 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 		}
 
 		this.name = name;
+		this.hidden = meta.hidden();
 		this.description = description;
 
 		reload();
@@ -109,6 +111,16 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 	 */
 	public String getName() {
 		return name;
+	}
+	
+	/**
+	 * This item should be hidden from the user (she will still be able to
+	 * modify it if she opens the file manually).
+	 * 
+	 * @return TRUE if it should stay hidden
+	 */
+	public boolean isHidden() {
+		return hidden;
 	}
 
 	/**
@@ -682,8 +694,10 @@ public class MetaInfo<E extends Enum<E>> implements Iterable<MetaInfo<E>> {
 		List<MetaInfo<E>> shadow = new ArrayList<MetaInfo<E>>();
 		for (E id : type.getEnumConstants()) {
 			MetaInfo<E> info = new MetaInfo<E>(type, bundle, id);
-			list.add(info);
-			shadow.add(info);
+			if (!info.hidden) {
+				list.add(info);
+				shadow.add(info);
+			}
 		}
 
 		for (int i = 0; i < list.size(); i++) {
