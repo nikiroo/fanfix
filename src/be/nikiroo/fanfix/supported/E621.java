@@ -17,6 +17,7 @@ import java.util.Map.Entry;
 import org.jsoup.helper.DataUtil;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
@@ -100,20 +101,25 @@ class E621 extends BasicSupport {
 
 	@Override
 	protected List<Entry<String, URL>> getChapters(Progress pg) throws IOException {
+		List<Entry<String, URL>> chapters = new LinkedList<Entry<String, URL>>();
+		
 		if (isPool(getSource())) {
 			String baseUrl = "https://e621.net/" + getSource().getPath() + "?page=";
-			return getChapters(getSource(), pg, baseUrl, "");
+			chapters = getChapters(getSource(), pg, baseUrl, "");
 		} else if (isSearchOrSet(getSource())) {
 			String baseUrl = "https://e621.net/posts/?page=";
 			String search = "&tags=" + getTagsFromUrl(getSource());
-			// sets are sorted in reverse order on the website
-			List<Entry<String, URL>> urls = getChapters(getSource(), pg,
+
+			chapters = getChapters(getSource(), pg,
 					baseUrl, search);
-			Collections.reverse(urls);
-			return urls;
 		}
 
-		return new LinkedList<Entry<String, URL>>();
+		// sets and some pools are sorted in reverse order on the website
+		if (getSource().getPath().startsWith("/posts")) {
+			Collections.reverse(chapters);	
+		}
+		
+		return chapters;
 	}
 
 	private List<Entry<String, URL>> getChapters(URL source, Progress pg, String baseUrl, String parameters)
@@ -148,7 +154,15 @@ class E621 extends BasicSupport {
 	protected String getChapterContent(URL chapUrl, int number, Progress pg) throws IOException {
 		StringBuilder builder = new StringBuilder();
 		Document chapterNode = loadDocument(chapUrl);
-		for (Element el : chapterNode.getElementsByTag("article")) {
+		
+		Elements articles = chapterNode.getElementsByTag("article");
+		
+		// sets and some pools are sorted in reverse order on the website
+		if (getSource().getPath().startsWith("/posts")) {
+			Collections.reverse(articles);	
+		}
+		
+		for (Element el : articles) {
 			builder.append("[");
 			builder.append(el.attr("data-file-url"));
 			builder.append("]<br/>");
