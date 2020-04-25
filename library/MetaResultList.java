@@ -1,14 +1,21 @@
 package be.nikiroo.fanfix.library;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.utils.StringUtils;
 
 public class MetaResultList {
+	/** Max number of items before splitting in [A-B] etc. for eligible items */
+	static private final int MAX = 20;
+
 	private List<MetaData> metas;
 
 	// Lazy lists:
@@ -42,7 +49,7 @@ public class MetaResultList {
 			}
 			sort(sources);
 		}
-		
+
 		return sources;
 	}
 
@@ -66,6 +73,50 @@ public class MetaResultList {
 		return linked;
 	}
 
+	/**
+	 * List all the known types (sources) of stories, grouped by directory
+	 * ("Source_1/a" and "Source_1/b" will be grouped into "Source_1").
+	 * <p>
+	 * Note that an empty item in the list means a non-grouped source (type) --
+	 * e.g., you could have for Source_1:
+	 * <ul>
+	 * <li><tt></tt>: empty, so source is "Source_1"</li>
+	 * <li><tt>a</tt>: empty, so source is "Source_1/a"</li>
+	 * <li><tt>b</tt>: empty, so source is "Source_1/b"</li>
+	 * </ul>
+	 * 
+	 * @return the grouped list
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
+	 */
+	public Map<String, List<String>> getSourcesGrouped() throws IOException {
+		Map<String, List<String>> map = new TreeMap<String, List<String>>();
+		for (String source : getSources()) {
+			String name;
+			String subname;
+
+			int pos = source.indexOf('/');
+			if (pos > 0 && pos < source.length() - 1) {
+				name = source.substring(0, pos);
+				subname = source.substring(pos + 1);
+
+			} else {
+				name = source;
+				subname = "";
+			}
+
+			List<String> list = map.get(name);
+			if (list == null) {
+				list = new ArrayList<String>();
+				map.put(name, list);
+			}
+			list.add(subname);
+		}
+
+		return map;
+	}
+
 	public List<String> getAuthors() {
 		if (authors == null) {
 			authors = new ArrayList<String>();
@@ -75,8 +126,34 @@ public class MetaResultList {
 			}
 			sort(authors);
 		}
-		
+
 		return authors;
+	}
+
+	/**
+	 * Return the list of authors, grouped by starting letter(s) if needed.
+	 * <p>
+	 * If the number of authors is not too high, only one group with an empty
+	 * name and all the authors will be returned.
+	 * <p>
+	 * If not, the authors will be separated into groups:
+	 * <ul>
+	 * <li><tt>*</tt>: any author whose name doesn't contain letters nor numbers
+	 * </li>
+	 * <li><tt>0-9</tt>: any author whose name starts with a number</li>
+	 * <li><tt>A-C</tt> (for instance): any author whose name starts with
+	 * <tt>A</tt>, <tt>B</tt> or <tt>C</tt></li>
+	 * </ul>
+	 * Note that the letters used in the groups can vary (except <tt>*</tt> and
+	 * <tt>0-9</tt>, which may only be present or not).
+	 * 
+	 * @return the authors' names, grouped by letter(s)
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
+	 */
+	public Map<String, List<String>> getAuthorsGrouped() throws IOException {
+		return group(getAuthors());
 	}
 
 	public List<String> getTags() {
@@ -90,8 +167,34 @@ public class MetaResultList {
 			}
 			sort(tags);
 		}
-		
+
 		return tags;
+	}
+
+	/**
+	 * Return the list of tags, grouped by starting letter(s) if needed.
+	 * <p>
+	 * If the number of tags is not too high, only one group with an empty name
+	 * and all the tags will be returned.
+	 * <p>
+	 * If not, the tags will be separated into groups:
+	 * <ul>
+	 * <li><tt>*</tt>: any tag which name doesn't contain letters nor numbers
+	 * </li>
+	 * <li><tt>0-9</tt>: any tag which name starts with a number</li>
+	 * <li><tt>A-C</tt> (for instance): any tag which name starts with
+	 * <tt>A</tt>, <tt>B</tt> or <tt>C</tt></li>
+	 * </ul>
+	 * Note that the letters used in the groups can vary (except <tt>*</tt> and
+	 * <tt>0-9</tt>, which may only be present or not).
+	 * 
+	 * @return the tags' names, grouped by letter(s)
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
+	 */
+	public Map<String, List<String>> getTagsGrouped() throws IOException {
+		return group(getTags());
 	}
 
 	// helper
@@ -172,7 +275,133 @@ public class MetaResultList {
 		Collections.sort(result);
 		return result;
 	}
-	
+
+	/**
+	 * Return the list of values, grouped by starting letter(s) if needed.
+	 * <p>
+	 * If the number of values is not too high, only one group with an empty
+	 * name and all the values will be returned (see
+	 * {@link MetaResultList#MAX}).
+	 * <p>
+	 * If not, the values will be separated into groups:
+	 * <ul>
+	 * <li><tt>*</tt>: any value which name doesn't contain letters nor numbers
+	 * </li>
+	 * <li><tt>0-9</tt>: any value which name starts with a number</li>
+	 * <li><tt>A-C</tt> (for instance): any value which name starts with
+	 * <tt>A</tt>, <tt>B</tt> or <tt>C</tt></li>
+	 * </ul>
+	 * Note that the letters used in the groups can vary (except <tt>*</tt> and
+	 * <tt>0-9</tt>, which may only be present or not).
+	 * 
+	 * @param values
+	 *            the values to group
+	 * 
+	 * @return the values, grouped by letter(s)
+	 * 
+	 * @throws IOException
+	 *             in case of IOException
+	 */
+	private Map<String, List<String>> group(List<String> values)
+			throws IOException {
+		Map<String, List<String>> groups = new TreeMap<String, List<String>>();
+
+		// If all authors fit the max, just report them as is
+		if (values.size() <= MAX) {
+			groups.put("", values);
+			return groups;
+		}
+
+		// Create groups A to Z, which can be empty here
+		for (char car = 'A'; car <= 'Z'; car++) {
+			groups.put(Character.toString(car), find(values, car));
+		}
+
+		// Collapse them
+		List<String> keys = new ArrayList<String>(groups.keySet());
+		for (int i = 0; i + 1 < keys.size(); i++) {
+			String keyNow = keys.get(i);
+			String keyNext = keys.get(i + 1);
+
+			List<String> now = groups.get(keyNow);
+			List<String> next = groups.get(keyNext);
+
+			int currentTotal = now.size() + next.size();
+			if (currentTotal <= MAX) {
+				String key = keyNow.charAt(0) + "-"
+						+ keyNext.charAt(keyNext.length() - 1);
+
+				List<String> all = new ArrayList<String>();
+				all.addAll(now);
+				all.addAll(next);
+
+				groups.remove(keyNow);
+				groups.remove(keyNext);
+				groups.put(key, all);
+
+				keys.set(i, key); // set the new key instead of key(i)
+				keys.remove(i + 1); // remove the next, consumed key
+				i--; // restart at key(i)
+			}
+		}
+
+		// Add "special" groups
+		groups.put("*", find(values, '*'));
+		groups.put("0-9", find(values, '0'));
+
+		// Prune empty groups
+		keys = new ArrayList<String>(groups.keySet());
+		for (String key : keys) {
+			if (groups.get(key).isEmpty()) {
+				groups.remove(key);
+			}
+		}
+
+		return groups;
+	}
+
+	/**
+	 * Get all the authors that start with the given character:
+	 * <ul>
+	 * <li><tt>*</tt>: any author whose name doesn't contain letters nor numbers
+	 * </li>
+	 * <li><tt>0</tt>: any authors whose name starts with a number</li>
+	 * <li><tt>A</tt> (any capital latin letter): any author whose name starts
+	 * with <tt>A</tt></li>
+	 * </ul>
+	 * 
+	 * @param values
+	 *            the full list of authors
+	 * @param car
+	 *            the starting character, <tt>*</tt>, <tt>0</tt> or a capital
+	 *            letter
+	 * 
+	 * @return the authors that fulfil the starting letter
+	 */
+	private List<String> find(List<String> values, char car) {
+		List<String> accepted = new ArrayList<String>();
+		for (String value : values) {
+			char first = '*';
+			for (int i = 0; first == '*' && i < value.length(); i++) {
+				String san = StringUtils.sanitize(value, true, true);
+				char c = san.charAt(i);
+				if (c >= '0' && c <= '9') {
+					first = '0';
+				} else if (c >= 'a' && c <= 'z') {
+					first = (char) (c - 'a' + 'A');
+				} else if (c >= 'A' && c <= 'Z') {
+					first = c;
+				}
+			}
+
+			if (first == car) {
+				accepted.add(value);
+			}
+		}
+
+		return accepted;
+	}
+
 	/**
 	 * Sort the given {@link String} values, ignoring case.
 	 * 
