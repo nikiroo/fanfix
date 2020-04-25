@@ -65,24 +65,4 @@ public abstract class DataTree<E> {
 
 		return new DataNode<E>(children, source.getUserData());
 	}
-
-	// TODO: not in this class:
-
-	public void loadInto(DefaultMutableTreeNode root, String filter) {
-		DataNode<E> filtered = getRoot(filter);
-		for (DataNode<E> child : filtered.getChildren()) {
-			root.add(nodeToNode(child));
-		}
-	}
-
-	private MutableTreeNode nodeToNode(DataNode<E> node) {
-		// TODO: node.toString
-		DefaultMutableTreeNode otherNode = new DefaultMutableTreeNode(
-				node.toString());
-		for (DataNode<E> child : node.getChildren()) {
-			otherNode.add(nodeToNode(child));
-		}
-
-		return otherNode;
-	}
 }

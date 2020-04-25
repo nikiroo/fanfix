@@ -78,8 +78,14 @@ public class DataNode<T> {
 		return userData;
 	}
 
-	protected int count() {
-		int s = 0;
+	/**
+	 * The total number of nodes present in this {@link DataNode} (including
+	 * itself and descendants).
+	 * 
+	 * @return the number
+	 */
+	public int count() {
+		int s = 1;
 		for (DataNode<T> child : children) {
 			s += child.count();
 		}
