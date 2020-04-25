@@ -348,14 +348,14 @@ abstract public class BasicLibrary {
 
 	/**
 	 * Check if the {@link Story} denoted by this Library UID is present in the
-	 * cache (if we have no cache, we default to </t>true</tt>).
+	 * cache (if we have no cache, we default to </tt>true</tt>).
 	 * 
 	 * @param luid
 	 *            the Library UID
 	 * 
 	 * @return TRUE if it is
 	 */
-	public boolean isCached(String luid) {
+	public boolean isCached(@SuppressWarnings("unused") String luid) {
 		// By default, everything is cached
 		return true;
 	}
@@ -372,6 +372,7 @@ abstract public class BasicLibrary {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
+	@SuppressWarnings("unused")
 	public void clearFromCache(String luid) throws IOException {
 		// By default, this is a noop.
 	}
@@ -637,7 +638,7 @@ abstract public class BasicLibrary {
 	 * @throws IOException
 	 *             in case of IOException
 	 */
-	public synchronized Story getStory(String luid, Progress pg)
+	public Story getStory(String luid, Progress pg)
 			throws IOException {
 		Progress pgMetas = new Progress();
 		Progress pgStory = new Progress();
