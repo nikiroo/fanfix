@@ -326,7 +326,7 @@ public class CacheLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public void delete(String luid) throws IOException {
+	public synchronized void delete(String luid) throws IOException {
 		if (isCached(luid)) {
 			cacheLib.delete(luid);
 		}
