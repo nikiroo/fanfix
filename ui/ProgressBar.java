@@ -35,6 +35,11 @@ public class ProgressBar extends JPanel {
 		actionListeners = new ArrayList<ActionListener>();
 		updateListeners = new ArrayList<ActionListener>();
 	}
+	
+	public ProgressBar(Progress pg) {
+		this();
+		setProgress(pg);
+	}
 
 	public void setProgress(final Progress pg) {
 		this.pg = pg;
