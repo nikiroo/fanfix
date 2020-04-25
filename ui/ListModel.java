@@ -81,6 +81,7 @@ public class ListModel<T> extends DefaultListModel6<T> {
 	private int hoveredIndex;
 	private List<T> items = new ArrayList<T>();
 	private JList6<T> list;
+	private boolean keepSelection = true;
 
 	/**
 	 * Create a new {@link ListModel}.
@@ -183,6 +184,31 @@ public class ListModel<T> extends DefaultListModel6<T> {
 				}
 			}
 		});
+	}
+
+	/**
+	 * (Try and) keep the elements that were selected when filtering.
+	 * <p>
+	 * This will use toString on the elements to identify them, and can be a bit
+	 * resource intensive.
+	 * 
+	 * @return TRUE if we do
+	 */
+	public boolean isKeepSelection() {
+		return keepSelection;
+	}
+
+	/**
+	 * (Try and) keep the elements that were selected when filtering.
+	 * <p>
+	 * This will use toString on the elements to identify them, and can be a bit
+	 * resource intensive.
+	 * 
+	 * @param keepSelection
+	 *            TRUE to try and keep them selected
+	 */
+	public void setKeepSelection(boolean keepSelection) {
+		this.keepSelection = keepSelection;
 	}
 
 	/**
@@ -289,12 +315,20 @@ public class ListModel<T> extends DefaultListModel6<T> {
 	 */
 	@SuppressWarnings("unchecked") // ListModel<T> and JList<T> are not java 1.6
 	public void filter(Predicate<T> filter) {
+		ListSnapshot snapshot = null;
+
+		if (keepSelection)
+			snapshot = new ListSnapshot(list);
+
 		clear();
 		for (T item : items) {
 			if (filter == null || filter.test(item)) {
 				addElement(item);
 			}
 		}
+
+		if (keepSelection)
+			snapshot.apply();
 
 		list.repaint();
 	}
