@@ -32,6 +32,6 @@ public enum UiConfig {
 	format = Format.STRING)
 	NON_IMAGES_DOCUMENT_READER, //
 	@Meta(description = "The background colour of the library if you don't like the default system one",//
-	format = Format.COLOR)
+	hidden = true, format = Format.COLOR)
 	BACKGROUND_COLOR, //
 }

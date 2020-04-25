@@ -10,11 +10,14 @@ import be.nikiroo.utils.resources.Meta.Format;
  */
 @SuppressWarnings("javadoc")
 public enum Config {
+	
+	// Note: all hidden values are subject to be removed in a later version
+	
 	@Meta(description = "The language to use for in the program (example: en-GB, fr-BE...) or nothing for default system language (can be overwritten with the variable $LANG)",//
 	format = Format.LOCALE, list = { "en-GB", "fr-BE" })
 	LANG, //
 	@Meta(description = "The default reader type to use to read stories:\nCLI = simple output to console\nTUI = a Text User Interface with menus and windows, based upon Jexer\nGUI = a GUI with locally stored files, based upon Swing", //
-	format = Format.FIXED_LIST, list = { "CLI", "GUI", "TUI" }, def = "GUI")
+	hidden = true, format = Format.FIXED_LIST, list = { "CLI", "GUI", "TUI" }, def = "GUI")
 	READER_TYPE, //
 
 	@Meta(description = "File format options",//
@@ -49,7 +52,7 @@ public enum Config {
 	@Meta(description = "The directory where to get the default story covers; any relative path uses the applciation config directory as base, $HOME notation is supported, / is always accepted as directory separator",//
 	format = Format.DIRECTORY, def = "covers/")
 	DEFAULT_COVERS_DIR, //
-	@Meta(description = "The directory where to store the library (can be overriden by the envvironment variable \"BOOKS_DIR\"; any relative path uses the applciation config directory as base, $HOME notation is supported, / is always accepted as directory separator",//
+	@Meta(description = "The directory where to store the library (can be overriden by the environment variable \"BOOKS_DIR\"; any relative path uses the applciation config directory as base, $HOME notation is supported, / is always accepted as directory separator",//
 	format = Format.DIRECTORY, def = "$HOME/Books/")
 	LIBRARY_DIR, //
 
@@ -112,28 +115,28 @@ public enum Config {
 	DEBUG_TRACE, //
 
 	@Meta(description = "Internal configuration\nThose options are internal to the program and should probably not be changed",//
-	group = true)
+	hidden = true, group = true)
 	CONF, //
 	@Meta(description = "LaTeX configuration",//
-	group = true)
+	hidden = true, group = true)
 	CONF_LATEX_LANG, //
 	@Meta(description = "LaTeX output language (full name) for \"English\"",//
-	format = Format.STRING, def = "english")
+	hidden = true, format = Format.STRING, def = "english")
 	CONF_LATEX_LANG_EN, //
 	@Meta(description = "LaTeX output language (full name) for \"French\"",//
-	format = Format.STRING, def = "french")
+	hidden = true, format = Format.STRING, def = "french")
 	CONF_LATEX_LANG_FR, //
 	@Meta(description = "other 'by' prefixes before author name, used to identify the author",//
-	array = true, format = Format.STRING, def = "\"by\",\"par\",\"de\",\"©\",\"(c)\"")
+	hidden = true, array = true, format = Format.STRING, def = "\"by\",\"par\",\"de\",\"©\",\"(c)\"")
 	CONF_BYS, //
 	@Meta(description = "List of languages codes used for chapter identification (should not be changed)", //
-	array = true, format = Format.STRING, def = "\"EN\",\"FR\"")
+	hidden = true, array = true, format = Format.STRING, def = "\"EN\",\"FR\"")
 	CONF_CHAPTER, //
 	@Meta(description = "Chapter identification string in English, used to identify a starting chapter in text mode",//
-	format = Format.STRING, def = "Chapter")
+	hidden = true, format = Format.STRING, def = "Chapter")
 	CONF_CHAPTER_EN, //
 	@Meta(description = "Chapter identification string in French, used to identify a starting chapter in text mode",//
-	format = Format.STRING, def = "Chapitre")
+	hidden = true, format = Format.STRING, def = "Chapitre")
 	CONF_CHAPTER_FR, //
 
 	@Meta(description = "YiffStar/SoFurry credentials\nYou can give your YiffStar credentials here to have access to all the stories, though it should not be necessary anymore (some stories used to beblocked for anonymous viewers)",//
