@@ -8,6 +8,8 @@ import java.awt.Paint;
 import java.awt.RadialGradientPaint;
 import java.awt.RenderingHints;
 
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -37,7 +39,7 @@ public class UIUtils {
 		} catch (IllegalAccessException e) {
 		}
 	}
-	
+
 	/**
 	 * Draw a 3D-looking ellipse at the given location, if the given
 	 * {@link Graphics} object is compatible (with {@link Graphics2D}); draw a
@@ -56,7 +58,8 @@ public class UIUtils {
 	 * @param height
 	 *            the height radius
 	 */
-	static public void drawEllipse3D(Graphics g, Color color, int x, int y, int width, int height) {
+	static public void drawEllipse3D(Graphics g, Color color, int x, int y,
+			int width, int height) {
 		drawEllipse3D(g, color, x, y, width, height, true);
 	}
 
@@ -77,8 +80,8 @@ public class UIUtils {
 	 *            the width radius
 	 * @param height
 	 *            the height radius
-     * @param fill
-     * 			  fill the content of the ellipse
+	 * @param fill
+	 *            fill the content of the ellipse
 	 */
 	static public void drawEllipse3D(Graphics g, Color color, int x, int y,
 			int width, int height, boolean fill) {
@@ -97,7 +100,7 @@ public class UIUtils {
 			} else {
 				g2.drawOval(x, y, width, height);
 			}
-			
+
 			// Compute dark/bright colours
 			Paint p = null;
 			Color dark = color.darker().darker();
@@ -125,7 +128,7 @@ public class UIUtils {
 			} else {
 				g2.drawOval(x, y, width, height);
 			}
-			
+
 			// Darken the edges
 			p = new RadialGradientPaint(x + width / 2f, y + height / 2f,
 					Math.min(width / 2f, height / 2f), new float[] { 0f, 1f },
@@ -161,5 +164,26 @@ public class UIUtils {
 				g.drawOval(x, y, width, height);
 			}
 		}
+	}
+
+	/**
+	 * Add a {@link JScrollPane} around the given panel and use a sensible (for
+	 * me) increment for the mouse wheel.
+	 * 
+	 * @param pane
+	 *            the panel to wrap in a {@link JScrollPane}
+	 * @param allowHorizontal
+	 *            allow horizontal scrolling (not always desired)
+	 * 
+	 * @return the {@link JScrollPane}
+	 */
+	static public JScrollPane scroll(JComponent pane, boolean allowHorizontal) {
+		JScrollPane scroll = new JScrollPane(pane);
+		scroll.getVerticalScrollBar().setUnitIncrement(16);
+		if (!allowHorizontal) {
+			scroll.setHorizontalScrollBarPolicy(
+					JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		}
+		return scroll;
 	}
 }
