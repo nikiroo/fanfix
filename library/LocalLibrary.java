@@ -637,10 +637,13 @@ public class LocalLibrary extends BasicLibrary {
 		}
 
 		Map<MetaData, File[]> stories = this.stories;
-		synchronized (lock) {
-			if (stories == null) {
-				stories = getStoriesDo(pg);
-				this.stories = stories;
+		if (stories == null) {
+			stories = getStoriesDo(pg);
+			synchronized (lock) {
+				if (this.stories == null)
+					this.stories = stories;
+				else
+					stories = this.stories;
 			}
 		}
 
