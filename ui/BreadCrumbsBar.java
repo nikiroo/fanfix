@@ -152,7 +152,7 @@ public class BreadCrumbsBar<T> extends ListenerPanel {
 				if (vertical) {
 					this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 				} else {
-					this.setLayout(new FlowLayout(FlowLayout.LEADING));
+					this.setLayout(new WrapLayout(WrapLayout.LEADING));
 				}
 
 				for (BreadCrumb crumb : crumbs) {
