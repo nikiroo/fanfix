@@ -17,7 +17,7 @@ import javax.swing.JPanel;
  * 
  * @author niki
  */
-public class ListenerPanel extends JPanel {
+public class ListenerPanel extends JPanel implements ListenerItem {
 	private static final long serialVersionUID = 1L;
 
 	/** Waiting queue until at least one listener is here to get the events. */
@@ -30,33 +30,17 @@ public class ListenerPanel extends JPanel {
 		waitingQueue = new LinkedList<ActionEvent>();
 	}
 
-	/**
-	 * Check that this {@link ListenerPanel} currently has
-	 * {@link ActionListener}s that listen on it.
-	 * 
-	 * @return TRUE if it has
-	 */
+	@Override
 	public synchronized boolean hasListeners() {
 		return listenerList.getListenerList().length > 1;
 	}
 
-	/**
-	 * Check how many events are currently waiting for an
-	 * {@link ActionListener}.
-	 * 
-	 * @return the number of waiting events (can be 0)
-	 */
+	@Override
 	public synchronized int getWaitingEventCount() {
 		return waitingQueue.size();
 	}
 
-	/**
-	 * Adds the specified action listener to receive action events from this
-	 * {@link ListenerPanel}.
-	 *
-	 * @param listener
-	 *            the action listener to be added
-	 */
+	@Override
 	public synchronized void addActionListener(ActionListener listener) {
 		if (!hasListeners()) {
 			while (!waitingQueue.isEmpty()) {
@@ -67,25 +51,13 @@ public class ListenerPanel extends JPanel {
 		listenerList.add(ActionListener.class, listener);
 	}
 
-	/**
-	 * Removes the specified action listener so that it no longer receives
-	 * action events from this {@link ListenerPanel}.
-	 *
-	 * @param listener
-	 *            the action listener to be removed
-	 */
+	@Override
 	public synchronized void removeActionListener(ActionListener listener) {
 		listenerList.remove(ActionListener.class, listener);
 	}
 
-	/**
-	 * Notify the listeners of an action.
-	 * 
-	 * @param listenerCommand
-	 *            A string that may specify a command (possibly one of several)
-	 *            associated with the event
-	 */
-	protected synchronized void fireActionPerformed(String listenerCommand) {
+	@Override
+	public synchronized void fireActionPerformed(String listenerCommand) {
 		ActionEvent e = new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
 				listenerCommand);
 
