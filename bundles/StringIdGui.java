@@ -109,7 +109,7 @@ public enum StringIdGui {
 	MENU_FILE_OPEN, //
 	@Meta(def = "Edit", format = Format.STRING, description = "the edit menu")
 	MENU_EDIT, //
-	@Meta(def = "Download to cache", format = Format.STRING, description = "the edit/send to cache menu button, to download the story into the cache if not already done")
+	@Meta(def = "Prefetch to cache", format = Format.STRING, description = "the edit/send to cache menu button, to download the story into the cache if not already done")
 	MENU_EDIT_DOWNLOAD_TO_CACHE, //
 	@Meta(def = "Clear cache", format = Format.STRING, description = "the clear cache menu button, to clear the cache for a single book")
 	MENU_EDIT_CLEAR_CACHE, //
