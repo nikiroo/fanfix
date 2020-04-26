@@ -80,32 +80,10 @@ public class ListModel<T> extends DefaultListModel6<T> {
 
 	private int hoveredIndex;
 	private List<T> items = new ArrayList<T>();
-	private JList6<T> list;
 	private boolean keepSelection = true;
 
-	/**
-	 * Create a new {@link ListModel}.
-	 * 
-	 * @param list
-	 *            the {@link JList} we will handle the data of (cannot be NULL)
-	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" }) // not compatible Java 1.6
-	public ListModel(JList list) {
-		this((JList6<T>) list);
-	}
-
-	/**
-	 * Create a new {@link ListModel}.
-	 * 
-	 * @param list
-	 *            the {@link JList} we will handle the data of (cannot be NULL)
-	 * @param popup
-	 *            the popup to use and keep track of (can be NULL)
-	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" }) // not compatible Java 1.6
-	public ListModel(final JList list, final JPopupMenu popup) {
-		this((JList6<T>) list, popup);
-	}
+	@SuppressWarnings("rawtypes") // JList<?> not compatible Java 1.6
+	private JList list;
 
 	/**
 	 * Create a new {@link ListModel}.
@@ -113,19 +91,57 @@ public class ListModel<T> extends DefaultListModel6<T> {
 	 * @param list
 	 *            the {@link JList6} we will handle the data of (cannot be NULL)
 	 */
+	@SuppressWarnings("rawtypes") // JList<?> not compatible Java 1.6
 	public ListModel(JList6<T> list) {
+		this((JList) list);
+	}
+
+	/**
+	 * Create a new {@link ListModel}.
+	 * 
+	 * @param list
+	 *            the {@link JList6} we will handle the data of (cannot be NULL)
+	 * @param popup
+	 *            the popup to use and keep track of (can be NULL)
+	 */
+	@SuppressWarnings("rawtypes") // JList<?> not compatible Java 1.6
+	public ListModel(final JList6<T> list, final JPopupMenu popup) {
+		this((JList) list, popup);
+	}
+
+	/**
+	 * Create a new {@link ListModel}.
+	 * <p>
+	 * Note that you must take care of passing a {@link JList} that only handles
+	 * elements of the type of this {@link ListModel} -- you can also use
+	 * {@link ListModel#ListModel(JList6)} instead.
+	 * 
+	 * @param list
+	 *            the {@link JList} we will handle the data of (cannot be NULL,
+	 *            must only contain elements of the type of this
+	 *            {@link ListModel})
+	 */
+	@SuppressWarnings("rawtypes") // JList<?> not compatible Java 1.6
+	public ListModel(JList list) {
 		this(list, null);
 	}
 
 	/**
 	 * Create a new {@link ListModel}.
+	 * <p>
+	 * Note that you must take care of passing a {@link JList} that only handles
+	 * elements of the type of this {@link ListModel} -- you can also use
+	 * {@link ListModel#ListModel(JList6, JPopupMenu)} instead.
 	 * 
 	 * @param list
-	 *            the {@link JList6} we will handle the data of (cannot be NULL)
+	 *            the {@link JList} we will handle the data of (cannot be NULL,
+	 *            must only contain elements of the type of this
+	 *            {@link ListModel})
 	 * @param popup
 	 *            the popup to use and keep track of (can be NULL)
 	 */
-	public ListModel(final JList6<T> list, final JPopupMenu popup) {
+	@SuppressWarnings({ "unchecked", "rawtypes" }) // JList<?> not in Java 1.6
+	public ListModel(final JList list, final JPopupMenu popup) {
 		this.list = list;
 		list.setModel(this);
 
@@ -313,7 +329,7 @@ public class ListModel<T> extends DefaultListModel6<T> {
 	 *            the filter will be copied as an element (can be NULL, in that
 	 *            case all items will be copied as elements)
 	 */
-	@SuppressWarnings("unchecked") // ListModel<T> and JList<T> are not java 1.6
+	@SuppressWarnings("unchecked") // JList<?> not compatible Java 1.6
 	public void filter(Predicate<T> filter) {
 		ListSnapshot snapshot = null;
 
@@ -388,7 +404,7 @@ public class ListModel<T> extends DefaultListModel6<T> {
 		}
 	}
 
-	@SuppressWarnings("unchecked") // ListModel<T> and JList<T> are not java 1.6
+	@SuppressWarnings("unchecked") // JList<?> not compatible Java 1.6
 	@Override
 	public T get(int index) {
 		return (T) super.get(index);
