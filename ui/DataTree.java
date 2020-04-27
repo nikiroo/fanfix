@@ -10,7 +10,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 
 public abstract class DataTree<E> {
-	private DataNode<E> data;
+	protected DataNode<E> data;
 
 	public DataNode<E> loadData() throws IOException {
 		return this.data = extractData();
