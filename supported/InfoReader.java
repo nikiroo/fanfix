@@ -259,14 +259,17 @@ public class InfoReader {
 			String value = getLine(in, key, 0);
 			if (value != null && !value.isEmpty()) {
 				value = value.trim().substring(key.length() - 1).trim();
-				if (value.startsWith("'") && value.endsWith("'")
-						|| value.startsWith("\"") && value.endsWith("\"")) {
+				if (value.length() > 1 && //
+						(value.startsWith("'") && value.endsWith("'")
+								|| value.startsWith("\"")
+										&& value.endsWith("\""))) {
 					value = value.substring(1, value.length() - 1).trim();
 				}
 
 				// Some old files ended up with TITLE="'xxxxx'"
-				if ("TITLE".equals(key)) {
-					if (value.startsWith("'") && value.endsWith("'")) {
+				if ("^TITLE=".equals(key)) {
+					if (value.startsWith("'") && value.endsWith("'")
+							&& value.length() > 1) {
 						value = value.substring(1, value.length() - 1).trim();
 					}
 				}
