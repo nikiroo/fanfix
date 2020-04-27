@@ -97,7 +97,7 @@ class Text extends BasicSupport {
 		meta.setType(getType().toString());
 		meta.setImageDocument(false);
 		meta.setCover(getCover(getSourceFile()));
-
+		
 		return meta;
 	}
 
@@ -188,7 +188,7 @@ class Text extends BasicSupport {
 		return content;
 	}
 
-	private Image getCover(File sourceFile) {
+	protected Image getCover(File sourceFile) {
 		String path = sourceFile.getName();
 
 		for (String ext : new String[] { ".txt", ".text", ".story" }) {
@@ -317,7 +317,7 @@ class Text extends BasicSupport {
 	}
 
 	/**
-	 * Remove the ".txt" extension if it is present.
+	 * Remove the ".txt" (or ".text") extension if it is present.
 	 * 
 	 * @param file
 	 *            the file to process
@@ -326,9 +326,11 @@ class Text extends BasicSupport {
 	 *         was present
 	 */
 	protected File assureNoTxt(File file) {
-		if (file.getName().endsWith(".txt")) {
-			file = new File(file.getPath().substring(0,
-					file.getPath().length() - 4));
+		for (String ext : new String[] { ".txt", ".text" }) {
+			if (file.getName().endsWith(ext)) {
+				file = new File(file.getPath().substring(0,
+						file.getPath().length() - ext.length()));
+			}
 		}
 
 		return file;
