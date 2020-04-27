@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import org.jsoup.nodes.Document;
-
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.fanfix.data.MetaData;
@@ -35,6 +33,13 @@ public class InfoReader {
 			try {
 				MetaData meta = createMeta(infoFile.toURI().toURL(), in,
 						withCover);
+
+				// Some old .info files were using UUID for URL...
+				if (!hasIt(meta.getUrl()) && meta.getUuid() != null
+						&& (meta.getUuid().startsWith("http://")
+								|| meta.getUuid().startsWith("https://"))) {
+					meta.setUrl(meta.getUuid());
+				}
 
 				// Some old .info files don't have those now required fields...
 				// So we check if we can find the info in another way (many
@@ -257,6 +262,13 @@ public class InfoReader {
 				if (value.startsWith("'") && value.endsWith("'")
 						|| value.startsWith("\"") && value.endsWith("\"")) {
 					value = value.substring(1, value.length() - 1).trim();
+				}
+
+				// Some old files ended up with TITLE="'xxxxx'"
+				if ("TITLE".equals(key)) {
+					if (value.startsWith("'") && value.endsWith("'")) {
+						value = value.substring(1, value.length() - 1).trim();
+					}
 				}
 
 				return value;

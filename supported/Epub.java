@@ -42,8 +42,8 @@ class Epub extends InfoText {
 		try {
 			return new File(fakeSource.toURI());
 		} catch (URISyntaxException e) {
-			Instance.getInstance().getTraceHandler()
-					.error(new IOException("Cannot get the source file from the info-text URL", e));
+			Instance.getInstance().getTraceHandler().error(new IOException(
+					"Cannot get the source file from the info-text URL", e));
 		}
 
 		return null;
@@ -55,7 +55,8 @@ class Epub extends InfoText {
 			try {
 				fakeIn.reset();
 			} catch (IOException e) {
-				Instance.getInstance().getTraceHandler().error(new IOException("Cannot reset the Epub Text stream", e));
+				Instance.getInstance().getTraceHandler().error(new IOException(
+						"Cannot reset the Epub Text stream", e));
 			}
 
 			return fakeIn;
@@ -83,7 +84,8 @@ class Epub extends InfoText {
 		ZipInputStream zipIn = null;
 		try {
 			zipIn = new ZipInputStream(in);
-			tmpDir = Instance.getInstance().getTempFiles().createTempDir("fanfic-reader-parser");
+			tmpDir = Instance.getInstance().getTempFiles()
+					.createTempDir("fanfic-reader-parser");
 			File tmp = new File(tmpDir, "file.txt");
 			File tmpInfo = new File(tmpDir, "file.info");
 
@@ -99,8 +101,9 @@ class Epub extends InfoText {
 			String title = null;
 			String author = null;
 
-			for (ZipEntry entry = zipIn.getNextEntry(); entry != null; entry = zipIn
-					.getNextEntry()) {
+			for (ZipEntry entry = zipIn
+					.getNextEntry(); entry != null; entry = zipIn
+							.getNextEntry()) {
 				if (!entry.isDirectory()
 						&& entry.getName().startsWith(getDataPrefix())) {
 					String entryLName = entry.getName().toLowerCase();
@@ -124,18 +127,25 @@ class Epub extends InfoText {
 							try {
 								cover = new Image(zipIn);
 							} catch (Exception e) {
-								Instance.getInstance().getTraceHandler().error(e);
+								Instance.getInstance().getTraceHandler()
+										.error(e);
 							}
 						}
-					} else if (entry.getName().equals(getDataPrefix() + "URL")) {
+					} else if (entry.getName()
+							.equals(getDataPrefix() + "URL")) {
 						String[] descArray = StringUtils
 								.unhtml(IOUtils.readSmallStream(zipIn)).trim()
 								.split("\n");
 						if (descArray.length > 0) {
 							url = descArray[0].trim();
 						}
-					} else if (entry.getName().equals(
-							getDataPrefix() + "SUMMARY")) {
+					} else if (entry.getName().endsWith(".desc")) {
+						// // For old files
+						// if (this.desc != null) {
+						// this.desc = IOUtils.readSmallStream(zipIn).trim();
+						// }
+					} else if (entry.getName()
+							.equals(getDataPrefix() + "SUMMARY")) {
 						String[] descArray = StringUtils
 								.unhtml(IOUtils.readSmallStream(zipIn)).trim()
 								.split("\n");
@@ -149,12 +159,12 @@ class Epub extends InfoText {
 								skip = 2;
 							}
 						}
-						this.desc = "";
-						for (int i = skip; i < descArray.length; i++) {
-							this.desc += descArray[i].trim() + "\n";
-						}
-
-						this.desc = this.desc.trim();
+						// this.desc = "";
+						// for (int i = skip; i < descArray.length; i++) {
+						// this.desc += descArray[i].trim() + "\n";
+						// }
+						//
+						// this.desc = this.desc.trim();
 					} else {
 						// Hopefully the data file
 						IOUtils.write(zipIn, tmp);
@@ -198,9 +208,8 @@ class Epub extends InfoText {
 				if (cover != null) {
 					meta.setCover(cover);
 				} else {
-					meta.setCover(InfoReader
-							.getCoverByName(getSourceFileOriginal().toURI()
-									.toURL()));
+					meta.setCover(InfoReader.getCoverByName(
+							getSourceFileOriginal().toURI().toURL()));
 				}
 			}
 		} finally {
