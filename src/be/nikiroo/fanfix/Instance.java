@@ -48,8 +48,19 @@ public class Instance {
 	/**
 	 * Initialise the instance -- if already initialised, nothing will happen.
 	 * <p>
-	 * Before calling this method, you may call {@link Bundles#setDirectory(String)}
-	 * if wanted.
+	 * Before calling this method, you may call
+	 * {@link Bundles#setDirectory(String)} if wanted.
+	 * <p>
+	 * Note that this method will honour some environment variables, the 3 most
+	 * important ones probably being:
+	 * <ul>
+	 * <li><tt>DEBUG</tt>: will enable DEBUG output if set to 1 (or Y or TRUE or
+	 * ON, case insensitive)</li>
+	 * <li><tt>CONFIG_DIR</tt>: will use this directory as configuration
+	 * directory (supports $HOME notation, defaults to $HOME/.fanfix</li>
+	 * <li><tt>BOOKS_DIR</tt>: will use this directory as library directory
+	 * (supports $HOME notation, defaults to $HOME/Books</li>
+	 * </ul>
 	 */
 	static public void init() {
 		init(false);
@@ -465,7 +476,6 @@ public class Instance {
 		BasicLibrary lib = null;
 
 		boolean useRemote = config.getBoolean(Config.REMOTE_LIBRARY_ENABLED, false);
-
 		if (useRemote) {
 			String host = null;
 			int port = -1;

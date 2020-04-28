@@ -19,7 +19,8 @@ import be.nikiroo.utils.streams.MarkableFileInputStream;
 public class InfoReader {
 	static protected BasicSupportHelper bsHelper = new BasicSupportHelper();
 	// static protected BasicSupportImages bsImages = new BasicSupportImages();
-	// static protected BasicSupportPara bsPara = new BasicSupportPara(new BasicSupportHelper(), new BasicSupportImages());
+	// static protected BasicSupportPara bsPara = new BasicSupportPara(new
+	// BasicSupportHelper(), new BasicSupportImages());
 
 	public static MetaData readMeta(File infoFile, boolean withCover)
 			throws IOException {
@@ -30,7 +31,79 @@ public class InfoReader {
 		if (infoFile.exists()) {
 			InputStream in = new MarkableFileInputStream(infoFile);
 			try {
-				return createMeta(infoFile.toURI().toURL(), in, withCover);
+				MetaData meta = createMeta(infoFile.toURI().toURL(), in,
+						withCover);
+
+				// Some old .info files were using UUID for URL...
+				if (!hasIt(meta.getUrl()) && meta.getUuid() != null
+						&& (meta.getUuid().startsWith("http://")
+								|| meta.getUuid().startsWith("https://"))) {
+					meta.setUrl(meta.getUuid());
+				}
+
+				// Some old .info files don't have those now required fields...
+				// So we check if we can find the info in another way (many
+				// formats have a copy of the original text file)
+				if (!hasIt(meta.getTitle(), meta.getAuthor(), meta.getDate(),
+						meta.getUrl())) {
+
+					// TODO: not nice, would be better to do it properly...
+
+					String base = infoFile.getPath();
+					if (base.endsWith(".info")) {
+						base = base.substring(0,
+								base.length() - ".info".length());
+					}
+					File textFile = new File(base);
+					if (!textFile.exists()) {
+						textFile = new File(base + ".txt");
+					}
+					if (!textFile.exists()) {
+						textFile = new File(base + ".text");
+					}
+
+					if (textFile.exists()) {
+						final URL source = textFile.toURI().toURL();
+						final MetaData[] superMetaA = new MetaData[1];
+						@SuppressWarnings("unused")
+						Text unused = new Text() {
+							private boolean loaded = loadDocument();
+
+							@Override
+							public SupportType getType() {
+								return SupportType.TEXT;
+							}
+
+							protected boolean loadDocument()
+									throws IOException {
+								loadDocument(source);
+								superMetaA[0] = getMeta();
+								return true;
+							}
+
+							@Override
+							protected Image getCover(File sourceFile) {
+								return null;
+							}
+						};
+
+						MetaData superMeta = superMetaA[0];
+						if (!hasIt(meta.getTitle())) {
+							meta.setTitle(superMeta.getTitle());
+						}
+						if (!hasIt(meta.getAuthor())) {
+							meta.setAuthor(superMeta.getAuthor());
+						}
+						if (!hasIt(meta.getDate())) {
+							meta.setDate(superMeta.getDate());
+						}
+						if (!hasIt(meta.getUrl())) {
+							meta.setUrl(superMeta.getUrl());
+						}
+					}
+				}
+
+				return meta;
 			} finally {
 				in.close();
 			}
@@ -39,6 +112,24 @@ public class InfoReader {
 		throw new FileNotFoundException(
 				"File given as argument does not exists: "
 						+ infoFile.getAbsolutePath());
+	}
+
+	/**
+	 * Check if we have non-empty values for all the given {@link String}s.
+	 * 
+	 * @param values
+	 *            the values to check
+	 * 
+	 * @return TRUE if none of them was NULL or empty
+	 */
+	static private boolean hasIt(String... values) {
+		for (String value : values) {
+			if (value == null || value.trim().isEmpty()) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private static MetaData createMeta(URL sourceInfoFile, InputStream in,
@@ -61,8 +152,7 @@ public class InfoReader {
 		if (withCover) {
 			String infoTag = getInfoTag(in, "COVER");
 			if (infoTag != null && !infoTag.trim().isEmpty()) {
-				meta.setCover(bsHelper.getImage(null, sourceInfoFile,
-						infoTag));
+				meta.setCover(bsHelper.getImage(null, sourceInfoFile, infoTag));
 			}
 			if (meta.getCover() == null) {
 				// Second chance: try to check for a cover next to the info file
@@ -97,8 +187,8 @@ public class InfoReader {
 
 		File basefile = new File(sourceInfoFile.getFile());
 
-		String ext = "."
-				+ Instance.getInstance().getConfig().getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER).toLowerCase();
+		String ext = "." + Instance.getInstance().getConfig()
+				.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER).toLowerCase();
 
 		// Without removing ext
 		cover = bsHelper.getImage(null, sourceInfoFile,
@@ -169,9 +259,19 @@ public class InfoReader {
 			String value = getLine(in, key, 0);
 			if (value != null && !value.isEmpty()) {
 				value = value.trim().substring(key.length() - 1).trim();
-				if (value.startsWith("'") && value.endsWith("'")
-						|| value.startsWith("\"") && value.endsWith("\"")) {
+				if (value.length() > 1 && //
+						(value.startsWith("'") && value.endsWith("'")
+								|| value.startsWith("\"")
+										&& value.endsWith("\""))) {
 					value = value.substring(1, value.length() - 1).trim();
+				}
+
+				// Some old files ended up with TITLE="'xxxxx'"
+				if ("^TITLE=".equals(key)) {
+					if (value.startsWith("'") && value.endsWith("'")
+							&& value.length() > 1) {
+						value = value.substring(1, value.length() - 1).trim();
+					}
 				}
 
 				return value;
@@ -235,8 +335,8 @@ public class InfoReader {
 
 			if (index == -1) {
 				if (needle.startsWith("^")) {
-					if (lines.get(lines.size() - 1).startsWith(
-							needle.substring(1))) {
+					if (lines.get(lines.size() - 1)
+							.startsWith(needle.substring(1))) {
 						index = lines.size() - 1;
 					}
 
