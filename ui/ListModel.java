@@ -2,6 +2,7 @@ package be.nikiroo.utils.ui;
 
 import java.awt.Component;
 import java.awt.Point;
+import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.List;
 import javax.swing.JList;
 import javax.swing.JPopupMenu;
 import javax.swing.ListCellRenderer;
+import javax.swing.SwingWorker;
 
 import be.nikiroo.utils.compat.DefaultListModel6;
 import be.nikiroo.utils.compat.JList6;
@@ -78,9 +80,40 @@ public class ListModel<T> extends DefaultListModel6<T> {
 		public void setHovered(boolean hovered);
 	}
 
+	/**
+	 * An interface required to support tooltips on this {@link ListModel}.
+	 * 
+	 * @author niki
+	 *
+	 * @param <T>
+	 *            the type of elements and items (the same type)
+	 */
+	public interface TooltipCreator<T> {
+		/**
+		 * Generate a tooltip {@link Window} for this element.
+		 * <p>
+		 * Note that the tooltip can be of two modes: undecorated or standalone.
+		 * An undecorated tooltip will be taken care of by this
+		 * {@link ListModel}, but a standalone one is supposed to be its own
+		 * Dialog or Frame (it won't be automatically closed).
+		 * 
+		 * @param t
+		 *            the element to generate a tooltip for
+		 * @param undecorated
+		 *            TRUE for undecorated tooltip, FALSE for standalone
+		 *            tooltips
+		 * 
+		 * @return the generated tooltip or NULL for none
+		 */
+		public Window generateTooltip(T t, boolean undecorated);
+	}
+
 	private int hoveredIndex;
 	private List<T> items = new ArrayList<T>();
 	private boolean keepSelection = true;
+
+	private TooltipCreator<T> tooltipCreator;
+	private Window tooltip;
 
 	@SuppressWarnings("rawtypes") // JList<?> not compatible Java 1.6
 	private JList list;
@@ -105,8 +138,39 @@ public class ListModel<T> extends DefaultListModel6<T> {
 	 *            the popup to use and keep track of (can be NULL)
 	 */
 	@SuppressWarnings("rawtypes") // JList<?> not compatible Java 1.6
-	public ListModel(final JList6<T> list, final JPopupMenu popup) {
+	public ListModel(JList6<T> list, JPopupMenu popup) {
 		this((JList) list, popup);
+	}
+
+	/**
+	 * Create a new {@link ListModel}.
+	 * 
+	 * @param list
+	 *            the {@link JList6} we will handle the data of (cannot be NULL)
+	 * @param tooltipCreator
+	 *            use this if you want the list to display tooltips on hover
+	 *            (can be NULL)
+	 */
+	@SuppressWarnings("rawtypes") // JList<?> not compatible Java 1.6
+	public ListModel(JList6<T> list, TooltipCreator<T> tooltipCreator) {
+		this((JList) list, null, tooltipCreator);
+	}
+
+	/**
+	 * Create a new {@link ListModel}.
+	 * 
+	 * @param list
+	 *            the {@link JList6} we will handle the data of (cannot be NULL)
+	 * @param popup
+	 *            the popup to use and keep track of (can be NULL)
+	 * @param tooltipCreator
+	 *            use this if you want the list to display tooltips on hover
+	 *            (can be NULL)
+	 */
+	@SuppressWarnings("rawtypes") // JList<?> not compatible Java 1.6
+	public ListModel(JList6<T> list, JPopupMenu popup,
+			TooltipCreator<T> tooltipCreator) {
+		this((JList) list, popup, tooltipCreator);
 	}
 
 	/**
@@ -123,7 +187,7 @@ public class ListModel<T> extends DefaultListModel6<T> {
 	 */
 	@SuppressWarnings("rawtypes") // JList<?> not compatible Java 1.6
 	public ListModel(JList list) {
-		this(list, null);
+		this(list, null, null);
 	}
 
 	/**
@@ -140,24 +204,101 @@ public class ListModel<T> extends DefaultListModel6<T> {
 	 * @param popup
 	 *            the popup to use and keep track of (can be NULL)
 	 */
+	@SuppressWarnings("rawtypes") // JList<?> not in Java 1.6
+	public ListModel(JList list, JPopupMenu popup) {
+		this(list, popup, null);
+	}
+
+	/**
+	 * Create a new {@link ListModel}.
+	 * <p>
+	 * Note that you must take care of passing a {@link JList} that only handles
+	 * elements of the type of this {@link ListModel} -- you can also use
+	 * {@link ListModel#ListModel(JList6, JPopupMenu)} instead.
+	 * 
+	 * @param list
+	 *            the {@link JList} we will handle the data of (cannot be NULL,
+	 *            must only contain elements of the type of this
+	 *            {@link ListModel})
+	 * @param tooltipCreator
+	 *            use this if you want the list to display tooltips on hover
+	 *            (can be NULL)
+	 */
+	@SuppressWarnings("rawtypes") // JList<?> not in Java 1.6
+	public ListModel(JList list, TooltipCreator<T> tooltipCreator) {
+		this(list, null, tooltipCreator);
+	}
+
+	/**
+	 * Create a new {@link ListModel}.
+	 * <p>
+	 * Note that you must take care of passing a {@link JList} that only handles
+	 * elements of the type of this {@link ListModel} -- you can also use
+	 * {@link ListModel#ListModel(JList6, JPopupMenu)} instead.
+	 * 
+	 * @param list
+	 *            the {@link JList} we will handle the data of (cannot be NULL,
+	 *            must only contain elements of the type of this
+	 *            {@link ListModel})
+	 * @param popup
+	 *            the popup to use and keep track of (can be NULL)
+	 * @param tooltipCreator
+	 *            use this if you want the list to display tooltips on hover
+	 *            (can be NULL)
+	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" }) // JList<?> not in Java 1.6
-	public ListModel(final JList list, final JPopupMenu popup) {
+	public ListModel(final JList list, final JPopupMenu popup,
+			TooltipCreator<T> tooltipCreator) {
 		this.list = list;
+		this.tooltipCreator = tooltipCreator;
+
 		list.setModel(this);
+
+		final DelayWorker tooltipWatcher = new DelayWorker(500);
+		if (tooltipCreator != null) {
+			tooltipWatcher.start();
+		}
 
 		list.addMouseMotionListener(new MouseAdapter() {
 			@Override
-			public void mouseMoved(MouseEvent me) {
+			public void mouseMoved(final MouseEvent me) {
 				if (popup != null && popup.isShowing())
 					return;
 
 				Point p = new Point(me.getX(), me.getY());
-				int index = list.locationToIndex(p);
+				final int index = list.locationToIndex(p);
 				if (index != hoveredIndex) {
 					int oldIndex = hoveredIndex;
 					hoveredIndex = index;
 					fireElementChanged(oldIndex);
 					fireElementChanged(index);
+
+					if (ListModel.this.tooltipCreator != null) {
+						tooltipWatcher.delay("tooltip",
+								new SwingWorker<Void, Void>() {
+									@Override
+									protected Void doInBackground()
+											throws Exception {
+										return null;
+									}
+
+									@Override
+									protected void done() {
+										Window oldTooltip = tooltip;
+										tooltip = null;
+										if (oldTooltip != null) {
+											oldTooltip.setVisible(false);
+										}
+
+										if (index < 0
+												|| index != hoveredIndex) {
+											return;
+										}
+
+										tooltip = newTooltip(index, me);
+									}
+								});
+					}
 				}
 			}
 		});
@@ -199,6 +340,7 @@ public class ListModel<T> extends DefaultListModel6<T> {
 					popup.show(list, e.getX(), e.getY());
 				}
 			}
+
 		});
 	}
 
@@ -408,6 +550,31 @@ public class ListModel<T> extends DefaultListModel6<T> {
 	@Override
 	public T get(int index) {
 		return (T) super.get(index);
+	}
+
+	private Window newTooltip(final int index, final MouseEvent me) {
+		final T value = ListModel.this.get(index);
+
+		final Window newTooltip = tooltipCreator.generateTooltip(value, true);
+
+		if (newTooltip != null) {
+			newTooltip.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+
+					Window promotedTooltip = tooltipCreator
+							.generateTooltip(value, false);
+					promotedTooltip.setLocation(newTooltip.getLocation());
+					newTooltip.setVisible(false);
+					promotedTooltip.setVisible(true);
+				}
+			});
+			newTooltip.setLocation(me.getXOnScreen(), me.getYOnScreen());
+
+			newTooltip.setVisible(true);
+		}
+
+		return newTooltip;
 	}
 
 	/**
