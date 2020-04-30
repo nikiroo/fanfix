@@ -9,6 +9,16 @@ import java.util.Map.Entry;
 
 /**
  * Progress reporting system, possibly nested.
+ * <p>
+ * A {@link Progress} can have a name, and that name will be reported through
+ * the event system (it will report the first non-null name in the stack from
+ * the {@link Progress} from which the event originated to the parent the event
+ * is listened on).
+ * <p>
+ * The {@link Progress} also has a table of keys/values shared amongst all the
+ * hierarchy (note that when adding a {@link Progress} to others, its values
+ * will be prioritized if some with the same keys were already present in the
+ * hierarchy).
  * 
  * @author niki
  */
@@ -35,6 +45,7 @@ public class Progress {
 		public void progress(Progress progress, String name);
 	}
 
+	private Map<Object, Object> map = new HashMap<Object, Object>();
 	private Progress parent = null;
 	private Object lock = new Object();
 	private String name;
@@ -425,9 +436,72 @@ public class Progress {
 		};
 
 		synchronized (lock) {
+			// Should not happen but just in case
+			if (this.map != progress.map) {
+				this.map.putAll(progress.map);
+			}
+			progress.map = this.map;
 			progress.parent = this;
 			this.children.put(progress, weight);
 			progress.addProgressListener(progressListener);
 		}
+	}
+
+	/**
+	 * Set the given value for the given key on this {@link Progress} and it's
+	 * children.
+	 * 
+	 * @param key
+	 *            the key
+	 * @param value
+	 *            the value
+	 */
+	public void put(String key, String value) {
+		map.put(key, value);
+	}
+
+	/**
+	 * Set the given value for the given key on this {@link Progress} and it's
+	 * children.
+	 * 
+	 * @param key
+	 *            the key
+	 * @param value
+	 *            the value
+	 */
+	public void put(Object key, Object value) {
+		map.put(key, value);
+	}
+
+	/**
+	 * Return the value associated with this key if any, NULL if not.
+	 * <p>
+	 * If the value is not NULL but not a {@link String}, it will be converted
+	 * via {@link Object#toString()}.
+	 * 
+	 * @param key
+	 *            the key to check
+	 * 
+	 * @return the value or NULL
+	 */
+	public String get(String key) {
+		Object value = map.get(key);
+		if (value == null) {
+			return null;
+		}
+
+		return value.toString();
+	}
+
+	/**
+	 * Return the value associated with this key if any, NULL if not.
+	 * 
+	 * @param key
+	 *            the key to check
+	 * 
+	 * @return the value or NULL
+	 */
+	public Object get(Object key) {
+		return map.get(key);
 	}
 }
