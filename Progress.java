@@ -456,25 +456,13 @@ public class Progress {
 	 * @param value
 	 *            the value
 	 */
-	public void put(String key, String value) {
-		map.put(key, value);
-	}
-
-	/**
-	 * Set the given value for the given key on this {@link Progress} and it's
-	 * children.
-	 * 
-	 * @param key
-	 *            the key
-	 * @param value
-	 *            the value
-	 */
 	public void put(Object key, Object value) {
 		map.put(key, value);
 	}
 
 	/**
-	 * Return the value associated with this key if any, NULL if not.
+	 * Return the value associated with this key as a {@link String} if any,
+	 * NULL if not.
 	 * <p>
 	 * If the value is not NULL but not a {@link String}, it will be converted
 	 * via {@link Object#toString()}.
@@ -484,7 +472,7 @@ public class Progress {
 	 * 
 	 * @return the value or NULL
 	 */
-	public String get(String key) {
+	public String getString(Object key) {
 		Object value = map.get(key);
 		if (value == null) {
 			return null;
