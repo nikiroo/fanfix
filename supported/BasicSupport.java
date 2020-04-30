@@ -273,6 +273,7 @@ public abstract class BasicSupport {
 			meta.setCreationDate(StringUtils.fromTime(new Date().getTime()));
 		}
 		story.setMeta(meta);
+		pg.put("meta", meta);
 
 		pg.setProgress(50);
 
@@ -344,6 +345,7 @@ public abstract class BasicSupport {
 		pg.addProgress(pgMeta, 10);
 		Story story = processMeta(true, pgMeta);
 		pgMeta.done(); // 10%
+		pg.put("meta", story.getMeta());
 
 		pg.setName(story.getMeta().getTitle());
 

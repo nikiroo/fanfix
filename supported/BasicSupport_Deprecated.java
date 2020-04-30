@@ -209,6 +209,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 				meta.setCreationDate(StringUtils.fromTime(new Date().getTime()));
 			}
 			story.setMeta(meta);
+			pg.put("meta", meta);
 
 			pg.setProgress(50);
 
@@ -263,6 +264,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 			Progress pgMeta = new Progress();
 			pg.addProgress(pgMeta, 10);
 			Story story = processMeta(url, false, true, pgMeta);
+			pg.put("meta", story.getMeta());
 			if (!pgMeta.isDone()) {
 				pgMeta.setProgress(pgMeta.getMax()); // 10%
 			}
