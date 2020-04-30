@@ -73,8 +73,6 @@ class Cbz extends Epub {
 
 		pgMeta.done(); // 10%
 		
-		pg.setName(meta.getTitle());
-
 		File tmpDir = Instance.getInstance().getTempFiles().createTempDir("info-text");
 		String basename = null;
 
@@ -197,9 +195,7 @@ class Cbz extends Epub {
 			}
 		}
 
-		pg.setName(meta.getTitle());
 		pg.done();
-		
 		return story;
 	}
 

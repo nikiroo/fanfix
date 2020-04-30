@@ -269,8 +269,6 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 				pgMeta.setProgress(pgMeta.getMax()); // 10%
 			}
 
-			pg.setName("Retrieving " + story.getMeta().getTitle());
-
 			setCurrentReferer(url);
 
 			Progress pgGetChapters = new Progress();

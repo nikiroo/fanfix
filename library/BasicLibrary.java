@@ -587,7 +587,6 @@ abstract public class BasicLibrary {
 		}
 
 		Story story = save(support.process(pgProcess), pgSave);
-		pg.setName(story.getMeta().getTitle());
 		pg.done();
 
 		return story.getMeta();

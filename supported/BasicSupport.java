@@ -347,8 +347,6 @@ public abstract class BasicSupport {
 		pgMeta.done(); // 10%
 		pg.put("meta", story.getMeta());
 
-		pg.setName(story.getMeta().getTitle());
-
 		Progress pgGetChapters = new Progress();
 		pg.addProgress(pgGetChapters, 10);
 		story.setChapters(new ArrayList<Chapter>());
@@ -394,7 +392,6 @@ public abstract class BasicSupport {
 			pgChaps.done();
 		}
 
-		pg.setName(story.getMeta().getTitle());
 		pg.done();
 
 		return story;

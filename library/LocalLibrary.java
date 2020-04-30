@@ -718,10 +718,6 @@ public class LocalLibrary extends BasicLibrary {
 		}
 
 		for (File infoFileOrSubdir : infoFilesAndSubdirs) {
-			if (pgFiles != null) {
-				pgFiles.setName(infoFileOrSubdir.getName());
-			}
-
 			if (infoFileOrSubdir.isDirectory()) {
 				addToStories(stories, null, infoFileOrSubdir);
 			} else {
