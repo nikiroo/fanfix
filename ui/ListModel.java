@@ -276,10 +276,11 @@ public class ListModel<T> extends DefaultListModel6<T> {
 					fireElementChanged(oldIndex);
 					fireElementChanged(index);
 
-					Window oldTooltip = tooltip;
-					tooltip = null;
-					if (oldTooltip != null) {
-						oldTooltip.setVisible(false);
+					synchronized (tooltipWatcher) {
+						if (tooltip != null) {
+							tooltip.setVisible(false);
+						}
+						tooltip = null;
 					}
 
 					if (ListModel.this.tooltipCreator != null) {
@@ -293,6 +294,13 @@ public class ListModel<T> extends DefaultListModel6<T> {
 
 									@Override
 									protected void done() {
+										synchronized (tooltipWatcher) {
+											if (tooltip != null) {
+												tooltip.setVisible(false);
+											}
+											tooltip = null;
+										}
+
 										if (index < 0
 												|| index != hoveredIndex) {
 											return;
@@ -303,7 +311,12 @@ public class ListModel<T> extends DefaultListModel6<T> {
 											return;
 										}
 
-										tooltip = newTooltip(index, me);
+										synchronized (tooltipWatcher) {
+											if (tooltip != null) {
+												tooltip.setVisible(false);
+											}
+											tooltip = newTooltip(index, me);
+										}
 									}
 								});
 					}
@@ -575,16 +588,19 @@ public class ListModel<T> extends DefaultListModel6<T> {
 			newTooltip.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
-
 					Window promotedTooltip = tooltipCreator
 							.generateTooltip(value, false);
-					promotedTooltip.setLocation(newTooltip.getLocation());
+					if (promotedTooltip != null) {
+						promotedTooltip.setLocation(me.getXOnScreen(),
+								me.getYOnScreen());
+						promotedTooltip.setVisible(true);
+					}
+					
 					newTooltip.setVisible(false);
-					promotedTooltip.setVisible(true);
 				}
 			});
-			newTooltip.setLocation(me.getXOnScreen(), me.getYOnScreen());
 
+			newTooltip.setLocation(me.getXOnScreen(), me.getYOnScreen());
 			newTooltip.setVisible(true);
 		}
 
