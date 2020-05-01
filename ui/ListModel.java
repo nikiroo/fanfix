@@ -34,6 +34,9 @@ import be.nikiroo.utils.compat.ListCellRenderer6;
 public class ListModel<T> extends DefaultListModel6<T> {
 	private static final long serialVersionUID = 1L;
 
+	/** How long to wait before displaying a tooltip, in milliseconds. */
+	private static final int DELAY_TOOLTIP_MS = 1000;
+
 	/**
 	 * A filter interface, to check for a condition (note that a Predicate class
 	 * already exists in Java 1.8+, and is compatible with this one if you
@@ -254,7 +257,7 @@ public class ListModel<T> extends DefaultListModel6<T> {
 
 		list.setModel(this);
 
-		final DelayWorker tooltipWatcher = new DelayWorker(500);
+		final DelayWorker tooltipWatcher = new DelayWorker(DELAY_TOOLTIP_MS);
 		if (tooltipCreator != null) {
 			tooltipWatcher.start();
 		}
@@ -272,6 +275,12 @@ public class ListModel<T> extends DefaultListModel6<T> {
 					hoveredIndex = index;
 					fireElementChanged(oldIndex);
 					fireElementChanged(index);
+					
+					Window oldTooltip = tooltip;
+					tooltip = null;
+					if (oldTooltip != null) {
+						oldTooltip.setVisible(false);
+					}
 
 					if (ListModel.this.tooltipCreator != null) {
 						tooltipWatcher.delay("tooltip",
@@ -284,12 +293,6 @@ public class ListModel<T> extends DefaultListModel6<T> {
 
 									@Override
 									protected void done() {
-										Window oldTooltip = tooltip;
-										tooltip = null;
-										if (oldTooltip != null) {
-											oldTooltip.setVisible(false);
-										}
-
 										if (index < 0
 												|| index != hoveredIndex) {
 											return;
