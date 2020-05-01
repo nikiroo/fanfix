@@ -178,12 +178,39 @@ public class UIUtils {
 	 * @return the {@link JScrollPane}
 	 */
 	static public JScrollPane scroll(JComponent pane, boolean allowHorizontal) {
+		return scroll(pane, allowHorizontal, true);
+	}
+
+	/**
+	 * Add a {@link JScrollPane} around the given panel and use a sensible (for
+	 * me) increment for the mouse wheel.
+	 * 
+	 * @param pane
+	 *            the panel to wrap in a {@link JScrollPane}
+	 * @param allowHorizontal
+	 *            allow horizontal scrolling (not always desired)
+	 * @param allowVertical
+	 *            allow vertical scrolling (usually yes, but sometimes you only
+	 *            want horizontal)
+	 * 
+	 * @return the {@link JScrollPane}
+	 */
+	static public JScrollPane scroll(JComponent pane, boolean allowHorizontal,
+			boolean allowVertical) {
 		JScrollPane scroll = new JScrollPane(pane);
+
 		scroll.getVerticalScrollBar().setUnitIncrement(16);
+		scroll.getHorizontalScrollBar().setUnitIncrement(16);
+
 		if (!allowHorizontal) {
 			scroll.setHorizontalScrollBarPolicy(
 					JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		}
+		if (!allowVertical) {
+			scroll.setVerticalScrollBarPolicy(
+					JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+		}
+
 		return scroll;
 	}
 }
