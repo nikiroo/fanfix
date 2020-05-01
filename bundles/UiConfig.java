@@ -43,6 +43,9 @@ public enum UiConfig {
 	@Meta(description = "Show thumbnails by default in the books view",//
 	format = Format.BOOLEAN, def = "false")
 	SHOW_THUMBNAILS, //
+	@Meta(description = "Show a words/images count instead of the author by default in the books view",//
+	format = Format.BOOLEAN, def = "false")
+	SHOW_WORDCOUNT, //
 	//
 	// Deprecated
 	//
