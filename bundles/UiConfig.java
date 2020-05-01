@@ -35,16 +35,16 @@ public enum UiConfig {
 	// GUI settings (hidden in config)
 	//
 	@Meta(description = "Show the side panel by default",//
-	format = Format.BOOLEAN, def = "true")
+	hidden = true, format = Format.BOOLEAN, def = "true")
 	SHOW_SIDE_PANEL, //
 	@Meta(description = "Show the details panel by default",//
-	format = Format.BOOLEAN, def = "true")
+	hidden = true, format = Format.BOOLEAN, def = "true")
 	SHOW_DETAILS_PANEL, //
 	@Meta(description = "Show thumbnails by default in the books view",//
-	format = Format.BOOLEAN, def = "false")
+	hidden = true, format = Format.BOOLEAN, def = "false")
 	SHOW_THUMBNAILS, //
 	@Meta(description = "Show a words/images count instead of the author by default in the books view",//
-	format = Format.BOOLEAN, def = "false")
+	hidden = true, format = Format.BOOLEAN, def = "false")
 	SHOW_WORDCOUNT, //
 	//
 	// Deprecated
