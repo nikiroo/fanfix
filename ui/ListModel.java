@@ -251,7 +251,7 @@ public class ListModel<T> extends DefaultListModel6<T> {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" }) // JList<?> not in Java 1.6
 	public ListModel(final JList list, final JPopupMenu popup,
-			TooltipCreator<T> tooltipCreator) {
+			final TooltipCreator<T> tooltipCreator) {
 		this.list = list;
 		this.tooltipCreator = tooltipCreator;
 
@@ -276,14 +276,9 @@ public class ListModel<T> extends DefaultListModel6<T> {
 					fireElementChanged(oldIndex);
 					fireElementChanged(index);
 
-					synchronized (tooltipWatcher) {
-						if (tooltip != null) {
-							tooltip.setVisible(false);
-						}
-						tooltip = null;
-					}
+					if (tooltipCreator != null) {
+						showTooltip(null);
 
-					if (ListModel.this.tooltipCreator != null) {
 						tooltipWatcher.delay("tooltip",
 								new SwingWorker<Void, Void>() {
 									@Override
@@ -294,12 +289,7 @@ public class ListModel<T> extends DefaultListModel6<T> {
 
 									@Override
 									protected void done() {
-										synchronized (tooltipWatcher) {
-											if (tooltip != null) {
-												tooltip.setVisible(false);
-											}
-											tooltip = null;
-										}
+										showTooltip(null);
 
 										if (index < 0
 												|| index != hoveredIndex) {
@@ -311,12 +301,7 @@ public class ListModel<T> extends DefaultListModel6<T> {
 											return;
 										}
 
-										synchronized (tooltipWatcher) {
-											if (tooltip != null) {
-												tooltip.setVisible(false);
-											}
-											tooltip = newTooltip(index, me);
-										}
+										showTooltip(newTooltip(index, me));
 									}
 								});
 					}
@@ -358,12 +343,7 @@ public class ListModel<T> extends DefaultListModel6<T> {
 								list.locationToIndex(e.getPoint()));
 					}
 
-					Window oldTooltip = tooltip;
-					tooltip = null;
-					if (oldTooltip != null) {
-						oldTooltip.setVisible(false);
-					}
-
+					showTooltip(null);
 					popup.show(list, e.getX(), e.getY());
 				}
 			}
@@ -581,9 +561,7 @@ public class ListModel<T> extends DefaultListModel6<T> {
 
 	private Window newTooltip(final int index, final MouseEvent me) {
 		final T value = ListModel.this.get(index);
-
 		final Window newTooltip = tooltipCreator.generateTooltip(value, true);
-
 		if (newTooltip != null) {
 			newTooltip.addMouseListener(new MouseAdapter() {
 				@Override
@@ -595,16 +573,31 @@ public class ListModel<T> extends DefaultListModel6<T> {
 								me.getYOnScreen());
 						promotedTooltip.setVisible(true);
 					}
-					
+
 					newTooltip.setVisible(false);
 				}
 			});
 
 			newTooltip.setLocation(me.getXOnScreen(), me.getYOnScreen());
-			newTooltip.setVisible(true);
+			showTooltip(newTooltip);
 		}
 
 		return newTooltip;
+	}
+
+	private void showTooltip(Window tooltip) {
+		synchronized (tooltipCreator) {
+			if (this.tooltip != null) {
+				this.tooltip.setVisible(false);
+				this.tooltip.dispose();
+			}
+
+			this.tooltip = tooltip;
+
+			if (tooltip != null) {
+				tooltip.setVisible(true);
+			}
+		}
 	}
 
 	/**
