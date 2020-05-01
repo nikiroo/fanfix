@@ -428,8 +428,15 @@ public class RemoteLibraryServer extends ServerObject {
 			if (a.length > (3 + offset)) {
 				meta = a[3 + offset];
 			}
+			
+			String name = null;
+			if (a.length > (4 + offset)) {
+				name = a[4 + offset] == null ? "" : a[4 + offset].toString();
+			}
+			
 
 			if (min >= 0 && min <= max) {
+				pg.setName(name);
 				pg.setMinMax(min, max);
 				pg.setProgress(progress);
 				if (meta != null) {
@@ -463,6 +470,7 @@ public class RemoteLibraryServer extends ServerObject {
 
 		final Integer[] p = new Integer[] { -1, -1, -1 };
 		final Object[] pMeta = new MetaData[1];
+		final String[] pName = new String[1];
 		final Long[] lastTime = new Long[] { new Date().getTime() };
 		pg.addProgressListener(new ProgressListener() {
 			@Override
@@ -483,15 +491,18 @@ public class RemoteLibraryServer extends ServerObject {
 				// Do not re-send the same value twice over the wire,
 				// unless more than 2 seconds have elapsed (to maintain the
 				// connection)
-				if (!samePg || !same(pMeta[0], meta) //
+				if (!samePg || !same(pMeta[0], meta)
+						|| !same(pName[0], name) //
 						|| (new Date().getTime() - lastTime[0] > 2000)) {
 					p[0] = min;
 					p[1] = max;
 					p[2] = rel;
 					pMeta[0] = meta;
+					pName[0] = name;
 
 					try {
-						action.send(new Object[] { "UPDATE", min, max, rel, meta });
+						action.send(new Object[] { "UPDATE", min, max, rel,
+								meta, name });
 						action.rec();
 					} catch (Exception e) {
 						getTraceHandler().error(e);
