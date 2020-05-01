@@ -275,7 +275,7 @@ public class ListModel<T> extends DefaultListModel6<T> {
 					hoveredIndex = index;
 					fireElementChanged(oldIndex);
 					fireElementChanged(index);
-					
+
 					Window oldTooltip = tooltip;
 					tooltip = null;
 					if (oldTooltip != null) {
@@ -295,6 +295,11 @@ public class ListModel<T> extends DefaultListModel6<T> {
 									protected void done() {
 										if (index < 0
 												|| index != hoveredIndex) {
+											return;
+										}
+
+										if (popup != null
+												&& popup.isShowing()) {
 											return;
 										}
 
@@ -338,6 +343,12 @@ public class ListModel<T> extends DefaultListModel6<T> {
 					if (list.getSelectedIndices().length <= 1) {
 						list.setSelectedIndex(
 								list.locationToIndex(e.getPoint()));
+					}
+
+					Window oldTooltip = tooltip;
+					tooltip = null;
+					if (oldTooltip != null) {
+						oldTooltip.setVisible(false);
 					}
 
 					popup.show(list, e.getX(), e.getY());
