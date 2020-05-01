@@ -186,7 +186,7 @@ class E621 extends BasicSupport {
 				}
 				source = new URL(base + "/pools/" + poolNumber);
 			} catch (NumberFormatException e) {
-				// Not a simple ppol, skip
+				// Not a simple pool, skip
 			} catch (MalformedURLException e) {
 				// Cannot happen
 			}
@@ -247,19 +247,19 @@ class E621 extends BasicSupport {
 			title = el.text().trim();
 		}
 
-		for (String s : new String[] { "e621", "-", "e621" }) {
+		for (String s : new String[] { "e621", "-", "e621", "Pool", "-" }) {
 			if (title.startsWith(s)) {
 				title = title.substring(s.length()).trim();
 			}
 			if (title.endsWith(s)) {
 				title = title.substring(0, title.length() - s.length()).trim();
 			}
-
 		}
 
 		if (isSearchOrSet(getSource())) {
 			title = title.isEmpty() ? "e621" : "[e621] " + title;
 		}
+		
 		return title;
 	}
 
