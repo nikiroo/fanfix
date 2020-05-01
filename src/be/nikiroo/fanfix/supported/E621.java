@@ -173,6 +173,25 @@ class E621 extends BasicSupport {
 
 	@Override
 	protected URL getCanonicalUrl(URL source) {
+		// Convert search-pools into proper pools
+		if (source.getPath().equals("/posts") && source.getQuery() != null
+				&& source.getQuery().startsWith("tags=pool%3A")) {
+			String poolNumber = source.getQuery()
+					.substring("tags=pool%3A".length());
+			try {
+				Integer.parseInt(poolNumber);
+				String base = source.getProtocol() + "://" + source.getHost();
+				if (source.getPort() != -1) {
+					base = base + ":" + source.getPort();
+				}
+				source = new URL(base + "/posts/" + poolNumber);
+			} catch (NumberFormatException e) {
+				// Not a simple ppol, skip
+			} catch (MalformedURLException e) {
+				// Cannot happen
+			}
+		}
+		
 		if (isSetOriginalUrl(source)) {
 			try {
 				Document doc = DataUtil.load(Instance.getInstance().getCache().open(source, this, false), "UTF-8", source.toString());
