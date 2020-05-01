@@ -294,18 +294,24 @@ class E621 extends BasicSupport {
 			}
 
 			if (builder.length() == 0) {
-				String url = "https://e621.net/" + getSource().getPath()
-						+ "?page=1";
-				Document page1 = DataUtil.load(Instance.getInstance().getCache()
-						.open(getSource(), this, false), "UTF-8",
-						url.toString());
-				for (Element el : page1.getElementsByClass("search-tag")) {
-					if (el.attr("itemprop").equals("author")) {
-						if (builder.length() > 0) {
-							builder.append(", ");
+				try {
+					String poolNumber = getSource().getPath()
+							.substring("/pools/".length());
+					String url = "https://e621.net/posts" + "?tags=pool%3A"
+							+ poolNumber;
+
+					Document page1 = DataUtil.load(Instance.getInstance()
+							.getCache().open(getSource(), null, false), "UTF-8",
+							url);
+					for (Element el : page1.getElementsByClass("search-tag")) {
+						if (el.attr("itemprop").equals("author")) {
+							if (builder.length() > 0) {
+								builder.append(", ");
+							}
+							builder.append(el.text().trim());
 						}
-						builder.append(el.text().trim());
 					}
+				} catch (Exception e) {
 				}
 			}
 		}
