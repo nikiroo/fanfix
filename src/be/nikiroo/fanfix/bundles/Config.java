@@ -164,4 +164,14 @@ public enum Config {
 	@Meta(description = "The token required to use the beta APIv2 from FimFiction (see APIKEY_CLIENT_* if you want to generate a new one from your own API key)", //
 	format = Format.PASSWORD, def = "Bearer WnZ5oHlzQoDocv1GcgHfcoqctHkSwL-D")
 	LOGIN_FIMFICTION_APIKEY_TOKEN, //
+	
+	@Meta(description = "e621.net credentials\nYou can give your e621.net credentials here to have access to all the comics and ignore the default blacklist",//
+	group = true)
+	LOGIN_E621, //
+	@Meta(description = "Your e621.net login",//
+	format = Format.STRING)
+	LOGIN_E621_LOGIN, //
+	@Meta(description = "Your e621.net API KEY",//
+	format = Format.PASSWORD)
+	LOGIN_E621_APIKEY, //
 }
