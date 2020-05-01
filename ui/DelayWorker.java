@@ -201,7 +201,7 @@ public class DelayWorker {
 	 * @param worker
 	 *            the process to delay
 	 */
-	public void delay(final String id, final SwingWorker worker) {
+	public void delay(String id, SwingWorker worker) {
 		synchronized (lazyEnCoursLock) {
 			lazyEnCours.put(id, worker);
 		}
