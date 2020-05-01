@@ -405,22 +405,38 @@ public class RemoteLibraryServer extends ServerObject {
 	 * @return TRUE if it was a progress event, FALSE if not
 	 */
 	static boolean updateProgress(Progress pg, Object rep) {
-		if (rep instanceof Object[]) {
+		boolean updateProgress = false;
+		if (rep instanceof Integer[] && ((Integer[]) rep).length == 3)
+			updateProgress = true;
+		if (rep instanceof Object[] && ((Object[]) rep).length >= 5
+				&& "UPDATE".equals(((Object[]) rep)[0]))
+			updateProgress = true;
+
+		if (updateProgress) {
 			Object[] a = (Object[]) rep;
-			if (a.length >= 3) {
-				int min = (Integer)a[0];
-				int max = (Integer)a[1];
-				int progress = (Integer)a[2];
 
-				if (min >= 0 && min <= max) {
-					pg.setMinMax(min, max);
-					pg.setProgress(progress);
-					if (a.length >= 4) {
-						pg.put("meta", a[3]);
-					}
+			int offset = 0;
+			if (a[0] instanceof String) {
+				offset = 1;
+			}
 
-					return true;
+			int min = (Integer) a[0 + offset];
+			int max = (Integer) a[1 + offset];
+			int progress = (Integer) a[2 + offset];
+			
+			Object meta = null;
+			if (a.length > (3 + offset)) {
+				meta = a[3 + offset];
+			}
+
+			if (min >= 0 && min <= max) {
+				pg.setMinMax(min, max);
+				pg.setProgress(progress);
+				if (meta != null) {
+					pg.put("meta", meta);
 				}
+
+				return true;
 			}
 		}
 
@@ -475,7 +491,7 @@ public class RemoteLibraryServer extends ServerObject {
 					pMeta[0] = meta;
 
 					try {
-						action.send(new Object[] { min, max, rel, meta });
+						action.send(new Object[] { "UPDATE", min, max, rel, meta });
 						action.rec();
 					} catch (Exception e) {
 						getTraceHandler().error(e);
