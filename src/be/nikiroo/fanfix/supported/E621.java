@@ -184,7 +184,7 @@ class E621 extends BasicSupport {
 				if (source.getPort() != -1) {
 					base = base + ":" + source.getPort();
 				}
-				source = new URL(base + "/posts/" + poolNumber);
+				source = new URL(base + "/pools/" + poolNumber);
 			} catch (NumberFormatException e) {
 				// Not a simple ppol, skip
 			} catch (MalformedURLException e) {
