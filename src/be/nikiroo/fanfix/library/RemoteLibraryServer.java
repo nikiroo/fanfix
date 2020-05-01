@@ -512,12 +512,14 @@ public class RemoteLibraryServer extends ServerObject {
 	}
 	
 	private MetaData removeCover(MetaData meta) {
-		MetaData light;
-		if (meta.getCover() == null) {
-			light = meta;
-		} else {
-			light = meta.clone();
-			light.setCover(null);
+		MetaData light = null;
+		if (meta != null) {
+			if (meta.getCover() == null) {
+				light = meta;
+			} else {
+				light = meta.clone();
+				light.setCover(null);
+			}
 		}
 		
 		return light;
