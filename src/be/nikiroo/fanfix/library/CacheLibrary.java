@@ -67,6 +67,7 @@ public class CacheLibrary extends BasicLibrary {
 			pg = new Progress();
 		}
 
+		List<MetaData> copy;
 		synchronized (metasLock) {
 			// We make sure that cached metas have precedence
 			if (metasMixed == null) {
@@ -86,10 +87,12 @@ public class CacheLibrary extends BasicLibrary {
 					}
 				}
 			}
+
+			copy = new ArrayList<MetaData>(metasMixed);
 		}
 
 		pg.done();
-		return new ArrayList<MetaData>(metasMixed);
+		return copy;
 	}
 
 	@Override
@@ -404,9 +407,7 @@ public class CacheLibrary extends BasicLibrary {
 
 		MetaData meta = lib.imprt(url, pgImprt);
 		updateMetaCache(metasReal, meta);
-		synchronized (metasLock) {
-			metasMixed = null;
-		}
+		metasMixed = null;
 
 		clearFromCache(meta.getLuid());
 
