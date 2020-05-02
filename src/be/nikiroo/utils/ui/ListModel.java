@@ -34,6 +34,9 @@ import be.nikiroo.utils.compat.ListCellRenderer6;
 public class ListModel<T> extends DefaultListModel6<T> {
 	private static final long serialVersionUID = 1L;
 
+	/** How long to wait before displaying a tooltip, in milliseconds. */
+	private static final int DELAY_TOOLTIP_MS = 1000;
+
 	/**
 	 * A filter interface, to check for a condition (note that a Predicate class
 	 * already exists in Java 1.8+, and is compatible with this one if you
@@ -248,13 +251,13 @@ public class ListModel<T> extends DefaultListModel6<T> {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" }) // JList<?> not in Java 1.6
 	public ListModel(final JList list, final JPopupMenu popup,
-			TooltipCreator<T> tooltipCreator) {
+			final TooltipCreator<T> tooltipCreator) {
 		this.list = list;
 		this.tooltipCreator = tooltipCreator;
 
 		list.setModel(this);
 
-		final DelayWorker tooltipWatcher = new DelayWorker(500);
+		final DelayWorker tooltipWatcher = new DelayWorker(DELAY_TOOLTIP_MS);
 		if (tooltipCreator != null) {
 			tooltipWatcher.start();
 		}
@@ -273,7 +276,9 @@ public class ListModel<T> extends DefaultListModel6<T> {
 					fireElementChanged(oldIndex);
 					fireElementChanged(index);
 
-					if (ListModel.this.tooltipCreator != null) {
+					if (tooltipCreator != null) {
+						showTooltip(null);
+
 						tooltipWatcher.delay("tooltip",
 								new SwingWorker<Void, Void>() {
 									@Override
@@ -284,18 +289,19 @@ public class ListModel<T> extends DefaultListModel6<T> {
 
 									@Override
 									protected void done() {
-										Window oldTooltip = tooltip;
-										tooltip = null;
-										if (oldTooltip != null) {
-											oldTooltip.setVisible(false);
-										}
+										showTooltip(null);
 
 										if (index < 0
 												|| index != hoveredIndex) {
 											return;
 										}
 
-										tooltip = newTooltip(index, me);
+										if (popup != null
+												&& popup.isShowing()) {
+											return;
+										}
+
+										showTooltip(newTooltip(index, me));
 									}
 								});
 					}
@@ -337,6 +343,7 @@ public class ListModel<T> extends DefaultListModel6<T> {
 								list.locationToIndex(e.getPoint()));
 					}
 
+					showTooltip(null);
 					popup.show(list, e.getX(), e.getY());
 				}
 			}
@@ -554,27 +561,43 @@ public class ListModel<T> extends DefaultListModel6<T> {
 
 	private Window newTooltip(final int index, final MouseEvent me) {
 		final T value = ListModel.this.get(index);
-
 		final Window newTooltip = tooltipCreator.generateTooltip(value, true);
-
 		if (newTooltip != null) {
 			newTooltip.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
-
 					Window promotedTooltip = tooltipCreator
 							.generateTooltip(value, false);
-					promotedTooltip.setLocation(newTooltip.getLocation());
+					if (promotedTooltip != null) {
+						promotedTooltip.setLocation(me.getXOnScreen(),
+								me.getYOnScreen());
+						promotedTooltip.setVisible(true);
+					}
+
 					newTooltip.setVisible(false);
-					promotedTooltip.setVisible(true);
 				}
 			});
-			newTooltip.setLocation(me.getXOnScreen(), me.getYOnScreen());
 
-			newTooltip.setVisible(true);
+			newTooltip.setLocation(me.getXOnScreen(), me.getYOnScreen());
+			showTooltip(newTooltip);
 		}
 
 		return newTooltip;
+	}
+
+	private void showTooltip(Window tooltip) {
+		synchronized (tooltipCreator) {
+			if (this.tooltip != null) {
+				this.tooltip.setVisible(false);
+				this.tooltip.dispose();
+			}
+
+			this.tooltip = tooltip;
+
+			if (tooltip != null) {
+				tooltip.setVisible(true);
+			}
+		}
 	}
 
 	/**
