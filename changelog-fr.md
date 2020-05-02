@@ -2,7 +2,10 @@
 
 # Version WIP
 
+- fix: date de publication/création formatée
 - e621: correction sur l'ordre, encore
+- e621: possibilité d'utiliser un Login/API key pour éviter les blacklists
+- e621: meilleures meta-data
 
 # Version 3.1.1
 

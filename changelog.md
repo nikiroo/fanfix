@@ -2,7 +2,10 @@
 
 # Version WIP
 
+- fix: publication/creation date formated 
 - e621: fix order again
+- e621: option to use a Login/API key to evade blacklists
+- e621: better metadata
 
 # Version 3.1.1
 
