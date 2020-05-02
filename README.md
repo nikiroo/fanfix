@@ -73,12 +73,12 @@ If you have any problems to compile it with a supported Java version (1.6+), ple
 
 ## Options
 
-You can start the program in GUI mode (as in the screenshot on top):
+You can start the program in two ways:
 
 - ```java -jar fanfix.jar```
 - ```fanfix``` (if you used *make install*)
 
-The following arguments are also allowed:
+The following arguments are allowed:
 
 - ```--import [URL]```: import the story at URL into the local library
 - ```--export [id] [output_type] [target]```: export the story denoted by ID to the target file
