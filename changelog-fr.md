@@ -1,6 +1,6 @@
 # Fanfix
 
-# Version WIP
+# Version 3.1.2
 
 - fix: date de publication/création formatée
 - e621: correction sur l'ordre, encore
