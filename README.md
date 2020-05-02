@@ -1,7 +1,10 @@
 English [Français](README-fr.md)
 
 # Fanfix
+
 Fanfix is a small Java program that can download stories from some supported websites and render them offline.
+
+## This is the command line and server program -- the graphical client can be found [here](https://github.com/nikiroo/fanfix-swing/)
 
 ## Synopsis
 
@@ -15,7 +18,6 @@ Fanfix is a small Java program that can download stories from some supported web
 - ```fanfix``` --search-tag
 - ```fanfix``` --search-tag [*index 1*]... (page [*page*]) (item [*item*])
 - ```fanfix``` --list
-- ```fanfix``` --set-reader [*GUI* | *TUI* | *CLI*]
 - ```fanfix``` --server [*key*] [*port*]
 - ```fanfix``` --stop-server [*key*] [*port*]
 - ```fanfix``` --remote [*key*] [*host*] [*port*]
@@ -25,20 +27,14 @@ Fanfix is a small Java program that can download stories from some supported web
 
 (If you are interested in the recent changes, please check the [Changelog](changelog.md) -- note that starting from version 1.4.0, the changelog is checked at startup.)
 
-(A [TODO list](TODO.md) is also available to know what is expected to come in the future.)
-
-![Main GUI](screenshots/fanfix-1.3.2.png?raw=true "Main GUI")
-
-A screenshots cgallery an be found [here](screenshots/README.md).
-
-It will convert from a (supported) URL to an .epub file for stories or a .cbz file for comics (a few other output types are also available, like Plain Text, LaTeX, HTML...).
+This program will convert from a (supported) URL to an .epub file for stories or a .cbz file for comics (a few other output types are also available, like Plain Text, LaTeX, HTML...).
 
 To help organize your stories, it can also work as a local library so you can:
 
 - Import a story from its URL (or just from a file)
 - Export a story to a file (in any of the supported output types)
 - Display a story from the local library in text format in the console
-- Display a story from the local library graphically **natively** or **by calling a native program to handle it** (potentially converted into HTML before hand, so any browser can open it)
+- Via [fanfix-swing](https://github.com/nikiroo/fanfix-swing/): Display a story from the local library graphically **by itself** ([fanfix-swing](https://github.com/nikiroo/fanfix-swing/)) or **by calling a native program to handle it** (potentially converted into HTML before hand, so any browser can open it)
 
 ### Supported websites
 
@@ -94,7 +90,6 @@ The following arguments are also allowed:
 - ```--tag [where]```: list all the tags supported by this website
 - ```--tag [index 1]... (page [page]) (item [item])```: search for the given stories or subtags, tag by tag, and display information about a specific page of results or about a specific item if requested
 - ```--list```: list the stories present in the library and their associated IDs
-- ```--set-reader [reader type]```: set the reader type to CLI, TUI or GUI for this command
 - ```--server [key] [port]```: start a story server on this port
 - ```--stop-server [key] [port]```: stop the remote server running on this port (key must be set to the same value)
 - ```--remote [key] [host] [port]```: contact this server instead of the usual library (key must be set to the same value)

@@ -1,6 +1,7 @@
 [English](README.md) Français
 
 # Fanfix
+
 Fanfix est un petit programme Java qui peut télécharger des histoires sur internet et les afficher hors ligne.
 
 ## Synopsis
@@ -15,7 +16,6 @@ Fanfix est un petit programme Java qui peut télécharger des histoires sur inte
 - ```fanfix``` --search-tag
 - ```fanfix``` --search-tag [*index 1*]... (page [*page*]) (item [*item*])
 - ```fanfix``` --list
-- ```fanfix``` --set-reader [*GUI* | *TUI* | *CLI*]
 - ```fanfix``` --server [*key*] [*port*]
 - ```fanfix``` --stop-server [*key*] [*port*]
 - ```fanfix``` --remote [*key*] [*host*] [*port*]
@@ -38,7 +38,7 @@ Pour vous aider à organiser vos histoires, il peut aussi servir de bibliothèqu
 - d'importer une histoire depuis son URL (ou depuis un fichier)
 - d'exporter une histoire dans un des formats supportés vers un fichier
 - d'afficher une histoire en mode texte
-- d'afficher une histoire en mode GUI **nativement** ou **en appelant un programme natif pour lire le fichier** (potentiellement converti en HTML avant, pour que n'importe quel navigateur web puisse l'afficher)
+- via [fanfix-swing](https://github.com/nikiroo/fanfix-swing/): d'afficher une histoire en mode GUI **lui-même** ([fanfix-swing](https://github.com/nikiroo/fanfix-swing/)) ou **en appelant un programme natif pour lire le fichier** (potentiellement converti en HTML avant, pour que n'importe quel navigateur web puisse l'afficher)
 
 ### Sites supportés
 
@@ -94,7 +94,6 @@ Les arguments suivants sont aussi supportés :
 - ```--tag [where]```: liste tous les tags supportés par ce site web
 - ```--tag [index 1]... (page [page]) (item [item])```: affine la recherche, tag par tag, et affiche si besoin les sous-tags, les histoires ou les infos précises de l'histoire demandée
 - ```--list```: lister les histoires presentes dans la librairie et leurs IDs
-- ```--set-reader [reader type]```: changer le type de lecteur pour la commande en cours sur CLI, TUI ou GUI
 - ```--server [key] [port]```: démarrer un serveur d'histoires sur ce port
 - ```--stop-server [key] [port]```: arrêter le serveur distant sur ce port (key doit avoir la même valeur)
 - ```--remote [key] [host] [port]```: contacter ce server au lieu de la librairie habituelle (key doit avoir la même valeur)
