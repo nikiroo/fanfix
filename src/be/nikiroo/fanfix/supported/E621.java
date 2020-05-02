@@ -61,7 +61,7 @@ class E621 extends BasicSupport {
 
 		meta.setTitle(getTitle());
 		meta.setAuthor(getAuthor());
-		meta.setDate(getDate());
+		meta.setDate(bsHelper.formatDate(getDate()));
 		meta.setTags(getTags());
 		meta.setSource(getType().getSourceName());
 		meta.setUrl(getSource().toString());
@@ -180,6 +180,9 @@ class E621 extends BasicSupport {
 				// Can be NULL if filtered
 				// When the value is NULL, we get an exception
 				// but the "has" method still returns true
+				Instance.getInstance().getTraceHandler()
+						.error("Cannot get image for chapter " + number + " of "
+								+ getSource());
 			}
 		}
 

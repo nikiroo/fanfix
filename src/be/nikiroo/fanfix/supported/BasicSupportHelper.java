@@ -5,10 +5,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
 import be.nikiroo.utils.Image;
+import be.nikiroo.utils.StringUtils;
 
 /**
  * Helper class for {@link BasicSupport}, mostly dedicated to text formating for
@@ -219,5 +223,59 @@ public class BasicSupportHelper {
 		}
 
 		return author;
+	}
+	
+	/**
+	 * Try to convert the date to a known, fixed format.
+	 * <p>
+	 * If it fails to do so, it will return the date as-is.
+	 * 
+	 * @param date
+	 *            the date to convert
+	 * 
+	 * @return the converted date, or the date as-is
+	 */
+	public String formatDate(String date) {
+		long ms = 0;
+
+		if (date != null && !date.isEmpty()) {
+			// Default Fanfix format:
+			try {
+				ms = StringUtils.toTime(date);
+			} catch (ParseException e) {
+			}
+
+			// Second chance:
+			if (ms <= 0) {
+				SimpleDateFormat sdf = new SimpleDateFormat(
+						"yyyy-MM-dd'T'HH:mm:ssSSS");
+				try {
+					ms = sdf.parse(date).getTime();
+				} catch (ParseException e) {
+				}
+			}
+
+			// Last chance:
+			if (ms <= 0 && date.length() >= 10) {
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				try {
+					ms = sdf.parse(date.substring(0, 10)).getTime();
+				} catch (ParseException e) {
+				}
+			}
+
+			// If we found something, use THIS format:
+			if (ms > 0) {
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+				return sdf.format(new Date(ms));
+			}
+		}
+
+		if (date == null) {
+			date = "";
+		}
+
+		// :(
+		return date;
 	}
 }
