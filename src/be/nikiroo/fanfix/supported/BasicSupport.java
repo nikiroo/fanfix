@@ -2,14 +2,17 @@ package be.nikiroo.fanfix.supported;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Map.Entry;
 
+import org.json.JSONObject;
 import org.jsoup.helper.DataUtil;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -269,10 +272,13 @@ public abstract class BasicSupport {
 
 		Story story = new Story();
 		MetaData meta = getMeta();
-		if (meta.getCreationDate() == null || meta.getCreationDate().isEmpty()) {
-			meta.setCreationDate(StringUtils.fromTime(new Date().getTime()));
+		if (meta.getCreationDate() == null
+				|| meta.getCreationDate().trim().isEmpty()) {
+			meta.setCreationDate(bsHelper
+					.formatDate(StringUtils.fromTime(new Date().getTime())));
 		}
 		story.setMeta(meta);
+		pg.put("meta", meta);
 
 		pg.setProgress(50);
 
@@ -290,6 +296,63 @@ public abstract class BasicSupport {
 
 		pg.done();
 		return story;
+	}
+
+	/**
+	 * Utility method to convert the given URL into a JSON object.
+	 * <p>
+	 * Note that this method expects small JSON files (everything is copied into
+	 * memory at least twice).
+	 * 
+	 * @param url
+	 *            the URL to parse
+	 * @param stable
+	 *            TRUE for more stable resources, FALSE when they often change
+	 * 
+	 * @return the JSON object
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	protected JSONObject getJson(String url, boolean stable)
+			throws IOException {
+		try {
+			return getJson(new URL(url), stable);
+		} catch (MalformedURLException e) {
+			throw new IOException("Malformed URL: " + url, e);
+		}
+	}
+
+	/**
+	 * Utility method to convert the given URL into a JSON object.
+	 * <p>
+	 * Note that this method expects small JSON files (everything is copied into
+	 * memory at least twice).
+	 * 
+	 * @param url
+	 *            the URL to parse
+	 * @param stable
+	 *            TRUE for more stable resources, FALSE when they often change
+	 * 
+	 * @return the JSON object
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	protected JSONObject getJson(URL url, boolean stable) throws IOException {
+		InputStream in = Instance.getInstance().getCache().open(url, null,
+				stable);
+		try {
+			Scanner scan = new Scanner(in);
+			scan.useDelimiter("\0");
+			try {
+				return new JSONObject(scan.next());
+			} finally {
+				scan.close();
+			}
+		} finally {
+			in.close();
+		}
 	}
 
 	/**
@@ -336,14 +399,15 @@ public abstract class BasicSupport {
 		} else {
 			pg.setMinMax(0, 100);
 		}
+		
+		pg.setName("Initialising");
 
 		pg.setProgress(1);
 		Progress pgMeta = new Progress();
 		pg.addProgress(pgMeta, 10);
 		Story story = processMeta(true, pgMeta);
 		pgMeta.done(); // 10%
-
-		pg.setName("Retrieving " + story.getMeta().getTitle());
+		pg.put("meta", story.getMeta());
 
 		Progress pgGetChapters = new Progress();
 		pg.addProgress(pgGetChapters, 10);

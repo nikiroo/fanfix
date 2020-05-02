@@ -390,12 +390,14 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 			return 1;
 		}
 
-		String id = (getUuid() == null ? "" : getUuid())
+		String id = (getTitle() == null ? "" : getTitle())
+				+ (getUuid() == null ? "" : getUuid())
 				+ (getLuid() == null ? "" : getLuid());
-		String oId = (getUuid() == null ? "" : o.getUuid())
+		String oId = (getTitle() == null ? "" : o.getTitle())
+				+ (getUuid() == null ? "" : o.getUuid())
 				+ (o.getLuid() == null ? "" : o.getLuid());
 
-		return id.compareTo(oId);
+		return id.compareToIgnoreCase(oId);
 	}
 
 	@Override

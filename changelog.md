@@ -1,5 +1,18 @@
 # Fanfix
 
+# Version 3.1.2
+
+- fix: publication/creation date formated 
+- e621: fix order again
+- e621: option to use a Login/API key to evade blacklists
+- e621: better metadata
+
+# Version 3.1.1
+
+- e621: fix chapters in reverse order for pools
+- fix: sort the stories by title and not by date
+- fix: expose the story name on progress bars
+
 # Version 3.1.0
 
 - MangaHub: a manga website (English)

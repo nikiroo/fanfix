@@ -98,7 +98,7 @@ abstract public class BasicLibrary {
 	 * Do <b>NOT</b> alter this file.
 	 * 
 	 * @param luid
-	 *            the Library UID of the story
+	 *            the Library UID of the story, can be NULL
 	 * @param pg
 	 *            the optional {@link Progress}
 	 * 
@@ -123,12 +123,12 @@ abstract public class BasicLibrary {
 	public abstract Image getCover(String luid) throws IOException;
 
 	// TODO: ensure it is the main used interface
-	public synchronized MetaResultList getList(Progress pg) throws IOException {
+	public MetaResultList getList(Progress pg) throws IOException {
 		return new MetaResultList(getMetas(pg));
 	}
-	
-	//TODO: make something for (normal and custom) not-story covers
-	
+
+	// TODO: make something for (normal and custom) not-story covers
+
 	/**
 	 * Return the cover image associated to this source.
 	 * <p>
@@ -338,28 +338,28 @@ abstract public class BasicLibrary {
 	 * @param pg
 	 *            the optional progress reporter
 	 */
-	public synchronized void refresh(Progress pg) {
+	public void refresh(Progress pg) {
 		try {
 			getMetas(pg);
 		} catch (IOException e) {
 			// We will let it fail later
 		}
 	}
-	
+
 	/**
 	 * Check if the {@link Story} denoted by this Library UID is present in the
-	 * cache (if we have no cache, we default to </t>true</tt>).
+	 * cache (if we have no cache, we default to </tt>true</tt>).
 	 * 
 	 * @param luid
 	 *            the Library UID
 	 * 
 	 * @return TRUE if it is
 	 */
-	public boolean isCached(String luid) {
+	public boolean isCached(@SuppressWarnings("unused") String luid) {
 		// By default, everything is cached
 		return true;
 	}
-	
+
 	/**
 	 * Clear the {@link Story} from the cache, if needed.
 	 * <p>
@@ -372,219 +372,44 @@ abstract public class BasicLibrary {
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
+	@SuppressWarnings("unused")
 	public void clearFromCache(String luid) throws IOException {
 		// By default, this is a noop.
 	}
 
 	/**
-	 * List all the known types (sources) of stories.
-	 * 
-	 * @return the sources
-	 * 
-	 * @throws IOException
-	 *             in case of IOException
+	 * @deprecated please use {@link BasicLibrary#getList()} and
+	 *             {@link MetaResultList#getSources()} instead.
 	 */
-	public synchronized List<String> getSources() throws IOException {
-		List<String> list = new ArrayList<String>();
-		for (MetaData meta : getMetas(null)) {
-			String storySource = meta.getSource();
-			if (!list.contains(storySource)) {
-				list.add(storySource);
-			}
-		}
-
-		Collections.sort(list);
-		return list;
+	@Deprecated
+	public List<String> getSources() throws IOException {
+		return getList().getSources();
 	}
 
 	/**
-	 * List all the known types (sources) of stories, grouped by directory
-	 * ("Source_1/a" and "Source_1/b" will be grouped into "Source_1").
-	 * <p>
-	 * Note that an empty item in the list means a non-grouped source (type) --
-	 * e.g., you could have for Source_1:
-	 * <ul>
-	 * <li><tt></tt>: empty, so source is "Source_1"</li>
-	 * <li><tt>a</tt>: empty, so source is "Source_1/a"</li>
-	 * <li><tt>b</tt>: empty, so source is "Source_1/b"</li>
-	 * </ul>
-	 * 
-	 * @return the grouped list
-	 * 
-	 * @throws IOException
-	 *             in case of IOException
+	 * @deprecated please use {@link BasicLibrary#getList()} and
+	 *             {@link MetaResultList#getSourcesGrouped()} instead.
 	 */
-	public synchronized Map<String, List<String>> getSourcesGrouped()
-			throws IOException {
-		Map<String, List<String>> map = new TreeMap<String, List<String>>();
-		for (String source : getSources()) {
-			String name;
-			String subname;
-
-			int pos = source.indexOf('/');
-			if (pos > 0 && pos < source.length() - 1) {
-				name = source.substring(0, pos);
-				subname = source.substring(pos + 1);
-
-			} else {
-				name = source;
-				subname = "";
-			}
-
-			List<String> list = map.get(name);
-			if (list == null) {
-				list = new ArrayList<String>();
-				map.put(name, list);
-			}
-			list.add(subname);
-		}
-
-		return map;
+	@Deprecated
+	public Map<String, List<String>> getSourcesGrouped() throws IOException {
+		return getList().getSourcesGrouped();
 	}
 
 	/**
-	 * List all the known authors of stories.
-	 * 
-	 * @return the authors
-	 * 
-	 * @throws IOException
-	 *             in case of IOException
+	 * @deprecated please use {@link BasicLibrary#getList()} and
+	 *             {@link MetaResultList#getAuthors()} instead.
 	 */
-	public synchronized List<String> getAuthors() throws IOException {
-		List<String> list = new ArrayList<String>();
-		for (MetaData meta : getMetas(null)) {
-			String storyAuthor = meta.getAuthor();
-			if (!list.contains(storyAuthor)) {
-				list.add(storyAuthor);
-			}
-		}
-
-		Collections.sort(list);
-		return list;
+	@Deprecated
+	public List<String> getAuthors() throws IOException {
+		return getList().getAuthors();
 	}
 
 	/**
-	 * Return the list of authors, grouped by starting letter(s) if needed.
-	 * <p>
-	 * If the number of author is not too high, only one group with an empty
-	 * name and all the authors will be returned.
-	 * <p>
-	 * If not, the authors will be separated into groups:
-	 * <ul>
-	 * <li><tt>*</tt>: any author whose name doesn't contain letters nor numbers
-	 * </li>
-	 * <li><tt>0-9</tt>: any authors whose name starts with a number</li>
-	 * <li><tt>A-C</tt> (for instance): any author whose name starts with
-	 * <tt>A</tt>, <tt>B</tt> or <tt>C</tt></li>
-	 * </ul>
-	 * Note that the letters used in the groups can vary (except <tt>*</tt> and
-	 * <tt>0-9</tt>, which may only be present or not).
-	 * 
-	 * @return the authors' names, grouped by letter(s)
-	 * 
-	 * @throws IOException
-	 *             in case of IOException
+	 * @deprecated please use {@link BasicLibrary#getList()} and
+	 *             {@link MetaResultList#getAuthorsGrouped()} instead.
 	 */
 	public Map<String, List<String>> getAuthorsGrouped() throws IOException {
-		int MAX = 20;
-
-		Map<String, List<String>> groups = new TreeMap<String, List<String>>();
-		List<String> authors = getAuthors();
-
-		// If all authors fit the max, just report them as is
-		if (authors.size() <= MAX) {
-			groups.put("", authors);
-			return groups;
-		}
-
-		// Create groups A to Z, which can be empty here
-		for (char car = 'A'; car <= 'Z'; car++) {
-			groups.put(Character.toString(car), getAuthorsGroup(authors, car));
-		}
-
-		// Collapse them
-		List<String> keys = new ArrayList<String>(groups.keySet());
-		for (int i = 0; i + 1 < keys.size(); i++) {
-			String keyNow = keys.get(i);
-			String keyNext = keys.get(i + 1);
-
-			List<String> now = groups.get(keyNow);
-			List<String> next = groups.get(keyNext);
-
-			int currentTotal = now.size() + next.size();
-			if (currentTotal <= MAX) {
-				String key = keyNow.charAt(0) + "-"
-						+ keyNext.charAt(keyNext.length() - 1);
-
-				List<String> all = new ArrayList<String>();
-				all.addAll(now);
-				all.addAll(next);
-
-				groups.remove(keyNow);
-				groups.remove(keyNext);
-				groups.put(key, all);
-
-				keys.set(i, key); // set the new key instead of key(i)
-				keys.remove(i + 1); // remove the next, consumed key
-				i--; // restart at key(i)
-			}
-		}
-
-		// Add "special" groups
-		groups.put("*", getAuthorsGroup(authors, '*'));
-		groups.put("0-9", getAuthorsGroup(authors, '0'));
-
-		// Prune empty groups
-		keys = new ArrayList<String>(groups.keySet());
-		for (String key : keys) {
-			if (groups.get(key).isEmpty()) {
-				groups.remove(key);
-			}
-		}
-
-		return groups;
-	}
-
-	/**
-	 * Get all the authors that start with the given character:
-	 * <ul>
-	 * <li><tt>*</tt>: any author whose name doesn't contain letters nor numbers
-	 * </li>
-	 * <li><tt>0</tt>: any authors whose name starts with a number</li>
-	 * <li><tt>A</tt> (any capital latin letter): any author whose name starts
-	 * with <tt>A</tt></li>
-	 * </ul>
-	 * 
-	 * @param authors
-	 *            the full list of authors
-	 * @param car
-	 *            the starting character, <tt>*</tt>, <tt>0</tt> or a capital
-	 *            letter
-	 * 
-	 * @return the authors that fulfil the starting letter
-	 */
-	private List<String> getAuthorsGroup(List<String> authors, char car) {
-		List<String> accepted = new ArrayList<String>();
-		for (String author : authors) {
-			char first = '*';
-			for (int i = 0; first == '*' && i < author.length(); i++) {
-				String san = StringUtils.sanitize(author, true, true);
-				char c = san.charAt(i);
-				if (c >= '0' && c <= '9') {
-					first = '0';
-				} else if (c >= 'a' && c <= 'z') {
-					first = (char) (c - 'a' + 'A');
-				} else if (c >= 'A' && c <= 'Z') {
-					first = c;
-				}
-			}
-
-			if (first == car) {
-				accepted.add(author);
-			}
-		}
-
-		return accepted;
+		return getList().getAuthorsGrouped();
 	}
 
 	/**
@@ -606,14 +431,14 @@ abstract public class BasicLibrary {
 	 * cover image <b>MAY</b> not be included.
 	 * 
 	 * @param luid
-	 *            the Library UID of the story
+	 *            the Library UID of the story, can be NULL
 	 * 
-	 * @return the corresponding {@link Story}
+	 * @return the corresponding {@link Story} or NULL if not found
 	 * 
 	 * @throws IOException
 	 *             in case of IOException
 	 */
-	public synchronized MetaData getInfo(String luid) throws IOException {
+	public MetaData getInfo(String luid) throws IOException {
 		if (luid != null) {
 			for (MetaData meta : getMetas(null)) {
 				if (luid.equals(meta.getLuid())) {
@@ -638,8 +463,7 @@ abstract public class BasicLibrary {
 	 * @throws IOException
 	 *             in case of IOException
 	 */
-	public synchronized Story getStory(String luid, Progress pg)
-			throws IOException {
+	public Story getStory(String luid, Progress pg) throws IOException {
 		Progress pgMetas = new Progress();
 		Progress pgStory = new Progress();
 		if (pg != null) {
@@ -668,6 +492,8 @@ abstract public class BasicLibrary {
 	 * Retrieve a specific {@link Story}.
 	 * 
 	 * @param luid
+	 *            the LUID of the story
+	 * @param meta
 	 *            the meta of the story
 	 * @param pg
 	 *            the optional progress reporter
@@ -677,8 +503,7 @@ abstract public class BasicLibrary {
 	 * @throws IOException
 	 *             in case of IOException
 	 */
-	public synchronized Story getStory(String luid,
-			@SuppressWarnings("javadoc") MetaData meta, Progress pg)
+	public synchronized Story getStory(String luid, MetaData meta, Progress pg)
 			throws IOException {
 
 		if (pg == null) {
@@ -693,12 +518,21 @@ abstract public class BasicLibrary {
 		pg.addProgress(pgProcess, 1);
 
 		Story story = null;
-		File file = getFile(luid, pgGet);
+		File file = null;
+
+		if (luid != null && meta != null) {
+			file = getFile(luid, pgGet);
+		}
+
 		pgGet.done();
 		try {
-			SupportType type = SupportType.valueOfAllOkUC(meta.getType());
-			URL url = file.toURI().toURL();
-			if (type != null) {
+			if (file != null) {
+				SupportType type = SupportType.valueOfAllOkUC(meta.getType());
+				if (type == null) {
+					throw new IOException("Unknown type: " + meta.getType());
+				}
+
+				URL url = file.toURI().toURL();
 				story = BasicSupport.getSupport(type, url) //
 						.process(pgProcess);
 
@@ -706,15 +540,13 @@ abstract public class BasicLibrary {
 				meta.setCover(story.getMeta().getCover());
 				meta.setResume(story.getMeta().getResume());
 				story.setMeta(meta);
-				//
-			} else {
-				throw new IOException("Unknown type: " + meta.getType());
 			}
 		} catch (IOException e) {
-			// We should not have not-supported files in the
-			// library
-			Instance.getInstance().getTraceHandler().error(new IOException(
-					String.format("Cannot load file of type '%s' from library: %s", meta.getType(), file), e));
+			// We should not have not-supported files in the library
+			Instance.getInstance().getTraceHandler()
+					.error(new IOException(String.format(
+							"Cannot load file of type '%s' from library: %s",
+							meta.getType(), file), e));
 		} finally {
 			pgProcess.done();
 			pg.done();
@@ -872,12 +704,18 @@ abstract public class BasicLibrary {
 	 */
 	public synchronized Story save(Story story, String luid, Progress pg)
 			throws IOException {
+		if (pg == null) {
+			pg = new Progress();
+		}
 
-		Instance.getInstance().getTraceHandler().trace(this.getClass().getSimpleName() + ": saving story " + luid);
+		Instance.getInstance().getTraceHandler().trace(
+				this.getClass().getSimpleName() + ": saving story " + luid);
 
 		// Do not change the original metadata, but change the original story
 		MetaData meta = story.getMeta().clone();
 		story.setMeta(meta);
+
+		pg.setName("Saving story");
 
 		if (luid == null || luid.isEmpty()) {
 			meta.setLuid(String.format("%03d", getNextId()));
@@ -894,8 +732,11 @@ abstract public class BasicLibrary {
 		updateInfo(story.getMeta());
 
 		Instance.getInstance().getTraceHandler()
-				.trace(this.getClass().getSimpleName() + ": story saved (" + luid + ")");
+				.trace(this.getClass().getSimpleName() + ": story saved ("
+						+ luid + ")");
 
+		pg.setName(meta.getTitle());
+		pg.done();
 		return story;
 	}
 
@@ -909,14 +750,15 @@ abstract public class BasicLibrary {
 	 *             in case of I/O error
 	 */
 	public synchronized void delete(String luid) throws IOException {
-		Instance.getInstance().getTraceHandler().trace(this.getClass().getSimpleName() + ": deleting story " + luid);
+		Instance.getInstance().getTraceHandler().trace(
+				this.getClass().getSimpleName() + ": deleting story " + luid);
 
 		doDelete(luid);
 		invalidateInfo(luid);
 
 		Instance.getInstance().getTraceHandler()
-				.trace(this.getClass().getSimpleName() + ": story deleted (" + luid
-						+ ")");
+				.trace(this.getClass().getSimpleName() + ": story deleted ("
+						+ luid + ")");
 	}
 
 	/**

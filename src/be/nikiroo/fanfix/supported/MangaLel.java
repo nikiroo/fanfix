@@ -32,7 +32,7 @@ class MangaLel extends BasicSupport {
 
 		meta.setTitle(getTitle());
 		meta.setAuthor(getAuthor());
-		meta.setDate(getDate());
+		meta.setDate(bsHelper.formatDate(getDate()));
 		meta.setTags(getTags());
 		meta.setSource(getType().getSourceName());
 		meta.setUrl(getSource().toString());
@@ -99,15 +99,6 @@ class MangaLel extends BasicSupport {
 				if (els.size() >= 3) {
 					value = StringUtils.unhtml(els.get(2).text()).trim();
 				}
-			}
-		}
-
-		if (!value.isEmpty()) {
-			try {
-				long time = StringUtils.toTime(value);
-				value = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-						.format(time);
-			} catch (ParseException e) {
 			}
 		}
 

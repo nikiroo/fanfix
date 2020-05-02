@@ -205,10 +205,12 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 			Story story = new Story();
 			MetaData meta = getMeta(url, getInput());
 			if (meta.getCreationDate() == null
-					|| meta.getCreationDate().isEmpty()) {
-				meta.setCreationDate(StringUtils.fromTime(new Date().getTime()));
+					|| meta.getCreationDate().trim().isEmpty()) {
+				meta.setCreationDate(bsHelper.formatDate(
+						StringUtils.fromTime(new Date().getTime())));
 			}
 			story.setMeta(meta);
+			pg.put("meta", meta);
 
 			pg.setProgress(50);
 
@@ -263,11 +265,10 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 			Progress pgMeta = new Progress();
 			pg.addProgress(pgMeta, 10);
 			Story story = processMeta(url, false, true, pgMeta);
+			pg.put("meta", story.getMeta());
 			if (!pgMeta.isDone()) {
 				pgMeta.setProgress(pgMeta.getMax()); // 10%
 			}
-
-			pg.setName("Retrieving " + story.getMeta().getTitle());
 
 			setCurrentReferer(url);
 

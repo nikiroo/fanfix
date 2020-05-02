@@ -31,7 +31,26 @@ public enum UiConfig {
 	@Meta(description = "The external viewer for non-images documents (or empty to use the system default program for the given file type)",//
 	format = Format.STRING)
 	NON_IMAGES_DOCUMENT_READER, //
+	//
+	// GUI settings (hidden in config)
+	//
+	@Meta(description = "Show the side panel by default",//
+	hidden = true, format = Format.BOOLEAN, def = "true")
+	SHOW_SIDE_PANEL, //
+	@Meta(description = "Show the details panel by default",//
+	hidden = true, format = Format.BOOLEAN, def = "true")
+	SHOW_DETAILS_PANEL, //
+	@Meta(description = "Show thumbnails by default in the books view",//
+	hidden = true, format = Format.BOOLEAN, def = "false")
+	SHOW_THUMBNAILS, //
+	@Meta(description = "Show a words/images count instead of the author by default in the books view",//
+	hidden = true, format = Format.BOOLEAN, def = "false")
+	SHOW_WORDCOUNT, //
+	//
+	// Deprecated
+	//
 	@Meta(description = "The background colour of the library if you don't like the default system one",//
-	format = Format.COLOR)
+	hidden = true, format = Format.COLOR)
+	@Deprecated
 	BACKGROUND_COLOR, //
 }

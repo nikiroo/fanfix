@@ -202,15 +202,7 @@ public class RemoteLibraryServer extends ServerObject {
 				Progress pg = createPgForwarder(action);
 
 				for (MetaData meta : Instance.getInstance().getLibrary().getMetas(pg)) {
-					MetaData light;
-					if (meta.getCover() == null) {
-						light = meta;
-					} else {
-						light = meta.clone();
-						light.setCover(null);
-					}
-
-					metas.add(light);
+					metas.add(removeCover(meta));
 				}
 
 				forcePgDoneSent(pg);
@@ -413,19 +405,45 @@ public class RemoteLibraryServer extends ServerObject {
 	 * @return TRUE if it was a progress event, FALSE if not
 	 */
 	static boolean updateProgress(Progress pg, Object rep) {
-		if (rep instanceof Integer[]) {
-			Integer[] a = (Integer[]) rep;
-			if (a.length == 3) {
-				int min = a[0];
-				int max = a[1];
-				int progress = a[2];
+		boolean updateProgress = false;
+		if (rep instanceof Integer[] && ((Integer[]) rep).length == 3)
+			updateProgress = true;
+		if (rep instanceof Object[] && ((Object[]) rep).length >= 5
+				&& "UPDATE".equals(((Object[]) rep)[0]))
+			updateProgress = true;
 
-				if (min >= 0 && min <= max) {
-					pg.setMinMax(min, max);
-					pg.setProgress(progress);
+		if (updateProgress) {
+			Object[] a = (Object[]) rep;
 
-					return true;
+			int offset = 0;
+			if (a[0] instanceof String) {
+				offset = 1;
+			}
+
+			int min = (Integer) a[0 + offset];
+			int max = (Integer) a[1 + offset];
+			int progress = (Integer) a[2 + offset];
+			
+			Object meta = null;
+			if (a.length > (3 + offset)) {
+				meta = a[3 + offset];
+			}
+			
+			String name = null;
+			if (a.length > (4 + offset)) {
+				name = a[4 + offset] == null ? "" : a[4 + offset].toString();
+			}
+			
+
+			if (min >= 0 && min <= max) {
+				pg.setName(name);
+				pg.setMinMax(min, max);
+				pg.setProgress(progress);
+				if (meta != null) {
+					pg.put("meta", meta);
 				}
+
+				return true;
 			}
 		}
 
@@ -451,27 +469,40 @@ public class RemoteLibraryServer extends ServerObject {
 		};
 
 		final Integer[] p = new Integer[] { -1, -1, -1 };
+		final Object[] pMeta = new MetaData[1];
+		final String[] pName = new String[1];
 		final Long[] lastTime = new Long[] { new Date().getTime() };
 		pg.addProgressListener(new ProgressListener() {
 			@Override
 			public void progress(Progress progress, String name) {
+				Object meta = pg.get("meta");
+				if (meta instanceof MetaData) {
+					meta = removeCover((MetaData)meta);
+				}
+				
 				int min = pg.getMin();
 				int max = pg.getMax();
-				int relativeProgress = min
+				int rel = min
 						+ (int) Math.round(pg.getRelativeProgress()
 								* (max - min));
-
+				
+				boolean samePg = p[0] == min && p[1] == max && p[2] == rel;
+				
 				// Do not re-send the same value twice over the wire,
 				// unless more than 2 seconds have elapsed (to maintain the
 				// connection)
-				if ((p[0] != min || p[1] != max || p[2] != relativeProgress)
+				if (!samePg || !same(pMeta[0], meta)
+						|| !same(pName[0], name) //
 						|| (new Date().getTime() - lastTime[0] > 2000)) {
 					p[0] = min;
 					p[1] = max;
-					p[2] = relativeProgress;
+					p[2] = rel;
+					pMeta[0] = meta;
+					pName[0] = name;
 
 					try {
-						action.send(new Integer[] { min, max, relativeProgress });
+						action.send(new Object[] { "UPDATE", min, max, rel,
+								meta, name });
 						action.rec();
 					} catch (Exception e) {
 						getTraceHandler().error(e);
@@ -486,6 +517,13 @@ public class RemoteLibraryServer extends ServerObject {
 
 		return pg;
 	}
+	
+	private boolean same(Object obj1, Object obj2) {
+		if (obj1 == null || obj2 == null)
+			return obj1 == null && obj2 == null;
+
+		return obj1.equals(obj2);
+	}
 
 	// with 30 seconds timeout
 	private void forcePgDoneSent(Progress pg) {
@@ -498,5 +536,19 @@ public class RemoteLibraryServer extends ServerObject {
 				getTraceHandler().error(e);
 			}
 		}
+	}
+	
+	private MetaData removeCover(MetaData meta) {
+		MetaData light = null;
+		if (meta != null) {
+			if (meta.getCover() == null) {
+				light = meta;
+			} else {
+				light = meta.clone();
+				light.setCover(null);
+			}
+		}
+		
+		return light;
 	}
 }
