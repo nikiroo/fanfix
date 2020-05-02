@@ -138,7 +138,7 @@ public class InfoReader {
 
 		meta.setTitle(getInfoTag(in, "TITLE"));
 		meta.setAuthor(getInfoTag(in, "AUTHOR"));
-		meta.setDate(getInfoTag(in, "DATE"));
+		meta.setDate(bsHelper.formatDate(getInfoTag(in, "DATE")));
 		meta.setTags(getInfoTagList(in, "TAGS", ","));
 		meta.setSource(getInfoTag(in, "SOURCE"));
 		meta.setUrl(getInfoTag(in, "URL"));
@@ -164,7 +164,8 @@ public class InfoReader {
 		} catch (NumberFormatException e) {
 			meta.setWords(0);
 		}
-		meta.setCreationDate(getInfoTag(in, "CREATION_DATE"));
+		meta.setCreationDate(
+				bsHelper.formatDate(getInfoTag(in, "CREATION_DATE")));
 		meta.setFakeCover(Boolean.parseBoolean(getInfoTag(in, "FAKE_COVER")));
 
 		if (withCover && meta.getCover() == null) {

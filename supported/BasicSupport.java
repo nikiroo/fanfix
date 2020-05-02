@@ -272,8 +272,10 @@ public abstract class BasicSupport {
 
 		Story story = new Story();
 		MetaData meta = getMeta();
-		if (meta.getCreationDate() == null || meta.getCreationDate().isEmpty()) {
-			meta.setCreationDate(StringUtils.fromTime(new Date().getTime()));
+		if (meta.getCreationDate() == null
+				|| meta.getCreationDate().trim().isEmpty()) {
+			meta.setCreationDate(bsHelper
+					.formatDate(StringUtils.fromTime(new Date().getTime())));
 		}
 		story.setMeta(meta);
 		pg.put("meta", meta);

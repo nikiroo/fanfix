@@ -124,7 +124,8 @@ class FimfictionApi extends BasicSupport {
 
 		meta.setTitle(getKeyJson(json, 0, "type", "story", "title"));
 		meta.setAuthor(getKeyJson(json, 0, "type", "user", "name"));
-		meta.setDate(getKeyJson(json, 0, "type", "story", "date_published"));
+		meta.setDate(bsHelper.formatDate(
+				getKeyJson(json, 0, "type", "story", "date_published")));
 		meta.setTags(getTags());
 		meta.setSource(getType().getSourceName());
 		meta.setUrl(getSource().toString());
