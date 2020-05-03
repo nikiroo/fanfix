@@ -374,7 +374,24 @@ public abstract class BasicSupport {
 		sourceNode = loadDocument(source);
 
 		try {
-			return doProcess(pg);
+			Story story = doProcess(pg);
+			
+			// Check for "no chapters" stories
+			if (story.getChapters().isEmpty()
+					&& story.getMeta().getResume() != null
+					&& !story.getMeta().getResume().getParagraphs().isEmpty()) {
+				Chapter resume = story.getMeta().getResume();
+				resume.setName("");
+				resume.setNumber(1);
+				story.getChapters().add(resume);
+
+				String descChapterName = Instance.getInstance().getTrans()
+						.getString(StringId.DESCRIPTION);
+				resume = new Chapter(0, descChapterName);
+				story.getMeta().setResume(resume);
+			}
+			
+			return story;
 		} finally {
 			close();
 		}
@@ -471,7 +488,8 @@ public abstract class BasicSupport {
 	 *            the chapter name
 	 * @param content
 	 *            the content of the chapter
-	 * @return the {@link Chapter}
+	 *            
+	 * @return the {@link Chapter}, never NULL
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
