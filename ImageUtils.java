@@ -65,7 +65,7 @@ public abstract class ImageUtils {
 		int width;
 		int height;
 		if (zoom > 0) {
-			width = (int) Math.round(imageHeight * zoom);
+			width = (int) Math.round(imageWidth * zoom);
 			height = (int) Math.round(imageHeight * zoom);
 		} else {
 			if (zoomSnapWidth) {

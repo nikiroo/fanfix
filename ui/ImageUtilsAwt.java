@@ -37,6 +37,7 @@ public class ImageUtilsAwt extends ImageUtils {
 		/** Rotate the image by 180° */
 		UTURN
 	}
+
 	@Override
 	protected boolean check() {
 		// Will not work if ImageIO is not available
@@ -96,7 +97,7 @@ public class ImageUtilsAwt extends ImageUtils {
 	public static BufferedImage fromImage(Image img) throws IOException {
 		return fromImage(img, Rotation.NONE);
 	}
-	
+
 	/**
 	 * Convert the given {@link Image} into a {@link BufferedImage} object,
 	 * respecting the EXIF transformations if any.
@@ -112,7 +113,8 @@ public class ImageUtilsAwt extends ImageUtils {
 	 * @throws IOException
 	 *             in case of IO error
 	 */
-	public static BufferedImage fromImage(Image img, Rotation rotation) throws IOException {
+	public static BufferedImage fromImage(Image img, Rotation rotation)
+			throws IOException {
 		InputStream in = img.newInputStream();
 		BufferedImage image;
 		try {
@@ -146,8 +148,7 @@ public class ImageUtilsAwt extends ImageUtils {
 						} finally {
 							inData.close();
 						}
-						extra = ", content: "
-								+ new String(data, "UTF-8");
+						extra = ", content: " + new String(data, "UTF-8");
 					} catch (Exception e) {
 						extra = ", content unavailable";
 					}
@@ -202,19 +203,19 @@ public class ImageUtilsAwt extends ImageUtils {
 				affineTransform = null;
 				break;
 			}
-			
+
 			if (rotation == null)
 				rotation = Rotation.NONE;
-			
+
 			switch (rotation) {
-			case LEFT:
+			case RIGHT:
 				if (affineTransform == null) {
 					affineTransform = new AffineTransform();
 				}
 				affineTransform.translate(height, 0);
 				affineTransform.rotate(Math.PI / 2);
 				break;
-			case RIGHT:
+			case LEFT:
 				if (affineTransform == null) {
 					affineTransform = new AffineTransform();
 				}
@@ -280,7 +281,7 @@ public class ImageUtilsAwt extends ImageUtils {
 		} finally {
 			g.dispose();
 		}
-		
+
 		return resizedImage;
 	}
 }
