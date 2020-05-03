@@ -384,6 +384,7 @@ public abstract class BasicSupport {
 				resume.setName("");
 				resume.setNumber(1);
 				story.getChapters().add(resume);
+				story.getMeta().setWords(resume.getWords());
 
 				String descChapterName = Instance.getInstance().getTrans()
 						.getString(StringId.DESCRIPTION);
@@ -431,7 +432,7 @@ public abstract class BasicSupport {
 		story.setChapters(new ArrayList<Chapter>());
 		List<Entry<String, URL>> chapters = getChapters(pgGetChapters);
 		pgGetChapters.done(); // 20%
-
+		
 		if (chapters != null) {
 			Progress pgChaps = new Progress("Extracting chapters", 0,
 					chapters.size() * 300);
@@ -462,10 +463,11 @@ public abstract class BasicSupport {
 
 				words += cc.getWords();
 				story.getChapters().add(cc);
-				story.getMeta().setWords(words);
 
 				i++;
 			}
+			
+			story.getMeta().setWords(words);
 
 			pgChaps.setName("Extracting chapters");
 			pgChaps.done();

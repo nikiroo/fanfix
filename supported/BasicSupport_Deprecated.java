@@ -317,7 +317,6 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 
 						words += cc.getWords();
 						story.getChapters().add(cc);
-						story.getMeta().setWords(words);
 					} finally {
 						if (chapIn != null) {
 							chapIn.close();
@@ -326,6 +325,8 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 
 					i++;
 				}
+				
+				story.getMeta().setWords(words);
 
 				pgChaps.setName("Extracting chapters");
 			} else {
@@ -340,6 +341,7 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 				resume.setName("");
 				resume.setNumber(1);
 				story.getChapters().add(resume);
+				story.getMeta().setWords(resume.getWords());
 
 				String descChapterName = Instance.getInstance().getTrans()
 						.getString(StringId.DESCRIPTION);
