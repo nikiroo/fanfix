@@ -80,7 +80,10 @@ public class NavBar extends ListenerPanel {
 		});
 
 		page = new JTextField(Integer.toString(min));
-		page.setPreferredSize(new Dimension(page.getPreferredSize().width * 2,
+		page.setPreferredSize(
+				new Dimension(new JButton("1234").getPreferredSize().width,
+						new JButton("dummy").getPreferredSize().height));
+		page.setMaximumSize(new Dimension(Integer.MAX_VALUE,
 				page.getPreferredSize().height));
 		page.addActionListener(new ActionListener() {
 			@Override
@@ -99,7 +102,7 @@ public class NavBar extends ListenerPanel {
 			}
 		});
 
-		maxPage = new JLabel(" of " + max + " ");
+		maxPage = new JLabel("of " + max);
 
 		next = new JButton();
 		next.addActionListener(new ActionListener() {
@@ -122,13 +125,15 @@ public class NavBar extends ListenerPanel {
 
 		this.add(first);
 		this.add(previous);
+		this.add(new JLabel(" "));
 		this.add(page);
+		this.add(new JLabel(" "));
 		this.add(maxPage);
+		this.add(new JLabel(" "));
 		this.add(next);
 		this.add(last);
 
-		label = new JLabel("");
-		this.add(label);
+		this.add(label = new JLabel(""));
 
 		this.min = min;
 		this.max = max;
@@ -234,7 +239,7 @@ public class NavBar extends ListenerPanel {
 			index = max;
 		}
 
-		maxPage.setText(" of " + max + " ");
+		maxPage.setText("of " + max);
 		updateEnabled();
 		updateLabel();
 	}
