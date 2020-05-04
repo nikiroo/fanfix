@@ -93,6 +93,8 @@ public class WaitingDialog extends JDialog {
 			String waitingText) {
 		super(parent);
 
+		this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+
 		this.pg = pg;
 
 		if (waitingText != null) {
@@ -154,11 +156,14 @@ public class WaitingDialog extends JDialog {
 	/**
 	 * Notify this {@link WaitingDialog} that the job is done, and dismiss it if
 	 * it was already showing on screen (or never show it if it was not).
+	 * <p>
+	 * Will also dispose the {@link WaitingDialog}.
 	 */
 	public void dismiss() {
 		synchronized (waitLock) {
 			if (waitScreen) {
 				setVisible(false);
+				dispose();
 			}
 			waitScreen = true;
 		}
