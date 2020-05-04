@@ -214,6 +214,11 @@ public class ImageUtilsAwt extends ImageUtils {
 				}
 				affineTransform.translate(height, 0);
 				affineTransform.rotate(Math.PI / 2);
+
+				int tmp = width;
+				width = height;
+				height = tmp;
+
 				break;
 			case LEFT:
 				if (affineTransform == null) {
@@ -221,6 +226,11 @@ public class ImageUtilsAwt extends ImageUtils {
 				}
 				affineTransform.translate(0, width);
 				affineTransform.rotate(3 * Math.PI / 2);
+
+				int temp = width;
+				width = height;
+				height = temp;
+
 				break;
 			case UTURN:
 				if (affineTransform == null) {
