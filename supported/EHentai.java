@@ -118,7 +118,7 @@ class EHentai extends BasicSupport_Deprecated {
 			} else if (langLine.equalsIgnoreCase("French")) {
 				lang = "fr";
 			} else {
-				// TODO find the code?
+				// TODO find the code for other languages?
 				lang = langLine;
 			}
 		}
