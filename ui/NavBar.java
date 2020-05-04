@@ -94,7 +94,7 @@ public class NavBar extends ListenerPanel {
 					if (setIndex(pageNb))
 						fireActionPerformed(PAGE_CHANGED);
 				} catch (NumberFormatException nfe) {
-					page.setText(Integer.toString(index + 1));
+					page.setText(Integer.toString(index));
 				}
 			}
 		});
@@ -150,23 +150,20 @@ public class NavBar extends ListenerPanel {
 	}
 
 	/**
-	 * The current index, must be between {@link NavBar#min} and
+	 * The current index, should be between {@link NavBar#min} and
 	 * {@link NavBar#max}, both inclusive.
 	 * 
 	 * @param index
 	 *            the new index
 	 * 
-	 * @return TRUE if the index changed
-	 * 
-	 * @throws IndexOutOfBoundsException
-	 *             if the index is out of bounds according to
-	 *             {@link NavBar#getMin()} and {@link NavBar#getMax()}.
+	 * @return TRUE if the index changed, FALSE if not (either it was already at
+	 *         that value, or it is outside of the bounds set by
+	 *         {@link NavBar#min} and {@link NavBar#max})
 	 */
-	public boolean setIndex(int index) {
+	public synchronized boolean setIndex(int index) {
 		if (index != this.index) {
 			if (index < min || (index > max && max != -1)) {
-				throw new IndexOutOfBoundsException(String.format(
-						"Index %d but min/max is [%d/%d]", index, min, max));
+				return false;
 			}
 
 			this.index = index;
@@ -199,7 +196,7 @@ public class NavBar extends ListenerPanel {
 	 * @param min
 	 *            the new min
 	 */
-	public void setMin(int min) {
+	public synchronized void setMin(int min) {
 		this.min = min;
 		if (index < min) {
 			index = min;
@@ -231,13 +228,13 @@ public class NavBar extends ListenerPanel {
 	 * @param max
 	 *            the new max
 	 */
-	public void setMax(int max) {
+	public synchronized void setMax(int max) {
 		this.max = max;
 		if (index > max && max != -1) {
 			index = max;
 		}
 
-		maxPage.setText(" of " + max);
+		maxPage.setText(" of " + max + " ");
 		updateEnabled();
 		updateLabel();
 	}
@@ -267,7 +264,7 @@ public class NavBar extends ListenerPanel {
 	 * 
 	 * @return TRUE if it changed
 	 */
-	public boolean next() {
+	public synchronized boolean next() {
 		if (setIndex(index + 1)) {
 			fireActionPerformed(PAGE_CHANGED);
 			return true;
@@ -281,7 +278,7 @@ public class NavBar extends ListenerPanel {
 	 * 
 	 * @return TRUE if it changed
 	 */
-	public boolean previous() {
+	public synchronized boolean previous() {
 		if (setIndex(index - 1)) {
 			fireActionPerformed(PAGE_CHANGED);
 			return true;
@@ -295,7 +292,7 @@ public class NavBar extends ListenerPanel {
 	 * 
 	 * @return TRUE if it changed
 	 */
-	public boolean first() {
+	public synchronized boolean first() {
 		if (setIndex(min)) {
 			fireActionPerformed(PAGE_CHANGED);
 			return true;
@@ -309,7 +306,7 @@ public class NavBar extends ListenerPanel {
 	 * 
 	 * @return TRUE if it changed
 	 */
-	public boolean last() {
+	public synchronized boolean last() {
 		if (setIndex(max)) {
 			fireActionPerformed(PAGE_CHANGED);
 			return true;
@@ -355,7 +352,7 @@ public class NavBar extends ListenerPanel {
 	 * Update the navigation buttons "enabled" state according to the current
 	 * index value.
 	 */
-	private void updateEnabled() {
+	private synchronized void updateEnabled() {
 		first.setEnabled(index > min);
 		previous.setEnabled(index > min);
 		next.setEnabled(index < max || max == -1);
