@@ -163,7 +163,6 @@ public class WaitingDialog extends JDialog {
 		synchronized (waitLock) {
 			if (waitScreen) {
 				setVisible(false);
-				dispose();
 			}
 			waitScreen = true;
 		}
@@ -171,5 +170,7 @@ public class WaitingDialog extends JDialog {
 		if (pg != null) {
 			pg.removeProgressListener(pgl);
 		}
+
+		dispose();
 	}
 }
