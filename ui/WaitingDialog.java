@@ -32,7 +32,7 @@ public class WaitingDialog extends JDialog {
 	 *            the parent/owner of this {@link WaitingDialog}
 	 * @param delayMs
 	 *            the delay after which to show the dialog if it is still not
-	 *            dismiss (see {@link WaitingDialog#done()})
+	 *            dismiss (see {@link WaitingDialog#dismiss()})
 	 */
 	public WaitingDialog(Window parent, long delayMs) {
 		this(parent, delayMs, null, null);
@@ -45,12 +45,12 @@ public class WaitingDialog extends JDialog {
 	 *            the parent/owner of this {@link WaitingDialog}
 	 * @param delayMs
 	 *            the delay after which to show the dialog if it is still not
-	 *            dismiss (see {@link WaitingDialog#done()})
+	 *            dismiss (see {@link WaitingDialog#dismiss()})
 	 * @param pg
 	 *            the {@link Progress} to listen on -- when it is
 	 *            {@link Progress#done()}, this {@link WaitingDialog} will
-	 *            automatically be dismissed as if {@link WaitingDialog#done()}
-	 *            was called
+	 *            automatically be dismissed as if
+	 *            {@link WaitingDialog#dismiss()} was called
 	 */
 	public WaitingDialog(Window parent, long delayMs, Progress pg) {
 		this(parent, delayMs, pg, null);
@@ -63,7 +63,7 @@ public class WaitingDialog extends JDialog {
 	 *            the parent/owner of this {@link WaitingDialog}
 	 * @param delayMs
 	 *            the delay after which to show the dialog if it is still not
-	 *            dismiss (see {@link WaitingDialog#done()})
+	 *            dismiss (see {@link WaitingDialog#dismiss()})
 	 * @param waitingText
 	 *            a waiting text to display (note: you may want to subclass it
 	 *            for nicer UI)
@@ -79,12 +79,12 @@ public class WaitingDialog extends JDialog {
 	 *            the parent/owner of this {@link WaitingDialog}
 	 * @param delayMs
 	 *            the delay after which to show the dialog if it is still not
-	 *            dismiss (see {@link WaitingDialog#done()})
+	 *            dismiss (see {@link WaitingDialog#dismiss()})
 	 * @param pg
 	 *            the {@link Progress} to listen on -- when it is
 	 *            {@link Progress#done()}, this {@link WaitingDialog} will
-	 *            automatically be dismissed as if {@link WaitingDialog#done()}
-	 *            was called
+	 *            automatically be dismissed as if
+	 *            {@link WaitingDialog#dismiss()} was called
 	 * @param waitingText
 	 *            a waiting text to display (note: you may want to subclass it
 	 *            for nicer UI)
@@ -117,7 +117,7 @@ public class WaitingDialog extends JDialog {
 
 							@Override
 							public void done() {
-								WaitingDialog.this.done();
+								dismiss();
 							}
 						}.execute();
 					}
@@ -127,7 +127,7 @@ public class WaitingDialog extends JDialog {
 			pg.addProgressListener(pgl);
 
 			if (pg.isDone()) {
-				done();
+				dismiss();
 				return;
 			}
 		}
@@ -155,7 +155,7 @@ public class WaitingDialog extends JDialog {
 	 * Notify this {@link WaitingDialog} that the job is done, and dismiss it if
 	 * it was already showing on screen (or never show it if it was not).
 	 */
-	public void done() {
+	public void dismiss() {
 		synchronized (waitLock) {
 			if (waitScreen) {
 				setVisible(false);
