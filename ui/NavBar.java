@@ -99,7 +99,7 @@ public class NavBar extends ListenerPanel {
 			}
 		});
 
-		maxPage = new JLabel(" of " + max);
+		maxPage = new JLabel(" of " + max + " ");
 
 		next = new JButton();
 		next.addActionListener(new ActionListener() {
