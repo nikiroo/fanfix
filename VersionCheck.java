@@ -20,7 +20,7 @@ import be.nikiroo.utils.Version;
  * @author niki
  */
 public class VersionCheck {
-	private static final String base = "https://github.com/nikiroo/fanfix/raw/master/changelog${LANG}.md";
+	private static final String base = "https://github.com/${PROJECT}/raw/master/changelog${LANG}.md";
 
 	private Version current;
 	private List<Version> newer;
@@ -100,16 +100,23 @@ public class VersionCheck {
 	 * Check if there are available {@link Version}s of this program more recent
 	 * than the current one.
 	 * 
+	 * @param githubProject
+	 *            the GitHub project to check on, for instance "nikiroo/fanfix"
+	 * 
 	 * @return a {@link VersionCheck}
 	 */
-	public static VersionCheck check() {
+	public static VersionCheck check(String githubProject) {
 		Version current = Version.getCurrentVersion();
 		List<Version> newer = new ArrayList<Version>();
 		Map<Version, List<String>> changes = new HashMap<Version, List<String>>();
 
 		if (Instance.getInstance().isVersionCheckNeeded()) {
 			try {
-				// Prepare the URLs according to the user's language
+				// Use the right project:
+				String base = VersionCheck.base.replace("${PROJECT}",
+						githubProject);
+				
+				// Prepare the URLs according to the user's language:
 				Locale lang = Instance.getInstance().getTrans().getLocale();
 				String fr = lang.getLanguage();
 				String BE = lang.getCountry().replace(".UTF8", "");
