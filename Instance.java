@@ -284,9 +284,9 @@ public class Instance {
 	}
 
 	/**
-	 * Get the (unique) {@link LocalLibrary} for the program.
+	 * Get the (unique) {@link BasicLibrary} for the program.
 	 * 
-	 * @return the {@link LocalLibrary}
+	 * @return the {@link BasicLibrary}
 	 */
 	public BasicLibrary getLibrary() {
 		if (lib == null) {
@@ -294,6 +294,18 @@ public class Instance {
 		}
 
 		return lib;
+	}
+
+	/**
+	 * Change the default {@link BasicLibrary} for this program.
+	 * <p>
+	 * Be careful.
+	 * 
+	 * @param lib
+	 *            the new {@link BasicLibrary}
+	 */
+	public void setLibrary(BasicLibrary lib) {
+		this.lib = lib;
 	}
 
 	/**
