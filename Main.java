@@ -85,6 +85,22 @@ public class Main {
 	 *            see method description
 	 */
 	public static void main(String[] args) {
+		new Main().start(args);
+	}
+
+	/**
+	 * Start the default handling for the application.
+	 * <p>
+	 * If specific actions were asked (with correct parameters), they will be
+	 * forwarded to the different protected methods that you can override.
+	 * <p>
+	 * At the end of the method, {@link Main#exit(int)} will be called; by
+	 * default, it calls {@link System#exit(int)} if the status is not 0.
+	 * 
+	 * @param args
+	 *            the arguments received from the system
+	 */
+	public void start(String [] args) {
 		// Only one line, but very important:
 		Instance.init();
 
@@ -373,38 +389,52 @@ public class Main {
 		Progress pg = new Progress();
 		mainProgress.addProgress(pg, mainProgress.getMax());
 
-		VersionCheck updates = VersionCheck.check();
-		if (updates.isNewVersionAvailable()) {
-			// Sent to syserr so not to cause problem if one tries to capture a
-			// story content in text mode
-			System.err
-					.println("A new version of the program is available at https://github.com/nikiroo/fanfix/releases");
-			System.err.println("");
-			for (Version v : updates.getNewer()) {
-				System.err.println("\tVersion " + v);
-				System.err.println("\t-------------");
-				System.err.println("");
-				for (String it : updates.getChanges().get(v)) {
-					System.err.println("\t- " + it);
-				}
-				System.err.println("");
-			}
-		}
+		VersionCheck updates = checkUpdates();
 
 		if (exitCode == 0) {
 			switch (action) {
 			case IMPORT:
-				exitCode = imprt(urlString, pg);
-				updates.ok(); // we consider it read
+				if (updates != null)
+					updates.ok(); // we consider it read
+				
+				try {
+					exitCode = imprt(BasicReader.getUrl(urlString), pg);
+				} catch (MalformedURLException e) {
+					Instance.getInstance().getTraceHandler().error(e);
+					exitCode = 1;
+				}
+				
 				break;
 			case EXPORT:
-				exitCode = export(luid, sourceString, target, pg);
-				updates.ok(); // we consider it read
+				if (updates != null)
+					updates.ok(); // we consider it read
+				
+				OutputType exportType = OutputType.valueOfNullOkUC(sourceString, null);
+				if (exportType == null) {
+					Instance.getInstance().getTraceHandler().error(new Exception(trans(StringId.OUTPUT_DESC, sourceString)));
+					exitCode = 1;
+					break;
+				}
+				
+				exitCode = export(luid, exportType, target, pg);
+				
 				break;
 			case CONVERT:
-				exitCode = convert(urlString, sourceString, target,
+				if (updates != null)
+					updates.ok(); // we consider it read
+				
+				OutputType convertType = OutputType.valueOfAllOkUC(sourceString, null);
+				if (convertType == null) {
+					Instance.getInstance().getTraceHandler()
+							.error(new IOException(trans(StringId.ERR_BAD_OUTPUT_TYPE, sourceString)));
+
+					exitCode = 2;
+					break;
+				}
+				
+				exitCode = convert(urlString, convertType, target,
 						plusInfo == null ? false : plusInfo, pg);
-				updates.ok(); // we consider it read
+				
 				break;
 			case LIST:
 				exitCode = list(sourceString);
@@ -441,8 +471,20 @@ public class Main {
 				}
 
 				try {
+					Integer chap = null;
+					if (chapString != null) {
+						try {
+							chap = Integer.parseInt(chapString);
+						} catch (NumberFormatException e) {
+							Instance.getInstance().getTraceHandler().error(new IOException(
+									"Chapter number cannot be parsed: " + chapString, e));
+							exitCode = 2;
+							break;
+						}
+					}
+					
 					BasicLibrary lib = Instance.getInstance().getLibrary();
-					exitCode = read(lib.getStory(luid, null), chapString);
+					exitCode = read(lib.getStory(luid, null), chap);
 				} catch (IOException e) {
 					Instance.getInstance().getTraceHandler()
 							.error(new IOException("Failed to read book", e));
@@ -458,6 +500,18 @@ public class Main {
 				}
 
 				try {
+					Integer chap = null;
+					if (chapString != null) {
+						try {
+							chap = Integer.parseInt(chapString);
+						} catch (NumberFormatException e) {
+							Instance.getInstance().getTraceHandler().error(new IOException(
+									"Chapter number cannot be parsed: " + chapString, e));
+							exitCode = 2;
+							break;
+						}
+					}
+					
 					BasicSupport support = BasicSupport
 							.getSupport(BasicReader.getUrl(urlString));
 					if (support == null) {
@@ -467,7 +521,7 @@ public class Main {
 						break;
 					}
 
-					exitCode = read(support.process(null), chapString);
+					exitCode = read(support.process(null), chap);
 				} catch (IOException e) {
 					Instance.getInstance().getTraceHandler()
 							.error(new IOException("Failed to read book", e));
@@ -490,19 +544,22 @@ public class Main {
 					break;
 				}
 
-				try {
-					if (searchOn == null) {
-						new CliReader().listSearchables();
-					} else if (search != null) {
-
-						new CliReader().searchBooksByKeyword(searchOn, search, page,
-								item);
-					} else {
-						exitCode = 255;
+				if (searchOn == null) {
+					try {
+						search();
+					} catch (IOException e) {
+						Instance.getInstance().getTraceHandler().error(e);
+						exitCode = 1;
 					}
-				} catch (IOException e1) {
-					Instance.getInstance().getTraceHandler().error(e1);
-					exitCode = 20;
+				} else if (search != null) {
+					try {
+						searchKeywords(searchOn, search, page, item);
+					} catch (IOException e) {
+						Instance.getInstance().getTraceHandler().error(e);
+						exitCode = 20;
+					}
+				} else {
+					exitCode = 255;
 				}
 
 				break;
@@ -527,10 +584,10 @@ public class Main {
 				}
 
 				try {
-					new CliReader().searchBooksByTag(searchOn, page, item,
-							tags.toArray(new Integer[] {}));
-				} catch (IOException e1) {
-					Instance.getInstance().getTraceHandler().error(e1);
+					searchTags(searchOn, page, item,
+					tags.toArray(new Integer[] {}));
+				} catch (IOException e) {
+					Instance.getInstance().getTraceHandler().error(e);
 				}
 
 				break;
@@ -539,16 +596,18 @@ public class Main {
 				exitCode = 0;
 				break;
 			case VERSION:
+				if (updates != null)
+					updates.ok(); // we consider it read
+				
 				System.out
 						.println(String.format("Fanfix version %s"
 								+ "%nhttps://github.com/nikiroo/fanfix/"
 								+ "%n\tWritten by Nikiroo",
 								Version.getCurrentVersion()));
-				updates.ok(); // we consider it read
 				break;
 			case START:
 				try {
-					new CliReader().listBooks(null);
+					start();
 				} catch (IOException e) {
 					Instance.getInstance().getTraceHandler().error(e);
 					exitCode = 66;
@@ -563,13 +622,12 @@ public class Main {
 					break;
 				}
 				try {
-					ServerObject server = new RemoteLibraryServer(key, port);
-					server.setTraceHandler(Instance.getInstance().getTraceHandler());
-					server.run();
+					startServer(key, port);
 				} catch (IOException e) {
 					Instance.getInstance().getTraceHandler().error(e);
 				}
-				return;
+				
+				break;
 			case STOP_SERVER:
 				// Can be given via "--remote XX XX XX"
 				if (key == null)
@@ -583,7 +641,7 @@ public class Main {
 					break;
 				}
 				try {
-					new RemoteLibrary(key, host, port).exit();
+					stopServer(key, host, port);
 				} catch (SSLException e) {
 					Instance.getInstance().getTraceHandler().error(
 							"Bad access key for remote library");
@@ -603,29 +661,106 @@ public class Main {
 		try {
 			Instance.getInstance().getTempFiles().close();
 		} catch (IOException e) {
-			Instance.getInstance().getTraceHandler().error(new IOException("Cannot dispose of the temporary files", e));
+			Instance.getInstance().getTraceHandler().error(new IOException(
+					"Cannot dispose of the temporary files", e));
 		}
 
 		if (exitCode == 255) {
 			syntax(false);
 		}
 
-		System.exit(exitCode);
+		exit(exitCode);
+	}
+	
+	/**
+	 * A normal invocation of the program (without parameters or at least
+	 * without "action" parameters).
+	 * <p>
+	 * You will probably want to override that one if you offer a user
+	 * interface.
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	protected void start() throws IOException {
+		new CliReader().listBooks(null);
 	}
 
 	/**
+	 * Will check if updates are available.
+	 * <p>
+	 * For this, it will simply forward the call to
+	 * {@link Main#checkUpdates(String)} with a value of "nikiroo/fanfix".
+	 * 
+	 * @return the newer version information or NULL if nothing new
+	 */
+	protected VersionCheck checkUpdates() {
+		return checkUpdates("nikiroo/fanfix");
+	}
+
+	/**
+	 * Will check if updates are available on a specific GitHub project.
+	 * <p>
+	 * Will be called by {@link Main#checkUpdates()}, but if you override that
+	 * one you mall call it with another project.
+	 * 
+	 * @param githubProject
+	 *            the GitHub project, for instance "nikiroo/fanfix"
+	 * 
+	 * @return the newer version information or NULL if nothing new
+	 */
+	protected VersionCheck checkUpdates(String githubProject) {
+		VersionCheck updates = VersionCheck.check(githubProject);
+		if (updates.isNewVersionAvailable()) {
+			notifyUpdates(updates);
+			return updates;
+		}
+		
+		return null;
+	}
+
+	/**
+	 * Notify the user about available updates.
+	 * <p>
+	 * Will only be called when a version is available.
+	 * <p>
+	 * Note that you can call {@link VersionCheck#ok()} on it if the user has
+	 * read the information (by default, it is marked read only on certain other
+	 * actions).
+	 * 
+	 * @param updates
+	 *            the new version information
+	 */
+	protected void notifyUpdates(VersionCheck updates) {
+		// Sent to syserr so not to cause problem if one tries to capture a
+		// story content in text mode
+		System.err.println(
+				"A new version of the program is available at https://github.com/nikiroo/fanfix/releases");
+		System.err.println("");
+		for (Version v : updates.getNewer()) {
+			System.err.println("\tVersion " + v);
+			System.err.println("\t-------------");
+			System.err.println("");
+			for (String it : updates.getChanges().get(v)) {
+				System.err.println("\t- " + it);
+			}
+			System.err.println("");
+		}
+	}
+	
+	/**
 	 * Import the given resource into the {@link LocalLibrary}.
 	 * 
-	 * @param urlString
+	 * @param url
 	 *            the resource to import
 	 * @param pg
 	 *            the optional progress reporter
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	public static int imprt(String urlString, Progress pg) {
+	protected static int imprt(URL url, Progress pg) {
 		try {
-			MetaData meta = Instance.getInstance().getLibrary().imprt(BasicReader.getUrl(urlString), pg);
+			MetaData meta = Instance.getInstance().getLibrary().imprt(url, pg);
 			System.out.println(meta.getLuid() + ": \"" + meta.getTitle() + "\" imported.");
 		} catch (IOException e) {
 			Instance.getInstance().getTraceHandler().error(e);
@@ -641,7 +776,7 @@ public class Main {
 	 * 
 	 * @param luid
 	 *            the story LUID
-	 * @param typeString
+	 * @param type
 	 *            the {@link OutputType} to use
 	 * @param target
 	 *            the target
@@ -650,14 +785,8 @@ public class Main {
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	public static int export(String luid, String typeString, String target,
+	protected static int export(String luid, OutputType type, String target,
 			Progress pg) {
-		OutputType type = OutputType.valueOfNullOkUC(typeString, null);
-		if (type == null) {
-			Instance.getInstance().getTraceHandler().error(new Exception(trans(StringId.OUTPUT_DESC, typeString)));
-			return 1;
-		}
-
 		try {
 			Instance.getInstance().getLibrary().export(luid, type, target, pg);
 		} catch (IOException e) {
@@ -667,7 +796,7 @@ public class Main {
 
 		return 0;
 	}
-
+	
 	/**
 	 * List the stories of the given source from the {@link LocalLibrary}
 	 * (unless NULL is passed, in which case all stories will be listed).
@@ -678,7 +807,7 @@ public class Main {
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	private static int list(String source) {
+	protected int list(String source) {
 		try {
 			new CliReader().listBooks(source);
 		} catch (IOException e) {
@@ -694,24 +823,13 @@ public class Main {
 	 * 
 	 * @param story
 	 *            the story to read
-	 * @param chapString
+	 * @param chap
 	 *            which {@link Chapter} to read (starting at 1), or NULL to get
 	 *            the {@link Story} description
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	private static int read(Story story, String chapString) {
-		Integer chap = null;
-		if (chapString != null) {
-			try {
-				chap = Integer.parseInt(chapString);
-			} catch (NumberFormatException e) {
-				Instance.getInstance().getTraceHandler().error(new IOException(
-						"Chapter number cannot be parsed: " + chapString, e));
-				return 2;
-			}
-		}
-
+	protected int read(Story story, Integer chap) {
 		if (story != null) {
 			try {
 				if (chap == null) {
@@ -726,7 +844,7 @@ public class Main {
 			}
 		} else {
 			Instance.getInstance().getTraceHandler()
-					.error("Cannot find book: " + chapString);
+					.error("Cannot find book: " + story);
 			return 2;
 		}
 
@@ -738,7 +856,7 @@ public class Main {
 	 * 
 	 * @param urlString
 	 *            the source {@link Story} to convert
-	 * @param typeString
+	 * @param type
 	 *            the {@link OutputType} to convert to
 	 * @param target
 	 *            the target file
@@ -750,7 +868,7 @@ public class Main {
 	 * 
 	 * @return the exit return code (0 = success)
 	 */
-	public static int convert(String urlString, String typeString,
+	protected int convert(String urlString, OutputType type,
 			String target, boolean infoCover, Progress pg) {
 		int exitCode = 0;
 
@@ -763,46 +881,42 @@ public class Main {
 				sourceName = sourceName.substring("file://".length());
 			}
 
-			OutputType type = OutputType.valueOfAllOkUC(typeString, null);
-			if (type == null) {
-				Instance.getInstance().getTraceHandler()
-						.error(new IOException(trans(StringId.ERR_BAD_OUTPUT_TYPE, typeString)));
+			try {
+				BasicSupport support = BasicSupport.getSupport(source);
 
-				exitCode = 2;
-			} else {
-				try {
-					BasicSupport support = BasicSupport.getSupport(source);
-
-					if (support != null) {
-						Instance.getInstance().getTraceHandler().trace("Support found: " + support.getClass());
-						Progress pgIn = new Progress();
-						Progress pgOut = new Progress();
-						if (pg != null) {
-							pg.setMax(2);
-							pg.addProgress(pgIn, 1);
-							pg.addProgress(pgOut, 1);
-						}
-
-						Story story = support.process(pgIn);
-						try {
-							target = new File(target).getAbsolutePath();
-							BasicOutput.getOutput(type, infoCover, infoCover).process(story, target, pgOut);
-						} catch (IOException e) {
-							Instance.getInstance().getTraceHandler()
-									.error(new IOException(trans(StringId.ERR_SAVING, target), e));
-							exitCode = 5;
-						}
-					} else {
-						Instance.getInstance().getTraceHandler()
-								.error(new IOException(trans(	StringId.ERR_NOT_SUPPORTED, source)));
-
-						exitCode = 4;
-					}
-				} catch (IOException e) {
+				if (support != null) {
 					Instance.getInstance().getTraceHandler()
-							.error(new IOException(trans(StringId.ERR_LOADING, sourceName), e));
-					exitCode = 3;
+							.trace("Support found: " + support.getClass());
+					Progress pgIn = new Progress();
+					Progress pgOut = new Progress();
+					if (pg != null) {
+						pg.setMax(2);
+						pg.addProgress(pgIn, 1);
+						pg.addProgress(pgOut, 1);
+					}
+
+					Story story = support.process(pgIn);
+					try {
+						target = new File(target).getAbsolutePath();
+						BasicOutput.getOutput(type, infoCover, infoCover)
+								.process(story, target, pgOut);
+					} catch (IOException e) {
+						Instance.getInstance().getTraceHandler()
+								.error(new IOException(
+										trans(StringId.ERR_SAVING, target), e));
+						exitCode = 5;
+					}
+				} else {
+					Instance.getInstance().getTraceHandler()
+							.error(new IOException(
+									trans(StringId.ERR_NOT_SUPPORTED, source)));
+
+					exitCode = 4;
 				}
+			} catch (IOException e) {
+				Instance.getInstance().getTraceHandler().error(new IOException(
+						trans(StringId.ERR_LOADING, sourceName), e));
+				exitCode = 3;
 			}
 		} catch (MalformedURLException e) {
 			Instance.getInstance().getTraceHandler().error(new IOException(trans(StringId.ERR_BAD_URL, sourceName), e));
@@ -813,25 +927,13 @@ public class Main {
 	}
 
 	/**
-	 * Simple shortcut method to call {link Instance#getTrans()#getString()}.
-	 * 
-	 * @param id
-	 *            the ID to translate
-	 * 
-	 * @return the translated result
-	 */
-	private static String trans(StringId id, Object... params) {
-		return Instance.getInstance().getTrans().getString(id, params);
-	}
-
-	/**
 	 * Display the correct syntax of the program to the user to stdout, or an
 	 * error message if the syntax used was wrong on stderr.
 	 * 
 	 * @param showHelp
 	 *            TRUE to show the syntax help, FALSE to show "syntax error"
 	 */
-	private static void syntax(boolean showHelp) {
+	protected void syntax(boolean showHelp) {
 		if (showHelp) {
 			StringBuilder builder = new StringBuilder();
 			for (SupportType type : SupportType.values()) {
@@ -855,5 +957,126 @@ public class Main {
 		} else {
 			System.err.println(trans(StringId.ERR_SYNTAX));
 		}
+	}
+
+	/**
+	 * Starts a search operation (i.e., list the available web sites we can
+	 * search on).
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
+	protected void search() throws IOException {
+		new CliReader().listSearchables();
+	}
+
+	/**
+	 * Search for books by keywords on the given supported web site.
+	 * 
+	 * @param searchOn
+	 *            the web site to search on
+	 * @param search
+	 *            the keyword to look for
+	 * @param page
+	 *            the page of results to get, or 0 to inquire about the number
+	 *            of pages
+	 * @param item
+	 *            the index of the book we are interested by, or 0 to query
+	 *            about how many books are in that page of results
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	protected void searchKeywords(SupportType searchOn, String search,
+			int page, Integer item) throws IOException {
+		new CliReader().searchBooksByKeyword(searchOn, search, page, item);
+	}
+
+	/**
+	 * Search for books by tags on the given supported web site.
+	 * 
+	 * @param searchOn
+	 *            the web site to search on
+	 * @param page
+	 *            the page of results to get, or 0 to inquire about the number
+	 *            of pages
+	 * @param item
+	 *            the index of the book we are interested by, or 0 to query
+	 *            about how many books are in that page of results
+	 * @param tags
+	 *            the tags to look for
+	 * 
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	protected void searchTags(SupportType searchOn, Integer page, Integer item,
+			Integer[] tags) throws IOException {
+		new CliReader().searchBooksByTag(searchOn, page, item, tags);
+	}
+
+	/**
+	 * Start a Fanfix server.
+	 * 
+	 * @param key
+	 *            the key taht will be needed to contact the Fanfix server
+	 * @param port
+	 *            the port on which to run
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 * @throws SSLException
+	 *             when the key was not accepted
+	 */
+	private void startServer(String key, int port) throws IOException {
+		ServerObject server = new RemoteLibraryServer(key, port);
+		server.setTraceHandler(Instance.getInstance().getTraceHandler());
+		server.run();
+	}
+
+	/**
+	 * Stop a running Fanfix server.
+	 * 
+	 * @param key
+	 *            the key to contact the Fanfix server
+	 * @param host
+	 *            the host on which it runs (NULL means localhost)
+	 * @param port
+	 *            the port on which it runs
+	 *            
+	 * @throws IOException
+	 *             in case of I/O errors
+	 * @throws SSLException
+	 *             when the key was not accepted
+	 */
+	private void stopServer(
+			String key, String host, Integer port)
+			throws IOException, SSLException {
+		new RemoteLibrary(key, host, port).exit();
+	}
+
+	/**
+	 * We are done and ready to exit.
+	 * <p>
+	 * By default, it will call {@link System#exit(int)} if the status is not 0.
+	 * 
+	 * @param status
+	 *            the exit status
+	 */
+	protected void exit(int status) {
+		if (status != 0) {
+			System.exit(status);
+		}
+	}
+	
+	/**
+	 * Simple shortcut method to call {link Instance#getTrans()#getString()}.
+	 * 
+	 * @param id
+	 *            the ID to translate
+	 * 
+	 * @return the translated result
+	 */
+	static private String trans(StringId id, Object... params) {
+		return Instance.getInstance().getTrans().getString(id, params);
 	}
 }
