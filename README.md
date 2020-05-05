@@ -4,7 +4,7 @@ English [Français](README-fr.md)
 
 Fanfix is a small Java program that can download stories from some supported websites and render them offline.
 
-## This is the command line and server program -- the graphical client can be found [here](https://github.com/nikiroo/fanfix-swing/)
+## This is the command line and server program -- the graphical client is called [Fanfix-swing](https://github.com/nikiroo/fanfix-swing/) and the TUI client is [Fanfix-jexer](https://github.com/nikiroo/fanfix-jexer/)
 
 ## Synopsis
 
