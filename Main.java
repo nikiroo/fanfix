@@ -687,10 +687,13 @@ public class Main {
 	}
 
 	/**
-	 * Will check if updates are available.
+	 * Will check if updates are available, synchronously.
 	 * <p>
 	 * For this, it will simply forward the call to
 	 * {@link Main#checkUpdates(String)} with a value of "nikiroo/fanfix".
+	 * <p>
+	 * You may want to override it so you call the forward method with the right
+	 * parameters (or also if you want it to be asynchronous).
 	 * 
 	 * @return the newer version information or NULL if nothing new
 	 */
