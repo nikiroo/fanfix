@@ -16,7 +16,6 @@ public enum Config {
 	@Meta(description = "The language to use for in the program (example: en-GB, fr-BE...) or nothing for default system language (can be overwritten with the variable $LANG)",//
 	format = Format.LOCALE, list = { "en-GB", "fr-BE" })
 	LANG, //
-
 	@Meta(description = "File format options",//
 	group = true)
 	FILE_FORMAT, //
