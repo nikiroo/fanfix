@@ -12,12 +12,22 @@ import java.util.Map.Entry;
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.Main;
 import be.nikiroo.fanfix.output.BasicOutput;
+import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.utils.IOUtils;
+import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.TraceHandler;
 import be.nikiroo.utils.test.TestCase;
 import be.nikiroo.utils.test.TestLauncher;
 
 class ConversionTest extends TestLauncher {
+	private class MainWithConvert extends Main {
+		@Override
+		public int convert(String urlString, OutputType type, String target,
+				boolean infoCover, Progress pg) {
+			return super.convert(urlString, type, target, infoCover, pg);
+		}
+	}
+	
 	private String testUri;
 	private String expectedDir;
 	private String resultDir;
@@ -161,7 +171,7 @@ class ConversionTest extends TestLauncher {
 
 		try {
 			File target = new File(resultDir, type.toString());
-			int code = Main.convert(testUri, type.toString(),
+			int code = new MainWithConvert().convert(testUri, type,
 					target.getAbsolutePath(), false, null);
 
 			String error = "";
