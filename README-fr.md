@@ -4,7 +4,7 @@
 
 Fanfix est un petit programme Java qui peut télécharger des histoires sur internet et les afficher hors ligne.
 
-## Ceci est le programme serveur et command-line -- le client graphique s'appelle [Fanfix-swing](https://github.com/nikiroo/fanfix-swing/) et le client en mode TUI est [Fanfix-jexer](https://github.com/nikiroo/fanfix-jexer/)
+## 🔴 Ceci est le programme serveur et command-line -- le client graphique s'appelle [Fanfix-swing](https://github.com/nikiroo/fanfix-swing/) et le client en mode TUI est [Fanfix-jexer](https://github.com/nikiroo/fanfix-jexer/)
 
 ## Synopsis
 
