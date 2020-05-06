@@ -14,9 +14,9 @@ import javax.swing.JPopupMenu;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingWorker;
 
-import be.nikiroo.utils.compat.DefaultListModel6;
-import be.nikiroo.utils.compat.JList6;
-import be.nikiroo.utils.compat.ListCellRenderer6;
+import be.nikiroo.utils.ui.compat.DefaultListModel6;
+import be.nikiroo.utils.ui.compat.JList6;
+import be.nikiroo.utils.ui.compat.ListCellRenderer6;
 
 /**
  * A {@link javax.swing.ListModel} that can maintain 2 lists; one with the
