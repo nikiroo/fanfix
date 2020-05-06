@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Map.Entry;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.helper.DataUtil;
 import org.jsoup.nodes.Document;
@@ -347,6 +348,8 @@ public abstract class BasicSupport {
 			scan.useDelimiter("\0");
 			try {
 				return new JSONObject(scan.next());
+			} catch (JSONException e) {
+				throw new IOException(e);
 			} finally {
 				scan.close();
 			}
