@@ -20,24 +20,45 @@ import javax.swing.UnsupportedLookAndFeelException;
  */
 public class UIUtils {
 	/**
-	 * Set a fake "native look &amp; feel" for the application if possible
+	 * Set a fake "native Look &amp; Feel" for the application if possible
 	 * (check for the one currently in use, then try GTK).
 	 * <p>
 	 * <b>Must</b> be called prior to any GUI work.
+	 * 
+	 * @return TRUE if it succeeded
 	 */
-	static public void setLookAndFeel() {
+	static public boolean setLookAndFeel() {
 		// native look & feel
+		String noLF = "javax.swing.plaf.metal.MetalLookAndFeel";
+		String lf = UIManager.getSystemLookAndFeelClassName();
+		if (lf.equals(noLF))
+			lf = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
+		
+		return setLookAndFeel(lf);
+	}
+
+	/**
+	 * Switch to the given Look &amp; Feel for the application if possible
+	 * (check for the one currently in use, then try GTK).
+	 * <p>
+	 * <b>Must</b> be called prior to any GUI work.
+	 * 
+	 * @param laf
+	 *            the Look &amp; Feel to use
+	 * 
+	 * @return TRUE if it succeeded
+	 */
+	static public boolean setLookAndFeel(String laf) {
 		try {
-			String noLF = "javax.swing.plaf.metal.MetalLookAndFeel";
-			String lf = UIManager.getSystemLookAndFeelClassName();
-			if (lf.equals(noLF))
-				lf = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
-			UIManager.setLookAndFeel(lf);
+			UIManager.setLookAndFeel(laf);
+			return true;
 		} catch (InstantiationException e) {
 		} catch (ClassNotFoundException e) {
 		} catch (UnsupportedLookAndFeelException e) {
 		} catch (IllegalAccessException e) {
 		}
+
+		return false;
 	}
 
 	/**
