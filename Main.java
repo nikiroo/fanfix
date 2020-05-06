@@ -126,6 +126,9 @@ public class Main {
 
 		int exitCode = 0;
 		for (int i = 0; exitCode == 0 && i < args.length; i++) {
+			if (args[i] == null)
+				continue;
+
 			// Action (--) handling:
 			if (!noMoreActions && args[i].startsWith("--")) {
 				if (args[i].equals("--")) {
