@@ -8,6 +8,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 
 /**
  * A small panel that let you choose a zoom level or an actual zoom value (when
@@ -87,6 +88,7 @@ public class ZoomBox extends ListenerPanel {
 	private JButton zoomOut;
 	private JButton snapWidth;
 	private JButton snapHeight;
+	private JLabel zoomLabel;
 
 	@SuppressWarnings("rawtypes") // JComboBox<?> is not java 1.6 compatible
 	private JComboBox zoombox;
@@ -175,6 +177,8 @@ public class ZoomBox extends ListenerPanel {
 			}
 		});
 
+		zoomLabel = new JLabel();
+
 		setIcons(null, null, null, null);
 		setOrientation(vertical);
 	}
@@ -182,7 +186,7 @@ public class ZoomBox extends ListenerPanel {
 	/**
 	 * The zoom level.
 	 * <p>
-	 * It usually returns 1 (default value), the value you passed yourself or 0
+	 * It usually returns 1 (default value), the value you passed yourself or 1
 	 * (a snap to width or snap to height was asked by the user).
 	 * <p>
 	 * Will cause a fire event if needed.
@@ -401,9 +405,13 @@ public class ZoomBox extends ListenerPanel {
 	 *            the zoom level
 	 */
 	private void doSetZoom(double zoom) {
-		if (snapMode == null) {
-			zoomBoxModel.setSelectedItem(
-					Integer.toString((int) Math.round(zoom * 100)) + " %");
+		if (zoom > 0) {
+			String zoomStr = Integer.toString((int) Math.round(zoom * 100))
+					+ " %";
+			zoomLabel.setText(zoomStr);
+			if (snapMode == null) {
+				zoomBoxModel.setSelectedItem(zoomStr);
+			}
 		}
 
 		this.zoom = zoom;
@@ -417,8 +425,11 @@ public class ZoomBox extends ListenerPanel {
 	 */
 	private void doSetSnapMode(Boolean snapToWidth) {
 		if (snapToWidth == null) {
-			zoomBoxModel.setSelectedItem(
-					Integer.toString((int) Math.round(zoom * 100)) + " %");
+			String zoomStr = Integer.toString((int) Math.round(zoom * 100))
+					+ " %";
+			if (zoom > 0) {
+				zoomBoxModel.setSelectedItem(zoomStr);
+			}
 		} else {
 			for (ZoomLevel level : ZoomLevel.values()) {
 				if (level.getSnapToWidth() == snapToWidth) {
@@ -441,14 +452,17 @@ public class ZoomBox extends ListenerPanel {
 			this.removeAll();
 			setLayout(layout);
 
-			this.add(zoomIn);
 			if (vertical || small) {
+				this.add(zoomIn);
 				this.add(snapWidth);
 				this.add(snapHeight);
+				this.add(zoomOut);
+				this.add(zoomLabel);
 			} else {
+				this.add(zoomIn);
 				this.add(zoombox);
+				this.add(zoomOut);
 			}
-			this.add(zoomOut);
 
 			this.revalidate();
 			this.repaint();
