@@ -1,4 +1,4 @@
-package be.nikiroo.utils.compat;
+package be.nikiroo.utils.ui.compat;
 
 import java.awt.Component;
 

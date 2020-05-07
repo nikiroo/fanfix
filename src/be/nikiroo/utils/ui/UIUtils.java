@@ -1,17 +1,30 @@
 package be.nikiroo.utils.ui;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.RadialGradientPaint;
 import java.awt.RenderingHints;
+import java.io.IOException;
+import java.net.URISyntaxException;
 
 import javax.swing.JComponent;
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+
+import be.nikiroo.fanfix.Instance;
+import be.nikiroo.utils.Version;
+import be.nikiroo.utils.VersionCheck;
 
 /**
  * Some Java Swing utilities.
@@ -20,24 +33,45 @@ import javax.swing.UnsupportedLookAndFeelException;
  */
 public class UIUtils {
 	/**
-	 * Set a fake "native look &amp; feel" for the application if possible
+	 * Set a fake "native Look &amp; Feel" for the application if possible
 	 * (check for the one currently in use, then try GTK).
 	 * <p>
 	 * <b>Must</b> be called prior to any GUI work.
+	 * 
+	 * @return TRUE if it succeeded
 	 */
-	static public void setLookAndFeel() {
+	static public boolean setLookAndFeel() {
 		// native look & feel
+		String noLF = "javax.swing.plaf.metal.MetalLookAndFeel";
+		String lf = UIManager.getSystemLookAndFeelClassName();
+		if (lf.equals(noLF))
+			lf = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
+		
+		return setLookAndFeel(lf);
+	}
+
+	/**
+	 * Switch to the given Look &amp; Feel for the application if possible
+	 * (check for the one currently in use, then try GTK).
+	 * <p>
+	 * <b>Must</b> be called prior to any GUI work.
+	 * 
+	 * @param laf
+	 *            the Look &amp; Feel to use
+	 * 
+	 * @return TRUE if it succeeded
+	 */
+	static public boolean setLookAndFeel(String laf) {
 		try {
-			String noLF = "javax.swing.plaf.metal.MetalLookAndFeel";
-			String lf = UIManager.getSystemLookAndFeelClassName();
-			if (lf.equals(noLF))
-				lf = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
-			UIManager.setLookAndFeel(lf);
+			UIManager.setLookAndFeel(laf);
+			return true;
 		} catch (InstantiationException e) {
 		} catch (ClassNotFoundException e) {
 		} catch (UnsupportedLookAndFeelException e) {
 		} catch (IllegalAccessException e) {
 		}
+
+		return false;
 	}
 
 	/**
@@ -73,9 +107,9 @@ public class UIUtils {
 	 * @param color
 	 *            the base colour
 	 * @param x
-	 *            the X coordinate
+	 *            the X coordinate of the upper left corner
 	 * @param y
-	 *            the Y coordinate
+	 *            the Y coordinate of the upper left corner
 	 * @param width
 	 *            the width radius
 	 * @param height
@@ -212,5 +246,90 @@ public class UIUtils {
 		}
 
 		return scroll;
+	}
+
+	/**
+	 * Show a confirmation message to the user to show him the changes since
+	 * last version.
+	 * <p>
+	 * HTML 3.2 supported, links included (the user browser will be launched if
+	 * possible).
+	 * <p>
+	 * If this is already the latest version, a message will still be displayed.
+	 * 
+	 * @param parentComponent
+	 *            determines the {@link java.awt.Frame} in which the dialog is
+	 *            displayed; if <code>null</code>, or if the
+	 *            <code>parentComponent</code> has no {@link java.awt.Frame}, a
+	 *            default {@link java.awt.Frame} is used
+	 * @param updates
+	 *            the new version
+	 * @param introText
+	 *            an introduction text before the list of changes
+	 * @param title
+	 *            the title of the dialog
+	 * 
+	 * @return TRUE if the user clicked on OK, false if the dialog was dismissed
+	 */
+	static public boolean showUpdatedDialog(Component parentComponent,
+			VersionCheck updates, String introText, String title) {
+		
+		StringBuilder builder = new StringBuilder();
+		final JEditorPane updateMessage = new JEditorPane("text/html", "");
+		if (introText != null && !introText.isEmpty()) {
+			builder.append(introText);
+			builder.append("<br>");
+			builder.append("<br>");
+		}
+		for (Version v : updates.getNewer()) {
+			builder.append("\t<b>" //
+					+ "Version " + v.toString() //
+					+ "</b>");
+			builder.append("<br>");
+			builder.append("<ul>");
+			for (String item : updates.getChanges().get(v)) {
+				builder.append("<li>" + item + "</li>");
+			}
+			builder.append("</ul>");
+		}
+
+		// html content
+		updateMessage.setText("<html><body>" //
+				+ builder//
+				+ "</body></html>");
+
+		// handle link events
+		updateMessage.addHyperlinkListener(new HyperlinkListener() {
+			@Override
+			public void hyperlinkUpdate(HyperlinkEvent e) {
+				if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED))
+					try {
+						Desktop.getDesktop().browse(e.getURL().toURI());
+					} catch (IOException ee) {
+						Instance.getInstance().getTraceHandler().error(ee);
+					} catch (URISyntaxException ee) {
+						Instance.getInstance().getTraceHandler().error(ee);
+					}
+			}
+		});
+		updateMessage.setEditable(false);
+		updateMessage.setBackground(new JLabel().getBackground());
+		updateMessage.addHyperlinkListener(new HyperlinkListener() {
+			@Override
+			public void hyperlinkUpdate(HyperlinkEvent evn) {
+				if (evn.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+					if (Desktop.isDesktopSupported()) {
+						try {
+							Desktop.getDesktop().browse(evn.getURL().toURI());
+						} catch (IOException e) {
+						} catch (URISyntaxException e) {
+						}
+					}
+				}
+			}
+		});
+
+		return JOptionPane.showConfirmDialog(parentComponent, updateMessage,
+				title, JOptionPane.DEFAULT_OPTION) == JOptionPane.OK_OPTION;
 	}
 }

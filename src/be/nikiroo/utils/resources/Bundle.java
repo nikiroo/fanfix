@@ -133,8 +133,8 @@ public class Bundle<E extends Enum<E>> {
 	 * @param def
 	 *            the default value when it is not present in the config file
 	 * 
-	 * @return the associated value, or NULL if not found (not present in the
-	 *         resource file)
+	 * @return the associated value, or <tt>def</tt> if not found (not present
+	 *         in the resource file)
 	 */
 	public String getString(E id, String def) {
 		return getString(id, def, -1);
@@ -154,8 +154,9 @@ public class Bundle<E extends Enum<E>> {
 	 *            the item number to get for an array of values, or -1 for
 	 *            non-arrays
 	 * 
-	 * @return the associated value, or NULL if not found (not present in the
-	 *         resource file)
+	 * @return the associated value, <tt>def</tt> if not found (not present in
+	 *         the resource file) or NULL if the item is specified (not -1) and
+	 *         does not exist
 	 */
 	public String getString(E id, String def, int item) {
 		String rep = getString(id.name(), null);
@@ -163,7 +164,7 @@ public class Bundle<E extends Enum<E>> {
 			rep = getMetaDef(id.name());
 		}
 
-		if (rep == null || rep.isEmpty()) {
+		if (rep.isEmpty()) {
 			return def;
 		}
 
@@ -273,8 +274,9 @@ public class Bundle<E extends Enum<E>> {
 	 *            the item number to get for an array of values, or -1 for
 	 *            non-arrays
 	 * 
-	 * @return the associated value, or NULL if not found (not present in the
-	 *         resource file)
+	 * @return the associated value, <tt>def</tt> if not found (not present in
+	 *         the resource file), NULL if the item is specified (not -1) but
+	 *         does not exist and NULL if bad key
 	 */
 	public String getStringX(E id, String suffix, String def, int item) {
 		String key = id.name()
@@ -932,7 +934,7 @@ public class Bundle<E extends Enum<E>> {
 	}
 
 	/**
-	 * The default {@link MetaInfo.def} value for the given enumeration name.
+	 * The default {@link Meta#def()} value for the given enumeration name.
 	 * 
 	 * @param id
 	 *            the enumeration name (the "id")
@@ -1209,22 +1211,18 @@ public class Bundle<E extends Enum<E>> {
 	 */
 	protected void resetMap(ResourceBundle bundle) {
 		this.map.clear();
-		for (Field field : type.getDeclaredFields()) {
-			try {
-				Meta meta = field.getAnnotation(Meta.class);
-				if (meta != null) {
-					E id = Enum.valueOf(type, field.getName());
-
-					String value;
-					if (bundle != null) {
-						value = bundle.getString(id.name());
-					} else {
-						value = null;
+		if (bundle != null) {
+			for (Field field : type.getDeclaredFields()) {
+				try {
+					Meta meta = field.getAnnotation(Meta.class);
+					if (meta != null) {
+						E id = Enum.valueOf(type, field.getName());
+						String value = bundle.getString(id.name());
+						this.map.put(id.name(),
+								value == null ? null : value.trim());
 					}
-
-					this.map.put(id.name(), value == null ? null : value.trim());
+				} catch (MissingResourceException e) {
 				}
-			} catch (MissingResourceException e) {
 			}
 		}
 	}

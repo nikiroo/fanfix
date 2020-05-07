@@ -39,7 +39,7 @@ public class Downloader {
 	 *            the User-Agent to use to download the resources -- note that
 	 *            some websites require one, some actively blacklist real UAs
 	 *            like the one from wget, some whitelist a couple of browsers
-	 *            only (!)
+	 *            only (!) -- can be NULL
 	 */
 	public Downloader(String UA) {
 		this(UA, null);
@@ -52,7 +52,7 @@ public class Downloader {
 	 *            the User-Agent to use to download the resources -- note that
 	 *            some websites require one, some actively blacklist real UAs
 	 *            like the one from wget, some whitelist a couple of browsers
-	 *            only (!)
+	 *            only (!) -- can be NULL
 	 * @param cache
 	 *            the {@link Cache} to use for all access (can be NULL)
 	 */
@@ -433,7 +433,9 @@ public class Downloader {
 			conn.setRequestProperty("Cookie", cookies);
 		}
 
-		conn.setRequestProperty("User-Agent", UA);
+		if (UA != null) {
+			conn.setRequestProperty("User-Agent", UA);
+		}
 		conn.setRequestProperty("Accept-Encoding", "gzip");
 		conn.setRequestProperty("Accept", "*/*");
 		conn.setRequestProperty("Charset", "utf-8");
