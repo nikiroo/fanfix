@@ -28,6 +28,7 @@ import be.nikiroo.fanfix.supported.BasicSupport;
 import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
+import be.nikiroo.utils.VersionCheck;
 import be.nikiroo.utils.serial.server.ServerObject;
 
 /**
@@ -397,8 +398,10 @@ public class Main {
 		if (exitCode == 0) {
 			switch (action) {
 			case IMPORT:
-				if (updates != null)
-					updates.ok(); // we consider it read
+				if (updates != null) {
+					// we consider it read
+					Instance.getInstance().setVersionChecked(); 
+				}
 				
 				try {
 					exitCode = imprt(BasicReader.getUrl(urlString), pg);
@@ -409,8 +412,10 @@ public class Main {
 				
 				break;
 			case EXPORT:
-				if (updates != null)
-					updates.ok(); // we consider it read
+				if (updates != null) {
+					// we consider it read
+					Instance.getInstance().setVersionChecked(); 
+				}
 				
 				OutputType exportType = OutputType.valueOfNullOkUC(sourceString, null);
 				if (exportType == null) {
@@ -423,8 +428,10 @@ public class Main {
 				
 				break;
 			case CONVERT:
-				if (updates != null)
-					updates.ok(); // we consider it read
+				if (updates != null) {
+					// we consider it read
+					Instance.getInstance().setVersionChecked(); 
+				}
 				
 				OutputType convertType = OutputType.valueOfAllOkUC(sourceString, null);
 				if (convertType == null) {
@@ -599,8 +606,10 @@ public class Main {
 				exitCode = 0;
 				break;
 			case VERSION:
-				if (updates != null)
-					updates.ok(); // we consider it read
+				if (updates != null) {
+					// we consider it read
+					Instance.getInstance().setVersionChecked(); 
+				}
 				
 				System.out
 						.println(String.format("Fanfix version %s"
@@ -716,12 +725,17 @@ public class Main {
 	 * @return the newer version information or NULL if nothing new
 	 */
 	protected VersionCheck checkUpdates(String githubProject) {
-		VersionCheck updates = VersionCheck.check(githubProject);
-		if (updates.isNewVersionAvailable()) {
-			notifyUpdates(updates);
-			return updates;
+		try {
+			VersionCheck updates = VersionCheck.check(githubProject,
+					Instance.getInstance().getTrans().getLocale());
+			if (updates.isNewVersionAvailable()) {
+				notifyUpdates(updates);
+				return updates;
+			}
+		} catch (IOException e) {
+			// Maybe no internet. Do not report any update.
 		}
-		
+
 		return null;
 	}
 
@@ -730,9 +744,9 @@ public class Main {
 	 * <p>
 	 * Will only be called when a version is available.
 	 * <p>
-	 * Note that you can call {@link VersionCheck#ok()} on it if the user has
-	 * read the information (by default, it is marked read only on certain other
-	 * actions).
+	 * Note that you can call {@link Instance#setVersionChecked()} on it if the
+	 * user has read the information (by default, it is marked read only on
+	 * certain other actions).
 	 * 
 	 * @param updates
 	 *            the new version information
