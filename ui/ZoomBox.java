@@ -3,6 +3,7 @@ package be.nikiroo.utils.ui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
@@ -178,6 +179,7 @@ public class ZoomBox extends ListenerPanel {
 		});
 
 		zoomLabel = new JLabel();
+		zoomLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		setIcons(null, null, null, null);
 		setOrientation(vertical);
