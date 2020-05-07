@@ -263,31 +263,68 @@ public class ImageUtilsAwt extends ImageUtils {
 	}
 
 	/**
+	 * Scale a dimension.
+	 * 
+	 * @param imageSize
+	 *            the actual image size
+	 * @param areaSize
+	 *            the base size of the target to get snap sizes for
+	 * @param zoom
+	 *            the zoom factor (ignored on snap mode)
+	 * @param snapMode
+	 *            NULL for no snap mode, TRUE to snap to width and FALSE for
+	 *            snap to height)
+	 * 
+	 * @return the scaled (minimum is 1x1)
+	 */
+	public static Dimension scaleSize(Dimension imageSize, Dimension areaSize,
+			double zoom, Boolean snapMode) {
+		Integer[] sz = scaleSize(imageSize.width, imageSize.height,
+				areaSize.width, areaSize.height, zoom, snapMode);
+		return new Dimension(sz[0], sz[1]);
+	}
+
+	/**
 	 * Resize the given image.
 	 * 
-	 * @param areaSize
-	 *            the base size of the target dimension for snap sizes
 	 * @param image
 	 *            the image to resize
+	 * @param areaSize
+	 *            the base size of the target dimension for snap sizes
 	 * @param zoom
-	 *            the zoom factor or -1 for snap size
-	 * @param zoomSnapWidth
-	 *            if snap size, TRUE to snap to width (and FALSE, snap to
-	 *            height)
+	 *            the zoom factor (ignored on snap mode)
+	 * @param snapMode
+	 *            NULL for no snap mode, TRUE to snap to width and FALSE for
+	 *            snap to height)
 	 * 
 	 * @return a new, resized image
 	 */
-	public static BufferedImage scaleImage(Dimension areaSize,
-			BufferedImage image, double zoom, boolean zoomSnapWidth) {
-		Integer scaledSize[] = scaleSize(areaSize.width, areaSize.height,
-				image.getWidth(), image.getHeight(), zoom, zoomSnapWidth);
-		int width = scaledSize[0];
-		int height = scaledSize[1];
-		BufferedImage resizedImage = new BufferedImage(width, height,
-				BufferedImage.TYPE_4BYTE_ABGR);
+	public static BufferedImage scaleImage(BufferedImage image,
+			Dimension areaSize, double zoom, Boolean snapMode) {
+		Dimension scaledSize = scaleSize(
+				new Dimension(image.getWidth(), image.getHeight()), areaSize,
+				zoom, snapMode);
+
+		return scaleImage(image, scaledSize);
+	}
+
+	/**
+	 * Resize the given image.
+	 * 
+	 * @param image
+	 *            the image to resize
+	 * @param targetSize
+	 *            the target size
+	 * 
+	 * @return a new, resized image
+	 */
+	public static BufferedImage scaleImage(BufferedImage image,
+			Dimension targetSize) {
+		BufferedImage resizedImage = new BufferedImage(targetSize.width,
+				targetSize.height, BufferedImage.TYPE_4BYTE_ABGR);
 		Graphics2D g = resizedImage.createGraphics();
 		try {
-			g.drawImage(image, 0, 0, width, height, null);
+			g.drawImage(image, 0, 0, targetSize.width, targetSize.height, null);
 		} finally {
 			g.dispose();
 		}

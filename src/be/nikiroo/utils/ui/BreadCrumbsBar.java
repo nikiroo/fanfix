@@ -39,11 +39,12 @@ public class BreadCrumbsBar<T> extends ListenerPanel {
 						}
 					}
 				});
-				
+
 				this.add(button, BorderLayout.CENTER);
 			}
 
-			if (!node.getChildren().isEmpty()) {
+			if ((node.isRoot() && node.getChildren().isEmpty())
+					|| !node.getChildren().isEmpty()) {
 				// TODO allow an image or ">", viewer
 				down = new JToggleButton(">");
 				final JPopupMenu popup = new JPopupMenu();
@@ -112,6 +113,8 @@ public class BreadCrumbsBar<T> extends ListenerPanel {
 			}
 		});
 
+		setSelectedNode(new DataNode<T>(null, null));
+
 		new SwingWorker<DataNode<T>, Void>() {
 			@Override
 			protected DataNode<T> doInBackground() throws Exception {
@@ -122,7 +125,10 @@ public class BreadCrumbsBar<T> extends ListenerPanel {
 			@Override
 			protected void done() {
 				try {
-					node = get();
+					DataNode<T> node = get();
+
+					setSelectedNode(null);
+					BreadCrumbsBar.this.node = node;
 					addCrumb(node);
 
 					// TODO: option?
