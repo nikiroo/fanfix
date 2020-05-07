@@ -1,10 +1,10 @@
 package be.nikiroo.utils.ui;
 
 import java.awt.Dimension;
-import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -24,6 +24,7 @@ public class NavBar extends ListenerPanel {
 	public static final String PAGE_CHANGED = "page changed";
 
 	private JTextField page;
+	private JLabel pageLabel;
 	private JLabel maxPage;
 	private JLabel label;
 
@@ -31,6 +32,8 @@ public class NavBar extends ListenerPanel {
 	private int min = 0;
 	private int max = 0;
 	private String extraLabel = null;
+
+	private boolean vertical;
 
 	private JButton first;
 	private JButton previous;
@@ -40,9 +43,10 @@ public class NavBar extends ListenerPanel {
 	/**
 	 * Create a new navigation bar.
 	 * <p>
-	 * The minimum must be lower or equal to the maximum.
+	 * The minimum must be lower or equal to the maximum, but a max of "-1"
+	 * means "infinite".
 	 * <p>
-	 * Note than a max of "-1" means "infinite".
+	 * A {@link NavBar#PAGE_CHANGED} event will be fired on startup.
 	 * 
 	 * @param min
 	 *            the minimum page number (cannot be negative)
@@ -58,9 +62,6 @@ public class NavBar extends ListenerPanel {
 			throw new IndexOutOfBoundsException(
 					String.format("min (%d) > max (%d)", min, max));
 		}
-
-		LayoutManager layout = new BoxLayout(this, BoxLayout.X_AXIS);
-		setLayout(layout);
 
 		// Page navigation
 		first = new JButton();
@@ -79,12 +80,11 @@ public class NavBar extends ListenerPanel {
 			}
 		});
 
+		final int defaultHeight = new JButton("dummy")
+				.getPreferredSize().height;
+		final int width4 = new JButton("1234").getPreferredSize().width;
 		page = new JTextField(Integer.toString(min));
-		page.setPreferredSize(
-				new Dimension(new JButton("1234").getPreferredSize().width,
-						new JButton("dummy").getPreferredSize().height));
-		page.setMaximumSize(new Dimension(Integer.MAX_VALUE,
-				page.getPreferredSize().height));
+		page.setPreferredSize(new Dimension(width4, defaultHeight));
 		page.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -102,7 +102,11 @@ public class NavBar extends ListenerPanel {
 			}
 		});
 
+		pageLabel = new JLabel(Integer.toString(min));
+		pageLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+
 		maxPage = new JLabel("of " + max);
+		maxPage.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
 
 		next = new JButton();
 		next.addActionListener(new ActionListener() {
@@ -120,20 +124,10 @@ public class NavBar extends ListenerPanel {
 			}
 		});
 
+		label = new JLabel("");
+
 		// Set the << < > >> "icons"
 		setIcons(null, null, null, null);
-
-		this.add(first);
-		this.add(previous);
-		this.add(new JLabel(" "));
-		this.add(page);
-		this.add(new JLabel(" "));
-		this.add(maxPage);
-		this.add(new JLabel(" "));
-		this.add(next);
-		this.add(last);
-
-		this.add(label = new JLabel(""));
 
 		this.min = min;
 		this.max = max;
@@ -141,6 +135,8 @@ public class NavBar extends ListenerPanel {
 
 		updateEnabled();
 		updateLabel();
+		setOrientation(vertical);
+
 		fireActionPerformed(PAGE_CHANGED);
 	}
 
@@ -346,10 +342,62 @@ public class NavBar extends ListenerPanel {
 	}
 
 	/**
+	 * The general orientation of the component.
+	 * 
+	 * @return TRUE for vertical orientation, FALSE for horisontal orientation
+	 */
+	public boolean getOrientation() {
+		return vertical;
+	}
+
+	/**
+	 * Update the general orientation of the component.
+	 * 
+	 * @param vertical
+	 *            TRUE for vertical orientation, FALSE for horisontal
+	 *            orientation
+	 * 
+	 * @return TRUE if it changed something
+	 */
+	public boolean setOrientation(boolean vertical) {
+		if (getWidth() == 0 || this.vertical != vertical) {
+			this.vertical = vertical;
+
+			BoxLayout layout = new BoxLayout(this,
+					vertical ? BoxLayout.Y_AXIS : BoxLayout.X_AXIS);
+			this.removeAll();
+			setLayout(layout);
+
+			this.add(first);
+			this.add(previous);
+			if (vertical) {
+				this.add(pageLabel);
+			} else {
+				this.add(page);
+			}
+			this.add(maxPage);
+			this.add(next);
+			this.add(last);
+
+			if (!vertical) {
+				this.add(label);
+			}
+
+			this.revalidate();
+			this.repaint();
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Update the label displayed in the UI.
 	 */
 	private void updateLabel() {
 		label.setText(getExtraLabel());
+		pageLabel.setText(Integer.toString(index));
 		page.setText(Integer.toString(index));
 	}
 
