@@ -44,40 +44,39 @@ public abstract class ImageUtils {
 	/**
 	 * Scale a dimension.
 	 * 
-	 * @param areaWidth
-	 *            the base width of the target dimension for snap sizes
-	 * @param areaHeight
-	 *            the base height of the target dimension for snap sizes
+	 * 
 	 * @param imageWidth
 	 *            the actual image width
 	 * @param imageHeight
 	 *            the actual image height
+	 * @param areaWidth
+	 *            the base width of the target dimension for snap sizes
+	 * @param areaHeight
+	 *            the base height of the target dimension for snap sizes
 	 * @param zoom
-	 *            the zoom factor, or -1 for snap size
-	 * @param zoomSnapWidth
-	 *            if snap size, TRUE to snap to width (and FALSE, snap to
-	 *            height)
+	 *            the zoom factor (ignored on snap mode)
+	 * @param snapMode
+	 *            NULL for no snap mode, TRUE to snap to width and FALSE for
+	 *            snap to height)
 	 * 
 	 * @return the scaled size, width is [0] and height is [1] (minimum is 1x1)
 	 */
-	protected static Integer[] scaleSize(int areaWidth, int areaHeight,
-			int imageWidth, int imageHeight, double zoom, boolean zoomSnapWidth) {
+	protected static Integer[] scaleSize(int imageWidth, int imageHeight,
+			int areaWidth, int areaHeight, double zoom, Boolean snapMode) {
 		int width;
 		int height;
-		if (zoom > 0) {
+		if (snapMode == null) {
 			width = (int) Math.round(imageWidth * zoom);
 			height = (int) Math.round(imageHeight * zoom);
+		} else if (snapMode) {
+			width = areaWidth;
+			height = (int) Math
+					.round((((double) areaWidth) / imageWidth) * imageHeight);
 		} else {
-			if (zoomSnapWidth) {
-				width = areaWidth;
-				height = (int) Math.round(
-						(((double) areaWidth) / imageWidth) * imageHeight);
-			} else {
-				height = areaHeight;
-				width = (int) Math.round(
-						(((double) areaHeight) / imageHeight) * imageWidth);
+			height = areaHeight;
+			width = (int) Math
+					.round((((double) areaHeight) / imageHeight) * imageWidth);
 
-			}
 		}
 
 		if (width < 1)
