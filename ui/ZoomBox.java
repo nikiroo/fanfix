@@ -179,7 +179,7 @@ public class ZoomBox extends ListenerPanel {
 		});
 
 		zoomLabel = new JLabel();
-		zoomLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		zoomLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 0));
 
 		setIcons(null, null, null, null);
 		setOrientation(vertical);

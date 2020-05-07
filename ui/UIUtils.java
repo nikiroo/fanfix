@@ -107,9 +107,9 @@ public class UIUtils {
 	 * @param color
 	 *            the base colour
 	 * @param x
-	 *            the X coordinate
+	 *            the X coordinate of the upper left corner
 	 * @param y
-	 *            the Y coordinate
+	 *            the Y coordinate of the upper left corner
 	 * @param width
 	 *            the width radius
 	 * @param height
