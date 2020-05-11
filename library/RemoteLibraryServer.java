@@ -70,16 +70,16 @@ public class RemoteLibraryServer extends ServerObject {
 	 * Note: the key we use here is the encryption key (it must not contain a
 	 * subkey).
 	 * 
-	 * @param key
-	 *            the key that will restrict access to this server
-	 * @param port
-	 *            the port to listen on
-	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	public RemoteLibraryServer(String key, int port) throws IOException {
-		super("Fanfix remote library", port, key);
+	public RemoteLibraryServer() throws IOException {
+		super("Fanfix remote library",
+				Instance.getInstance().getConfig()
+						.getInteger(Config.SERVER_PORT),
+				Instance.getInstance().getConfig()
+						.getString(Config.SERVER_KEY));
+		
 		setTraceHandler(Instance.getInstance().getTraceHandler());
 	}
 

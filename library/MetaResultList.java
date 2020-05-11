@@ -224,7 +224,7 @@ public class MetaResultList {
 		if (sources == null && authors == null && tags == null) {
 			return metas;
 		}
-
+		
 		// allow "sources/" hierarchy
 		if (sources != null) {
 			List<String> folders = new ArrayList<String>();
