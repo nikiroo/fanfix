@@ -6,6 +6,11 @@
 
 # Update all subtrees:
 
-git subtree pull -P src/be/nikiroo/utils git@github.com:nikiroo/nikiroo-utils.git subtree
-git subtree pull -P src/jexer git@github.com:nikiroo/jexer.git subtree
+#git subtree pull -P src/be/nikiroo/utils git@github.com:nikiroo/nikiroo-utils.git subtree
+#git subtree pull -P src/jexer git@github.com:nikiroo/jexer.git subtree
+
+# Push all subtrees:
+
+git subtree push -P src/be/nikiroo/utils git@github.com:nikiroo/nikiroo-utils.git subtree
+git subtree push -P src/jexer git@github.com:nikiroo/jexer.git subtree
 
