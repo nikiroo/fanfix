@@ -1,5 +1,9 @@
 # Fanfix
 
+# Version WIP
+
+- new: bibliothèque http/https
+
 # Version 3.1.2
 
 - fix: date de publication/création formatée

@@ -1,5 +1,9 @@
 # Fanfix
 
+# Version WIP
+
+- new: http/https remote library
+
 # Version 3.1.2
 
 - fix: publication/creation date formated 
