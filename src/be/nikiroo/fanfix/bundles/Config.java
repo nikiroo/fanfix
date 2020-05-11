@@ -58,7 +58,7 @@ public enum Config {
 	@Meta(description = "Use the remote Fanfix server configured here instead of the local library (if FALSE, the local library will be used instead)",//
 	format = Format.BOOLEAN, def = "false")
 	REMOTE_LIBRARY_ENABLED, //
-	@Meta(description = "The remote Fanfix server to connect to",//
+	@Meta(description = "The remote Fanfix server to connect to (fanfix://, http://, https:// -- if not specified, fanfix:// is assumed)",//
 	format = Format.STRING)
 	REMOTE_LIBRARY_HOST, //
 	@Meta(description = "The port to use for the remote Fanfix server",//
@@ -84,10 +84,19 @@ public enum Config {
 	@Meta(description = "Remote Server configuration\nNote that the key is structured: \"KEY|SUBKEY|wl|rw\"\n- \"KEY\" is the actual encryption key (it can actually be empty, which will still encrypt the messages but of course it will be easier to guess the key)\n- \"SUBKEY\" is the (optional) subkey to use to get additional privileges\n- \"wl\" is a special privilege that allows that subkey to ignore white lists\n- \"rw\" is a special privilege that allows that subkey to modify the library, even if it is not in RW (by default) mode\n\nSome examples:\n- \"super-secret\": a normal key, no special privileges\n- \"you-will-not-guess|azOpd8|wl\": a white-list ignoring key\n- \"new-password|subpass|rw\": a key that allows modifications on the library",//
 	group = true)
 	SERVER, //
+	@Meta(description = "Remote Server mode: you can use the fanfix protocol (which is encrypted), http (which is not) or https (which requires a keystore.jks file)",//
+	format = Format.FIXED_LIST, list = { "fanfix", "http", "https" }, def = "fanfix")
+	SERVER_MODE,
 	@Meta(description = "The port on which we can start the server (must be a valid port, from 1 to 65535)", //
 	format = Format.INT, def = "58365")
 	SERVER_PORT, //
-	@Meta(description = "The encryption key for the server (NOT including a subkey), it cannot contain the pipe character \"|\" but can be empty (it is *still* encrypted, but with an empty, easy to guess key)",//
+	@Meta(description = "A keystore.jks file, required to use HTTPS (the server will refuse to start in HTTPS mode without this file)", //
+	format = Format.STRING, def = "")
+	SERVER_SSL_KEYSTORE,
+	@Meta(description = "The pass phrase required to open the keystore.jks file (required for HTTPS mode)", //
+	format = Format.PASSWORD, def = "")
+	SERVER_SSL_KEYSTORE_PASS,
+	@Meta(description = "The encryption key for the server (NOT including a subkey), it cannot contain the pipe character \"|\" but can be empty -- is used to encrypt the traffic in fanfix mode (even if empty, traffic will be encrypted in fanfix mode), and used as a password for HTTP (clear text protocol) and HTTPS modes",//
 	format = Format.PASSWORD, def = "")
 	SERVER_KEY, //
 	@Meta(description = "Allow write access to the clients (download story, move story...) without RW subkeys", //
@@ -96,9 +105,12 @@ public enum Config {
 	@Meta(description = "If not empty, only the EXACT listed sources will be available for clients without BL subkeys",//
 	array = true, format = Format.STRING, def = "")
 	SERVER_WHITELIST, //
-	@Meta(description = "The subkeys that the server will allow, including the modes\nA subkey ", //
+	@Meta(description = "The subkeys that the server will allow, including the modes\nA subkey is used as a login for HTTP (clear text protocol) and HTTPS modes", //
 	array = true, format = Format.STRING, def = "")
 	SERVER_ALLOWED_SUBKEYS, //
+	@Meta(description = "The maximum size of the cache, in MegaBytes, for HTTP and HTTPS servers", //
+	format = Format.INT, def = "100")
+	SERVER_MAX_CACHE_MB,
 
 	@Meta(description = "DEBUG options",//
 	group = true)

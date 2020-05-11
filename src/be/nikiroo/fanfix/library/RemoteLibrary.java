@@ -21,6 +21,8 @@ import be.nikiroo.utils.serial.server.ConnectActionClientObject;
  * This {@link BasicLibrary} will access a remote server to list the available
  * stories, and download the ones you try to load to the local directory
  * specified in the configuration.
+ * <p>
+ * This remote library uses a custom fanfix:// protocol.
  * 
  * @author niki
  */
@@ -35,8 +37,8 @@ public class RemoteLibrary extends BasicLibrary {
 		}
 
 		@Override
-		public Object send(Object data) throws IOException,
-				NoSuchFieldException, NoSuchMethodException,
+		public Object send(Object data)
+				throws IOException, NoSuchFieldException, NoSuchMethodException,
 				ClassNotFoundException {
 			Object rep = super.send(data);
 			if (rep instanceof RemoteLibraryException) {
@@ -113,20 +115,26 @@ public class RemoteLibrary extends BasicLibrary {
 			this.subkey = "";
 		}
 
+		if (host.startsWith("fanfix://")) {
+			host = host.substring("fanfix://".length());
+		}
+
 		this.host = host;
 		this.port = port;
 	}
 
 	@Override
 	public String getLibraryName() {
-		return (rw ? "[READ-ONLY] " : "") + host + ":" + port;
+		return (rw ? "[READ-ONLY] " : "") + "fanfix://" + host + ":" + port;
 	}
 
 	@Override
 	public Status getStatus() {
-		Instance.getInstance().getTraceHandler().trace("Getting remote lib status...");
+		Instance.getInstance().getTraceHandler()
+				.trace("Getting remote lib status...");
 		Status status = getStatusDo();
-		Instance.getInstance().getTraceHandler().trace("Remote lib status: " + status);
+		Instance.getInstance().getTraceHandler()
+				.trace("Remote lib status: " + status);
 		return status;
 	}
 
@@ -180,8 +188,8 @@ public class RemoteLibrary extends BasicLibrary {
 			@Override
 			public void action(ConnectActionClientObject action)
 					throws Exception {
-				Object rep = action.send(new Object[] { subkey, "GET_COVER",
-						luid });
+				Object rep = action
+						.send(new Object[] { subkey, "GET_COVER", luid });
 				result[0] = (Image) rep;
 			}
 		});
@@ -232,8 +240,8 @@ public class RemoteLibrary extends BasicLibrary {
 					pg = new Progress();
 				}
 
-				Object rep = action.send(new Object[] { subkey, "GET_STORY",
-						luid });
+				Object rep = action
+						.send(new Object[] { subkey, "GET_STORY", luid });
 
 				MetaData meta = null;
 				if (rep instanceof MetaData) {
@@ -354,7 +362,7 @@ public class RemoteLibrary extends BasicLibrary {
 	// Could work (more slowly) without it
 	public MetaData imprt(final URL url, Progress pg) throws IOException {
 		// Import the file locally if it is actually a file
-		
+
 		if (url == null || url.getProtocol().equalsIgnoreCase("file")) {
 			return super.imprt(url, pg);
 		}
@@ -374,8 +382,8 @@ public class RemoteLibrary extends BasicLibrary {
 					throws Exception {
 				Progress pg = pgF;
 
-				Object rep = action.send(new Object[] { subkey, "IMPORT",
-						url.toString() });
+				Object rep = action.send(
+						new Object[] { subkey, "IMPORT", url.toString() });
 
 				while (true) {
 					if (!RemoteLibraryServer.updateProgress(pg, rep)) {
@@ -524,8 +532,8 @@ public class RemoteLibrary extends BasicLibrary {
 					pg = new Progress();
 				}
 
-				Object rep = action.send(new Object[] { subkey, "GET_METADATA",
-						luid });
+				Object rep = action
+						.send(new Object[] { subkey, "GET_METADATA", luid });
 
 				while (true) {
 					if (!RemoteLibraryServer.updateProgress(pg, rep)) {

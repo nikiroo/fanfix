@@ -15,6 +15,7 @@ import be.nikiroo.fanfix.library.BasicLibrary;
 import be.nikiroo.fanfix.library.CacheLibrary;
 import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.library.RemoteLibrary;
+import be.nikiroo.fanfix.library.WebLibrary;
 import be.nikiroo.utils.Cache;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
@@ -67,19 +68,21 @@ public class Instance {
 	}
 
 	/**
-	 * Initialise the instance -- if already initialised, nothing will happen unless
-	 * you pass TRUE to <tt>force</tt>.
+	 * Initialise the instance -- if already initialised, nothing will happen
+	 * unless you pass TRUE to <tt>force</tt>.
 	 * <p>
-	 * Before calling this method, you may call {@link Bundles#setDirectory(String)}
-	 * if wanted.
+	 * Before calling this method, you may call
+	 * {@link Bundles#setDirectory(String)} if wanted.
 	 * <p>
-	 * Note: forcing the initialisation can be dangerous, so make sure to only make
-	 * it under controlled circumstances -- for instance, at the start of the
-	 * program, you could call {@link Instance#init()}, change some settings because
-	 * you want to force those settings (it will also forbid users to change them!)
-	 * and then call {@link Instance#init(boolean)} with <tt>force</tt> set to TRUE.
+	 * Note: forcing the initialisation can be dangerous, so make sure to only
+	 * make it under controlled circumstances -- for instance, at the start of
+	 * the program, you could call {@link Instance#init()}, change some settings
+	 * because you want to force those settings (it will also forbid users to
+	 * change them!) and then call {@link Instance#init(boolean)} with
+	 * <tt>force</tt> set to TRUE.
 	 * 
-	 * @param force force the initialisation even if already initialised
+	 * @param force
+	 *            force the initialisation even if already initialised
 	 */
 	static public void init(boolean force) {
 		synchronized (instancelock) {
@@ -95,7 +98,8 @@ public class Instance {
 	 * <p>
 	 * Usually for DEBUG/Test purposes.
 	 * 
-	 * @param instance the actual Instance to use
+	 * @param instance
+	 *            the actual Instance to use
 	 */
 	static public void init(Instance instance) {
 		Instance.instance = instance;
@@ -113,8 +117,8 @@ public class Instance {
 	/**
 	 * Actually initialise the instance.
 	 * <p>
-	 * Before calling this method, you may call {@link Bundles#setDirectory(String)}
-	 * if wanted.
+	 * Before calling this method, you may call
+	 * {@link Bundles#setDirectory(String)} if wanted.
 	 */
 	protected Instance() {
 		// Before we can configure it:
@@ -156,21 +160,24 @@ public class Instance {
 			int hoursLarge = config.getInteger(Config.CACHE_MAX_TIME_STABLE, 0);
 			cache = new DataLoader(tmp, ua, hours, hoursLarge);
 		} catch (IOException e) {
-			tracer.error(new IOException("Cannot create cache (will continue without cache)", e));
+			tracer.error(new IOException(
+					"Cannot create cache (will continue without cache)", e));
 			cache = new DataLoader(ua);
 		}
 
 		cache.setTraceHandler(tracer);
 
 		// readerTmp / coverDir
-		readerTmp = getFile(UiConfig.CACHE_DIR_LOCAL_READER, configDir, "tmp-reader");
+		readerTmp = getFile(UiConfig.CACHE_DIR_LOCAL_READER, configDir,
+				"tmp-reader");
 		coverDir = getFile(Config.DEFAULT_COVERS_DIR, configDir, "covers");
 		coverDir.mkdirs();
 
 		try {
 			tempFiles = new TempFiles("fanfix");
 		} catch (IOException e) {
-			tracer.error(new IOException("Cannot create temporary directory", e));
+			tracer.error(
+					new IOException("Cannot create temporary directory", e));
 		}
 	}
 
@@ -188,7 +195,8 @@ public class Instance {
 	/**
 	 * The traces handler for this {@link Cache}.
 	 * 
-	 * @param tracer the new traces handler or NULL
+	 * @param tracer
+	 *            the new traces handler or NULL
 	 */
 	public void setTraceHandler(TraceHandler tracer) {
 		if (tracer == null) {
@@ -220,7 +228,8 @@ public class Instance {
 	/**
 	 * Reset the configuration.
 	 * 
-	 * @param resetTrans also reset the translation files
+	 * @param resetTrans
+	 *            also reset the translation files
 	 */
 	public void resetConfig(boolean resetTrans) {
 		String dir = Bundles.getDirectory();
@@ -330,7 +339,8 @@ public class Instance {
 	 * Return the directory where to store temporary files for the remote
 	 * {@link LocalLibrary}.
 	 * 
-	 * @param host the remote for this host
+	 * @param host
+	 *            the remote for this host
 	 * 
 	 * @return the directory
 	 */
@@ -342,8 +352,10 @@ public class Instance {
 	 * Return the directory where to store temporary files for the remote
 	 * {@link LocalLibrary}.
 	 * 
-	 * @param remoteDir the base remote directory
-	 * @param host      the remote for this host
+	 * @param remoteDir
+	 *            the base remote directory
+	 * @param host
+	 *            the remote for this host
 	 * 
 	 * @return the directory
 	 */
@@ -364,10 +376,13 @@ public class Instance {
 	 */
 	public boolean isVersionCheckNeeded() {
 		try {
-			long wait = config.getInteger(Config.NETWORK_UPDATE_INTERVAL, 0) * 24 * 60 * 60 * 1000;
+			long wait = config.getInteger(Config.NETWORK_UPDATE_INTERVAL, 0)
+					* 24 * 60 * 60 * 1000;
 			if (wait >= 0) {
-				String lastUpString = IOUtils.readSmallFile(new File(configDir, "LAST_UPDATE"));
-				long delay = new Date().getTime() - Long.parseLong(lastUpString);
+				String lastUpString = IOUtils
+						.readSmallFile(new File(configDir, "LAST_UPDATE"));
+				long delay = new Date().getTime()
+						- Long.parseLong(lastUpString);
 				if (delay > wait) {
 					return true;
 				}
@@ -387,7 +402,8 @@ public class Instance {
 	 */
 	public void setVersionChecked() {
 		try {
-			IOUtils.writeSmallFile(new File(configDir), "LAST_UPDATE", Long.toString(new Date().getTime()));
+			IOUtils.writeSmallFile(new File(configDir), "LAST_UPDATE",
+					Long.toString(new Date().getTime()));
 		} catch (IOException e) {
 			tracer.error(e);
 		}
@@ -405,8 +421,8 @@ public class Instance {
 	}
 
 	/**
-	 * The configuration directory (will check, in order of preference, the system
-	 * properties, the environment and then defaults to
+	 * The configuration directory (will check, in order of preference, the
+	 * system properties, the environment and then defaults to
 	 * {@link Instance#getHome()}/.fanfix).
 	 * 
 	 * @return the config directory
@@ -430,9 +446,11 @@ public class Instance {
 	 * {@link Instance#uiconfig}, {@link Instance#trans} and
 	 * {@link Instance#transGui}).
 	 * 
-	 * @param configDir the directory where to find the configuration files
-	 * @param refresh   TRUE to reset the configuration files from the default
-	 *                  included ones
+	 * @param configDir
+	 *            the directory where to find the configuration files
+	 * @param refresh
+	 *            TRUE to reset the configuration files from the default
+	 *            included ones
 	 */
 	private void createConfigs(String configDir, boolean refresh) {
 		if (!refresh) {
@@ -476,37 +494,56 @@ public class Instance {
 	/**
 	 * Create the default library as specified by the config.
 	 * 
-	 * @param remoteDir the base remote directory if needed
+	 * @param remoteDir
+	 *            the base remote directory if needed
 	 * 
 	 * @return the default {@link BasicLibrary}
 	 */
 	private BasicLibrary createDefaultLibrary(File remoteDir) {
 		BasicLibrary lib = null;
 
-		boolean useRemote = config.getBoolean(Config.REMOTE_LIBRARY_ENABLED, false);
+		boolean useRemote = config.getBoolean(Config.REMOTE_LIBRARY_ENABLED,
+				false);
 		if (useRemote) {
 			String host = null;
 			int port = -1;
 			try {
-				host = config.getString(Config.REMOTE_LIBRARY_HOST);
+				host = config.getString(Config.REMOTE_LIBRARY_HOST,
+						"fanfix://localhost");
 				port = config.getInteger(Config.REMOTE_LIBRARY_PORT, -1);
 				String key = config.getString(Config.REMOTE_LIBRARY_KEY);
 
+				if (!host.startsWith("http://") && !host.startsWith("https://")
+						&& !host.startsWith("fanfix://")) {
+					host = "fanfix://" + host;
+				}
+
 				tracer.trace("Selecting remote library " + host + ":" + port);
-				lib = new RemoteLibrary(key, host, port);
-				lib = new CacheLibrary(getRemoteDir(remoteDir, host), lib, uiconfig);
+
+				if (host.startsWith("fanfix://")) {
+					lib = new RemoteLibrary(key, host, port);
+				} else {
+					lib = new WebLibrary(key, host, port);
+				}
+
+				lib = new CacheLibrary(getRemoteDir(remoteDir, host), lib,
+						uiconfig);
 			} catch (Exception e) {
-				tracer.error(new IOException("Cannot create remote library for: " + host + ":" + port, e));
+				tracer.error(
+						new IOException("Cannot create remote library for: "
+								+ host + ":" + port, e));
 			}
 		} else {
 			String libDir = System.getenv("BOOKS_DIR");
 			if (libDir == null || libDir.isEmpty()) {
-				libDir = getFile(Config.LIBRARY_DIR, configDir, "$HOME/Books").getPath();
+				libDir = getFile(Config.LIBRARY_DIR, configDir, "$HOME/Books")
+						.getPath();
 			}
 			try {
 				lib = new LocalLibrary(new File(libDir), config);
 			} catch (Exception e) {
-				tracer.error(new IOException("Cannot create library for directory: " + libDir, e));
+				tracer.error(new IOException(
+						"Cannot create library for directory: " + libDir, e));
 			}
 		}
 
@@ -516,9 +553,12 @@ public class Instance {
 	/**
 	 * Return a path, but support the special $HOME variable.
 	 * 
-	 * @param id  the key for the path, which may contain "$HOME"
-	 * @param configDir the directory to use as base if not absolute
-	 * @param def the default value if none (will be configDir-rooted if needed)
+	 * @param id
+	 *            the key for the path, which may contain "$HOME"
+	 * @param configDir
+	 *            the directory to use as base if not absolute
+	 * @param def
+	 *            the default value if none (will be configDir-rooted if needed)
 	 * @return the path, with expanded "$HOME" if needed
 	 */
 	protected File getFile(Config id, String configDir, String def) {
@@ -529,9 +569,12 @@ public class Instance {
 	/**
 	 * Return a path, but support the special $HOME variable.
 	 * 
-	 * @param id  the key for the path, which may contain "$HOME"
-	 * @param configDir the directory to use as base if not absolute
-	 * @param def the default value if none (will be configDir-rooted if needed)
+	 * @param id
+	 *            the key for the path, which may contain "$HOME"
+	 * @param configDir
+	 *            the directory to use as base if not absolute
+	 * @param def
+	 *            the default value if none (will be configDir-rooted if needed)
 	 * @return the path, with expanded "$HOME" if needed
 	 */
 	protected File getFile(UiConfig id, String configDir, String def) {
@@ -542,8 +585,10 @@ public class Instance {
 	/**
 	 * Return a path, but support the special $HOME variable.
 	 * 
-	 * @param path the path, which may contain "$HOME"
-	 * @param configDir the directory to use as base if not absolute
+	 * @param path
+	 *            the path, which may contain "$HOME"
+	 * @param configDir
+	 *            the directory to use as base if not absolute
 	 * @return the path, with expanded "$HOME" if needed
 	 */
 	protected File getFile(String path, String configDir) {
@@ -567,8 +612,8 @@ public class Instance {
 	 * properties.
 	 * <p>
 	 * The environment variable is tested first. Then, the custom property
-	 * "fanfix.home" is tried, followed by the usual "user.home" then "java.io.tmp"
-	 * if nothing else is found.
+	 * "fanfix.home" is tried, followed by the usual "user.home" then
+	 * "java.io.tmp" if nothing else is found.
 	 * 
 	 * @return the home
 	 */
@@ -615,7 +660,8 @@ public class Instance {
 		String lang = config.getString(Config.LANG);
 
 		if (lang == null || lang.isEmpty()) {
-			if (System.getenv("LANG") != null && !System.getenv("LANG").isEmpty()) {
+			if (System.getenv("LANG") != null
+					&& !System.getenv("LANG").isEmpty()) {
 				lang = System.getenv("LANG");
 			}
 		}
@@ -630,7 +676,8 @@ public class Instance {
 	/**
 	 * Check that the given environment variable is "enabled".
 	 * 
-	 * @param key the variable to check
+	 * @param key
+	 *            the variable to check
 	 * 
 	 * @return TRUE if it is
 	 */
@@ -638,7 +685,8 @@ public class Instance {
 		String value = System.getenv(key);
 		if (value != null) {
 			value = value.trim().toLowerCase();
-			if ("yes".equals(value) || "true".equals(value) || "on".equals(value) || "1".equals(value)
+			if ("yes".equals(value) || "true".equals(value)
+					|| "on".equals(value) || "1".equals(value)
 					|| "y".equals(value)) {
 				return true;
 			}

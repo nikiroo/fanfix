@@ -19,6 +19,7 @@ import be.nikiroo.fanfix.library.CacheLibrary;
 import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.library.RemoteLibrary;
 import be.nikiroo.fanfix.library.RemoteLibraryServer;
+import be.nikiroo.fanfix.library.WebLibraryServer;
 import be.nikiroo.fanfix.output.BasicOutput;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.reader.BasicReader;
@@ -29,7 +30,6 @@ import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Progress;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.VersionCheck;
-import be.nikiroo.utils.serial.server.ServerObject;
 
 /**
  * Main program entry point.
@@ -79,7 +79,7 @@ public class Main {
 	 * <li>--version: get the version of the program</li>
 	 * <li>--server: start the server mode (see config file for parameters)</li>
 	 * <li>--stop-server: stop the running server on this port if any</li>
-	 * <li>--remote [key] [host] [port]: use a the given remote library</li>
+	 * <li>--remote [key] [host] [port]: use the given remote library</li>
 	 * </ul>
 	 * 
 	 * @param args
@@ -626,15 +626,8 @@ public class Main {
 				}
 				break;
 			case SERVER:
-				key = Instance.getInstance().getConfig().getString(Config.SERVER_KEY);
-				port = Instance.getInstance().getConfig().getInteger(Config.SERVER_PORT);
-				if (port == null) {
-					System.err.println("No port configured in the config file");
-					exitCode = 15;
-					break;
-				}
 				try {
-					startServer(key, port);
+					startServer();
 				} catch (IOException e) {
 					Instance.getInstance().getTraceHandler().error(e);
 				}
@@ -1037,20 +1030,29 @@ public class Main {
 	/**
 	 * Start a Fanfix server.
 	 * 
-	 * @param key
-	 *            the key taht will be needed to contact the Fanfix server
-	 * @param port
-	 *            the port on which to run
-	 * 
 	 * @throws IOException
 	 *             in case of I/O errors
 	 * @throws SSLException
 	 *             when the key was not accepted
 	 */
-	private void startServer(String key, int port) throws IOException {
-		ServerObject server = new RemoteLibraryServer(key, port);
-		server.setTraceHandler(Instance.getInstance().getTraceHandler());
-		server.run();
+	private void startServer() throws IOException {
+		String mode = Instance.getInstance().getConfig()
+				.getString(Config.SERVER_MODE, "fanfix");
+		if (mode.equals("fanfix")) {
+			RemoteLibraryServer server = new RemoteLibraryServer();
+			server.setTraceHandler(Instance.getInstance().getTraceHandler());
+			server.run();
+		} else if (mode.equals("http")) {
+			WebLibraryServer server = new WebLibraryServer(false);
+			server.setTraceHandler(Instance.getInstance().getTraceHandler());
+			server.run();
+		} else if (mode.equals("https")) {
+			WebLibraryServer server = new WebLibraryServer(true);
+			server.setTraceHandler(Instance.getInstance().getTraceHandler());
+			server.run();
+		} else {
+			throw new IOException("Unknown server mode: " + mode);
+		}
 	}
 
 	/**
