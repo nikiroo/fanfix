@@ -454,7 +454,10 @@ public class StringUtils {
 	 *            the input data
 	 * 
 	 * @return the hash
+	 * 
+	 * @deprecated please use {@link HashUtils}
 	 */
+	@Deprecated
 	static public String getMd5Hash(String input) {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
