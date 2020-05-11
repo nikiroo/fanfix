@@ -231,6 +231,10 @@ public class WebLibraryServer implements Runnable {
 				}
 
 				if (login.isSuccess()) {
+					if (!login.isWl()) {
+						whitelist.clear();
+					}
+
 					// refresh token
 					session.getCookies().set(new Cookie("token",
 							login.getToken(), "30; path=/"));
