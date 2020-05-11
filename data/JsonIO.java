@@ -7,6 +7,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
+
 public class JsonIO {
 	static public JSONObject toJson(MetaData meta) {
 		if (meta == null) {
@@ -35,6 +37,7 @@ public class JsonIO {
 	}
 
 	/**
+	 * // no image
 	 * 
 	 * @param json
 	 * 
@@ -69,14 +72,61 @@ public class JsonIO {
 		return meta;
 	}
 
+	static public JSONObject toJson(Story story) {
+		if (story == null) {
+			return null;
+		}
+
+		JSONObject json = new JSONObject();
+		put(json, "", Story.class.getName());
+		put(json, "meta", toJson(story.getMeta()));
+
+		List<JSONObject> chapters = new ArrayList<JSONObject>();
+		for (Chapter chap : story) {
+			chapters.add(toJson(chap));
+		}
+		put(json, "chapters", new JSONArray(chapters));
+
+		return json;
+	}
+
+	/**
+	 * 
+	 * @param json
+	 * 
+	 * @return
+	 * 
+	 * @throws JSONException
+	 *             when it cannot be converted
+	 */
+	static public Story toStory(JSONObject json) {
+		if (json == null) {
+			return null;
+		}
+
+		Story story = new Story();
+		story.setMeta(toMetaData(getJson(json,"meta")));
+		story.setChapters(toListChapter(getJsonArr(json, "chapters")));
+
+		return story;
+	}
+
 	static public JSONObject toJson(Chapter chap) {
 		if (chap == null) {
 			return null;
 		}
 
 		JSONObject json = new JSONObject();
+		put(json, "", Chapter.class.getName());
+		put(json, "name", chap.getName());
+		put(json, "number", chap.getNumber());
+		put(json, "words", chap.getWords());
 
-		// TODO
+		List<JSONObject> paragraphs = new ArrayList<JSONObject>();
+		for (Paragraph para : chap) {
+			paragraphs.add(toJson(para));
+		}
+		put(json, "paragraphs", new JSONArray(paragraphs));
 
 		return json;
 	}
@@ -95,11 +145,49 @@ public class JsonIO {
 			return null;
 		}
 
-		Chapter chap = new Chapter(0, "");
-
-		// TODO
+		Chapter chap = new Chapter(getInt(json, "number", 0),
+				getString(json, "name"));
+		chap.setWords(getLong(json, "words", 0));
+		chap.setParagraphs(toListParagraph(getJsonArr(json, "paragraphs")));
 
 		return chap;
+	}
+
+	// no images
+	static public JSONObject toJson(Paragraph para) {
+		if (para == null) {
+			return null;
+		}
+
+		JSONObject json = new JSONObject();
+		put(json, "", Paragraph.class.getName());
+		put(json, "type", para.getType());
+		put(json, "content", para.getContent());
+		put(json, "words", para.getWords());
+
+		return json;
+	}
+
+	/**
+	 * // no images
+	 * 
+	 * @param json
+	 * 
+	 * @return
+	 * 
+	 * @throws JSONException
+	 *             when it cannot be converted
+	 */
+	static public Paragraph toParagraph(JSONObject json) {
+		if (json == null) {
+			return null;
+		}
+
+		Paragraph para = new Paragraph(
+				ParagraphType.valueOf(getString(json, "type")),
+				getString(json, "content"), getLong(json, "words", 0));
+
+		return para;
 	}
 
 	static public List<String> toListString(JSONArray array) {
@@ -107,6 +195,31 @@ public class JsonIO {
 			List<String> values = new ArrayList<String>();
 			for (Object value : array.toList()) {
 				values.add(value == null ? null : value.toString());
+			}
+			return values;
+		}
+
+		return null;
+	}
+
+	static public List<Paragraph> toListParagraph(JSONArray array) {
+		if (array != null) {
+			List<Paragraph> values = new ArrayList<Paragraph>();
+			for (Object value : array.toList()) {
+				values.add(
+						value instanceof Paragraph ? (Paragraph) value : null);
+			}
+			return values;
+		}
+
+		return null;
+	}
+
+	private static List<Chapter> toListChapter(JSONArray array) {
+		if (array != null) {
+			List<Chapter> values = new ArrayList<Chapter>();
+			for (Object value : array.toList()) {
+				values.add(value instanceof Chapter ? (Chapter) value : null);
 			}
 			return values;
 		}
@@ -134,6 +247,17 @@ public class JsonIO {
 			Object o = json.get(key);
 			if (o instanceof Long) {
 				return (Long) o;
+			}
+		}
+
+		return def;
+	}
+
+	static int getInt(JSONObject json, String key, int def) {
+		if (json.has(key)) {
+			Object o = json.get(key);
+			if (o instanceof Integer) {
+				return (Integer) o;
 			}
 		}
 

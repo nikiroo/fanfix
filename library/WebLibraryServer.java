@@ -231,6 +231,10 @@ public class WebLibraryServer implements Runnable {
 				}
 
 				if (login.isSuccess()) {
+					if (!login.isWl()) {
+						whitelist.clear();
+					}
+
 					// refresh token
 					session.getCookies().set(new Cookie("token",
 							login.getToken(), "30; path=/"));
@@ -651,6 +655,7 @@ public class WebLibraryServer implements Runnable {
 	// /story/luid/chapter/para <-- text/image
 	// /story/luid/cover <-- image
 	// /story/luid/metadata <-- json
+	// /story/luid/json <-- json, whole chapter (no images)
 	private Response getStoryPart(String uri, List<String> whitelist) {
 		String[] cover = uri.split("/");
 		int off = 2;
@@ -667,7 +672,7 @@ public class WebLibraryServer implements Runnable {
 		// 1-based (0 = desc)
 		int chapter = 0;
 		if (chapterStr != null && !"cover".equals(chapterStr)
-				&& !"metadata".equals(chapterStr)) {
+				&& !"metadata".equals(chapterStr) && !"json".equals(chapterStr)) {
 			try {
 				chapter = Integer.parseInt(chapterStr);
 				if (chapter < 0) {
@@ -704,6 +709,11 @@ public class WebLibraryServer implements Runnable {
 			} else if ("metadata".equals(chapterStr)) {
 				MetaData meta = meta(luid, whitelist);
 				JSONObject json = JsonIO.toJson(meta);
+				mimeType = "application/json";
+				in = new ByteArrayInputStream(json.toString().getBytes());
+			}  else if ("json".equals(chapterStr)) {
+				Story story = story(luid, whitelist);
+				JSONObject json = JsonIO.toJson(story);
 				mimeType = "application/json";
 				in = new ByteArrayInputStream(json.toString().getBytes());
 			} else {

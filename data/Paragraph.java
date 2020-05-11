@@ -130,6 +130,16 @@ public class Paragraph implements Cloneable, Serializable {
 	}
 
 	/**
+	 * The content of this {@link Paragraph} if it is an image.
+	 * 
+	 * @param contentImage
+	 *            the content
+	 */
+	public void setContentImage(Image contentImage) {
+		this.contentImage = contentImage;
+	}
+	
+	/**
 	 * The number of words (or images) in this {@link Paragraph}.
 	 * 
 	 * @return the number of words

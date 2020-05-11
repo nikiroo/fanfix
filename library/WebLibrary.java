@@ -13,8 +13,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import be.nikiroo.fanfix.Instance;
+import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.JsonIO;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.fanfix.data.Paragraph;
+import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
@@ -136,6 +139,18 @@ public class WebLibrary extends BasicLibrary {
 	}
 
 	@Override
+	public Image getCustomSourceCover(final String source) throws IOException {
+		// TODO maybe global system in BasicLib ?
+		return null;
+	}
+
+	@Override
+	public Image getCustomAuthorCover(final String author) throws IOException {
+		// TODO maybe global system in BasicLib ?
+		return null;
+	}
+
+	@Override
 	public void setSourceCover(String source, String luid) throws IOException {
 		// TODO Auto-generated method stub
 		throw new IOException("Not implemented yet");
@@ -145,6 +160,45 @@ public class WebLibrary extends BasicLibrary {
 	public void setAuthorCover(String author, String luid) throws IOException {
 		// TODO Auto-generated method stub
 		throw new IOException("Not implemented yet");
+	}
+
+	@Override
+	public synchronized Story getStory(final String luid, Progress pg)
+			throws IOException {
+
+		// TODO: pg
+
+		Story story;
+		InputStream in = download("/story/" + luid + "/json");
+		try {
+			JSONObject json = new JSONObject(IOUtils.readSmallStream(in));
+			story = JsonIO.toStory(json);
+		} finally {
+			in.close();
+		}
+
+		story.getMeta().setCover(getCover(luid));
+		int chapNum = 1;
+		for (Chapter chap : story) {
+			int number = 1;
+			for (Paragraph para : chap) {
+				if (para.getType() == ParagraphType.IMAGE) {
+					InputStream subin = download(
+							"/story/" + luid + "/" + chapNum + "/" + number);
+					try {
+						para.setContentImage(new Image(subin));
+					} finally {
+						subin.close();
+					}
+				}
+
+				number++;
+			}
+
+			chapNum++;
+		}
+
+		return story;
 	}
 
 	@Override
