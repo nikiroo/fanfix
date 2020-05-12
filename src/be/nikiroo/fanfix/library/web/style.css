@@ -6,10 +6,6 @@ html, body, .main {
 	height: 100%;
 }
 
-table {
-	width: 100%;
-}
-
 .banner {
 }
 
@@ -136,25 +132,6 @@ h3 {
 	margin: auto;
 }
 
-.viewer {
-	padding-top: 64px;
-	padding-bottom: 64px;
-}
-
-.viewer.img {
-	margin: auto;
-	display: block;
-}
-
-a.viewer.link:hover {
-	background-color: transparent;
-}
-
-.viewer.text {
-	padding-left: 10px;
-	padding-right: 10px;
-}
-
 .bar.navbar       { padding-left: calc(50% - (4 * 64px / 2)); }
 
 .bar.optionbar.s1 { padding-left: calc(50% - (1 * 64px / 2)); }
@@ -199,6 +176,29 @@ a.viewer.link:hover {
 .bar .button.zoomreal   { background-image: url('/actual_size-32x32.png');   }
 .bar .button.zoomwidth  { background-image: url('/fit_to_width-32x32.png');  }
 .bar .button.zoomheight { background-image: url('/fit_to_height-32x32.png'); }
+
+.viewer {
+	padding-top: 64px;
+	padding-bottom: 64px;
+}
+
+.viewer.img {
+	margin: auto;
+	display: block;
+}
+
+a.viewer.link:hover {
+	background-color: transparent;
+}
+
+.viewer.text {
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+.desc {
+	display: flex;
+}
 
 @media(min-width: 800px) {
 	 .main {

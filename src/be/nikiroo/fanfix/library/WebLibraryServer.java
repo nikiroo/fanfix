@@ -813,145 +813,162 @@ public class WebLibraryServer implements Runnable {
 			StringBuilder builder = new StringBuilder();
 			appendPreHtml(builder, false);
 
-			if (chapter < 0) {
-				builder.append(story);
-			} else {
-				if (chapter == 0) {
-					// TODO: description
+			// TODO: no desc page for images?
+			if (story.getMeta().isImageDocument()) {
+				if (chapter <= 0)
 					chapter = 1;
-				}
+				if (paragraph <= 0)
+					paragraph = 1;
+			}
 
-				Chapter chap = null;
+			Chapter chap = null;
+			if (chapter <= 0) {
+				chap = story.getMeta().getResume();
+			} else {
 				try {
 					chap = story.getChapters().get(chapter - 1);
 				} catch (IndexOutOfBoundsException e) {
 					return NanoHTTPD.newFixedLengthResponse(Status.NOT_FOUND,
 							NanoHTTPD.MIME_PLAINTEXT, "Chapter not found");
 				}
+			}
 
-				if (story.getMeta().isImageDocument() && paragraph <= 0) {
-					paragraph = 1;
+			String first, previous, next, last;
+
+			StringBuilder content = new StringBuilder();
+
+			String disabledLeft = "";
+			String disabledRight = "";
+			String disabledZoomReal = "";
+			String disabledZoomWidth = "";
+			String disabledZoomHeight = "";
+
+			if (paragraph <= 0) {
+				first = getViewUrl(luid, 1, null);
+				previous = getViewUrl(luid, (Math.max(chapter - 1, 1)), null);
+				next = getViewUrl(luid,
+						(Math.min(chapter + 1, story.getChapters().size())),
+						null);
+				last = getViewUrl(luid, story.getChapters().size(), null);
+
+				// TODO
+				StringBuilder desc = new StringBuilder();
+
+				if (chapter <= 0) {
+					desc.append("<div class='desc'>\n");
+					desc.append("\t<div class='cover'>\n");
+					desc.append("\t\t<img src='/story/" + luid + "/cover'/>\n");
+					desc.append("\t</div>\n");
+					desc.append("\t<table>\n");
+					desc.append(
+							"\t\t<tr><th>HEAD 1</th><th>HEAD 2</th></tr>\n");
+					desc.append("\t\t<tr><td>KEY 1</td><td>VAL 1</td></tr>\n");
+					desc.append("\t\t<tr><td>KEY 2</td><td>VAL 2</td></tr>\n");
+					desc.append("\t</table>\n");
+					desc.append("</div>\n");
+					desc.append("<h1 class='title'>Description</h1>\n");
 				}
 
-				String first, previous, next, last;
-				String content;
+				content.append("<div class='viewer text'>\n");
+				content.append(desc);
+				content.append(
+						new TextOutput(false).convert(chap, chapter > 0));
+				content.append("</div>\n");
 
-				String disabledLeft = "";
-				String disabledRight = "";
-				String disabledZoomReal = "";
-				String disabledZoomWidth = "";
-				String disabledZoomHeight = "";
+				if (chapter <= 1)
+					disabledLeft = " disabled='disbaled'";
+				if (chapter >= story.getChapters().size())
+					disabledRight = " disabled='disbaled'";
+			} else {
+				first = getViewUrl(luid, chapter, 1);
+				previous = getViewUrl(luid, chapter,
+						(Math.max(paragraph - 1, 1)));
+				next = getViewUrl(luid, chapter,
+						(Math.min(paragraph + 1, chap.getParagraphs().size())));
+				last = getViewUrl(luid, chapter, chap.getParagraphs().size());
 
-				if (paragraph <= 0) {
-					first = getViewUrl(luid, 1, null);
-					previous = getViewUrl(luid, (Math.max(chapter - 1, 1)),
-							null);
-					next = getViewUrl(luid,
-							(Math.min(chapter + 1, story.getChapters().size())),
-							null);
-					last = getViewUrl(luid, story.getChapters().size(), null);
+				if (paragraph <= 1)
+					disabledLeft = " disabled='disbaled'";
+				if (paragraph >= chap.getParagraphs().size())
+					disabledRight = " disabled='disbaled'";
 
-					content = "<div class='viewer text'>\n"
-							+ new TextOutput(false).convert(chap, true)
-							+ "</div>\n";
+				Paragraph para = null;
+				try {
+					para = chap.getParagraphs().get(paragraph - 1);
+				} catch (IndexOutOfBoundsException e) {
+					return NanoHTTPD.newFixedLengthResponse(Status.NOT_FOUND,
+							NanoHTTPD.MIME_PLAINTEXT,
+							"Paragraph " + paragraph + " not found");
+				}
 
-					if (chapter <= 1)
-						disabledLeft = " disabled='disbaled'";
-					if (chapter >= story.getChapters().size())
-						disabledRight = " disabled='disbaled'";
-				} else {
-					first = getViewUrl(luid, chapter, 1);
-					previous = getViewUrl(luid, chapter,
-							(Math.max(paragraph - 1, 1)));
-					next = getViewUrl(luid, chapter, (Math.min(paragraph + 1,
-							chap.getParagraphs().size())));
-					last = getViewUrl(luid, chapter,
-							chap.getParagraphs().size());
-
-					if (paragraph <= 1)
-						disabledLeft = " disabled='disbaled'";
-					if (paragraph >= chap.getParagraphs().size())
-						disabledRight = " disabled='disbaled'";
-
-					Paragraph para = null;
-					try {
-						para = chap.getParagraphs().get(paragraph - 1);
-					} catch (IndexOutOfBoundsException e) {
-						return NanoHTTPD.newFixedLengthResponse(
-								Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT,
-								"Paragraph not found");
-					}
-
-					if (para.getType() == ParagraphType.IMAGE) {
-						String zoomStyle = "max-width: 100%;";
-						disabledZoomWidth = " disabled='disabled'";
-						String zoomOption = cookies.get("zoom");
-						if (zoomOption != null && !zoomOption.isEmpty()) {
-							if (zoomOption.equals("real")) {
-								zoomStyle = "";
-								disabledZoomWidth = "";
-								disabledZoomReal = " disabled='disabled'";
-							} else if (zoomOption.equals("width")) {
-								zoomStyle = "max-width: 100%;";
-							} else if (zoomOption.equals("height")) {
-								// see height of navbar + optionbar
-								zoomStyle = "max-height: calc(100% - 128px);";
-								disabledZoomWidth = "";
-								disabledZoomHeight = " disabled='disabled'";
-							}
+				if (para.getType() == ParagraphType.IMAGE) {
+					String zoomStyle = "max-width: 100%;";
+					disabledZoomWidth = " disabled='disabled'";
+					String zoomOption = cookies.get("zoom");
+					if (zoomOption != null && !zoomOption.isEmpty()) {
+						if (zoomOption.equals("real")) {
+							zoomStyle = "";
+							disabledZoomWidth = "";
+							disabledZoomReal = " disabled='disabled'";
+						} else if (zoomOption.equals("width")) {
+							zoomStyle = "max-width: 100%;";
+						} else if (zoomOption.equals("height")) {
+							// see height of navbar + optionbar
+							zoomStyle = "max-height: calc(100% - 128px);";
+							disabledZoomWidth = "";
+							disabledZoomHeight = " disabled='disabled'";
 						}
-						content = String.format("" //
-								+ "<a class='viewer link' href='%s'>" //
-								+ "<img class='viewer img' style='%s' src='%s'/>"
-								+ "</a>", //
-								next, //
-								zoomStyle, //
-								getStoryUrl(luid, chapter, paragraph));
-					} else {
-						content = para.getContent();
 					}
 
-				}
-
-				builder.append(String.format("" //
-						+ "<div class='bar navbar'>\n" //
-						+ "\t<a%s class='button first' href='%s'>&lt;&lt;</a>\n"//
-						+ "\t<a%s class='button previous' href='%s'>&lt;</a>\n"//
-						+ "\t<a%s class='button next' href='%s'>&gt;</a>\n"//
-						+ "\t<a%s class='button last' href='%s'>&gt;&gt;</a>\n"//
-						+ "</div>\n" //
-						+ "%s", //
-						disabledLeft, first, //
-						disabledLeft, previous, //
-						disabledRight, next, //
-						disabledRight, last, //
-						content //
-				));
-
-				builder.append("<div class='bar optionbar ");
-				if (paragraph > 0) {
-					builder.append("s4");
+					content.append(String.format("" //
+							+ "<a class='viewer link' href='%s'>"
+							+ "<img class='viewer img' style='%s' src='%s'/>"
+							+ "</a>", //
+							next, //
+							zoomStyle, //
+							getStoryUrl(luid, chapter, paragraph)));
 				} else {
-					builder.append("s1");
+					content.append(para.getContent());
 				}
-				builder.append("'>\n");
-				builder.append(
-						"	<a class='button back' href='/'>BACK</a>\n");
+			}
 
-				if (paragraph > 0) {
-					builder.append(String.format("" //
-							+ "\t<a%s class='button zoomreal'   href='%s'>REAL</a>\n"//
-							+ "\t<a%s class='button zoomwidth'  href='%s'>WIDTH</a>\n"//
-							+ "\t<a%s class='button zoomheight' href='%s'>HEIGHT</a>\n"//
-							+ "</div>\n", //
-							disabledZoomReal,
-							uri + "?optionName=zoom&optionValue=real", //
-							disabledZoomWidth,
-							uri + "?optionName=zoom&optionValue=width", //
-							disabledZoomHeight,
-							uri + "?optionName=zoom&optionValue=height" //
-					));
-				}
+			builder.append(String.format("" //
+					+ "<div class='bar navbar'>\n" //
+					+ "\t<a%s class='button first' href='%s'>&lt;&lt;</a>\n"//
+					+ "\t<a%s class='button previous' href='%s'>&lt;</a>\n"//
+					+ "\t<a%s class='button next' href='%s'>&gt;</a>\n"//
+					+ "\t<a%s class='button last' href='%s'>&gt;&gt;</a>\n"//
+					+ "</div>\n", //
+					disabledLeft, first, //
+					disabledLeft, previous, //
+					disabledRight, next, //
+					disabledRight, last //
+			));
+
+			builder.append(content);
+
+			builder.append("<div class='bar optionbar ");
+			if (paragraph > 0) {
+				builder.append("s4");
+			} else {
+				builder.append("s1");
+			}
+			builder.append("'>\n");
+			builder.append("	<a class='button back' href='/'>BACK</a>\n");
+
+			if (paragraph > 0) {
+				builder.append(String.format("" //
+						+ "\t<a%s class='button zoomreal'   href='%s'>REAL</a>\n"//
+						+ "\t<a%s class='button zoomwidth'  href='%s'>WIDTH</a>\n"//
+						+ "\t<a%s class='button zoomheight' href='%s'>HEIGHT</a>\n"//
+						+ "</div>\n", //
+						disabledZoomReal,
+						uri + "?optionName=zoom&optionValue=real", //
+						disabledZoomWidth,
+						uri + "?optionName=zoom&optionValue=width", //
+						disabledZoomHeight,
+						uri + "?optionName=zoom&optionValue=height" //
+				));
 			}
 
 			appendPostHtml(builder);
@@ -1023,7 +1040,8 @@ public class WebLibraryServer implements Runnable {
 			throws IOException {
 		MetaData meta = meta(luid, whitelist);
 		if (meta != null) {
-			return meta.getCover();
+			BasicLibrary lib = Instance.getInstance().getLibrary();
+			return lib.getCover(meta.getLuid());
 		}
 
 		return null;
