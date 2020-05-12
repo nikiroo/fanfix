@@ -63,7 +63,7 @@ h3 {
 	width: 250px;
 	display: flex;
 	margin: auto;
-	margin-top: 200px;
+	margin-top: calc(50% - 320px);
 	flex-direction: column;
 	border: 1px solid gray;
 	padding: 20px;
@@ -84,6 +84,18 @@ h3 {
 
 .filter {
 	padding: 10px;
+	height: 36px;
+}
+
+.filter > * {
+	height: 36px;
+}
+
+.filter input[name='clear'] {
+	background-image: url('/clear-32x32.png');
+	color: transparent;
+	width: 36px;
+	height: 36px;
 }
 
 .books {
@@ -96,8 +108,7 @@ h3 {
 
 .book_line .link, .book_line .title {
 	flex-grow: 100;
-	padding-right: 5px;
-	padding-left: 5px;
+	padding: 5px;
 }
 
 .book_line .link {
@@ -198,6 +209,10 @@ a.viewer.link:hover {
 
 .desc {
 	display: flex;
+}
+
+.desc .cover img {
+	width: 100px;
 }
 
 @media(min-width: 800px) {
