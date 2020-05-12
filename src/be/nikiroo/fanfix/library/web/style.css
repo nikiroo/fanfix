@@ -24,7 +24,8 @@ table {
 }
 
 .main {
-	display: block;
+	max-width: 800px;
+	margin: auto;
 }
 
 .message {
@@ -133,6 +134,7 @@ h3 {
 	display: block;
 	background: white;
 	position: fixed;
+	margin: auto;
 }
 
 .viewer {
@@ -155,7 +157,7 @@ a.viewer.link:hover {
 }
 
 .bar.navbar {
-	padding-left: calc(50% - (4 * 64px / 2));
+	padding-left: calc(min(50%, 800px / 2) - (4 * 64px / 2));
 }
 
 .bar.optionbar {
@@ -163,11 +165,11 @@ a.viewer.link:hover {
 }
 
 .bar.optionbar.s1 {
-	padding-left: calc(50% - (1 * 64px / 2));
+	padding-left: calc(min(50%, 800px / 2) - (1 * 64px / 2));
 }
 
 .bar.optionbar.s4 {
-	padding-left: calc(50% - (4 * 64px / 2));
+	padding-left: calc(min(50%, 800px / 2) - (4 * 64px / 2));
 }
 
 .bar .button {
