@@ -24,7 +24,6 @@ table {
 }
 
 .main {
-	max-width: 800px;
 	margin: auto;
 }
 
@@ -156,20 +155,13 @@ a.viewer.link:hover {
 	padding-right: 10px;
 }
 
-.bar.navbar {
-	padding-left: calc(min(50%, 800px / 2) - (4 * 64px / 2));
-}
+.bar.navbar       { padding-left: calc(50% - (4 * 64px / 2)); }
+
+.bar.optionbar.s1 { padding-left: calc(50% - (1 * 64px / 2)); }
+.bar.optionbar.s4 { padding-left: calc(50% - (4 * 64px / 2)); }
 
 .bar.optionbar {
 	bottom: 0;
-}
-
-.bar.optionbar.s1 {
-	padding-left: calc(min(50%, 800px / 2) - (1 * 64px / 2));
-}
-
-.bar.optionbar.s4 {
-	padding-left: calc(min(50%, 800px / 2) - (4 * 64px / 2));
 }
 
 .bar .button {
@@ -207,3 +199,14 @@ a.viewer.link:hover {
 .bar .button.zoomreal   { background-image: url('/actual_size-32x32.png');   }
 .bar .button.zoomwidth  { background-image: url('/fit_to_width-32x32.png');  }
 .bar .button.zoomheight { background-image: url('/fit_to_height-32x32.png'); }
+
+@media(min-width: 800px) {
+	 .main {
+	 	max-width: 800px;
+	 }
+	 
+	.bar.navbar       { padding-left: calc(400px - (4 * 64px / 2)); }
+	
+	.bar.optionbar.s1 { padding-left: calc(400px - (1 * 64px / 2)); }
+	.bar.optionbar.s4 { padding-left: calc(400px - (4 * 64px / 2)); }
+}
