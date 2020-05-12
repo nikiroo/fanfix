@@ -1098,7 +1098,7 @@ public class WebLibraryServer implements Runnable {
 
 		if (banner) {
 			builder.append("<div class='banner'>\n");
-			builder.append("\t<img class='ico' src='") //
+			builder.append("\t<img class='ico' src='/") //
 					.append(favicon) //
 					.append("'/>\n");
 			builder.append("\t<h1>Fanfix</h1>\n");
