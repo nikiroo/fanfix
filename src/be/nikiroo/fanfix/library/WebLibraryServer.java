@@ -672,7 +672,8 @@ public class WebLibraryServer implements Runnable {
 		// 1-based (0 = desc)
 		int chapter = 0;
 		if (chapterStr != null && !"cover".equals(chapterStr)
-				&& !"metadata".equals(chapterStr) && !"json".equals(chapterStr)) {
+				&& !"metadata".equals(chapterStr)
+				&& !"json".equals(chapterStr)) {
 			try {
 				chapter = Integer.parseInt(chapterStr);
 				if (chapter < 0) {
@@ -711,7 +712,7 @@ public class WebLibraryServer implements Runnable {
 				JSONObject json = JsonIO.toJson(meta);
 				mimeType = "application/json";
 				in = new ByteArrayInputStream(json.toString().getBytes());
-			}  else if ("json".equals(chapterStr)) {
+			} else if ("json".equals(chapterStr)) {
 				Story story = story(luid, whitelist);
 				JSONObject json = JsonIO.toJson(story);
 				mimeType = "application/json";
@@ -835,6 +836,12 @@ public class WebLibraryServer implements Runnable {
 				String first, previous, next, last;
 				String content;
 
+				String disabledLeft = "";
+				String disabledRight = "";
+				String disabledZoomReal = "";
+				String disabledZoomWidth = "";
+				String disabledZoomHeight = "";
+
 				if (paragraph <= 0) {
 					first = getViewUrl(luid, 1, null);
 					previous = getViewUrl(luid, (Math.max(chapter - 1, 1)),
@@ -847,6 +854,11 @@ public class WebLibraryServer implements Runnable {
 					content = "<div class='viewer text'>\n"
 							+ new TextOutput(false).convert(chap, true)
 							+ "</div>\n";
+
+					if (chapter <= 1)
+						disabledLeft = " disabled='disbaled'";
+					if (chapter >= story.getChapters().size())
+						disabledRight = " disabled='disbaled'";
 				} else {
 					first = getViewUrl(luid, chapter, 1);
 					previous = getViewUrl(luid, chapter,
@@ -855,6 +867,11 @@ public class WebLibraryServer implements Runnable {
 							chap.getParagraphs().size())));
 					last = getViewUrl(luid, chapter,
 							chap.getParagraphs().size());
+
+					if (paragraph <= 1)
+						disabledLeft = " disabled='disbaled'";
+					if (paragraph >= chap.getParagraphs().size())
+						disabledRight = " disabled='disbaled'";
 
 					Paragraph para = null;
 					try {
@@ -867,15 +884,20 @@ public class WebLibraryServer implements Runnable {
 
 					if (para.getType() == ParagraphType.IMAGE) {
 						String zoomStyle = "max-width: 100%;";
+						disabledZoomWidth = " disabled='disabled'";
 						String zoomOption = cookies.get("zoom");
 						if (zoomOption != null && !zoomOption.isEmpty()) {
 							if (zoomOption.equals("real")) {
 								zoomStyle = "";
+								disabledZoomWidth = "";
+								disabledZoomReal = " disabled='disabled'";
 							} else if (zoomOption.equals("width")) {
 								zoomStyle = "max-width: 100%;";
 							} else if (zoomOption.equals("height")) {
 								// see height of navbar + optionbar
 								zoomStyle = "max-height: calc(100% - 128px);";
+								disabledZoomWidth = "";
+								disabledZoomHeight = " disabled='disabled'";
 							}
 						}
 						content = String.format("" //
@@ -893,16 +915,16 @@ public class WebLibraryServer implements Runnable {
 
 				builder.append(String.format("" //
 						+ "<div class='bar navbar'>\n" //
-						+ "\t<a class='button first' href='%s'>&lt;&lt;</a>\n"//
-						+ "\t<a class='button previous' href='%s'>&lt;</a>\n"//
-						+ "\t<a class='button next' href='%s'>&gt;</a>\n"//
-						+ "\t<a class='button last' href='%s'>&gt;&gt;</a>\n"//
+						+ "\t<a%s class='button first' href='%s'>&lt;&lt;</a>\n"//
+						+ "\t<a%s class='button previous' href='%s'>&lt;</a>\n"//
+						+ "\t<a%s class='button next' href='%s'>&gt;</a>\n"//
+						+ "\t<a%s class='button last' href='%s'>&gt;&gt;</a>\n"//
 						+ "</div>\n" //
 						+ "%s", //
-						first, //
-						previous, //
-						next, //
-						last, //
+						disabledLeft, first, //
+						disabledLeft, previous, //
+						disabledRight, next, //
+						disabledRight, last, //
 						content //
 				));
 
@@ -918,12 +940,15 @@ public class WebLibraryServer implements Runnable {
 
 				if (paragraph > 0) {
 					builder.append(String.format("" //
-							+ "\t<a class='button zoomreal'   href='%s'>REAL</a>\n"//
-							+ "\t<a class='button zoomwidth'  href='%s'>WIDTH</a>\n"//
-							+ "\t<a class='button zoomheight' href='%s'>HEIGHT</a>\n"//
+							+ "\t<a%s class='button zoomreal'   href='%s'>REAL</a>\n"//
+							+ "\t<a%s class='button zoomwidth'  href='%s'>WIDTH</a>\n"//
+							+ "\t<a%s class='button zoomheight' href='%s'>HEIGHT</a>\n"//
 							+ "</div>\n", //
+							disabledZoomReal,
 							uri + "?optionName=zoom&optionValue=real", //
+							disabledZoomWidth,
 							uri + "?optionName=zoom&optionValue=width", //
+							disabledZoomHeight,
 							uri + "?optionName=zoom&optionValue=height" //
 					));
 				}
@@ -1098,5 +1123,11 @@ public class WebLibraryServer implements Runnable {
 			builder.append(" selected='selected'");
 		}
 		builder.append(">").append(name).append("</option>\n");
+	}
+
+	public static void main(String[] args) throws IOException {
+		Instance.init();
+		WebLibraryServer web = new WebLibraryServer(false);
+		web.run();
 	}
 }

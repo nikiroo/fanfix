@@ -1,9 +1,8 @@
 html, body, .main {
 	margin: 0;
 	padding: 0;
-	font-family : Verdana, "Bitstream Vera Sans", "DejaVu Sans", Tahoma, Geneva, Arial, Sans-serif;
+	font-family: Verdana, "Bitstream Vera Sans", "DejaVu Sans", Tahoma, Geneva, Arial, Sans-serif;
 	font-size: 12px;
-	DISABLED_color: #635c4a;
 	height: 100%;
 }
 
@@ -29,21 +28,21 @@ table {
 }
 
 .message {
-        background-color: #ddffdd;
-        border: 1px solid #88dd88;
-        clear: left;
-        border-radius: 5px;
-        padding: 5px;
-        margin: 10px;
+	background-color: #ddffdd;
+	border: 1px solid #88dd88;
+	clear: left;
+	border-radius: 5px;
+	padding: 5px;
+	margin: 10px;
 }
 
 .error {
-        background-color: #ffdddd;
-        border: 1px solid #dd8888;
-        clear: left;
-        border-radius: 5px;
-        padding: 5px;
-        margin: 10px;
+	background-color: #ffdddd;
+	border: 1px solid #dd8888;
+	clear: left;
+	border-radius: 5px;
+	padding: 5px;
+	margin: 10px;
 }
 
 /* all links and clickable should show a pointer cursor */
@@ -141,6 +140,11 @@ h3 {
 	padding-bottom: 64px;
 }
 
+.viewer.img {
+	margin: auto;
+	display: block;
+}
+
 a.viewer.link:hover {
 	background-color: transparent;
 }
@@ -155,7 +159,7 @@ a.viewer.link:hover {
 }
 
 .bar.optionbar {
-	bottom: 0;	
+	bottom: 0;
 }
 
 .bar.optionbar.s1 {
@@ -179,6 +183,13 @@ a.viewer.link:hover {
 	border-radius: 5px;
 	border: 1px solid #bac2e1;
 	margin: 5px;
+}
+
+.bar .button[disabled] {
+	pointer-events: none;
+	background-color: #aaa;
+	filter: grayscale(100%);
+	border-color: gray;
 }
 
 .bar .button:hover {
