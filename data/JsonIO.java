@@ -31,6 +31,8 @@ public class JsonIO {
 		put(json, "subject", meta.getSubject());
 		put(json, "type", meta.getType());
 		put(json, "uuid", meta.getUuid());
+		put(json, "fake_cover", meta.isFakeCover());
+		put(json, "image_document", meta.isImageDocument());
 
 		put(json, "resume", toJson(meta.getResume()));
 		put(json, "tags", new JSONArray(meta.getTags()));
@@ -68,6 +70,8 @@ public class JsonIO {
 		meta.setSubject(getString(json, "subject"));
 		meta.setType(getString(json, "type"));
 		meta.setUuid(getString(json, "uuid"));
+		meta.setFakeCover(getBoolean(json, "fake_cover", false));
+		meta.setImageDocument(getBoolean(json, "image_document", false));
 
 		meta.setResume(toChapter(getJson(json, "resume")));
 		meta.setTags(toListString(getJsonArr(json, "tags")));
@@ -254,6 +258,17 @@ public class JsonIO {
 			Object o = json.get(key);
 			if (o instanceof Long) {
 				return (Long) o;
+			}
+		}
+
+		return def;
+	}
+
+	static boolean getBoolean(JSONObject json, String key, boolean def) {
+		if (json.has(key)) {
+			Object o = json.get(key);
+			if (o instanceof Boolean) {
+				return (Boolean) o;
 			}
 		}
 
