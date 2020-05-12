@@ -16,6 +16,7 @@ public class JsonIO {
 		}
 
 		JSONObject json = new JSONObject();
+
 		put(json, "", MetaData.class.getName());
 		put(json, "luid", meta.getLuid());
 		put(json, "title", meta.getTitle());
@@ -30,6 +31,7 @@ public class JsonIO {
 		put(json, "subject", meta.getSubject());
 		put(json, "type", meta.getType());
 		put(json, "uuid", meta.getUuid());
+
 		put(json, "resume", toJson(meta.getResume()));
 		put(json, "tags", new JSONArray(meta.getTags()));
 
@@ -52,6 +54,7 @@ public class JsonIO {
 		}
 
 		MetaData meta = new MetaData();
+
 		meta.setLuid(getString(json, "luid"));
 		meta.setTitle(getString(json, "title"));
 		meta.setAuthor(getString(json, "author"));
@@ -105,7 +108,7 @@ public class JsonIO {
 		}
 
 		Story story = new Story();
-		story.setMeta(toMetaData(getJson(json,"meta")));
+		story.setMeta(toMetaData(getJson(json, "meta")));
 		story.setChapters(toListChapter(getJsonArr(json, "chapters")));
 
 		return story;
@@ -148,6 +151,7 @@ public class JsonIO {
 		Chapter chap = new Chapter(getInt(json, "number", 0),
 				getString(json, "name"));
 		chap.setWords(getLong(json, "words", 0));
+
 		chap.setParagraphs(toListParagraph(getJsonArr(json, "paragraphs")));
 
 		return chap;
@@ -160,10 +164,12 @@ public class JsonIO {
 		}
 
 		JSONObject json = new JSONObject();
+
 		put(json, "", Paragraph.class.getName());
-		put(json, "type", para.getType());
 		put(json, "content", para.getContent());
 		put(json, "words", para.getWords());
+
+		put(json, "type", para.getType().toString());
 
 		return json;
 	}
@@ -193,8 +199,8 @@ public class JsonIO {
 	static public List<String> toListString(JSONArray array) {
 		if (array != null) {
 			List<String> values = new ArrayList<String>();
-			for (Object value : array.toList()) {
-				values.add(value == null ? null : value.toString());
+			for (int i = 0; i < array.length(); i++) {
+				values.add(array.getString(i));
 			}
 			return values;
 		}
@@ -205,9 +211,9 @@ public class JsonIO {
 	static public List<Paragraph> toListParagraph(JSONArray array) {
 		if (array != null) {
 			List<Paragraph> values = new ArrayList<Paragraph>();
-			for (Object value : array.toList()) {
-				values.add(
-						value instanceof Paragraph ? (Paragraph) value : null);
+			for (int i = 0; i < array.length(); i++) {
+				JSONObject value = array.getJSONObject(i);
+				values.add(toParagraph(value));
 			}
 			return values;
 		}
@@ -218,8 +224,9 @@ public class JsonIO {
 	private static List<Chapter> toListChapter(JSONArray array) {
 		if (array != null) {
 			List<Chapter> values = new ArrayList<Chapter>();
-			for (Object value : array.toList()) {
-				values.add(value instanceof Chapter ? (Chapter) value : null);
+			for (int i = 0; i < array.length(); i++) {
+				JSONObject value = array.getJSONObject(i);
+				values.add(toChapter(value));
 			}
 			return values;
 		}
