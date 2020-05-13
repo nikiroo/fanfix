@@ -626,7 +626,7 @@ public class WebLibraryServer implements Runnable {
 
 			builder.append("<div class='book_line'>");
 			builder.append("<a href='");
-			builder.append(getViewUrl(meta.getLuid(), 0, null));
+			builder.append(getViewUrl(meta.getLuid(), null, null));
 			builder.append("'");
 			builder.append(" class='link'>");
 
@@ -784,7 +784,7 @@ public class WebLibraryServer implements Runnable {
 		String paragraphStr = cover.length < off + 4 ? null : cover[off + 3];
 
 		// 1-based (0 = desc)
-		int chapter = -1;
+		int chapter = 0;
 		if (chapterStr != null) {
 			try {
 				chapter = Integer.parseInt(chapterStr);
@@ -864,9 +864,9 @@ public class WebLibraryServer implements Runnable {
 					desc.append(story.getMeta().getTitle());
 					desc.append("</h1>\n");
 					desc.append("<div class='desc'>\n");
-					desc.append("\t<div class='cover'>\n");
+					desc.append("\t<a href='" + next + "' class='cover'>\n");
 					desc.append("\t\t<img src='/story/" + luid + "/cover'/>\n");
-					desc.append("\t</div>\n");
+					desc.append("\t</a>\n");
 					desc.append("\t<table class='details'>\n");
 					Map<String, String> details = BasicLibrary
 							.getMetaDesc(story.getMeta());
@@ -970,15 +970,12 @@ public class WebLibraryServer implements Runnable {
 
 			// List of chap/para links
 
-			String blink = "/view/story/" + luid + "/";
-			appendItemA(builder, 3, blink + "0", "Description",
+			appendItemA(builder, 3, getViewUrl(luid, 0, null), "Description",
 					paragraph == 0 && chapter == 0);
-
 			if (paragraph > 0) {
-				blink = blink + chapter + "/";
 				for (int i = 1; i <= chap.getParagraphs().size(); i++) {
-					appendItemA(builder, 3, blink + i, "Image " + i,
-							paragraph == i);
+					appendItemA(builder, 3, getViewUrl(luid, chapter, i),
+							"Image " + i, paragraph == i);
 				}
 			} else {
 				int i = 1;
@@ -988,7 +985,8 @@ public class WebLibraryServer implements Runnable {
 						chapName += ": " + c.getName();
 					}
 
-					appendItemA(builder, 3, blink + i, chapName, chapter == i);
+					appendItemA(builder, 3, getViewUrl(luid, i, null), chapName,
+							chapter == i);
 
 					i++;
 				}
@@ -1064,12 +1062,12 @@ public class WebLibraryServer implements Runnable {
 		return "";
 	}
 
-	private String getViewUrl(String luid, int chap, Integer para) {
+	private String getViewUrl(String luid, Integer chap, Integer para) {
 		return VIEWER_URL //
 				.replace("{luid}", luid) //
-				.replace("{chap}", Integer.toString(chap)) //
+				.replace("/{chap}", chap == null ? "" : "/" + chap) //
 				.replace("/{para}",
-						para == null ? "" : "/" + Integer.toString(para));
+						(chap == null || para == null) ? "" : "/" + para);
 	}
 
 	private String getStoryUrl(String luid, int chap, Integer para) {
