@@ -119,7 +119,7 @@ public class WebLibrary extends BasicLibrary {
 		} catch (IOException e) {
 		}
 
-		return null;
+		return new Version();
 	}
 
 	@Override
@@ -140,7 +140,8 @@ public class WebLibrary extends BasicLibrary {
 
 	@Override
 	public String getLibraryName() {
-		return (rw ? "[READ-ONLY] " : "") + host + ":" + port;
+		return (rw ? "[READ-ONLY] " : "") + host + ":" + port + " ("
+				+ getVersion() + ")";
 	}
 
 	@Override
