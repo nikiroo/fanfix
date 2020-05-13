@@ -20,7 +20,7 @@ public class WebLibraryUrls {
 
 	static private final String LIST_URL_BASE = "/list/";
 
-	static public final String LIST_URL_METADATA = LIST_URL_BASE + "luids";
+	static public final String LIST_URL_METADATA = LIST_URL_BASE + "metadata";
 
 	static public String getViewUrl(String luid, Integer chap, Integer para) {
 		return VIEWER_URL //
