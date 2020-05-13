@@ -29,9 +29,9 @@ import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.web.WebLibraryServerIndex;
 import be.nikiroo.fanfix.reader.TextOutput;
-import be.nikiroo.utils.CookieUtils;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
+import be.nikiroo.utils.LoginResult;
 import be.nikiroo.utils.NanoHTTPD;
 import be.nikiroo.utils.NanoHTTPD.IHTTPSession;
 import be.nikiroo.utils.NanoHTTPD.Response;
@@ -47,103 +47,40 @@ public class WebLibraryServer implements Runnable {
 	static private String STORY_URL_COVER = STORY_URL_BASE + "{luid}/cover";
 	static private String LIST_URL = "/list/";
 
-	private class LoginResult {
-		private boolean success;
+	private class WLoginResult extends LoginResult {
 		private boolean rw;
 		private boolean wl;
 		private boolean bl;
-		private String wookie;
-		private String token;
-		private boolean badLogin;
-		private boolean badToken;
 
-		public LoginResult(String who, String key, String subkey,
-				boolean success, boolean rw, boolean wl, boolean bl) {
-			this.success = success;
+		public WLoginResult(boolean badLogin, boolean badCookie) {
+			super(badLogin, badCookie);
+		}
+
+		public WLoginResult(String who, String key, String subkey, boolean rw,
+				boolean wl, boolean bl) {
+			super(who, key, subkey, (rw ? "|rw" : "") + (wl ? "|wl" : "")
+					+ (bl ? "|bl" : "") + "|");
 			this.rw = rw;
 			this.wl = wl;
 			this.bl = bl;
-			this.wookie = CookieUtils.generateCookie(who + key, 0);
-
-			String opts = "";
-			if (rw)
-				opts += "|rw";
-			if (!wl)
-				opts += "|wl";
-			if (!bl)
-				opts += "|bl";
-			opts += "|";
-
-			this.token = wookie + "~"
-					+ CookieUtils.generateCookie(wookie + subkey + opts, 0)
-					+ "~" + opts;
-			this.badLogin = !success;
 		}
 
-		public LoginResult(String token, String who, String key,
+		public WLoginResult(String cookie, String who, String key,
 				List<String> subkeys) {
-
-			if (token != null) {
-				String hashes[] = token.split("~");
-				if (hashes.length >= 2) {
-					String wookie = hashes[0];
-					String rehashed = hashes[1];
-					String opts = hashes.length > 2 ? hashes[2] : "";
-
-					if (CookieUtils.validateCookie(who + key, wookie)) {
-						if (subkeys == null) {
-							subkeys = new ArrayList<String>();
-						}
-						subkeys = new ArrayList<String>(subkeys);
-						subkeys.add("");
-
-						for (String subkey : subkeys) {
-							if (CookieUtils.validateCookie(
-									wookie + subkey + opts, rehashed)) {
-								this.wookie = wookie;
-								this.token = token;
-								this.success = true;
-
-								this.rw = opts.contains("|rw|");
-								this.wl = !opts.contains("|wl|");
-								this.bl = !opts.contains("|bl|");
-							}
-						}
-					}
-				}
-
-				this.badToken = !success;
-			}
-
-			// No token -> no bad token
-		}
-
-		public boolean isSuccess() {
-			return success;
+			super(cookie, who, key, subkeys,
+					subkeys == null || subkeys.isEmpty());
 		}
 
 		public boolean isRw() {
-			return rw;
+			return getOption().contains("|rw|");
 		}
 
 		public boolean isWl() {
-			return wl;
+			return getOption().contains("|wl|");
 		}
 
 		public boolean isBl() {
-			return bl;
-		}
-
-		public String getToken() {
-			return token;
-		}
-
-		public boolean isBadLogin() {
-			return badLogin;
-		}
-
-		public boolean isBadToken() {
-			return badToken;
+			return getOption().contains("|bl|");
 		}
 	}
 
@@ -229,7 +166,7 @@ public class WebLibraryServer implements Runnable {
 					cookies.put(cookie, session.getCookies().read(cookie));
 				}
 
-				LoginResult login = null;
+				WLoginResult login = null;
 				Map<String, String> params = session.getParms();
 				String who = session.getRemoteHostName()
 						+ session.getRemoteIpAddress();
@@ -237,14 +174,14 @@ public class WebLibraryServer implements Runnable {
 					login = login(who, params.get("password"),
 							params.get("login"));
 				} else {
-					String token = cookies.get("token");
-					login = login(who, token);
+					String cookie = cookies.get("cookie");
+					login = login(who, cookie);
 				}
 
 				if (login.isSuccess()) {
-					// refresh token
-					session.getCookies().set(new Cookie("token",
-							login.getToken(), "30; path=/"));
+					// refresh cookie
+					session.getCookies().set(new Cookie("cookie",
+							login.getCookie(), "30; path=/"));
 
 					// set options
 					String optionName = params.get("optionName");
@@ -282,8 +219,8 @@ public class WebLibraryServer implements Runnable {
 						} else if (uri.startsWith(VIEWER_URL_BASE)) {
 							rep = getViewer(cookies, uri, login);
 						} else if (uri.equals("/logout")) {
-							session.getCookies().delete("token");
-							cookies.remove("token");
+							session.getCookies().delete("cookie");
+							cookies.remove("cookie");
 							rep = loginPage(login, uri);
 						} else {
 							if (uri.startsWith("/"))
@@ -374,17 +311,17 @@ public class WebLibraryServer implements Runnable {
 		this.tracer = tracer;
 	}
 
-	private LoginResult login(String who, String token) {
-		List<String> subkeys = Instance.getInstance().getConfig().getList(
-				Config.SERVER_ALLOWED_SUBKEYS, new ArrayList<String>());
+	private WLoginResult login(String who, String cookie) {
+		List<String> subkeys = Instance.getInstance().getConfig()
+				.getList(Config.SERVER_ALLOWED_SUBKEYS);
 		String realKey = Instance.getInstance().getConfig()
-				.getString(Config.SERVER_KEY, "");
+				.getString(Config.SERVER_KEY);
 
-		return new LoginResult(token, who, realKey, subkeys);
+		return new WLoginResult(cookie, who, realKey, subkeys);
 	}
 
 	// allow rw/wl
-	private LoginResult login(String who, String key, String subkey) {
+	private WLoginResult login(String who, String key, String subkey) {
 		String realKey = Instance.getInstance().getConfig()
 				.getString(Config.SERVER_KEY, "");
 
@@ -393,8 +330,7 @@ public class WebLibraryServer implements Runnable {
 		subkey = subkey == null ? "" : subkey;
 
 		if (!realKey.equals(key)) {
-			return new LoginResult(null, null, null, false, false, false,
-					false);
+			return new WLoginResult(true, false);
 		}
 
 		// defaults are true (as previous versions without the feature)
@@ -404,36 +340,37 @@ public class WebLibraryServer implements Runnable {
 
 		rw = Instance.getInstance().getConfig().getBoolean(Config.SERVER_RW,
 				rw);
-		if (!subkey.isEmpty()) {
-			List<String> allowed = Instance.getInstance().getConfig()
-					.getList(Config.SERVER_ALLOWED_SUBKEYS);
-			if (allowed != null && allowed.contains(subkey)) {
-				if ((subkey + "|").contains("|rw|")) {
-					rw = true;
-				}
-				if ((subkey + "|").contains("|wl|")) {
-					wl = false; // |wl| = bypass whitelist
-				}
-				if ((subkey + "|").contains("|bl|")) {
-					bl = false; // |bl| = bypass blacklist
-				}
-			} else {
-				return new LoginResult(null, null, null, false, false, false,
-						false);
+
+		List<String> allowed = Instance.getInstance().getConfig().getList(
+				Config.SERVER_ALLOWED_SUBKEYS, new ArrayList<String>());
+
+		if (!allowed.isEmpty()) {
+			if (!allowed.contains(subkey)) {
+				return new WLoginResult(true, false);
+			}
+
+			if ((subkey + "|").contains("|rw|")) {
+				rw = true;
+			}
+			if ((subkey + "|").contains("|wl|")) {
+				wl = false; // |wl| = bypass whitelist
+			}
+			if ((subkey + "|").contains("|bl|")) {
+				bl = false; // |bl| = bypass blacklist
 			}
 		}
 
-		return new LoginResult(who, key, subkey, true, rw, wl, bl);
+		return new WLoginResult(who, key, subkey, rw, wl, bl);
 	}
 
-	private Response loginPage(LoginResult login, String uri) {
+	private Response loginPage(WLoginResult login, String uri) {
 		StringBuilder builder = new StringBuilder();
 
 		appendPreHtml(builder, true);
 
 		if (login.isBadLogin()) {
 			builder.append("<div class='error'>Bad login or password</div>");
-		} else if (login.isBadToken()) {
+		} else if (login.isBadCookie()) {
 			builder.append("<div class='error'>Your session timed out</div>");
 		}
 
@@ -456,7 +393,7 @@ public class WebLibraryServer implements Runnable {
 				NanoHTTPD.MIME_HTML, builder.toString());
 	}
 
-	protected Response getList(String uri, LoginResult login)
+	protected Response getList(String uri, WLoginResult login)
 			throws IOException {
 		if (uri.equals("/list/luids")) {
 			List<JSONObject> jsons = new ArrayList<JSONObject>();
@@ -474,7 +411,7 @@ public class WebLibraryServer implements Runnable {
 	}
 
 	private Response root(IHTTPSession session, Map<String, String> cookies,
-			LoginResult login) throws IOException {
+			WLoginResult login) throws IOException {
 		BasicLibrary lib = Instance.getInstance().getLibrary();
 		MetaResultList result = new MetaResultList(metas(login));
 		StringBuilder builder = new StringBuilder();
@@ -650,7 +587,7 @@ public class WebLibraryServer implements Runnable {
 	// /story/luid/cover <-- image
 	// /story/luid/metadata <-- json
 	// /story/luid/json <-- json, whole chapter (no images)
-	private Response getStoryPart(String uri, LoginResult login) {
+	private Response getStoryPart(String uri, WLoginResult login) {
 		String[] cover = uri.split("/");
 		int off = 2;
 
@@ -757,7 +694,7 @@ public class WebLibraryServer implements Runnable {
 	}
 
 	private Response getViewer(Map<String, String> cookies, String uri,
-			LoginResult login) {
+			WLoginResult login) {
 		String[] cover = uri.split("/");
 		int off = 2;
 
@@ -1070,7 +1007,7 @@ public class WebLibraryServer implements Runnable {
 				.replace("{luid}", luid);
 	}
 
-	private boolean isAllowed(MetaData meta, LoginResult login) {
+	private boolean isAllowed(MetaData meta, WLoginResult login) {
 		if (login.isWl() && !whitelist.isEmpty()
 				&& !whitelist.contains(meta.getSource())) {
 			return false;
@@ -1082,13 +1019,8 @@ public class WebLibraryServer implements Runnable {
 		return true;
 	}
 
-	private List<MetaData> metas(LoginResult login) throws IOException {
+	private List<MetaData> metas(WLoginResult login) throws IOException {
 		BasicLibrary lib = Instance.getInstance().getLibrary();
-		System.out.println("Whitelist: " + whitelist);
-		System.out.println("Blacklist: " + blacklist);
-		System.out.println("isWl: " + login.isWl());
-		System.out.println("isBl: " + login.isBl());
-
 		List<MetaData> metas = new ArrayList<MetaData>();
 		for (MetaData meta : lib.getList().getMetas()) {
 			if (isAllowed(meta, login)) {
@@ -1099,7 +1031,7 @@ public class WebLibraryServer implements Runnable {
 		return metas;
 	}
 
-	private MetaData meta(String luid, LoginResult login) throws IOException {
+	private MetaData meta(String luid, WLoginResult login) throws IOException {
 		BasicLibrary lib = Instance.getInstance().getLibrary();
 		MetaData meta = lib.getInfo(luid);
 		if (!isAllowed(meta, login))
@@ -1108,7 +1040,7 @@ public class WebLibraryServer implements Runnable {
 		return meta;
 	}
 
-	private Image getCover(String luid, LoginResult login) throws IOException {
+	private Image getCover(String luid, WLoginResult login) throws IOException {
 		MetaData meta = meta(luid, login);
 		if (meta != null) {
 			BasicLibrary lib = Instance.getInstance().getLibrary();
@@ -1119,7 +1051,7 @@ public class WebLibraryServer implements Runnable {
 	}
 
 	// NULL if not whitelist OK or if not found
-	private Story story(String luid, LoginResult login) throws IOException {
+	private Story story(String luid, WLoginResult login) throws IOException {
 		synchronized (storyCache) {
 			if (storyCache.containsKey(luid)) {
 				Story story = storyCache.get(luid);
