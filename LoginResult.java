@@ -39,16 +39,11 @@ public class LoginResult {
 	 * @param subkey
 	 *            a sub-password (can be NULL)
 	 * @param option
-	 *            an option assigned to this user (can be NULL)
+	 *            an option assigned to this login (can be NULL)
 	 */
 	public LoginResult(String who, String key, String subkey, String option) {
-		String wookie = CookieUtils.generateCookie(who + key, 0);
-
 		this.option = option;
-		this.cookie = wookie + "~"
-				+ CookieUtils.generateCookie(
-						wookie + (subkey == null ? "" : subkey) + option, 0)
-				+ "~" + option;
+		this.cookie = generateCookie(who, key, subkey, option);
 		this.success = true;
 	}
 
@@ -110,9 +105,8 @@ public class LoginResult {
 					for (String subkey : subkeys) {
 						if (CookieUtils.validateCookie(wookie + subkey + opts,
 								rehashed)) {
-							wookie = CookieUtils.generateCookie(who + key, 0);
-							this.cookie = CookieUtils
-									.generateCookie(wookie + subkey + opts, 0);
+							this.cookie = generateCookie(who, key, subkey,
+									opts);
 							this.option = opts;
 							this.success = true;
 						}
@@ -190,5 +184,28 @@ public class LoginResult {
 			return "Login failed because of bad cookie";
 
 		return "Login failed without giving a reason";
+	}
+
+	/**
+	 * Generate a cookie.
+	 * 
+	 * @param who
+	 *            the user name (can be NULL)
+	 * @param key
+	 *            the password (can be NULL)
+	 * @param subkey
+	 *            a subkey (can be NULL)
+	 * @param option
+	 *            an option linked to the login (can be NULL)
+	 * 
+	 * @return a fresh cookie
+	 */
+	private String generateCookie(String who, String key, String subkey,
+			String option) {
+		String wookie = CookieUtils.generateCookie(who + key, 0);
+		return wookie + "~"
+				+ CookieUtils.generateCookie(
+						wookie + (subkey == null ? "" : subkey) + option, 0)
+				+ "~" + option;
 	}
 }
