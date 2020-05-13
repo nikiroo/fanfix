@@ -43,7 +43,9 @@ abstract public class BasicLibrary {
 		READ_ONLY,
 		/** You are not allowed to access this library. */
 		UNAUTHORIZED,
-		/** The library is currently out of commission. */
+		/** The library is invalid, and will never work as is. */
+		INVALID,
+		/** The library is currently out of commission, but may work later. */
 		UNAVAILABLE;
 
 		/**

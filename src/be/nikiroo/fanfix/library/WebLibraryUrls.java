@@ -1,6 +1,6 @@
 package be.nikiroo.fanfix.library;
 
-public class WebLibraryUrls {
+class WebLibraryUrls {
 	static public final String INDEX_URL = "/";
 
 	static public final String VERSION_URL = "/version";
