@@ -41,11 +41,11 @@ abstract public class BasicLibrary {
 		READ_WRITE,
 		/** The library is ready, but read-only. */
 		READ_ONLY,
-		/** The library is invalid (not correctly set up). */
-		INVALID,
 		/** You are not allowed to access this library. */
 		UNAUTHORIZED,
-		/** The library is currently out of commission. */
+		/** The library is invalid, and will never work as is. */
+		INVALID,
+		/** The library is currently out of commission, but may work later. */
 		UNAVAILABLE;
 
 		/**

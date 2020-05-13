@@ -62,7 +62,7 @@ public class RemoteLibrary extends BasicLibrary {
 	 * Create a {@link RemoteLibrary} linked to the given server.
 	 * <p>
 	 * Note that the key is structured:
-	 * <tt><b><i>xxx</i></b>(|<b><i>yyy</i></b>|<b>wl</b>)(|<b>rw</b>)</tt>
+	 * <tt><b><i>xxx</i></b>(|<b><i>yyy</i></b>(|<b>wl</b>)(|<b>bl</b>)(|<b>rw</b>)</tt>
 	 * <p>
 	 * Note that anything before the first pipe (<tt>|</tt>) character is
 	 * considered to be the encryption key, anything after that character is
@@ -77,16 +77,16 @@ public class RemoteLibrary extends BasicLibrary {
 	 * <li><b><i>yyy</i></b>: the secondary key</li>
 	 * <li><b>rw</b>: flag to allow read and write access if it is not the
 	 * default on this server</li>
-	 * <li><b>wl</b>: flag to allow access to all the stories (bypassing the
-	 * whitelist if it exists)</li>
+	 * <li><b>bl</b>: flag to bypass the blacklist (if it exists)</li>
+	 * <li><b>wl</b>: flag to bypass the whitelist if it exists</li>
 	 * </ul>
 	 * <p>
 	 * Some examples:
 	 * <ul>
 	 * <li><b>my_key</b>: normal connection, will take the default server
 	 * options</li>
-	 * <li><b>my_key|agzyzz|wl</b>: will ask to bypass the white list (if it
-	 * exists)</li>
+	 * <li><b>my_key|agzyzz|wl|bl</b>: will ask to bypass the black list and the
+	 * white list (if it exists)</li>
 	 * <li><b>my_key|agzyzz|rw</b>: will ask read-write access (if the default
 	 * is read-only)</li>
 	 * <li><b>my_key|agzyzz|wl|rw</b>: will ask both read-write access and white
@@ -141,8 +141,7 @@ public class RemoteLibrary extends BasicLibrary {
 	private Status getStatusDo() {
 		final Status[] result = new Status[1];
 
-		result[0] = Status.INVALID;
-
+		result[0] = null;
 		try {
 			new RemoteConnectAction() {
 				@Override

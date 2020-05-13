@@ -37,7 +37,8 @@ import be.nikiroo.utils.serial.server.ServerObject;
  * "r/w")</li>
  * <li>GET_METADATA *: will return the metadata of all the stories in the
  * library (array)</li> *
- * <li>GET_METADATA [luid]: will return the metadata of the story of LUID luid</li>
+ * <li>GET_METADATA [luid]: will return the metadata of the story of LUID
+ * luid</li>
  * <li>GET_STORY [luid]: will return the given story if it exists (or NULL if
  * not)</li>
  * <li>SAVE_STORY [luid]: save the story (that must be sent just after the
@@ -61,6 +62,7 @@ public class RemoteLibraryServer extends ServerObject {
 	private Map<Long, String> commands = new HashMap<Long, String>();
 	private Map<Long, Long> times = new HashMap<Long, Long>();
 	private Map<Long, Boolean> wls = new HashMap<Long, Boolean>();
+	private Map<Long, Boolean> bls = new HashMap<Long, Boolean>();
 	private Map<Long, Boolean> rws = new HashMap<Long, Boolean>();
 
 	/**
@@ -79,7 +81,7 @@ public class RemoteLibraryServer extends ServerObject {
 						.getInteger(Config.SERVER_PORT),
 				Instance.getInstance().getConfig()
 						.getString(Config.SERVER_KEY));
-		
+
 		setTraceHandler(Instance.getInstance().getTraceHandler());
 	}
 
@@ -91,6 +93,7 @@ public class RemoteLibraryServer extends ServerObject {
 		// defaults are positive (as previous versions without the feature)
 		boolean rw = true;
 		boolean wl = true;
+		boolean bl = true;
 
 		String subkey = "";
 		String command = "";
@@ -110,18 +113,26 @@ public class RemoteLibraryServer extends ServerObject {
 			}
 		}
 
-		List<String> whitelist = Instance.getInstance().getConfig().getList(Config.SERVER_WHITELIST);
+		List<String> whitelist = Instance.getInstance().getConfig()
+				.getList(Config.SERVER_WHITELIST);
 		if (whitelist == null) {
 			whitelist = new ArrayList<String>();
+		}
+		List<String> blacklist = Instance.getInstance().getConfig()
+				.getList(Config.SERVER_BLACKLIST);
+		if (blacklist == null) {
+			blacklist = new ArrayList<String>();
 		}
 
 		if (whitelist.isEmpty()) {
 			wl = false;
 		}
 
-		rw = Instance.getInstance().getConfig().getBoolean(Config.SERVER_RW, rw);
+		rw = Instance.getInstance().getConfig().getBoolean(Config.SERVER_RW,
+				rw);
 		if (!subkey.isEmpty()) {
-			List<String> allowed = Instance.getInstance().getConfig().getList(Config.SERVER_ALLOWED_SUBKEYS);
+			List<String> allowed = Instance.getInstance().getConfig()
+					.getList(Config.SERVER_ALLOWED_SUBKEYS);
 			if (allowed.contains(subkey)) {
 				if ((subkey + "|").contains("|rw|")) {
 					rw = true;
@@ -130,10 +141,14 @@ public class RemoteLibraryServer extends ServerObject {
 					wl = false; // |wl| = bypass whitelist
 					whitelist = new ArrayList<String>();
 				}
+				if ((subkey + "|").contains("|bl|")) {
+					bl = false; // |bl| = bypass blacklist
+					blacklist = new ArrayList<String>();
+				}
 			}
 		}
 
-		String mode = display(wl, rw);
+		String mode = display(wl, bl, rw);
 
 		String trace = mode + "[ " + command + "] ";
 		for (Object arg : args) {
@@ -144,26 +159,30 @@ public class RemoteLibraryServer extends ServerObject {
 
 		Object rep = null;
 		try {
-			rep = doRequest(action, command, args, rw, whitelist);
+			rep = doRequest(action, command, args, rw, whitelist, blacklist);
 		} catch (IOException e) {
 			rep = new RemoteLibraryException(e, true);
 		}
 
 		commands.put(id, command);
 		wls.put(id, wl);
+		bls.put(id, bl);
 		rws.put(id, rw);
 		times.put(id, (new Date().getTime() - start));
 
 		return rep;
 	}
 
-	private String display(boolean whitelist, boolean rw) {
+	private String display(boolean whitelist, boolean blacklist, boolean rw) {
 		String mode = "";
 		if (!rw) {
 			mode += "RO: ";
 		}
 		if (whitelist) {
 			mode += "WL: ";
+		}
+		if (blacklist) {
+			mode += "BL: ";
 		}
 
 		return mode;
@@ -172,27 +191,28 @@ public class RemoteLibraryServer extends ServerObject {
 	@Override
 	protected void onRequestDone(long id, long bytesReceived, long bytesSent) {
 		boolean whitelist = wls.get(id);
+		boolean blacklist = bls.get(id);
 		boolean rw = rws.get(id);
 		wls.remove(id);
+		bls.remove(id);
 		rws.remove(id);
 
 		String rec = StringUtils.formatNumber(bytesReceived) + "b";
 		String sent = StringUtils.formatNumber(bytesSent) + "b";
 		long now = System.currentTimeMillis();
-		System.out.println(StringUtils.fromTime(now)
-				+ ": "
+		System.out.println(StringUtils.fromTime(now) + ": "
 				+ String.format("%s[>%s]: (%s sent, %s rec) in %d ms",
-						display(whitelist, rw), commands.get(id), sent, rec,
-						times.get(id)));
+						display(whitelist, blacklist, rw), commands.get(id),
+						sent, rec, times.get(id)));
 
 		commands.remove(id);
 		times.remove(id);
 	}
 
 	private Object doRequest(ConnectActionServerObject action, String command,
-			Object[] args, boolean rw, List<String> whitelist)
-			throws NoSuchFieldException, NoSuchMethodException,
-			ClassNotFoundException, IOException {
+			Object[] args, boolean rw, List<String> whitelist,
+			List<String> blacklist) throws NoSuchFieldException,
+			NoSuchMethodException, ClassNotFoundException, IOException {
 		if ("PING".equals(command)) {
 			return rw ? "r/w" : "r/o";
 		} else if ("GET_METADATA".equals(command)) {
@@ -201,13 +221,15 @@ public class RemoteLibraryServer extends ServerObject {
 			if ("*".equals(args[0])) {
 				Progress pg = createPgForwarder(action);
 
-				for (MetaData meta : Instance.getInstance().getLibrary().getMetas(pg)) {
+				for (MetaData meta : Instance.getInstance().getLibrary()
+						.getMetas(pg)) {
 					metas.add(removeCover(meta));
 				}
 
 				forcePgDoneSent(pg);
 			} else {
-				MetaData meta = Instance.getInstance().getLibrary().getInfo((String) args[0]);
+				MetaData meta = Instance.getInstance().getLibrary()
+						.getInfo((String) args[0]);
 				MetaData light;
 				if (meta.getCover() == null) {
 					light = meta;
@@ -219,26 +241,20 @@ public class RemoteLibraryServer extends ServerObject {
 				metas.add(light);
 			}
 
-			if (!whitelist.isEmpty()) {
-				for (int i = 0; i < metas.size(); i++) {
-					if (!whitelist.contains(metas.get(i).getSource())) {
-						metas.remove(i);
-						i--;
-					}
+			for (int i = 0; i < metas.size(); i++) {
+				if (!isAllowed(metas.get(i), whitelist, blacklist)) {
+					metas.remove(i);
+					i--;
 				}
 			}
 
 			return metas.toArray(new MetaData[0]);
-		} else if ("GET_STORY".equals(command)) {
-			MetaData meta = Instance.getInstance().getLibrary().getInfo((String) args[0]);
-			if (meta == null) {
-				return null;
-			}
 
-			if (!whitelist.isEmpty()) {
-				if (!whitelist.contains(meta.getSource())) {
-					return null;
-				}
+		} else if ("GET_STORY".equals(command)) {
+			MetaData meta = Instance.getInstance().getLibrary()
+					.getInfo((String) args[0]);
+			if (meta == null || !isAllowed(meta, whitelist, blacklist)) {
+				return null;
 			}
 
 			meta = meta.clone();
@@ -247,15 +263,16 @@ public class RemoteLibraryServer extends ServerObject {
 			action.send(meta);
 			action.rec();
 
-			Story story = Instance.getInstance().getLibrary().getStory((String) args[0], null);
+			Story story = Instance.getInstance().getLibrary()
+					.getStory((String) args[0], null);
 			for (Object obj : breakStory(story)) {
 				action.send(obj);
 				action.rec();
 			}
 		} else if ("SAVE_STORY".equals(command)) {
 			if (!rw) {
-				throw new RemoteLibraryException("Read-Only remote library: "
-						+ args[0], false);
+				throw new RemoteLibraryException(
+						"Read-Only remote library: " + args[0], false);
 			}
 
 			List<Object> list = new ArrayList<Object>();
@@ -269,54 +286,64 @@ public class RemoteLibraryServer extends ServerObject {
 			}
 
 			Story story = rebuildStory(list);
-			Instance.getInstance().getLibrary().save(story, (String) args[0], null);
+			Instance.getInstance().getLibrary().save(story, (String) args[0],
+					null);
 			return story.getMeta().getLuid();
 		} else if ("IMPORT".equals(command)) {
 			if (!rw) {
-				throw new RemoteLibraryException("Read-Only remote library: "
-						+ args[0], false);
+				throw new RemoteLibraryException(
+						"Read-Only remote library: " + args[0], false);
 			}
 
 			Progress pg = createPgForwarder(action);
-			MetaData meta = Instance.getInstance().getLibrary().imprt(new URL((String) args[0]), pg);
+			MetaData meta = Instance.getInstance().getLibrary()
+					.imprt(new URL((String) args[0]), pg);
 			forcePgDoneSent(pg);
 			return meta.getLuid();
 		} else if ("DELETE_STORY".equals(command)) {
 			if (!rw) {
-				throw new RemoteLibraryException("Read-Only remote library: "
-						+ args[0], false);
+				throw new RemoteLibraryException(
+						"Read-Only remote library: " + args[0], false);
 			}
 
 			Instance.getInstance().getLibrary().delete((String) args[0]);
 		} else if ("GET_COVER".equals(command)) {
-			return Instance.getInstance().getLibrary().getCover((String) args[0]);
+			return Instance.getInstance().getLibrary()
+					.getCover((String) args[0]);
 		} else if ("GET_CUSTOM_COVER".equals(command)) {
 			if ("SOURCE".equals(args[0])) {
-				return Instance.getInstance().getLibrary().getCustomSourceCover((String) args[1]);
+				return Instance.getInstance().getLibrary()
+						.getCustomSourceCover((String) args[1]);
 			} else if ("AUTHOR".equals(args[0])) {
-				return Instance.getInstance().getLibrary().getCustomAuthorCover((String) args[1]);
+				return Instance.getInstance().getLibrary()
+						.getCustomAuthorCover((String) args[1]);
 			} else {
 				return null;
 			}
 		} else if ("SET_COVER".equals(command)) {
 			if (!rw) {
-				throw new RemoteLibraryException("Read-Only remote library: "
-						+ args[0] + ", " + args[1], false);
+				throw new RemoteLibraryException(
+						"Read-Only remote library: " + args[0] + ", " + args[1],
+						false);
 			}
 
 			if ("SOURCE".equals(args[0])) {
-				Instance.getInstance().getLibrary().setSourceCover((String) args[1], (String) args[2]);
+				Instance.getInstance().getLibrary()
+						.setSourceCover((String) args[1], (String) args[2]);
 			} else if ("AUTHOR".equals(args[0])) {
-				Instance.getInstance().getLibrary().setAuthorCover((String) args[1], (String) args[2]);
+				Instance.getInstance().getLibrary()
+						.setAuthorCover((String) args[1], (String) args[2]);
 			}
 		} else if ("CHANGE_STA".equals(command)) {
 			if (!rw) {
-				throw new RemoteLibraryException("Read-Only remote library: " + args[0] + ", " + args[1], false);
+				throw new RemoteLibraryException(
+						"Read-Only remote library: " + args[0] + ", " + args[1],
+						false);
 			}
 
 			Progress pg = createPgForwarder(action);
-			Instance.getInstance().getLibrary().changeSTA((String) args[0], (String) args[1], (String) args[2],
-					(String) args[3], pg);
+			Instance.getInstance().getLibrary().changeSTA((String) args[0],
+					(String) args[1], (String) args[2], (String) args[3], pg);
 			forcePgDoneSent(pg);
 		} else if ("EXIT".equals(command)) {
 			if (!rw) {
@@ -423,17 +450,16 @@ public class RemoteLibraryServer extends ServerObject {
 			int min = (Integer) a[0 + offset];
 			int max = (Integer) a[1 + offset];
 			int progress = (Integer) a[2 + offset];
-			
+
 			Object meta = null;
 			if (a.length > (3 + offset)) {
 				meta = a[3 + offset];
 			}
-			
+
 			String name = null;
 			if (a.length > (4 + offset)) {
 				name = a[4 + offset] == null ? "" : a[4 + offset].toString();
 			}
-			
 
 			if (min >= 0 && min <= max) {
 				pg.setName(name);
@@ -477,22 +503,20 @@ public class RemoteLibraryServer extends ServerObject {
 			public void progress(Progress progress, String name) {
 				Object meta = pg.get("meta");
 				if (meta instanceof MetaData) {
-					meta = removeCover((MetaData)meta);
+					meta = removeCover((MetaData) meta);
 				}
-				
+
 				int min = pg.getMin();
 				int max = pg.getMax();
-				int rel = min
-						+ (int) Math.round(pg.getRelativeProgress()
-								* (max - min));
-				
+				int rel = min + (int) Math
+						.round(pg.getRelativeProgress() * (max - min));
+
 				boolean samePg = p[0] == min && p[1] == max && p[2] == rel;
-				
+
 				// Do not re-send the same value twice over the wire,
 				// unless more than 2 seconds have elapsed (to maintain the
 				// connection)
-				if (!samePg || !same(pMeta[0], meta)
-						|| !same(pName[0], name) //
+				if (!samePg || !same(pMeta[0], meta) || !same(pName[0], name) //
 						|| (new Date().getTime() - lastTime[0] > 2000)) {
 					p[0] = min;
 					p[1] = max;
@@ -517,7 +541,7 @@ public class RemoteLibraryServer extends ServerObject {
 
 		return pg;
 	}
-	
+
 	private boolean same(Object obj1, Object obj2) {
 		if (obj1 == null || obj2 == null)
 			return obj1 == null && obj2 == null;
@@ -537,7 +561,7 @@ public class RemoteLibraryServer extends ServerObject {
 			}
 		}
 	}
-	
+
 	private MetaData removeCover(MetaData meta) {
 		MetaData light = null;
 		if (meta != null) {
@@ -548,7 +572,20 @@ public class RemoteLibraryServer extends ServerObject {
 				light.setCover(null);
 			}
 		}
-		
+
 		return light;
+	}
+
+	private boolean isAllowed(MetaData meta, List<String> whitelist,
+			List<String> blacklist) {
+		if (!whitelist.isEmpty() && !whitelist.contains(meta.getSource())) {
+			return false;
+		}
+
+		if (blacklist.contains(meta.getSource())) {
+			return false;
+		}
+
+		return true;
 	}
 }

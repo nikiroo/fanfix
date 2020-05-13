@@ -102,9 +102,12 @@ public enum Config {
 	@Meta(description = "Allow write access to the clients (download story, move story...) without RW subkeys", //
 	format = Format.BOOLEAN, def = "true")
 	SERVER_RW, //
-	@Meta(description = "If not empty, only the EXACT listed sources will be available for clients without BL subkeys",//
+	@Meta(description = "If not empty, only the EXACT listed sources will be available for clients without a WL subkey",//
 	array = true, format = Format.STRING, def = "")
 	SERVER_WHITELIST, //
+	@Meta(description = "Those sources will not be available for clients without a BL subkey",//
+	array = true, format = Format.STRING, def = "")
+	SERVER_BLACKLIST, //
 	@Meta(description = "The subkeys that the server will allow, including the modes\nA subkey is used as a login for HTTP (clear text protocol) and HTTPS modes", //
 	array = true, format = Format.STRING, def = "")
 	SERVER_ALLOWED_SUBKEYS, //

@@ -22,6 +22,7 @@ import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
+import be.nikiroo.utils.Version;
 
 /**
  * This {@link BasicLibrary} will access a remote server to list the available
@@ -107,16 +108,30 @@ public class WebLibrary extends BasicLibrary {
 		this.rw = false;
 	}
 
+	public Version getVersion() {
+		try {
+			InputStream in = download(WebLibraryUrls.VERSION_URL);
+			try {
+				return new Version(IOUtils.readSmallStream(in));
+			} finally {
+				in.close();
+			}
+		} catch (IOException e) {
+		}
+
+		return new Version();
+	}
+
 	@Override
 	public Status getStatus() {
 		try {
-			download("/");
+			download(WebLibraryUrls.INDEX_URL).close();
 		} catch (IOException e) {
 			try {
-				download("/style.css");
+				download(WebLibraryUrls.VERSION_URL).close();
 				return Status.UNAUTHORIZED;
 			} catch (IOException ioe) {
-				return Status.INVALID;
+				return Status.UNAVAILABLE;
 			}
 		}
 
@@ -125,17 +140,18 @@ public class WebLibrary extends BasicLibrary {
 
 	@Override
 	public String getLibraryName() {
-		return (rw ? "[READ-ONLY] " : "") + host + ":" + port;
+		return (rw ? "[READ-ONLY] " : "") + host + ":" + port + " ("
+				+ getVersion() + ")";
 	}
 
 	@Override
 	public Image getCover(String luid) throws IOException {
-		InputStream in = download("/story/" + luid + "/cover");
-		if (in != null) {
+		InputStream in = download(WebLibraryUrls.getStoryUrlCover(luid));
+		try {
 			return new Image(in);
+		} finally {
+			in.close();
 		}
-
-		return null;
 	}
 
 	@Override
@@ -169,7 +185,7 @@ public class WebLibrary extends BasicLibrary {
 		// TODO: pg
 
 		Story story;
-		InputStream in = download("/story/" + luid + "/json");
+		InputStream in = download(WebLibraryUrls.getStoryUrlJson(luid));
 		try {
 			JSONObject json = new JSONObject(IOUtils.readSmallStream(in));
 			story = JsonIO.toStory(json);
@@ -184,7 +200,7 @@ public class WebLibrary extends BasicLibrary {
 			for (Paragraph para : chap) {
 				if (para.getType() == ParagraphType.IMAGE) {
 					InputStream subin = download(
-							"/story/" + luid + "/" + chapNum + "/" + number);
+							WebLibraryUrls.getStoryUrl(luid, chapNum, number));
 					try {
 						para.setContentImage(new Image(subin));
 					} finally {
@@ -204,7 +220,7 @@ public class WebLibrary extends BasicLibrary {
 	@Override
 	protected List<MetaData> getMetas(Progress pg) throws IOException {
 		List<MetaData> metas = new ArrayList<MetaData>();
-		InputStream in = download("/list/luids");
+		InputStream in = download(WebLibraryUrls.LIST_URL_METADATA);
 		JSONArray jsonArr = new JSONArray(IOUtils.readSmallStream(in));
 		for (int i = 0; i < jsonArr.length(); i++) {
 			JSONObject json = jsonArr.getJSONObject(i);
@@ -276,7 +292,7 @@ public class WebLibrary extends BasicLibrary {
 				"Operation not supportorted on remote Libraries");
 	}
 
-	// starts with "/"
+	// starts with "/", never NULL
 	private InputStream download(String path) throws IOException {
 		URL url = new URL(host + ":" + port + path);
 
