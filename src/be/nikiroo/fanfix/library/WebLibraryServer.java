@@ -713,6 +713,8 @@ public class WebLibraryServer implements Runnable {
 				if (img != null) {
 					in = img.newInputStream();
 				}
+				// TODO: get correct image type
+				mimeType = "image/png";
 			} else if ("metadata".equals(chapterStr)) {
 				MetaData meta = meta(luid, whitelist);
 				JSONObject json = JsonIO.toJson(meta);
