@@ -72,6 +72,7 @@ public class WebLibraryServer implements Runnable {
 				opts += "|wl";
 			if (!bl)
 				opts += "|bl";
+			opts += "|";
 
 			this.token = wookie + "~"
 					+ CookieUtils.generateCookie(wookie + subkey + opts, 0)
@@ -103,9 +104,9 @@ public class WebLibraryServer implements Runnable {
 								this.token = token;
 								this.success = true;
 
-								this.rw = opts.contains("|rw");
-								this.wl = !opts.contains("|wl");
-								this.bl = !opts.contains("|bl");
+								this.rw = opts.contains("|rw|");
+								this.wl = !opts.contains("|wl|");
+								this.bl = !opts.contains("|bl|");
 							}
 						}
 					}
@@ -1083,6 +1084,11 @@ public class WebLibraryServer implements Runnable {
 
 	private List<MetaData> metas(LoginResult login) throws IOException {
 		BasicLibrary lib = Instance.getInstance().getLibrary();
+		System.out.println("Whitelist: " + whitelist);
+		System.out.println("Blacklist: " + blacklist);
+		System.out.println("isWl: " + login.isWl());
+		System.out.println("isBl: " + login.isBl());
+
 		List<MetaData> metas = new ArrayList<MetaData>();
 		for (MetaData meta : lib.getList().getMetas()) {
 			if (isAllowed(meta, login)) {
