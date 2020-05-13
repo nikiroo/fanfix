@@ -141,8 +141,7 @@ public class RemoteLibrary extends BasicLibrary {
 	private Status getStatusDo() {
 		final Status[] result = new Status[1];
 
-		result[0] = Status.INVALID;
-
+		result[0] = null;
 		try {
 			new RemoteConnectAction() {
 				@Override

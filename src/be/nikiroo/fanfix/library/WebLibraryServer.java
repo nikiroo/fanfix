@@ -40,13 +40,6 @@ import be.nikiroo.utils.TraceHandler;
 import be.nikiroo.utils.Version;
 
 public class WebLibraryServer implements Runnable {
-	static private String VIEWER_URL_BASE = "/view/story/";
-	static private String VIEWER_URL = VIEWER_URL_BASE + "{luid}/{chap}/{para}";
-	static private String STORY_URL_BASE = "/story/";
-	static private String STORY_URL = STORY_URL_BASE + "{luid}/{chap}/{para}";
-	static private String STORY_URL_COVER = STORY_URL_BASE + "{luid}/cover";
-	static private String LIST_URL = "/list/";
-
 	private class WLoginResult extends LoginResult {
 		private boolean rw;
 		private boolean wl;
@@ -201,27 +194,39 @@ public class WebLibraryServer implements Runnable {
 				}
 
 				Response rep = null;
-				if (!login.isSuccess() && (uri.equals("/") //
-						|| uri.startsWith(STORY_URL_BASE) //
-						|| uri.startsWith(VIEWER_URL_BASE) //
-						|| uri.startsWith(LIST_URL))) {
+				if (!login.isSuccess() && WebLibraryUrls.isSupportedUrl(uri)) {
 					rep = loginPage(login, uri);
 				}
 
 				if (rep == null) {
 					try {
-						if (uri.equals("/")) {
-							rep = root(session, cookies, login);
-						} else if (uri.startsWith(LIST_URL)) {
-							rep = getList(uri, login);
-						} else if (uri.startsWith(STORY_URL_BASE)) {
-							rep = getStoryPart(uri, login);
-						} else if (uri.startsWith(VIEWER_URL_BASE)) {
-							rep = getViewer(cookies, uri, login);
-						} else if (uri.equals("/logout")) {
-							session.getCookies().delete("cookie");
-							cookies.remove("cookie");
-							rep = loginPage(login, uri);
+						if (WebLibraryUrls.isSupportedUrl(uri)) {
+							if (WebLibraryUrls.INDEX_URL.equals(uri)) {
+								rep = root(session, cookies, login);
+							} else if (WebLibraryUrls.VERSION_URL.equals(uri)) {
+								rep = newFixedLengthResponse(Status.OK,
+										MIME_PLAINTEXT,
+										Version.getCurrentVersion().toString());
+							} else if (WebLibraryUrls.isListUrl(uri)) {
+								rep = getList(uri, login);
+							} else if (WebLibraryUrls.isStoryUrl(uri)) {
+								rep = getStoryPart(uri, login);
+							} else if (WebLibraryUrls.isViewUrl(uri)) {
+								rep = getViewer(cookies, uri, login);
+							} else if (WebLibraryUrls.LOGOUT_URL.equals(uri)) {
+								session.getCookies().delete("cookie");
+								cookies.remove("cookie");
+								rep = loginPage(new WLoginResult(false, false),
+										uri);
+							} else {
+								getTraceHandler().error(
+										"Supported URL was not processed: "
+												+ uri);
+								rep = newFixedLengthResponse(
+										Status.INTERNAL_ERROR,
+										NanoHTTPD.MIME_PLAINTEXT,
+										"An error happened");
+							}
 						} else {
 							if (uri.startsWith("/"))
 								uri = uri.substring(1);
@@ -238,14 +243,13 @@ public class WebLibraryServer implements Runnable {
 								}
 								rep = newChunkedResponse(Status.OK, mimeType,
 										in);
-							} else {
-								getTraceHandler().trace("404: " + uri);
 							}
-						}
 
-						if (rep == null) {
-							rep = newFixedLengthResponse(Status.NOT_FOUND,
-									NanoHTTPD.MIME_PLAINTEXT, "Not Found");
+							if (rep == null) {
+								getTraceHandler().trace("404: " + uri);
+								rep = newFixedLengthResponse(Status.NOT_FOUND,
+										NanoHTTPD.MIME_PLAINTEXT, "Not Found");
+							}
 						}
 					} catch (Exception e) {
 						Instance.getInstance().getTraceHandler().error(
@@ -374,8 +378,8 @@ public class WebLibraryServer implements Runnable {
 			builder.append("<div class='error'>Your session timed out</div>");
 		}
 
-		if (uri.equals("/logout")) {
-			uri = "/";
+		if (WebLibraryUrls.LOGOUT_URL.equals(uri)) {
+			uri = WebLibraryUrls.INDEX_URL;
 		}
 
 		builder.append(
@@ -395,7 +399,7 @@ public class WebLibraryServer implements Runnable {
 
 	protected Response getList(String uri, WLoginResult login)
 			throws IOException {
-		if (uri.equals("/list/luids")) {
+		if (WebLibraryUrls.LIST_URL_METADATA.equals(uri)) {
 			List<JSONObject> jsons = new ArrayList<JSONObject>();
 			for (MetaData meta : metas(login)) {
 				jsons.add(JsonIO.toJson(meta));
@@ -551,7 +555,8 @@ public class WebLibraryServer implements Runnable {
 
 			builder.append("<div class='book_line'>");
 			builder.append("<a href='");
-			builder.append(getViewUrl(meta.getLuid(), null, null));
+			builder.append(
+					WebLibraryUrls.getViewUrl(meta.getLuid(), null, null));
 			builder.append("'");
 			builder.append(" class='link'>");
 
@@ -775,12 +780,14 @@ public class WebLibraryServer implements Runnable {
 			String disabledZoomHeight = "";
 
 			if (paragraph <= 0) {
-				first = getViewUrl(luid, 0, null);
-				previous = getViewUrl(luid, (Math.max(chapter - 1, 0)), null);
-				next = getViewUrl(luid,
+				first = WebLibraryUrls.getViewUrl(luid, 0, null);
+				previous = WebLibraryUrls.getViewUrl(luid,
+						(Math.max(chapter - 1, 0)), null);
+				next = WebLibraryUrls.getViewUrl(luid,
 						(Math.min(chapter + 1, story.getChapters().size())),
 						null);
-				last = getViewUrl(luid, story.getChapters().size(), null);
+				last = WebLibraryUrls.getViewUrl(luid,
+						story.getChapters().size(), null);
 
 				StringBuilder desc = new StringBuilder();
 
@@ -817,12 +824,13 @@ public class WebLibraryServer implements Runnable {
 				if (chapter >= story.getChapters().size())
 					disabledRight = " disabled='disbaled'";
 			} else {
-				first = getViewUrl(luid, chapter, 1);
-				previous = getViewUrl(luid, chapter,
+				first = WebLibraryUrls.getViewUrl(luid, chapter, 1);
+				previous = WebLibraryUrls.getViewUrl(luid, chapter,
 						(Math.max(paragraph - 1, 1)));
-				next = getViewUrl(luid, chapter,
+				next = WebLibraryUrls.getViewUrl(luid, chapter,
 						(Math.min(paragraph + 1, chap.getParagraphs().size())));
-				last = getViewUrl(luid, chapter, chap.getParagraphs().size());
+				last = WebLibraryUrls.getViewUrl(luid, chapter,
+						chap.getParagraphs().size());
 
 				if (paragraph <= 1)
 					disabledLeft = " disabled='disbaled'";
@@ -832,7 +840,8 @@ public class WebLibraryServer implements Runnable {
 				// First -> previous *chapter*
 				if (chapter > 0)
 					disabledLeft = "";
-				first = getViewUrl(luid, (Math.max(chapter - 1, 0)), null);
+				first = WebLibraryUrls.getViewUrl(luid,
+						(Math.max(chapter - 1, 0)), null);
 				if (paragraph <= 1) {
 					previous = first;
 				}
@@ -873,7 +882,8 @@ public class WebLibraryServer implements Runnable {
 							javascript, //
 							next, //
 							zoomStyle, //
-							getStoryUrl(luid, chapter, paragraph)));
+							WebLibraryUrls.getStoryUrl(luid, chapter,
+									paragraph)));
 				} else {
 					content.append(String.format("" //
 							+ "<div class='viewer text'>%s</div>", //
@@ -895,11 +905,12 @@ public class WebLibraryServer implements Runnable {
 
 			// List of chap/para links
 
-			appendItemA(builder, 3, getViewUrl(luid, 0, null), "Description",
-					paragraph == 0 && chapter == 0);
+			appendItemA(builder, 3, WebLibraryUrls.getViewUrl(luid, 0, null),
+					"Description", paragraph == 0 && chapter == 0);
 			if (paragraph > 0) {
 				for (int i = 1; i <= chap.getParagraphs().size(); i++) {
-					appendItemA(builder, 3, getViewUrl(luid, chapter, i),
+					appendItemA(builder, 3,
+							WebLibraryUrls.getViewUrl(luid, chapter, i),
 							"Image " + i, paragraph == i);
 				}
 			} else {
@@ -910,7 +921,8 @@ public class WebLibraryServer implements Runnable {
 						chapName += ": " + c.getName();
 					}
 
-					appendItemA(builder, 3, getViewUrl(luid, i, null), chapName,
+					appendItemA(builder, 3,
+							WebLibraryUrls.getViewUrl(luid, i, null), chapName,
 							chapter == i);
 
 					i++;
@@ -985,26 +997,6 @@ public class WebLibraryServer implements Runnable {
 		}
 
 		return "";
-	}
-
-	private String getViewUrl(String luid, Integer chap, Integer para) {
-		return VIEWER_URL //
-				.replace("{luid}", luid) //
-				.replace("/{chap}", chap == null ? "" : "/" + chap) //
-				.replace("/{para}",
-						(chap == null || para == null) ? "" : "/" + para);
-	}
-
-	private String getStoryUrl(String luid, int chap, Integer para) {
-		return STORY_URL //
-				.replace("{luid}", luid) //
-				.replace("{chap}", Integer.toString(chap)) //
-				.replace("{para}", para == null ? "" : Integer.toString(para));
-	}
-
-	private String getStoryUrlCover(String luid) {
-		return STORY_URL_COVER //
-				.replace("{luid}", luid);
 	}
 
 	private boolean isAllowed(MetaData meta, WLoginResult login) {
