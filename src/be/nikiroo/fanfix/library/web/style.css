@@ -295,13 +295,19 @@ a.viewer.link:hover {
 
 .desc {
 	display: flex;
+	flex-direction: column;
 	padding-top: 10px;
 }
 
-.desc .cover img {
-	width: 100px;
-	padding-right: 10px;
+.desc .cover {
 	max-height: 280px;
+	overflow: hidden;
+}
+
+.desc .cover img {
+	max-width: 80%;
+	margin: auto;
+	display: block;
 }
 
 .desc .details .col1 {
@@ -323,4 +329,10 @@ a.viewer.link:hover {
 	
 	.bar.optionbar.s1 { padding-left: calc(400px - (1 * (64px + 5px) / 2)); }
 	.bar.optionbar.s4 { padding-left: calc(400px - (4 * (64px + 5px) / 2)); }
+	
+	.desc { flex-direction: row; }
+	.desc .cover img {
+		width: 200px;
+		padding-right: 10px;
+	}
 }

@@ -858,6 +858,9 @@ public class WebLibraryServer implements Runnable {
 				StringBuilder desc = new StringBuilder();
 
 				if (chapter <= 0) {
+					desc.append("<h1 class='title'>");
+					desc.append(story.getMeta().getTitle());
+					desc.append("</h1>\n");
 					desc.append("<div class='desc'>\n");
 					desc.append("\t<div class='cover'>\n");
 					desc.append("\t\t<img src='/story/" + luid + "/cover'/>\n");
@@ -877,9 +880,9 @@ public class WebLibraryServer implements Runnable {
 				content.append(desc);
 				String description = new TextOutput(false).convert(chap,
 						chapter > 0);
-				content.append(
-						description.isEmpty() ? "No description provided."
-								: description);
+				content.append(chap.getParagraphs().size() <= 0
+						? "No content provided."
+						: description);
 				content.append("</div>\n");
 
 				if (chapter <= 0)
