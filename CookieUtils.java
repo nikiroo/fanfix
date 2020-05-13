@@ -2,6 +2,11 @@ package be.nikiroo.utils;
 
 import java.util.Date;
 
+/**
+ * Some utilities for cookie management.
+ * 
+ * @author niki
+ */
 public class CookieUtils {
 	/**
 	 * The number of seconds for the period (we accept the current or the
