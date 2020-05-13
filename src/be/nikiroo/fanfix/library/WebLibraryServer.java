@@ -952,12 +952,47 @@ public class WebLibraryServer implements Runnable {
 			builder.append(String.format("" //
 					+ "<div class='bar navbar'>\n" //
 					+ "\t<a%s class='button first' href='%s'>&lt;&lt;</a>\n"//
-					+ "\t<a%s class='button previous' href='%s'>&lt;</a>\n"//
-					+ "\t<a%s class='button next' href='%s'>&gt;</a>\n"//
-					+ "\t<a%s class='button last' href='%s'>&gt;&gt;</a>\n"//
-					+ "</div>\n", //
+					+ "\t<a%s class='button previous' href='%s'>&lt;</a>\n" //
+					+ "\t<div class='gotobox itemsbox'>\n" //
+					+ "\t\t<div class='button goto'>%d</div>\n" //
+					+ "\t\t<div class='items goto'>\n", //
 					disabledLeft, first, //
 					disabledLeft, previous, //
+					paragraph > 0 ? paragraph : chapter //
+			));
+
+			// List of chap/para links
+
+			String blink = "/view/story/" + luid + "/";
+			appendItemA(builder, 3, blink + "0", "Description",
+					paragraph == 0 && chapter == 0);
+
+			if (paragraph > 0) {
+				blink = blink + chapter + "/";
+				for (int i = 1; i <= chap.getParagraphs().size(); i++) {
+					appendItemA(builder, 3, blink + i, "Image " + i,
+							paragraph == i);
+				}
+			} else {
+				int i = 1;
+				for (Chapter c : story.getChapters()) {
+					String chapName = "Chapter " + c.getNumber();
+					if (c.getName() != null && !c.getName().isEmpty()) {
+						chapName += ": " + c.getName();
+					}
+
+					appendItemA(builder, 3, blink + i, chapName, chapter == i);
+
+					i++;
+				}
+			}
+
+			builder.append(String.format("" //
+					+ "\t\t</div>\n" //
+					+ "\t</div>\n" //
+					+ "\t<a%s class='button next' href='%s'>&gt;</a>\n" //
+					+ "\t<a%s class='button last' href='%s'>&gt;&gt;</a>\n"//
+					+ "</div>\n", //
 					disabledRight, next, //
 					disabledRight, last //
 			));
@@ -1176,6 +1211,23 @@ public class WebLibraryServer implements Runnable {
 			builder.append("</td>");
 		}
 		builder.append("</tr>\n");
+	}
+
+	private void appendItemA(StringBuilder builder, int depth, String link,
+			String name, boolean selected) {
+		for (int i = 0; i < depth; i++) {
+			builder.append("\t");
+		}
+
+		builder.append("<a href='");
+		builder.append(link);
+		builder.append("' class='item goto");
+		if (selected) {
+			builder.append(" selected");
+		}
+		builder.append("'>");
+		builder.append(name);
+		builder.append("</a>\n");
 	}
 
 	public static void main(String[] args) throws IOException {

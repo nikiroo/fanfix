@@ -2,6 +2,9 @@
  * #AAA391: main gray
  * #555C7E: reverse main
  *
+ * #bac2e1: button border
+ * #DCE4F3: button hover
+ *
  * #ddffdd: background pastel green
  * #88dd88: for border
  *
@@ -58,7 +61,7 @@ html, body, .main {
 	cursor: pointer;
 }
 
-a:hover {
+a:not(.selected):hover {
 	background-color: rgb(225, 225, 225);
 }
 
@@ -69,6 +72,55 @@ h2 {
 h3 {
 	border-bottom: 1px solid #AAA391;
 	margin-left: 20px;
+}
+
+.itemsbox .items {
+	display: block;
+	position: absolute;
+	overflow-y: auto;
+	
+	transition: all 0.5s ease;
+	visibility: hidden;
+	opacity: 0;
+}
+
+.itemsbox:hover .items, .itemsbox .items:hover {
+	visibility: visible;
+	opacity: 1;
+}
+
+.itemsbox .items .item {
+	display: block;
+	padding: 5px;
+	color: black;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.itemsbox .items .item.selected {
+	font-weight: bold;
+	cursor: default;
+}
+
+.itemsbox .items .item:not(.selected):hover, .button:hover {
+	background-color: #DCE4F3;
+}
+
+.itemsbox .items .item[disabled], .button[disabled] {
+	pointer-events: none;
+	background-color: #aaa;
+	filter: grayscale(100%);
+	border-color: #AAA391;
+}
+
+.button {
+	display: inline-block;
+	text-align: center;
+	text-decoration: none;
+	background-position: center;
+	background-repeat: no-repeat;
+	border: 1px solid #bac2e1;
+	border-radius: 5px;
 }
 
 .login {
@@ -175,10 +227,10 @@ h3 {
 	margin: auto;
 }
 
-.bar.navbar       { padding-left: calc(50% - (4 * 64px / 2)); }
+.bar.navbar       { padding-left: calc(50% - (5 * (64px + 5px) / 2)); }
 
-.bar.optionbar.s1 { padding-left: calc(50% - (1 * 64px / 2)); }
-.bar.optionbar.s4 { padding-left: calc(50% - (4 * 64px / 2)); }
+.bar.optionbar.s1 { padding-left: calc(50% - (1 * (64px + 5px) / 2)); }
+.bar.optionbar.s4 { padding-left: calc(50% - (4 * (64px + 5px) / 2)); }
 
 .bar.optionbar {
 	bottom: 0;
@@ -187,38 +239,33 @@ h3 {
 .bar .button {
 	height: 54px;
 	width: 54px;
-	line-height: 64px;
-	display: inline-block;
-	text-align: center;
-	color: transparent;
-	text-decoration: none;
-	background-position: center;
-	background-repeat: no-repeat;
-	border-radius: 5px;
-	border: 1px solid #bac2e1;
+	line-height: 54px;
 	margin: 5px;
 }
 
-.bar .button[disabled] {
-	pointer-events: none;
-	background-color: #aaa;
-	filter: grayscale(100%);
-	border-color: #AAA391;
+.bar .gotobox {
+	display: inline-block;
 }
 
-.bar .button:hover {
-	background-color: bac2e1;
+.bar .gotobox .items {
+	background-color: white;
+	border: 1px solid gray;
+	border-radius: 5px;
+	width: 196px;
+	margin: -5px;
+	margin-left: -66px;
+	max-height: 400px;
 }
 
-.bar .button.first    { background-image: url('/arrow_double_left-32x32.png');  }
-.bar .button.previous { background-image: url('/arrow_left-32x32.png');         }
-.bar .button.next     { background-image: url('/arrow_right-32x32.png');        }
-.bar .button.last     { background-image: url('/arrow_double_right-32x32.png'); }
+.bar .button.first    { color: transparent; background-image: url('/arrow_double_left-32x32.png');  }
+.bar .button.previous { color: transparent; background-image: url('/arrow_left-32x32.png');         }
+.bar .button.next     { color: transparent; background-image: url('/arrow_right-32x32.png');        }
+.bar .button.last     { color: transparent; background-image: url('/arrow_double_right-32x32.png'); }
 
-.bar .button.back       { background-image: url('/back-32x32.png');          }
-.bar .button.zoomreal   { background-image: url('/actual_size-32x32.png');   }
-.bar .button.zoomwidth  { background-image: url('/fit_to_width-32x32.png');  }
-.bar .button.zoomheight { background-image: url('/fit_to_height-32x32.png'); }
+.bar .button.back       { color: transparent; background-image: url('/back-32x32.png');          }
+.bar .button.zoomreal   { color: transparent; background-image: url('/actual_size-32x32.png');   }
+.bar .button.zoomwidth  { color: transparent; background-image: url('/fit_to_width-32x32.png');  }
+.bar .button.zoomheight { color: transparent; background-image: url('/fit_to_height-32x32.png'); }
 
 .viewer {
 	padding-top: 64px;
@@ -272,8 +319,8 @@ a.viewer.link:hover {
 	 	max-width: 800px;
 	 }
 	 
-	.bar.navbar       { padding-left: calc(400px - (4 * 64px / 2)); }
+	.bar.navbar       { padding-left: calc(400px - (5 * (64px + 5px) / 2)); }
 	
-	.bar.optionbar.s1 { padding-left: calc(400px - (1 * 64px / 2)); }
-	.bar.optionbar.s4 { padding-left: calc(400px - (4 * 64px / 2)); }
+	.bar.optionbar.s1 { padding-left: calc(400px - (1 * (64px + 5px) / 2)); }
+	.bar.optionbar.s4 { padding-left: calc(400px - (4 * (64px + 5px) / 2)); }
 }
