@@ -93,8 +93,8 @@ public class WebLibraryServer implements Runnable {
 						subkeys.add("");
 
 						for (String subkey : subkeys) {
-							if (CookieUtils.validateCookie(wookie + subkey
-									+ opts, rehashed)) {
+							if (CookieUtils.validateCookie(
+									wookie + subkey + opts, rehashed)) {
 								this.wookie = wookie;
 								this.token = token;
 								this.success = true;
@@ -148,7 +148,8 @@ public class WebLibraryServer implements Runnable {
 		Integer port = Instance.getInstance().getConfig()
 				.getInteger(Config.SERVER_PORT);
 		if (port == null) {
-			throw new IOException("Cannot start web server: port not specified");
+			throw new IOException(
+					"Cannot start web server: port not specified");
 		}
 
 		int cacheMb = Instance.getInstance().getConfig()
@@ -172,8 +173,8 @@ public class WebLibraryServer implements Runnable {
 			if (!keystorePath.isEmpty()) {
 				File keystoreFile = new File(keystorePath);
 				try {
-					KeyStore keystore = KeyStore.getInstance(KeyStore
-							.getDefaultType());
+					KeyStore keystore = KeyStore
+							.getInstance(KeyStore.getDefaultType());
 					InputStream keystoreStream = new FileInputStream(
 							keystoreFile);
 					try {
@@ -225,8 +226,8 @@ public class WebLibraryServer implements Runnable {
 							params.get("login"), whitelist);
 				} else {
 					String token = cookies.get("token");
-					login = login(who, token, Instance.getInstance()
-							.getConfig().getList(Config.SERVER_ALLOWED_SUBKEYS));
+					login = login(who, token, Instance.getInstance().getConfig()
+							.getList(Config.SERVER_ALLOWED_SUBKEYS));
 				}
 
 				if (login.isSuccess()) {
@@ -235,21 +236,21 @@ public class WebLibraryServer implements Runnable {
 					}
 
 					// refresh token
-					session.getCookies()
-							.set(new Cookie("token", login.getToken(),
-									"30; path=/"));
+					session.getCookies().set(new Cookie("token",
+							login.getToken(), "30; path=/"));
 
 					// set options
 					String optionName = params.get("optionName");
 					if (optionName != null && !optionName.isEmpty()) {
+						String optionNo = params.get("optionNo");
 						String optionValue = params.get("optionValue");
-						if (optionValue == null || optionValue.isEmpty()) {
+						if (optionNo != null || optionValue == null
+								|| optionValue.isEmpty()) {
 							session.getCookies().delete(optionName);
 							cookies.remove(optionName);
 						} else {
-							session.getCookies().set(
-									new Cookie(optionName, optionValue,
-											"; path=/"));
+							session.getCookies().set(new Cookie(optionName,
+									optionValue, "; path=/"));
 							cookies.put(optionName, optionValue);
 						}
 					}
@@ -259,7 +260,7 @@ public class WebLibraryServer implements Runnable {
 				if (!login.isSuccess() && (uri.equals("/") //
 						|| uri.startsWith(STORY_URL_BASE) //
 						|| uri.startsWith(VIEWER_URL_BASE) //
-				|| uri.startsWith(LIST_URL))) {
+						|| uri.startsWith(LIST_URL))) {
 					rep = loginPage(login, uri);
 				}
 
@@ -303,10 +304,9 @@ public class WebLibraryServer implements Runnable {
 									NanoHTTPD.MIME_PLAINTEXT, "Not Found");
 						}
 					} catch (Exception e) {
-						Instance.getInstance()
-								.getTraceHandler()
-								.error(new IOException(
-										"Cannot process web request", e));
+						Instance.getInstance().getTraceHandler().error(
+								new IOException("Cannot process web request",
+										e));
 						rep = newFixedLengthResponse(Status.INTERNAL_ERROR,
 								NanoHTTPD.MIME_PLAINTEXT, "An error occured");
 					}
@@ -415,8 +415,8 @@ public class WebLibraryServer implements Runnable {
 			wl = false;
 		}
 
-		rw = Instance.getInstance().getConfig()
-				.getBoolean(Config.SERVER_RW, rw);
+		rw = Instance.getInstance().getConfig().getBoolean(Config.SERVER_RW,
+				rw);
 		if (!subkey.isEmpty()) {
 			List<String> allowed = Instance.getInstance().getConfig()
 					.getList(Config.SERVER_ALLOWED_SUBKEYS);
@@ -450,9 +450,10 @@ public class WebLibraryServer implements Runnable {
 			uri = "/";
 		}
 
-		builder.append("<form method='POST' action='" + uri
-				+ "' class='login'>\n");
-		builder.append("<p>You must be logged into the system to see the stories.</p>");
+		builder.append(
+				"<form method='POST' action='" + uri + "' class='login'>\n");
+		builder.append(
+				"<p>You must be logged into the system to see the stories.</p>");
 		builder.append("\t<input type='text' name='login' />\n");
 		builder.append("\t<input type='password' name='password' />\n");
 		builder.append("\t<input type='submit' value='Login' />\n");
@@ -475,8 +476,8 @@ public class WebLibraryServer implements Runnable {
 			}
 
 			return newInputStreamResponse("application/json",
-					new ByteArrayInputStream(new JSONArray(jsons).toString()
-							.getBytes()));
+					new ByteArrayInputStream(
+							new JSONArray(jsons).toString().getBytes()));
 		}
 
 		return NanoHTTPD.newFixedLengthResponse(Status.BAD_REQUEST,
@@ -490,24 +491,23 @@ public class WebLibraryServer implements Runnable {
 		result = new MetaResultList(result.filter(whitelist, null, null));
 		StringBuilder builder = new StringBuilder();
 
-		
 		appendPreHtml(builder, true);
 
 		Map<String, String> params = session.getParms();
-		
+
 		String filter = cookies.get("filter");
-		if (params.get("clear") != null)
+		if (params.get("optionNo") != null)
 			filter = null;
 		if (filter == null) {
 			filter = "";
 		}
 
-		String browser = params.get("browser") == null ? "" : params
-				.get("browser");
-		String browser2 = params.get("browser2") == null ? "" : params
-				.get("browser2");
-		String browser3 = params.get("browser3") == null ? "" : params
-				.get("browser3");
+		String browser = params.get("browser") == null ? ""
+				: params.get("browser");
+		String browser2 = params.get("browser2") == null ? ""
+				: params.get("browser2");
+		String browser3 = params.get("browser3") == null ? ""
+				: params.get("browser3");
 
 		String filterSource = null;
 		String filterAuthor = null;
@@ -590,30 +590,33 @@ public class WebLibraryServer implements Runnable {
 
 		// TODO: javascript in realtime, using visible=false + hide [submit]
 		builder.append("<div class='filter'>\n");
-		builder.append("\tFilter: \n");
-		builder.append("\t<input name='optionName'  type='hidden' value='filter' />\n");
+		builder.append("\t<span class='label'>Filter: </span>\n");
+		builder.append(
+				"\t<input name='optionName'  type='hidden' value='filter' />\n");
 		builder.append("\t<input name='optionValue' type='text'   value='"
 				+ filter + "' place-holder='...' />\n");
-		builder.append("\t<input name='clear'  type='submit' value='x' />");
-		builder.append("\t<input name='submit' type='submit' value='Filter' />\n");
+		builder.append("\t<input name='optionNo'  type='submit' value='x' />");
+		builder.append(
+				"\t<input name='submit' type='submit' value='Filter' />\n");
 		builder.append("</div>\n");
 		builder.append("</form>\n");
 
 		builder.append("\t<div class='books'>");
 		for (MetaData meta : result.getMetas()) {
-			if (!filter.isEmpty()
-					&& !meta.getTitle().toLowerCase()
-							.contains(filter.toLowerCase())) {
+			if (!filter.isEmpty() && !meta.getTitle().toLowerCase()
+					.contains(filter.toLowerCase())) {
 				continue;
 			}
 
 			// TODO Sub sources
-			if (filterSource != null && !filterSource.equals(meta.getSource())) {
+			if (filterSource != null
+					&& !filterSource.equals(meta.getSource())) {
 				continue;
 			}
 
 			// TODO: sub authors
-			if (filterAuthor != null && !filterAuthor.equals(meta.getAuthor())) {
+			if (filterAuthor != null
+					&& !filterAuthor.equals(meta.getAuthor())) {
 				continue;
 			}
 
@@ -629,10 +632,12 @@ public class WebLibraryServer implements Runnable {
 
 			if (lib.isCached(meta.getLuid())) {
 				// ◉ = &#9673;
-				builder.append("<span class='cache_icon cached'>&#9673;</span>");
+				builder.append(
+						"<span class='cache_icon cached'>&#9673;</span>");
 			} else {
 				// ○ = &#9675;
-				builder.append("<span class='cache_icon uncached'>&#9675;</span>");
+				builder.append(
+						"<span class='cache_icon uncached'>&#9675;</span>");
 			}
 			builder.append("<span class='luid'>");
 			builder.append(meta.getLuid());
@@ -673,7 +678,8 @@ public class WebLibraryServer implements Runnable {
 		// 1-based (0 = desc)
 		int chapter = 0;
 		if (chapterStr != null && !"cover".equals(chapterStr)
-				&& !"metadata".equals(chapterStr) && !"json".equals(chapterStr)) {
+				&& !"metadata".equals(chapterStr)
+				&& !"json".equals(chapterStr)) {
 			try {
 				chapter = Integer.parseInt(chapterStr);
 				if (chapter < 0) {
@@ -729,8 +735,8 @@ public class WebLibraryServer implements Runnable {
 							builder.append(p.getContent());
 						}
 
-						in = new ByteArrayInputStream(builder.toString()
-								.getBytes("utf-8"));
+						in = new ByteArrayInputStream(
+								builder.toString().getBytes("utf-8"));
 					} else {
 						Paragraph para = story.getChapters().get(chapter - 1)
 								.getParagraphs().get(paragraph - 1);
@@ -740,8 +746,8 @@ public class WebLibraryServer implements Runnable {
 							mimeType = "image/png";
 							in = img.newInputStream();
 						} else {
-							in = new ByteArrayInputStream(para.getContent()
-									.getBytes("utf-8"));
+							in = new ByteArrayInputStream(
+									para.getContent().getBytes("utf-8"));
 						}
 					}
 				}
@@ -813,11 +819,9 @@ public class WebLibraryServer implements Runnable {
 			StringBuilder builder = new StringBuilder();
 			appendPreHtml(builder, false);
 
-			// TODO: no desc page for images?
+			// For images documents, always go to the images if not chap 0 desc
 			if (story.getMeta().isImageDocument()) {
-				if (chapter <= 0)
-					chapter = 1;
-				if (paragraph <= 0)
+				if (chapter > 0 && paragraph <= 0)
 					paragraph = 1;
 			}
 
@@ -844,14 +848,13 @@ public class WebLibraryServer implements Runnable {
 			String disabledZoomHeight = "";
 
 			if (paragraph <= 0) {
-				first = getViewUrl(luid, 1, null);
-				previous = getViewUrl(luid, (Math.max(chapter - 1, 1)), null);
+				first = getViewUrl(luid, 0, null);
+				previous = getViewUrl(luid, (Math.max(chapter - 1, 0)), null);
 				next = getViewUrl(luid,
 						(Math.min(chapter + 1, story.getChapters().size())),
 						null);
 				last = getViewUrl(luid, story.getChapters().size(), null);
 
-				// TODO
 				StringBuilder desc = new StringBuilder();
 
 				if (chapter <= 0) {
@@ -859,10 +862,12 @@ public class WebLibraryServer implements Runnable {
 					desc.append("\t<div class='cover'>\n");
 					desc.append("\t\t<img src='/story/" + luid + "/cover'/>\n");
 					desc.append("\t</div>\n");
-					desc.append("\t<table>\n");
-					desc.append("\t\t<tr><th>HEAD 1</th><th>HEAD 2</th></tr>\n");
-					desc.append("\t\t<tr><td>KEY 1</td><td>VAL 1</td></tr>\n");
-					desc.append("\t\t<tr><td>KEY 2</td><td>VAL 2</td></tr>\n");
+					desc.append("\t<table class='details'>\n");
+					Map<String, String> details = BasicLibrary
+							.getMetaDesc(story.getMeta());
+					for (String key : details.keySet()) {
+						appendTableRow(desc, 2, key, details.get(key));
+					}
 					desc.append("\t</table>\n");
 					desc.append("</div>\n");
 					desc.append("<h1 class='title'>Description</h1>\n");
@@ -870,10 +875,14 @@ public class WebLibraryServer implements Runnable {
 
 				content.append("<div class='viewer text'>\n");
 				content.append(desc);
-				content.append(new TextOutput(false).convert(chap, chapter > 0));
+				String description = new TextOutput(false).convert(chap,
+						chapter > 0);
+				content.append(
+						description.isEmpty() ? "No description provided."
+								: description);
 				content.append("</div>\n");
 
-				if (chapter <= 1)
+				if (chapter <= 0)
 					disabledLeft = " disabled='disbaled'";
 				if (chapter >= story.getChapters().size())
 					disabledRight = " disabled='disbaled'";
@@ -890,13 +899,21 @@ public class WebLibraryServer implements Runnable {
 				if (paragraph >= chap.getParagraphs().size())
 					disabledRight = " disabled='disbaled'";
 
+				// First -> previous *chapter*
+				if (chapter > 0)
+					disabledLeft = "";
+				first = getViewUrl(luid, (Math.max(chapter - 1, 0)), null);
+				if (paragraph <= 1) {
+					previous = first;
+				}
+
 				Paragraph para = null;
 				try {
 					para = chap.getParagraphs().get(paragraph - 1);
 				} catch (IndexOutOfBoundsException e) {
 					return NanoHTTPD.newFixedLengthResponse(Status.NOT_FOUND,
-							NanoHTTPD.MIME_PLAINTEXT, "Paragraph " + paragraph
-									+ " not found");
+							NanoHTTPD.MIME_PLAINTEXT,
+							"Paragraph " + paragraph + " not found");
 				}
 
 				if (para.getType() == ParagraphType.IMAGE) {
@@ -926,7 +943,9 @@ public class WebLibraryServer implements Runnable {
 							zoomStyle, //
 							getStoryUrl(luid, chapter, paragraph)));
 				} else {
-					content.append(para.getContent());
+					content.append(String.format("" //
+							+ "<div class='viewer text'>%s</div>", //
+							para.getContent()));
 				}
 			}
 
@@ -941,7 +960,7 @@ public class WebLibraryServer implements Runnable {
 					disabledLeft, previous, //
 					disabledRight, next, //
 					disabledRight, last //
-					));
+			));
 
 			builder.append(content);
 
@@ -955,19 +974,18 @@ public class WebLibraryServer implements Runnable {
 			builder.append("	<a class='button back' href='/'>BACK</a>\n");
 
 			if (paragraph > 0) {
-				builder.append(String
-						.format("" //
-								+ "\t<a%s class='button zoomreal'   href='%s'>REAL</a>\n"//
-								+ "\t<a%s class='button zoomwidth'  href='%s'>WIDTH</a>\n"//
-								+ "\t<a%s class='button zoomheight' href='%s'>HEIGHT</a>\n"//
-								+ "</div>\n", //
-								disabledZoomReal, uri
-										+ "?optionName=zoom&optionValue=real", //
-								disabledZoomWidth, uri
-										+ "?optionName=zoom&optionValue=width", //
-								disabledZoomHeight, uri
-										+ "?optionName=zoom&optionValue=height" //
-						));
+				builder.append(String.format("" //
+						+ "\t<a%s class='button zoomreal'   href='%s'>REAL</a>\n"//
+						+ "\t<a%s class='button zoomwidth'  href='%s'>WIDTH</a>\n"//
+						+ "\t<a%s class='button zoomheight' href='%s'>HEIGHT</a>\n"//
+						+ "</div>\n", //
+						disabledZoomReal,
+						uri + "?optionName=zoom&optionValue=real", //
+						disabledZoomWidth,
+						uri + "?optionName=zoom&optionValue=width", //
+						disabledZoomHeight,
+						uri + "?optionName=zoom&optionValue=height" //
+				));
 			}
 
 			appendPostHtml(builder);
@@ -983,23 +1001,21 @@ public class WebLibraryServer implements Runnable {
 
 	private Response newInputStreamResponse(String mimeType, InputStream in) {
 		if (in == null) {
-			return NanoHTTPD
-					.newFixedLengthResponse(Status.NO_CONTENT, "", null);
+			return NanoHTTPD.newFixedLengthResponse(Status.NO_CONTENT, "",
+					null);
 		}
 		return NanoHTTPD.newChunkedResponse(Status.OK, mimeType, in);
 	}
 
 	private String getContentOf(String file) {
-		InputStream in = IOUtils
-				.openResource(WebLibraryServerIndex.class, file);
+		InputStream in = IOUtils.openResource(WebLibraryServerIndex.class,
+				file);
 		if (in != null) {
 			try {
 				return IOUtils.readSmallStream(in);
 			} catch (IOException e) {
-				Instance.getInstance()
-						.getTraceHandler()
-						.error(new IOException(
-								"Cannot get file: index.pre.html", e));
+				Instance.getInstance().getTraceHandler().error(
+						new IOException("Cannot get file: index.pre.html", e));
 			}
 		}
 
@@ -1049,7 +1065,8 @@ public class WebLibraryServer implements Runnable {
 	}
 
 	// NULL if not whitelist OK or if not found
-	private Story story(String luid, List<String> whitelist) throws IOException {
+	private Story story(String luid, List<String> whitelist)
+			throws IOException {
 		synchronized (storyCache) {
 			if (storyCache.containsKey(luid)) {
 				Story story = storyCache.get(luid);
@@ -1111,8 +1128,8 @@ public class WebLibraryServer implements Runnable {
 			favicon = "icon_" + icon.replace("-", "_") + ".png";
 		}
 
-		builder.append(getContentOf("index.pre.html").replace("favicon.ico",
-				favicon));
+		builder.append(
+				getContentOf("index.pre.html").replace("favicon.ico", favicon));
 
 		if (banner) {
 			builder.append("<div class='banner'>\n");
@@ -1141,6 +1158,24 @@ public class WebLibraryServer implements Runnable {
 			builder.append(" selected='selected'");
 		}
 		builder.append(">").append(name).append("</option>\n");
+	}
+
+	private void appendTableRow(StringBuilder builder, int depth,
+			String... tds) {
+		for (int i = 0; i < depth; i++) {
+			builder.append("\t");
+		}
+
+		int col = 1;
+		builder.append("<tr>");
+		for (String td : tds) {
+			builder.append("<td class='col");
+			builder.append(col++);
+			builder.append("'>");
+			builder.append(td);
+			builder.append("</td>");
+		}
+		builder.append("</tr>\n");
 	}
 
 	public static void main(String[] args) throws IOException {

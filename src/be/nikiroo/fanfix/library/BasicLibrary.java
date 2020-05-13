@@ -4,11 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.data.MetaData;
@@ -122,12 +120,24 @@ abstract public class BasicLibrary {
 	 */
 	public abstract Image getCover(String luid) throws IOException;
 
-	// TODO: ensure it is the main used interface
+	/**
+	 * Retrieve the list of {@link MetaData} known by this {@link BasicLibrary}
+	 * in a easy-to-filter version.
+	 * 
+	 * @param pg
+	 *            the optional {@link Progress}
+	 * @return the list of {@link MetaData} as a {@link MetaResultList} you can
+	 *         query
+	 * @throws IOException
+	 *             in case of I/O eror
+	 */
 	public MetaResultList getList(Progress pg) throws IOException {
+		// TODO: ensure it is the main used interface
+
 		return new MetaResultList(getMetas(pg));
 	}
 
-	// TODO: make something for (normal and custom) not-story covers
+	// TODO: make something for (normal and custom) non-story covers
 
 	/**
 	 * Return the cover image associated to this source.
@@ -378,6 +388,9 @@ abstract public class BasicLibrary {
 	}
 
 	/**
+	 * @return the same as getList()
+	 * @throws IOException
+	 *             in case of I/O error
 	 * @deprecated please use {@link BasicLibrary#getList()} and
 	 *             {@link MetaResultList#getSources()} instead.
 	 */
@@ -387,6 +400,9 @@ abstract public class BasicLibrary {
 	}
 
 	/**
+	 * @return the same as getList()
+	 * @throws IOException
+	 *             in case of I/O error
 	 * @deprecated please use {@link BasicLibrary#getList()} and
 	 *             {@link MetaResultList#getSourcesGrouped()} instead.
 	 */
@@ -396,6 +412,9 @@ abstract public class BasicLibrary {
 	}
 
 	/**
+	 * @return the same as getList()
+	 * @throws IOException
+	 *             in case of I/O error
 	 * @deprecated please use {@link BasicLibrary#getList()} and
 	 *             {@link MetaResultList#getAuthors()} instead.
 	 */
@@ -405,9 +424,13 @@ abstract public class BasicLibrary {
 	}
 
 	/**
+	 * @return the same as getList()
+	 * @throws IOException
+	 *             in case of I/O error
 	 * @deprecated please use {@link BasicLibrary#getList()} and
 	 *             {@link MetaResultList#getAuthorsGrouped()} instead.
 	 */
+	@Deprecated
 	public Map<String, List<String>> getAuthorsGrouped() throws IOException {
 		return getList().getAuthorsGrouped();
 	}
@@ -900,5 +923,50 @@ abstract public class BasicLibrary {
 		save(story, meta.getLuid(), pgSet);
 
 		pg.done();
+	}
+
+	/**
+	 * Describe a {@link Story} from its {@link MetaData} and return a list of
+	 * title/value that represent this {@link Story}.
+	 * 
+	 * @param meta
+	 *            the {@link MetaData} to represent
+	 * 
+	 * @return the information, translated and sorted
+	 */
+	static public Map<String, String> getMetaDesc(MetaData meta) {
+		Map<String, String> metaDesc = new LinkedHashMap<String, String>();
+
+		// TODO: i18n
+
+		StringBuilder tags = new StringBuilder();
+		for (String tag : meta.getTags()) {
+			if (tags.length() > 0) {
+				tags.append(", ");
+			}
+			tags.append(tag);
+		}
+
+		// TODO: i18n
+		metaDesc.put("Author", meta.getAuthor());
+		metaDesc.put("Published on", meta.getPublisher());
+		metaDesc.put("Publication date", meta.getDate());
+		metaDesc.put("Creation date", meta.getCreationDate());
+		String count = "";
+		if (meta.getWords() > 0) {
+			count = StringUtils.formatNumber(meta.getWords());
+		}
+		if (meta.isImageDocument()) {
+			metaDesc.put("Number of images", count);
+		} else {
+			metaDesc.put("Number of words", count);
+		}
+		metaDesc.put("Source", meta.getSource());
+		metaDesc.put("Subject", meta.getSubject());
+		metaDesc.put("Language", meta.getLang());
+		metaDesc.put("Tags", tags.toString());
+		metaDesc.put("URL", meta.getUrl());
+
+		return metaDesc;
 	}
 }
