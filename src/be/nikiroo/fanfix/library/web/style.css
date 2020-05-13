@@ -127,7 +127,7 @@ h3 {
 	width: 250px;
 	display: flex;
 	margin: auto;
-	margin-top: calc(50% - 320px);
+	margin-top: 100px;
 	flex-direction: column;
 	border: 1px solid #AAA391;
 	padding: 20px;
