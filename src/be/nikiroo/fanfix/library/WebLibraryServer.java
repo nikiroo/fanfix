@@ -940,10 +940,12 @@ public class WebLibraryServer implements Runnable {
 						}
 					}
 
+					String javascript = "document.getElementById(\"previous\").click(); return false;";
 					content.append(String.format("" //
-							+ "<a class='viewer link' href='%s'>"
+							+ "<a class='viewer link' oncontextmenu='%s' href='%s'>"
 							+ "<img class='viewer img' style='%s' src='%s'/>"
 							+ "</a>", //
+							javascript, //
 							next, //
 							zoomStyle, //
 							getStoryUrl(luid, chapter, paragraph)));
@@ -957,7 +959,7 @@ public class WebLibraryServer implements Runnable {
 			builder.append(String.format("" //
 					+ "<div class='bar navbar'>\n" //
 					+ "\t<a%s class='button first' href='%s'>&lt;&lt;</a>\n"//
-					+ "\t<a%s class='button previous' href='%s'>&lt;</a>\n" //
+					+ "\t<a%s id='previous' class='button previous' href='%s'>&lt;</a>\n" //
 					+ "\t<div class='gotobox itemsbox'>\n" //
 					+ "\t\t<div class='button goto'>%d</div>\n" //
 					+ "\t\t<div class='items goto'>\n", //
