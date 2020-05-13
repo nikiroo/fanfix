@@ -128,7 +128,7 @@ public class WebLibrary extends BasicLibrary {
 			download(WebLibraryUrls.INDEX_URL).close();
 		} catch (IOException e) {
 			try {
-				download(WebLibraryUrls.VERSION_URL).close();
+				download("/style.css").close();
 				return Status.UNAUTHORIZED;
 			} catch (IOException ioe) {
 				return Status.UNAVAILABLE;
