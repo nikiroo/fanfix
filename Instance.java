@@ -363,6 +363,11 @@ public class Instance {
 		remoteDir.mkdirs();
 
 		if (host != null) {
+			host = host.replace("fanfix://", "");
+			host = host.replace("http://", "");
+			host = host.replace("https://", "");
+			host = host.replaceAll("[^a-zA-Z0-9=+.-]", "_");
+			
 			return new File(remoteDir, host);
 		}
 

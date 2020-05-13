@@ -242,8 +242,10 @@ public class WebLibraryServer implements Runnable {
 					// set options
 					String optionName = params.get("optionName");
 					if (optionName != null && !optionName.isEmpty()) {
+						String optionNo = params.get("optionNo");
 						String optionValue = params.get("optionValue");
-						if (optionValue == null || optionValue.isEmpty()) {
+						if (optionNo != null || optionValue == null
+								|| optionValue.isEmpty()) {
 							session.getCookies().delete(optionName);
 							cookies.remove(optionName);
 						} else {
@@ -491,12 +493,15 @@ public class WebLibraryServer implements Runnable {
 
 		appendPreHtml(builder, true);
 
+		Map<String, String> params = session.getParms();
+
 		String filter = cookies.get("filter");
+		if (params.get("optionNo") != null)
+			filter = null;
 		if (filter == null) {
 			filter = "";
 		}
 
-		Map<String, String> params = session.getParms();
 		String browser = params.get("browser") == null ? ""
 				: params.get("browser");
 		String browser2 = params.get("browser2") == null ? ""
@@ -585,11 +590,12 @@ public class WebLibraryServer implements Runnable {
 
 		// TODO: javascript in realtime, using visible=false + hide [submit]
 		builder.append("<div class='filter'>\n");
-		builder.append("\tFilter: \n");
+		builder.append("\t<span class='label'>Filter: </span>\n");
 		builder.append(
 				"\t<input name='optionName'  type='hidden' value='filter' />\n");
 		builder.append("\t<input name='optionValue' type='text'   value='"
 				+ filter + "' place-holder='...' />\n");
+		builder.append("\t<input name='optionNo'  type='submit' value='x' />");
 		builder.append(
 				"\t<input name='submit' type='submit' value='Filter' />\n");
 		builder.append("</div>\n");
@@ -672,7 +678,8 @@ public class WebLibraryServer implements Runnable {
 		// 1-based (0 = desc)
 		int chapter = 0;
 		if (chapterStr != null && !"cover".equals(chapterStr)
-				&& !"metadata".equals(chapterStr) && !"json".equals(chapterStr)) {
+				&& !"metadata".equals(chapterStr)
+				&& !"json".equals(chapterStr)) {
 			try {
 				chapter = Integer.parseInt(chapterStr);
 				if (chapter < 0) {
@@ -706,12 +713,14 @@ public class WebLibraryServer implements Runnable {
 				if (img != null) {
 					in = img.newInputStream();
 				}
+				// TODO: get correct image type
+				mimeType = "image/png";
 			} else if ("metadata".equals(chapterStr)) {
 				MetaData meta = meta(luid, whitelist);
 				JSONObject json = JsonIO.toJson(meta);
 				mimeType = "application/json";
 				in = new ByteArrayInputStream(json.toString().getBytes());
-			}  else if ("json".equals(chapterStr)) {
+			} else if ("json".equals(chapterStr)) {
 				Story story = story(luid, whitelist);
 				JSONObject json = JsonIO.toJson(story);
 				mimeType = "application/json";
@@ -812,121 +821,211 @@ public class WebLibraryServer implements Runnable {
 			StringBuilder builder = new StringBuilder();
 			appendPreHtml(builder, false);
 
-			if (chapter < 0) {
-				builder.append(story);
-			} else {
-				if (chapter == 0) {
-					// TODO: description
-					chapter = 1;
-				}
+			// For images documents, always go to the images if not chap 0 desc
+			if (story.getMeta().isImageDocument()) {
+				if (chapter > 0 && paragraph <= 0)
+					paragraph = 1;
+			}
 
-				Chapter chap = null;
+			Chapter chap = null;
+			if (chapter <= 0) {
+				chap = story.getMeta().getResume();
+			} else {
 				try {
 					chap = story.getChapters().get(chapter - 1);
 				} catch (IndexOutOfBoundsException e) {
 					return NanoHTTPD.newFixedLengthResponse(Status.NOT_FOUND,
 							NanoHTTPD.MIME_PLAINTEXT, "Chapter not found");
 				}
+			}
 
-				if (story.getMeta().isImageDocument() && paragraph <= 0) {
-					paragraph = 1;
+			String first, previous, next, last;
+
+			StringBuilder content = new StringBuilder();
+
+			String disabledLeft = "";
+			String disabledRight = "";
+			String disabledZoomReal = "";
+			String disabledZoomWidth = "";
+			String disabledZoomHeight = "";
+
+			if (paragraph <= 0) {
+				first = getViewUrl(luid, 0, null);
+				previous = getViewUrl(luid, (Math.max(chapter - 1, 0)), null);
+				next = getViewUrl(luid,
+						(Math.min(chapter + 1, story.getChapters().size())),
+						null);
+				last = getViewUrl(luid, story.getChapters().size(), null);
+
+				StringBuilder desc = new StringBuilder();
+
+				if (chapter <= 0) {
+					desc.append("<h1 class='title'>");
+					desc.append(story.getMeta().getTitle());
+					desc.append("</h1>\n");
+					desc.append("<div class='desc'>\n");
+					desc.append("\t<div class='cover'>\n");
+					desc.append("\t\t<img src='/story/" + luid + "/cover'/>\n");
+					desc.append("\t</div>\n");
+					desc.append("\t<table class='details'>\n");
+					Map<String, String> details = BasicLibrary
+							.getMetaDesc(story.getMeta());
+					for (String key : details.keySet()) {
+						appendTableRow(desc, 2, key, details.get(key));
+					}
+					desc.append("\t</table>\n");
+					desc.append("</div>\n");
+					desc.append("<h1 class='title'>Description</h1>\n");
 				}
 
-				String first, previous, next, last;
-				String content;
+				content.append("<div class='viewer text'>\n");
+				content.append(desc);
+				String description = new TextOutput(false).convert(chap,
+						chapter > 0);
+				content.append(chap.getParagraphs().size() <= 0
+						? "No content provided."
+						: description);
+				content.append("</div>\n");
 
-				if (paragraph <= 0) {
-					first = getViewUrl(luid, 1, null);
-					previous = getViewUrl(luid, (Math.max(chapter - 1, 1)),
-							null);
-					next = getViewUrl(luid,
-							(Math.min(chapter + 1, story.getChapters().size())),
-							null);
-					last = getViewUrl(luid, story.getChapters().size(), null);
+				if (chapter <= 0)
+					disabledLeft = " disabled='disbaled'";
+				if (chapter >= story.getChapters().size())
+					disabledRight = " disabled='disbaled'";
+			} else {
+				first = getViewUrl(luid, chapter, 1);
+				previous = getViewUrl(luid, chapter,
+						(Math.max(paragraph - 1, 1)));
+				next = getViewUrl(luid, chapter,
+						(Math.min(paragraph + 1, chap.getParagraphs().size())));
+				last = getViewUrl(luid, chapter, chap.getParagraphs().size());
 
-					content = "<div class='viewer text'>\n"
-							+ new TextOutput(false).convert(chap, true)
-							+ "</div>\n";
-				} else {
-					first = getViewUrl(luid, chapter, 1);
-					previous = getViewUrl(luid, chapter,
-							(Math.max(paragraph - 1, 1)));
-					next = getViewUrl(luid, chapter, (Math.min(paragraph + 1,
-							chap.getParagraphs().size())));
-					last = getViewUrl(luid, chapter,
-							chap.getParagraphs().size());
+				if (paragraph <= 1)
+					disabledLeft = " disabled='disbaled'";
+				if (paragraph >= chap.getParagraphs().size())
+					disabledRight = " disabled='disbaled'";
 
-					Paragraph para = null;
-					try {
-						para = chap.getParagraphs().get(paragraph - 1);
-					} catch (IndexOutOfBoundsException e) {
-						return NanoHTTPD.newFixedLengthResponse(
-								Status.NOT_FOUND, NanoHTTPD.MIME_PLAINTEXT,
-								"Paragraph not found");
-					}
+				// First -> previous *chapter*
+				if (chapter > 0)
+					disabledLeft = "";
+				first = getViewUrl(luid, (Math.max(chapter - 1, 0)), null);
+				if (paragraph <= 1) {
+					previous = first;
+				}
 
-					if (para.getType() == ParagraphType.IMAGE) {
-						String zoomStyle = "max-width: 100%;";
-						String zoomOption = cookies.get("zoom");
-						if (zoomOption != null && !zoomOption.isEmpty()) {
-							if (zoomOption.equals("real")) {
-								zoomStyle = "";
-							} else if (zoomOption.equals("width")) {
-								zoomStyle = "max-width: 100%;";
-							} else if (zoomOption.equals("height")) {
-								// see height of navbar + optionbar
-								zoomStyle = "max-height: calc(100% - 128px);";
-							}
+				Paragraph para = null;
+				try {
+					para = chap.getParagraphs().get(paragraph - 1);
+				} catch (IndexOutOfBoundsException e) {
+					return NanoHTTPD.newFixedLengthResponse(Status.NOT_FOUND,
+							NanoHTTPD.MIME_PLAINTEXT,
+							"Paragraph " + paragraph + " not found");
+				}
+
+				if (para.getType() == ParagraphType.IMAGE) {
+					String zoomStyle = "max-width: 100%;";
+					disabledZoomWidth = " disabled='disabled'";
+					String zoomOption = cookies.get("zoom");
+					if (zoomOption != null && !zoomOption.isEmpty()) {
+						if (zoomOption.equals("real")) {
+							zoomStyle = "";
+							disabledZoomWidth = "";
+							disabledZoomReal = " disabled='disabled'";
+						} else if (zoomOption.equals("width")) {
+							zoomStyle = "max-width: 100%;";
+						} else if (zoomOption.equals("height")) {
+							// see height of navbar + optionbar
+							zoomStyle = "max-height: calc(100% - 128px);";
+							disabledZoomWidth = "";
+							disabledZoomHeight = " disabled='disabled'";
 						}
-						content = String.format("" //
-								+ "<a class='viewer link' href='%s'>" //
-								+ "<img class='viewer img' style='%s' src='%s'/>"
-								+ "</a>", //
-								next, //
-								zoomStyle, //
-								getStoryUrl(luid, chapter, paragraph));
-					} else {
-						content = para.getContent();
 					}
 
-				}
-
-				builder.append(String.format("" //
-						+ "<div class='bar navbar'>\n" //
-						+ "\t<a class='button first' href='%s'>&lt;&lt;</a>\n"//
-						+ "\t<a class='button previous' href='%s'>&lt;</a>\n"//
-						+ "\t<a class='button next' href='%s'>&gt;</a>\n"//
-						+ "\t<a class='button last' href='%s'>&gt;&gt;</a>\n"//
-						+ "</div>\n" //
-						+ "%s", //
-						first, //
-						previous, //
-						next, //
-						last, //
-						content //
-				));
-
-				builder.append("<div class='bar optionbar ");
-				if (paragraph > 0) {
-					builder.append("s4");
+					content.append(String.format("" //
+							+ "<a class='viewer link' href='%s'>"
+							+ "<img class='viewer img' style='%s' src='%s'/>"
+							+ "</a>", //
+							next, //
+							zoomStyle, //
+							getStoryUrl(luid, chapter, paragraph)));
 				} else {
-					builder.append("s1");
+					content.append(String.format("" //
+							+ "<div class='viewer text'>%s</div>", //
+							para.getContent()));
 				}
-				builder.append("'>\n");
-				builder.append(
-						"	<a class='button back' href='/'>BACK</a>\n");
+			}
 
-				if (paragraph > 0) {
-					builder.append(String.format("" //
-							+ "\t<a class='button zoomreal'   href='%s'>REAL</a>\n"//
-							+ "\t<a class='button zoomwidth'  href='%s'>WIDTH</a>\n"//
-							+ "\t<a class='button zoomheight' href='%s'>HEIGHT</a>\n"//
-							+ "</div>\n", //
-							uri + "?optionName=zoom&optionValue=real", //
-							uri + "?optionName=zoom&optionValue=width", //
-							uri + "?optionName=zoom&optionValue=height" //
-					));
+			builder.append(String.format("" //
+					+ "<div class='bar navbar'>\n" //
+					+ "\t<a%s class='button first' href='%s'>&lt;&lt;</a>\n"//
+					+ "\t<a%s class='button previous' href='%s'>&lt;</a>\n" //
+					+ "\t<div class='gotobox itemsbox'>\n" //
+					+ "\t\t<div class='button goto'>%d</div>\n" //
+					+ "\t\t<div class='items goto'>\n", //
+					disabledLeft, first, //
+					disabledLeft, previous, //
+					paragraph > 0 ? paragraph : chapter //
+			));
+
+			// List of chap/para links
+
+			String blink = "/view/story/" + luid + "/";
+			appendItemA(builder, 3, blink + "0", "Description",
+					paragraph == 0 && chapter == 0);
+
+			if (paragraph > 0) {
+				blink = blink + chapter + "/";
+				for (int i = 1; i <= chap.getParagraphs().size(); i++) {
+					appendItemA(builder, 3, blink + i, "Image " + i,
+							paragraph == i);
 				}
+			} else {
+				int i = 1;
+				for (Chapter c : story.getChapters()) {
+					String chapName = "Chapter " + c.getNumber();
+					if (c.getName() != null && !c.getName().isEmpty()) {
+						chapName += ": " + c.getName();
+					}
+
+					appendItemA(builder, 3, blink + i, chapName, chapter == i);
+
+					i++;
+				}
+			}
+
+			builder.append(String.format("" //
+					+ "\t\t</div>\n" //
+					+ "\t</div>\n" //
+					+ "\t<a%s class='button next' href='%s'>&gt;</a>\n" //
+					+ "\t<a%s class='button last' href='%s'>&gt;&gt;</a>\n"//
+					+ "</div>\n", //
+					disabledRight, next, //
+					disabledRight, last //
+			));
+
+			builder.append(content);
+
+			builder.append("<div class='bar optionbar ");
+			if (paragraph > 0) {
+				builder.append("s4");
+			} else {
+				builder.append("s1");
+			}
+			builder.append("'>\n");
+			builder.append("	<a class='button back' href='/'>BACK</a>\n");
+
+			if (paragraph > 0) {
+				builder.append(String.format("" //
+						+ "\t<a%s class='button zoomreal'   href='%s'>REAL</a>\n"//
+						+ "\t<a%s class='button zoomwidth'  href='%s'>WIDTH</a>\n"//
+						+ "\t<a%s class='button zoomheight' href='%s'>HEIGHT</a>\n"//
+						+ "</div>\n", //
+						disabledZoomReal,
+						uri + "?optionName=zoom&optionValue=real", //
+						disabledZoomWidth,
+						uri + "?optionName=zoom&optionValue=width", //
+						disabledZoomHeight,
+						uri + "?optionName=zoom&optionValue=height" //
+				));
 			}
 
 			appendPostHtml(builder);
@@ -998,7 +1097,8 @@ public class WebLibraryServer implements Runnable {
 			throws IOException {
 		MetaData meta = meta(luid, whitelist);
 		if (meta != null) {
-			return meta.getCover();
+			BasicLibrary lib = Instance.getInstance().getLibrary();
+			return lib.getCover(meta.getLuid());
 		}
 
 		return null;
@@ -1073,7 +1173,7 @@ public class WebLibraryServer implements Runnable {
 
 		if (banner) {
 			builder.append("<div class='banner'>\n");
-			builder.append("\t<img class='ico' src='") //
+			builder.append("\t<img class='ico' src='/") //
 					.append(favicon) //
 					.append("'/>\n");
 			builder.append("\t<h1>Fanfix</h1>\n");
@@ -1098,5 +1198,46 @@ public class WebLibraryServer implements Runnable {
 			builder.append(" selected='selected'");
 		}
 		builder.append(">").append(name).append("</option>\n");
+	}
+
+	private void appendTableRow(StringBuilder builder, int depth,
+			String... tds) {
+		for (int i = 0; i < depth; i++) {
+			builder.append("\t");
+		}
+
+		int col = 1;
+		builder.append("<tr>");
+		for (String td : tds) {
+			builder.append("<td class='col");
+			builder.append(col++);
+			builder.append("'>");
+			builder.append(td);
+			builder.append("</td>");
+		}
+		builder.append("</tr>\n");
+	}
+
+	private void appendItemA(StringBuilder builder, int depth, String link,
+			String name, boolean selected) {
+		for (int i = 0; i < depth; i++) {
+			builder.append("\t");
+		}
+
+		builder.append("<a href='");
+		builder.append(link);
+		builder.append("' class='item goto");
+		if (selected) {
+			builder.append(" selected");
+		}
+		builder.append("'>");
+		builder.append(name);
+		builder.append("</a>\n");
+	}
+
+	public static void main(String[] args) throws IOException {
+		Instance.init();
+		WebLibraryServer web = new WebLibraryServer(false);
+		web.run();
 	}
 }
