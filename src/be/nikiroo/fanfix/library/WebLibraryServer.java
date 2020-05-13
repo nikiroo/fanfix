@@ -51,16 +51,18 @@ public class WebLibraryServer implements Runnable {
 		private boolean success;
 		private boolean rw;
 		private boolean wl;
+		private boolean bl;
 		private String wookie;
 		private String token;
 		private boolean badLogin;
 		private boolean badToken;
 
 		public LoginResult(String who, String key, String subkey,
-				boolean success, boolean rw, boolean wl) {
+				boolean success, boolean rw, boolean wl, boolean bl) {
 			this.success = success;
 			this.rw = rw;
 			this.wl = wl;
+			this.bl = bl;
 			this.wookie = CookieUtils.generateCookie(who + key, 0);
 
 			String opts = "";
@@ -68,6 +70,8 @@ public class WebLibraryServer implements Runnable {
 				opts += "|rw";
 			if (!wl)
 				opts += "|wl";
+			if (!bl)
+				opts += "|bl";
 
 			this.token = wookie + "~"
 					+ CookieUtils.generateCookie(wookie + subkey + opts, 0)
@@ -101,6 +105,7 @@ public class WebLibraryServer implements Runnable {
 
 								this.rw = opts.contains("|rw");
 								this.wl = !opts.contains("|wl");
+								this.bl = !opts.contains("|bl");
 							}
 						}
 					}
@@ -124,6 +129,10 @@ public class WebLibraryServer implements Runnable {
 			return wl;
 		}
 
+		public boolean isBl() {
+			return bl;
+		}
+
 		public String getToken() {
 			return token;
 		}
@@ -144,6 +153,9 @@ public class WebLibraryServer implements Runnable {
 	private long maxStoryCacheSize;
 	private TraceHandler tracer = new TraceHandler();
 
+	private List<String> whitelist;
+	private List<String> blacklist;
+
 	public WebLibraryServer(boolean secure) throws IOException {
 		Integer port = Instance.getInstance().getConfig()
 				.getInteger(Config.SERVER_PORT);
@@ -157,6 +169,11 @@ public class WebLibraryServer implements Runnable {
 		maxStoryCacheSize = cacheMb * 1024 * 1024;
 
 		setTraceHandler(Instance.getInstance().getTraceHandler());
+
+		whitelist = Instance.getInstance().getConfig()
+				.getList(Config.SERVER_WHITELIST, new ArrayList<String>());
+		blacklist = Instance.getInstance().getConfig()
+				.getList(Config.SERVER_BLACKLIST, new ArrayList<String>());
 
 		SSLServerSocketFactory ssf = null;
 		if (secure) {
@@ -211,30 +228,19 @@ public class WebLibraryServer implements Runnable {
 					cookies.put(cookie, session.getCookies().read(cookie));
 				}
 
-				List<String> whitelist = Instance.getInstance().getConfig()
-						.getList(Config.SERVER_WHITELIST);
-				if (whitelist == null) {
-					whitelist = new ArrayList<String>();
-				}
-
 				LoginResult login = null;
 				Map<String, String> params = session.getParms();
 				String who = session.getRemoteHostName()
 						+ session.getRemoteIpAddress();
 				if (params.get("login") != null) {
 					login = login(who, params.get("password"),
-							params.get("login"), whitelist);
+							params.get("login"));
 				} else {
 					String token = cookies.get("token");
-					login = login(who, token, Instance.getInstance().getConfig()
-							.getList(Config.SERVER_ALLOWED_SUBKEYS));
+					login = login(who, token);
 				}
 
 				if (login.isSuccess()) {
-					if (!login.isWl()) {
-						whitelist.clear();
-					}
-
 					// refresh token
 					session.getCookies().set(new Cookie("token",
 							login.getToken(), "30; path=/"));
@@ -267,13 +273,13 @@ public class WebLibraryServer implements Runnable {
 				if (rep == null) {
 					try {
 						if (uri.equals("/")) {
-							rep = root(session, cookies, whitelist);
+							rep = root(session, cookies, login);
 						} else if (uri.startsWith(LIST_URL)) {
-							rep = getList(uri, whitelist);
+							rep = getList(uri, login);
 						} else if (uri.startsWith(STORY_URL_BASE)) {
-							rep = getStoryPart(uri, whitelist);
+							rep = getStoryPart(uri, login);
 						} else if (uri.startsWith(VIEWER_URL_BASE)) {
-							rep = getViewer(cookies, uri, whitelist);
+							rep = getViewer(cookies, uri, login);
 						} else if (uri.equals("/logout")) {
 							session.getCookies().delete("token");
 							cookies.remove("token");
@@ -313,24 +319,6 @@ public class WebLibraryServer implements Runnable {
 				}
 
 				return rep;
-
-				// Get status: for story, use "luid" + active map of current
-				// luids
-				// map must use a addRef/removeRef and delete at 0
-
-				// http://localhost:2000/?token=ok
-
-				//
-				// MetaData meta = new MetaData();
-				// meta.setTitle("Title");
-				// meta.setLuid("000");
-				//
-				// JSONObject json = new JSONObject();
-				// json.put("", MetaData.class.getName());
-				// json.put("title", meta.getTitle());
-				// json.put("luid", meta.getLuid());
-				//
-				// return newFixedLengthResponse(json.toString());
 			}
 		};
 
@@ -385,35 +373,33 @@ public class WebLibraryServer implements Runnable {
 		this.tracer = tracer;
 	}
 
-	private LoginResult login(String who, String token, List<String> subkeys) {
+	private LoginResult login(String who, String token) {
+		List<String> subkeys = Instance.getInstance().getConfig().getList(
+				Config.SERVER_ALLOWED_SUBKEYS, new ArrayList<String>());
 		String realKey = Instance.getInstance().getConfig()
-				.getString(Config.SERVER_KEY);
-		realKey = realKey == null ? "" : realKey;
+				.getString(Config.SERVER_KEY, "");
+
 		return new LoginResult(token, who, realKey, subkeys);
 	}
 
 	// allow rw/wl
-	private LoginResult login(String who, String key, String subkey,
-			List<String> whitelist) {
+	private LoginResult login(String who, String key, String subkey) {
 		String realKey = Instance.getInstance().getConfig()
-				.getString(Config.SERVER_KEY);
+				.getString(Config.SERVER_KEY, "");
 
 		// I don't like NULLs...
-		realKey = realKey == null ? "" : realKey;
 		key = key == null ? "" : key;
 		subkey = subkey == null ? "" : subkey;
 
 		if (!realKey.equals(key)) {
-			return new LoginResult(null, null, null, false, false, false);
+			return new LoginResult(null, null, null, false, false, false,
+					false);
 		}
 
-		// defaults are positive (as previous versions without the feature)
+		// defaults are true (as previous versions without the feature)
 		boolean rw = true;
 		boolean wl = true;
-
-		if (whitelist.isEmpty()) {
-			wl = false;
-		}
+		boolean bl = true;
 
 		rw = Instance.getInstance().getConfig().getBoolean(Config.SERVER_RW,
 				rw);
@@ -427,12 +413,16 @@ public class WebLibraryServer implements Runnable {
 				if ((subkey + "|").contains("|wl|")) {
 					wl = false; // |wl| = bypass whitelist
 				}
+				if ((subkey + "|").contains("|bl|")) {
+					bl = false; // |bl| = bypass blacklist
+				}
 			} else {
-				return new LoginResult(null, null, null, false, false, false);
+				return new LoginResult(null, null, null, false, false, false,
+						false);
 			}
 		}
 
-		return new LoginResult(who, key, subkey, true, rw, wl);
+		return new LoginResult(who, key, subkey, true, rw, wl, bl);
 	}
 
 	private Response loginPage(LoginResult login, String uri) {
@@ -465,13 +455,11 @@ public class WebLibraryServer implements Runnable {
 				NanoHTTPD.MIME_HTML, builder.toString());
 	}
 
-	protected Response getList(String uri, List<String> whitelist)
+	protected Response getList(String uri, LoginResult login)
 			throws IOException {
 		if (uri.equals("/list/luids")) {
-			BasicLibrary lib = Instance.getInstance().getLibrary();
-			List<MetaData> metas = lib.getList().filter(whitelist, null, null);
 			List<JSONObject> jsons = new ArrayList<JSONObject>();
-			for (MetaData meta : metas) {
+			for (MetaData meta : metas(login)) {
 				jsons.add(JsonIO.toJson(meta));
 			}
 
@@ -485,10 +473,9 @@ public class WebLibraryServer implements Runnable {
 	}
 
 	private Response root(IHTTPSession session, Map<String, String> cookies,
-			List<String> whitelist) throws IOException {
+			LoginResult login) throws IOException {
 		BasicLibrary lib = Instance.getInstance().getLibrary();
-		MetaResultList result = lib.getList();
-		result = new MetaResultList(result.filter(whitelist, null, null));
+		MetaResultList result = new MetaResultList(metas(login));
 		StringBuilder builder = new StringBuilder();
 
 		appendPreHtml(builder, true);
@@ -662,7 +649,7 @@ public class WebLibraryServer implements Runnable {
 	// /story/luid/cover <-- image
 	// /story/luid/metadata <-- json
 	// /story/luid/json <-- json, whole chapter (no images)
-	private Response getStoryPart(String uri, List<String> whitelist) {
+	private Response getStoryPart(String uri, LoginResult login) {
 		String[] cover = uri.split("/");
 		int off = 2;
 
@@ -709,24 +696,24 @@ public class WebLibraryServer implements Runnable {
 		InputStream in = null;
 		try {
 			if ("cover".equals(chapterStr)) {
-				Image img = getCover(luid, whitelist);
+				Image img = getCover(luid, login);
 				if (img != null) {
 					in = img.newInputStream();
 				}
 				// TODO: get correct image type
 				mimeType = "image/png";
 			} else if ("metadata".equals(chapterStr)) {
-				MetaData meta = meta(luid, whitelist);
+				MetaData meta = meta(luid, login);
 				JSONObject json = JsonIO.toJson(meta);
 				mimeType = "application/json";
 				in = new ByteArrayInputStream(json.toString().getBytes());
 			} else if ("json".equals(chapterStr)) {
-				Story story = story(luid, whitelist);
+				Story story = story(luid, login);
 				JSONObject json = JsonIO.toJson(story);
 				mimeType = "application/json";
 				in = new ByteArrayInputStream(json.toString().getBytes());
 			} else {
-				Story story = story(luid, whitelist);
+				Story story = story(luid, login);
 				if (story != null) {
 					if (chapter == 0) {
 						StringBuilder builder = new StringBuilder();
@@ -769,7 +756,7 @@ public class WebLibraryServer implements Runnable {
 	}
 
 	private Response getViewer(Map<String, String> cookies, String uri,
-			List<String> whitelist) {
+			LoginResult login) {
 		String[] cover = uri.split("/");
 		int off = 2;
 
@@ -812,7 +799,7 @@ public class WebLibraryServer implements Runnable {
 		}
 
 		try {
-			Story story = story(luid, whitelist);
+			Story story = story(luid, login);
 			if (story == null) {
 				return NanoHTTPD.newFixedLengthResponse(Status.NOT_FOUND,
 						NanoHTTPD.MIME_PLAINTEXT, "Story not found");
@@ -1082,20 +1069,41 @@ public class WebLibraryServer implements Runnable {
 				.replace("{luid}", luid);
 	}
 
-	private MetaData meta(String luid, List<String> whitelist)
-			throws IOException {
+	private boolean isAllowed(MetaData meta, LoginResult login) {
+		if (login.isWl() && !whitelist.isEmpty()
+				&& !whitelist.contains(meta.getSource())) {
+			return false;
+		}
+		if (login.isBl() && blacklist.contains(meta.getSource())) {
+			return false;
+		}
+
+		return true;
+	}
+
+	private List<MetaData> metas(LoginResult login) throws IOException {
+		BasicLibrary lib = Instance.getInstance().getLibrary();
+		List<MetaData> metas = new ArrayList<MetaData>();
+		for (MetaData meta : lib.getList().getMetas()) {
+			if (isAllowed(meta, login)) {
+				metas.add(meta);
+			}
+		}
+
+		return metas;
+	}
+
+	private MetaData meta(String luid, LoginResult login) throws IOException {
 		BasicLibrary lib = Instance.getInstance().getLibrary();
 		MetaData meta = lib.getInfo(luid);
-		if (!whitelist.isEmpty() && !whitelist.contains(meta.getSource())) {
+		if (!isAllowed(meta, login))
 			return null;
-		}
 
 		return meta;
 	}
 
-	private Image getCover(String luid, List<String> whitelist)
-			throws IOException {
-		MetaData meta = meta(luid, whitelist);
+	private Image getCover(String luid, LoginResult login) throws IOException {
+		MetaData meta = meta(luid, login);
 		if (meta != null) {
 			BasicLibrary lib = Instance.getInstance().getLibrary();
 			return lib.getCover(meta.getLuid());
@@ -1105,22 +1113,19 @@ public class WebLibraryServer implements Runnable {
 	}
 
 	// NULL if not whitelist OK or if not found
-	private Story story(String luid, List<String> whitelist)
-			throws IOException {
+	private Story story(String luid, LoginResult login) throws IOException {
 		synchronized (storyCache) {
 			if (storyCache.containsKey(luid)) {
 				Story story = storyCache.get(luid);
-				if (!whitelist.isEmpty()
-						&& !whitelist.contains(story.getMeta().getSource())) {
+				if (!isAllowed(story.getMeta(), login))
 					return null;
-				}
 
 				return story;
 			}
 		}
 
 		Story story = null;
-		MetaData meta = meta(luid, whitelist);
+		MetaData meta = meta(luid, login);
 		if (meta != null) {
 			BasicLibrary lib = Instance.getInstance().getLibrary();
 			story = lib.getStory(luid, null);
