@@ -110,7 +110,7 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 			return NanoHTTPD.newFixedLengthResponse(Status.SERVICE_UNAVAILABLE,
 					NanoHTTPD.MIME_PLAINTEXT, "Server is already exiting...");
 		}
-		
+
 		exiting = true;
 		Instance.getInstance().getTraceHandler().trace("Exiting");
 
@@ -130,6 +130,20 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 		} while (!ok);
 
 		doStop();
+
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(1500);
+				} catch (InterruptedException e) {
+				}
+
+				Instance.getInstance().getTraceHandler()
+						.trace("Exit timeout: force-quit");
+				System.exit(0);
+			}
+		}, "Exit program after timeout of 1500 ms").start();
 
 		return NanoHTTPD.newFixedLengthResponse(Status.OK,
 				NanoHTTPD.MIME_PLAINTEXT, "Exited");
@@ -341,7 +355,7 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 			return NanoHTTPD.newFixedLengthResponse(Status.FORBIDDEN,
 					NanoHTTPD.MIME_PLAINTEXT, "SET story part not allowed");
 		}
-		
+
 		if (exiting) {
 			return NanoHTTPD.newFixedLengthResponse(Status.SERVICE_UNAVAILABLE,
 					NanoHTTPD.MIME_PLAINTEXT, "Server is exiting...");
@@ -426,7 +440,7 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 			return NanoHTTPD.newFixedLengthResponse(Status.FORBIDDEN,
 					NanoHTTPD.MIME_PLAINTEXT, "Cover request not allowed");
 		}
-		
+
 		if (exiting) {
 			return NanoHTTPD.newFixedLengthResponse(Status.SERVICE_UNAVAILABLE,
 					NanoHTTPD.MIME_PLAINTEXT, "Server is exiting...");
@@ -457,7 +471,7 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 			return NanoHTTPD.newFixedLengthResponse(Status.FORBIDDEN,
 					NanoHTTPD.MIME_PLAINTEXT, "Import not allowed");
 		}
-		
+
 		if (exiting) {
 			return NanoHTTPD.newFixedLengthResponse(Status.SERVICE_UNAVAILABLE,
 					NanoHTTPD.MIME_PLAINTEXT, "Server is exiting...");
@@ -529,7 +543,7 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 			return NanoHTTPD.newFixedLengthResponse(Status.FORBIDDEN,
 					NanoHTTPD.MIME_PLAINTEXT, "Delete not allowed");
 		}
-		
+
 		if (exiting) {
 			return NanoHTTPD.newFixedLengthResponse(Status.SERVICE_UNAVAILABLE,
 					NanoHTTPD.MIME_PLAINTEXT, "Server is exiting...");
