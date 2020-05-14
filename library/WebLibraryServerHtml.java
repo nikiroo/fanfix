@@ -256,9 +256,7 @@ abstract class WebLibraryServerHtml implements Runnable {
 			}
 		};
 
-		if (ssf != null)
-
-		{
+		if (ssf != null) {
 			getTraceHandler().trace("Install SSL on the web server...");
 			server.makeSecure(ssf, null);
 			getTraceHandler().trace("Done.");

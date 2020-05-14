@@ -354,6 +354,11 @@ public class WebLibrary extends BasicLibrary {
 	}
 
 	@Override
+	public synchronized void delete(String luid) throws IOException {
+		post(WebLibraryUrls.getDeleteUrlStory(luid), null).close();
+	}
+
+	@Override
 	protected void updateInfo(MetaData meta) {
 		// Will be taken care of directly server side
 	}
