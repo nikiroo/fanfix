@@ -287,9 +287,14 @@ public class JsonIO {
 	static long getLong(JSONObject json, String key, long def) {
 		if (json.has(key)) {
 			Object o = json.get(key);
-			if (o instanceof Long) {
+			if (o instanceof Byte)
+				return (Byte) o;
+			if (o instanceof Short)
+				return (Short) o;
+			if (o instanceof Integer)
+				return (Integer) o;
+			if (o instanceof Long)
 				return (Long) o;
-			}
 		}
 
 		return def;
@@ -309,8 +314,17 @@ public class JsonIO {
 	static int getInt(JSONObject json, String key, int def) {
 		if (json.has(key)) {
 			Object o = json.get(key);
-			if (o instanceof Integer) {
+			if (o instanceof Byte)
+				return (Byte) o;
+			if (o instanceof Short)
+				return (Short) o;
+			if (o instanceof Integer)
 				return (Integer) o;
+			if (o instanceof Long) {
+				try {
+					return (int) (long) ((Long) o);
+				} catch (Exception e) {
+				}
 			}
 		}
 
