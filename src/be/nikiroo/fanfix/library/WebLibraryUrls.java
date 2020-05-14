@@ -22,6 +22,15 @@ class WebLibraryUrls {
 
 	static public final String LIST_URL_METADATA = LIST_URL_BASE + "metadata";
 
+	// GET/POST
+	static private final String COVER_URL_BASE = "/cover/";
+	static private final String COVER_URL_STORY = COVER_URL_BASE
+			+ "story/{luid}";
+	static private final String COVER_URL_AUTHOR = COVER_URL_BASE
+			+ "author/{author}";
+	static private final String COVER_URL_SOURCE = COVER_URL_BASE
+			+ "source/{source}";
+
 	static public String getViewUrl(String luid, Integer chap, Integer para) {
 		return VIEWER_URL //
 				.replace("{luid}", luid) //
@@ -50,7 +59,22 @@ class WebLibraryUrls {
 	static public boolean isSupportedUrl(String url) {
 		return INDEX_URL.equals(url) || VERSION_URL.equals(url)
 				|| LOGOUT_URL.equals(url) || isViewUrl(url) || isStoryUrl(url)
-				|| isListUrl(url);
+				|| isListUrl(url) || isCoverUrl(url);
+	}
+
+	static public String getCoverUrlStory(String luid) {
+		return COVER_URL_STORY //
+				.replace("{luid}", luid);
+	}
+
+	static public String getCoverUrlSource(String source) {
+		return COVER_URL_SOURCE //
+				.replace("{source}", source);
+	}
+
+	static public String getCoverUrlAuthor(String author) {
+		return COVER_URL_AUTHOR //
+				.replace("{author}", author);
 	}
 
 	static public boolean isViewUrl(String url) {
@@ -63,5 +87,9 @@ class WebLibraryUrls {
 
 	static public boolean isListUrl(String url) {
 		return url != null && url.startsWith(LIST_URL_BASE);
+	}
+
+	static public boolean isCoverUrl(String url) {
+		return url != null && url.startsWith(COVER_URL_BASE);
 	}
 }

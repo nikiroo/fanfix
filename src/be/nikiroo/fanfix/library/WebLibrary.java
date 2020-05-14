@@ -155,15 +155,23 @@ public class WebLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public Image getCustomSourceCover(final String source) throws IOException {
-		// TODO maybe global system in BasicLib ?
-		return null;
+	public Image getCustomSourceCover(String source) throws IOException {
+		InputStream in = download(WebLibraryUrls.getCoverUrlSource(source));
+		try {
+			return new Image(in);
+		} finally {
+			in.close();
+		}
 	}
 
 	@Override
-	public Image getCustomAuthorCover(final String author) throws IOException {
-		// TODO maybe global system in BasicLib ?
-		return null;
+	public Image getCustomAuthorCover(String author) throws IOException {
+		InputStream in = download(WebLibraryUrls.getCoverUrlAuthor(author));
+		try {
+			return new Image(in);
+		} finally {
+			in.close();
+		}
 	}
 
 	@Override

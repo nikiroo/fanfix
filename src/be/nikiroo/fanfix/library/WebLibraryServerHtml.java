@@ -47,6 +47,9 @@ abstract class WebLibraryServerHtml implements Runnable {
 
 	abstract protected Response getStoryPart(String uri, WLoginResult login);
 
+	abstract protected Response getCover(String uri, WLoginResult login)
+			throws IOException;
+
 	abstract protected List<MetaData> metas(WLoginResult login)
 			throws IOException;
 
@@ -162,6 +165,8 @@ abstract class WebLibraryServerHtml implements Runnable {
 								rep = newFixedLengthResponse(Status.OK,
 										MIME_PLAINTEXT,
 										Version.getCurrentVersion().toString());
+							} else if (WebLibraryUrls.isCoverUrl(uri)) {
+								rep = getCover(uri, login);
 							} else if (WebLibraryUrls.isListUrl(uri)) {
 								rep = getList(uri, login);
 							} else if (WebLibraryUrls.isStoryUrl(uri)) {
@@ -218,7 +223,9 @@ abstract class WebLibraryServerHtml implements Runnable {
 			}
 		};
 
-		if (ssf != null) {
+		if (ssf != null)
+
+		{
 			getTraceHandler().trace("Install SSL on the web server...");
 			server.makeSecure(ssf, null);
 			getTraceHandler().trace("Done.");

@@ -183,17 +183,17 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 	// /story/luid/json <-- json, whole chapter (no images)
 	@Override
 	protected Response getStoryPart(String uri, WLoginResult login) {
-		String[] cover = uri.split("/");
+		String[] uriParts = uri.split("/");
 		int off = 2;
 
-		if (cover.length < off + 2) {
+		if (uriParts.length < off + 2) {
 			return NanoHTTPD.newFixedLengthResponse(Status.BAD_REQUEST,
 					NanoHTTPD.MIME_PLAINTEXT, null);
 		}
 
-		String luid = cover[off + 0];
-		String chapterStr = cover[off + 1];
-		String imageStr = cover.length < off + 3 ? null : cover[off + 2];
+		String luid = uriParts[off + 0];
+		String chapterStr = uriParts[off + 1];
+		String imageStr = uriParts.length < off + 3 ? null : uriParts[off + 2];
 
 		// 1-based (0 = desc)
 		int chapter = 0;
@@ -229,7 +229,7 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 		InputStream in = null;
 		try {
 			if ("cover".equals(chapterStr)) {
-				Image img = cover(luid, login);
+				Image img = storyCover(luid, login);
 				if (img != null) {
 					in = img.newInputStream();
 				}
@@ -286,6 +286,46 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 		}
 
 		return newInputStreamResponse(mimeType, in);
+	}
+
+	@Override
+	protected Response getCover(String uri, WLoginResult login)
+			throws IOException {
+		String[] uriParts = uri.split("/");
+		int off = 2; // "" and "cover"
+
+		if (uriParts.length < off + 2) {
+			return NanoHTTPD.newFixedLengthResponse(Status.BAD_REQUEST,
+					NanoHTTPD.MIME_PLAINTEXT, "Invalid cover request");
+		}
+
+		String type = uriParts[off + 0];
+		String id = uriParts[off + 1];
+
+		InputStream in = null;
+
+		if ("cover".equals(type)) {
+			Image img = storyCover(id, login);
+			if (img != null) {
+				in = img.newInputStream();
+			}
+		} else if ("author".equals(type)) {
+			Image img = authorCover(id, login);
+			if (img != null) {
+				in = img.newInputStream();
+			}
+		} else if ("source".equals(type)) {
+			Image img = sourceCover(id, login);
+			if (img != null) {
+				in = img.newInputStream();
+			}
+		} else {
+			return NanoHTTPD.newFixedLengthResponse(Status.BAD_REQUEST,
+					NanoHTTPD.MIME_PLAINTEXT, "Invalid cover type: " + type);
+		}
+
+		// TODO: get correct image type
+		return newInputStreamResponse("image/png", in);
 	}
 
 	@Override
@@ -349,7 +389,8 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 		return meta;
 	}
 
-	private Image cover(String luid, WLoginResult login) throws IOException {
+	private Image storyCover(String luid, WLoginResult login)
+			throws IOException {
 		MetaData meta = meta(luid, login);
 		if (meta != null) {
 			BasicLibrary lib = Instance.getInstance().getLibrary();
@@ -357,6 +398,39 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 		}
 
 		return null;
+	}
+
+	private Image authorCover(String author, WLoginResult login)
+			throws IOException {
+		Image img = null;
+
+		List<MetaData> metas = new MetaResultList(metas(login)).filter(null,
+				author, null);
+		if (metas.size() > 0) {
+			BasicLibrary lib = Instance.getInstance().getLibrary();
+			img = lib.getCustomAuthorCover(author);
+			if (img == null)
+				img = lib.getCover(metas.get(0).getLuid());
+		}
+
+		return img;
+
+	}
+
+	private Image sourceCover(String source, WLoginResult login)
+			throws IOException {
+		Image img = null;
+
+		List<MetaData> metas = new MetaResultList(metas(login)).filter(source,
+				null, null);
+		if (metas.size() > 0) {
+			BasicLibrary lib = Instance.getInstance().getLibrary();
+			img = lib.getCustomSourceCover(source);
+			if (img == null)
+				img = lib.getCover(metas.get(0).getLuid());
+		}
+
+		return img;
 	}
 
 	private boolean isAllowed(MetaData meta, WLoginResult login) {
