@@ -31,10 +31,6 @@ import be.nikiroo.utils.Progress;
 
 public class WebLibraryServer extends WebLibraryServerHtml {
 	class WLoginResult extends LoginResult {
-		private boolean rw;
-		private boolean wl;
-		private boolean bl;
-
 		public WLoginResult(boolean badLogin, boolean badCookie) {
 			super(badLogin, badCookie);
 		}
@@ -43,9 +39,6 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 				boolean wl, boolean bl) {
 			super(who, key, subkey, (rw ? "|rw" : "") + (wl ? "|wl" : "")
 					+ (bl ? "|bl" : "") + "|");
-			this.rw = rw;
-			this.wl = wl;
-			this.bl = bl;
 		}
 
 		public WLoginResult(String cookie, String who, String key,
@@ -306,6 +299,11 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 					NanoHTTPD.MIME_PLAINTEXT, "Invalid story part request");
 		}
 
+		if (!login.isRw()) {
+			return NanoHTTPD.newFixedLengthResponse(Status.FORBIDDEN,
+					NanoHTTPD.MIME_PLAINTEXT, "SET story part not allowed");
+		}
+
 		String luid = uriParts[off + 0];
 		String type = uriParts[off + 1];
 
@@ -381,6 +379,11 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 					NanoHTTPD.MIME_PLAINTEXT, "Invalid cover request");
 		}
 
+		if (!login.isRw()) {
+			return NanoHTTPD.newFixedLengthResponse(Status.FORBIDDEN,
+					NanoHTTPD.MIME_PLAINTEXT, "Cover request not allowed");
+		}
+
 		String type = uriParts[off + 0];
 		String id = uriParts[off + 1];
 
@@ -401,6 +404,11 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 	protected Response imprt(String uri, String urlStr, WLoginResult login)
 			throws IOException {
 		final BasicLibrary lib = Instance.getInstance().getLibrary();
+
+		if (!login.isRw()) {
+			return NanoHTTPD.newFixedLengthResponse(Status.FORBIDDEN,
+					NanoHTTPD.MIME_PLAINTEXT, "Import not allowed");
+		}
 
 		final URL url = new URL(urlStr);
 		final Progress pg = new Progress();
@@ -424,8 +432,6 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 				}
 			}
 		}, "Import story: " + urlStr).start();
-
-		lib.imprt(url, pg);
 
 		return NanoHTTPD.newFixedLengthResponse(Status.OK,
 				NanoHTTPD.MIME_PLAINTEXT, luid);
@@ -451,6 +457,30 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 			return NanoHTTPD.newFixedLengthResponse(Status.OK,
 					"application/json", JsonIO.toJson(pg).toString());
 		}
+
+		return newInputStreamResponse(NanoHTTPD.MIME_PLAINTEXT, null);
+	}
+
+	@Override
+	protected Response delete(String uri, WLoginResult login)
+			throws IOException {
+		String[] uriParts = uri.split("/");
+		int off = 2; // "" and "delete"
+
+		if (uriParts.length < off + 1) {
+			return NanoHTTPD.newFixedLengthResponse(Status.BAD_REQUEST,
+					NanoHTTPD.MIME_PLAINTEXT, "Invalid delete request");
+		}
+
+		if (!login.isRw()) {
+			return NanoHTTPD.newFixedLengthResponse(Status.FORBIDDEN,
+					NanoHTTPD.MIME_PLAINTEXT, "Delete not allowed");
+		}
+
+		String luid = uriParts[off + 0];
+
+		BasicLibrary lib = Instance.getInstance().getLibrary();
+		lib.delete(luid);
 
 		return newInputStreamResponse(NanoHTTPD.MIME_PLAINTEXT, null);
 	}

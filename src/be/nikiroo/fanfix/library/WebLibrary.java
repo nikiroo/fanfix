@@ -152,7 +152,12 @@ public class WebLibrary extends BasicLibrary {
 	public Image getCover(String luid) throws IOException {
 		InputStream in = post(WebLibraryUrls.getStoryUrlCover(luid));
 		try {
-			return new Image(in);
+			Image img = new Image(in);
+			if (img.getSize() > 0) {
+				return img;
+			}
+
+			return null;
 		} finally {
 			in.close();
 		}
@@ -162,7 +167,12 @@ public class WebLibrary extends BasicLibrary {
 	public Image getCustomSourceCover(String source) throws IOException {
 		InputStream in = post(WebLibraryUrls.getCoverUrlSource(source));
 		try {
-			return new Image(in);
+			Image img = new Image(in);
+			if (img.getSize() > 0) {
+				return img;
+			}
+
+			return null;
 		} finally {
 			in.close();
 		}
@@ -172,7 +182,12 @@ public class WebLibrary extends BasicLibrary {
 	public Image getCustomAuthorCover(String author) throws IOException {
 		InputStream in = post(WebLibraryUrls.getCoverUrlAuthor(author));
 		try {
-			return new Image(in);
+			Image img = new Image(in);
+			if (img.getSize() > 0) {
+				return img;
+			}
+
+			return null;
 		} finally {
 			in.close();
 		}
@@ -223,7 +238,10 @@ public class WebLibrary extends BasicLibrary {
 					InputStream subin = post(
 							WebLibraryUrls.getStoryUrl(luid, chapNum, number));
 					try {
-						para.setContentImage(new Image(subin));
+						Image img = new Image(subin);
+						if (img.getSize() > 0) {
+							para.setContentImage(img);
+						}
 					} finally {
 						subin.close();
 					}
@@ -291,6 +309,8 @@ public class WebLibrary extends BasicLibrary {
 				try {
 					subPg = JsonIO.toProgress(
 							new JSONObject(IOUtils.readSmallStream(in)));
+				} catch (Exception e) {
+					subPg = null;
 				} finally {
 					in.close();
 				}

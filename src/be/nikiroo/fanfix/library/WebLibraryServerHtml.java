@@ -67,6 +67,9 @@ abstract class WebLibraryServerHtml implements Runnable {
 
 	protected abstract Response imprtProgress(String uri, WLoginResult login);
 
+	protected abstract Response delete(String uri, WLoginResult login)
+			throws IOException;
+
 	public WebLibraryServerHtml(boolean secure) throws IOException {
 		Integer port = Instance.getInstance().getConfig()
 				.getInteger(Config.SERVER_PORT);
@@ -205,6 +208,8 @@ abstract class WebLibraryServerHtml implements Runnable {
 								} else {
 									rep = imprtProgress(uri, login);
 								}
+							} else if (WebLibraryUrls.isDeleteUrl(uri)) {
+								rep = delete(uri, login);
 							} else {
 								getTraceHandler().error(
 										"Supported URL was not processed: "
