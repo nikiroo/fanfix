@@ -38,6 +38,9 @@ class WebLibraryUrls {
 	static private final String IMPRT_URL_PROGRESS = IMPRT_URL_BASE + "{luid}";
 	static public final String IMPRT_URL_IMPORT = IMPRT_URL_BASE + "import";
 
+	static private final String DELETE_URL_BASE = "/delete/";
+	static private final String DELETE_URL_STORY = DELETE_URL_BASE + "{luid}";
+
 	// GET/SET ("luid" param -> set cover to the cover of this story -- not ok
 	// for /cover/story/)
 	static private final String COVER_URL_BASE = "/cover/";
@@ -119,6 +122,11 @@ class WebLibraryUrls {
 				.replace("{author}", author);
 	}
 
+	static public String getDeleteUrlStory(String luid) {
+		return DELETE_URL_STORY //
+				.replace("{luid}", luid);
+	}
+
 	static public boolean isViewUrl(String url) {
 		return url != null && url.startsWith(VIEWER_URL_BASE);
 	}
@@ -137,5 +145,9 @@ class WebLibraryUrls {
 
 	static public boolean isImprtUrl(String url) {
 		return url != null && url.startsWith(IMPRT_URL_BASE);
+	}
+
+	static public boolean isDeleteUrl(String url) {
+		return url != null && url.startsWith(DELETE_URL_BASE);
 	}
 }
