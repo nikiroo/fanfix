@@ -19,6 +19,7 @@ import be.nikiroo.fanfix.library.CacheLibrary;
 import be.nikiroo.fanfix.library.LocalLibrary;
 import be.nikiroo.fanfix.library.RemoteLibrary;
 import be.nikiroo.fanfix.library.RemoteLibraryServer;
+import be.nikiroo.fanfix.library.WebLibrary;
 import be.nikiroo.fanfix.library.WebLibraryServer;
 import be.nikiroo.fanfix.output.BasicOutput;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
@@ -351,7 +352,14 @@ public class Main {
 				} else if (port == null) {
 					port = Integer.parseInt(args[i]);
 
-					BasicLibrary lib = new RemoteLibrary(key, host, port);
+					BasicLibrary lib;
+					if (host.startsWith("http://")
+							|| host.startsWith("https://")) {
+						lib = new WebLibrary(key, host, port);
+					} else {
+						lib = new RemoteLibrary(key, host, port);
+					}
+					
 					lib = new CacheLibrary(
 							Instance.getInstance().getRemoteDir(host), lib,
 							Instance.getInstance().getUiConfig());
@@ -1070,10 +1078,13 @@ public class Main {
 	 * @throws SSLException
 	 *             when the key was not accepted
 	 */
-	private void stopServer(
-			String key, String host, Integer port)
+	private void stopServer(String key, String host, Integer port)
 			throws IOException, SSLException {
-		new RemoteLibrary(key, host, port).exit();
+		if (host.startsWith("http://") || host.startsWith("https://")) {
+			new WebLibrary(key, host, port).stop();
+		} else {
+			new RemoteLibrary(key, host, port).stop();
+		}
 	}
 
 	/**

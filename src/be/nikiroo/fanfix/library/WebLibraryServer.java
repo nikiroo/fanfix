@@ -70,6 +70,8 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 
 	private Map<String, Progress> imprts = new HashMap<String, Progress>();
 
+	private boolean exiting;
+
 	public WebLibraryServer(boolean secure) throws IOException {
 		super(secure);
 
@@ -95,6 +97,42 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 	 */
 	public void start() {
 		new Thread(this).start();
+	}
+
+	@Override
+	protected Response stop(WLoginResult login) {
+		if (!login.isRw()) {
+			return NanoHTTPD.newFixedLengthResponse(Status.FORBIDDEN,
+					NanoHTTPD.MIME_PLAINTEXT, "Exit not allowed");
+		}
+
+		if (exiting) {
+			return NanoHTTPD.newFixedLengthResponse(Status.SERVICE_UNAVAILABLE,
+					NanoHTTPD.MIME_PLAINTEXT, "Server is already exiting...");
+		}
+		
+		exiting = true;
+		Instance.getInstance().getTraceHandler().trace("Exiting");
+
+		boolean ok;
+		do {
+			synchronized (imprts) {
+				ok = imprts.isEmpty();
+			}
+			if (!ok) {
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					Instance.getInstance().getTraceHandler()
+							.trace("Waiting to exit...");
+				}
+			}
+		} while (!ok);
+
+		doStop();
+
+		return NanoHTTPD.newFixedLengthResponse(Status.OK,
+				NanoHTTPD.MIME_PLAINTEXT, "Exited");
 	}
 
 	@Override
@@ -303,6 +341,11 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 			return NanoHTTPD.newFixedLengthResponse(Status.FORBIDDEN,
 					NanoHTTPD.MIME_PLAINTEXT, "SET story part not allowed");
 		}
+		
+		if (exiting) {
+			return NanoHTTPD.newFixedLengthResponse(Status.SERVICE_UNAVAILABLE,
+					NanoHTTPD.MIME_PLAINTEXT, "Server is exiting...");
+		}
 
 		String luid = uriParts[off + 0];
 		String type = uriParts[off + 1];
@@ -383,6 +426,11 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 			return NanoHTTPD.newFixedLengthResponse(Status.FORBIDDEN,
 					NanoHTTPD.MIME_PLAINTEXT, "Cover request not allowed");
 		}
+		
+		if (exiting) {
+			return NanoHTTPD.newFixedLengthResponse(Status.SERVICE_UNAVAILABLE,
+					NanoHTTPD.MIME_PLAINTEXT, "Server is exiting...");
+		}
 
 		String type = uriParts[off + 0];
 		String id = uriParts[off + 1];
@@ -408,6 +456,11 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 		if (!login.isRw()) {
 			return NanoHTTPD.newFixedLengthResponse(Status.FORBIDDEN,
 					NanoHTTPD.MIME_PLAINTEXT, "Import not allowed");
+		}
+		
+		if (exiting) {
+			return NanoHTTPD.newFixedLengthResponse(Status.SERVICE_UNAVAILABLE,
+					NanoHTTPD.MIME_PLAINTEXT, "Server is exiting...");
 		}
 
 		final URL url = new URL(urlStr);
@@ -475,6 +528,11 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 		if (!login.isRw()) {
 			return NanoHTTPD.newFixedLengthResponse(Status.FORBIDDEN,
 					NanoHTTPD.MIME_PLAINTEXT, "Delete not allowed");
+		}
+		
+		if (exiting) {
+			return NanoHTTPD.newFixedLengthResponse(Status.SERVICE_UNAVAILABLE,
+					NanoHTTPD.MIME_PLAINTEXT, "Server is exiting...");
 		}
 
 		String luid = uriParts[off + 0];

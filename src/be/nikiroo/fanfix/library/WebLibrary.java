@@ -126,6 +126,16 @@ public class WebLibrary extends BasicLibrary {
 		return new Version();
 	}
 
+	/**
+	 * Stop the server.
+	 * 
+	 * @throws IOException
+	 *             in case of I/O errors
+	 */
+	public void stop() throws IOException {
+		post(WebLibraryUrls.EXIT_URL, null).close();
+	}
+
 	@Override
 	public Status getStatus() {
 		try {
