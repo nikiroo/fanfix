@@ -28,7 +28,6 @@ import be.nikiroo.utils.NanoHTTPD;
 import be.nikiroo.utils.NanoHTTPD.Response;
 import be.nikiroo.utils.NanoHTTPD.Response.Status;
 import be.nikiroo.utils.Progress;
-import be.nikiroo.utils.Progress.ProgressListener;
 
 public class WebLibraryServer extends WebLibraryServerHtml {
 	class WLoginResult extends LoginResult {
@@ -414,14 +413,6 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 		final URL url = new URL(urlStr);
 		final Progress pg = new Progress();
 		final String luid = lib.getNextId();
-
-		// Keep the latest name
-		pg.addProgressListener(new ProgressListener() {
-			@Override
-			public void progress(Progress progress, String name) {
-				pg.setName(name);
-			}
-		});
 
 		synchronized (imprts) {
 			imprts.put(luid, pg);

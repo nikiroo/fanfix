@@ -201,8 +201,11 @@ public class JsonIO {
 		return para;
 	}
 
-	// no children included
 	static public JSONObject toJson(Progress pg) {
+		return toJson(pg, null);
+	}
+
+	static private JSONObject toJson(Progress pg, Double weight) {
 		if (pg == null) {
 			return null;
 		}
@@ -213,20 +216,40 @@ public class JsonIO {
 		put(json, "name", pg.getName());
 		put(json, "min", pg.getMin());
 		put(json, "max", pg.getMax());
-		put(json, "progress", pg.getProgress());
+		put(json, "progress", pg.getRelativeProgress());
+		put(json, "weight", weight);
+
+		List<JSONObject> children = new ArrayList<JSONObject>();
+		for (Progress child : pg.getChildren()) {
+			children.add(toJson(child, pg.getWeight(child)));
+		}
+		put(json, "children", new JSONArray(children));
 
 		return json;
 	}
 
-	// no children included
 	static public Progress toProgress(JSONObject json) {
 		if (json == null) {
 			return null;
 		}
 
-		Progress pg = new Progress(getString(json, "name"),
-				getInt(json, "min", 0), getInt(json, "max", 100));
-		pg.setProgress(getInt(json, "progress", 0));
+		Progress pg = new Progress( //
+				getString(json, "name"), //
+				getInt(json, "min", 0), //
+				getInt(json, "max", 100) //
+		);
+
+		pg.setRelativeProgress(getDouble(json, "progress", 0));
+
+		JSONArray jchildren = getJsonArr(json, "children");
+		for (int i = 0; i < jchildren.length(); i++) {
+			try {
+				JSONObject jchild = jchildren.getJSONObject(i);
+				Double weight = getDouble(jchild, "weight", 0);
+				pg.addProgress(toProgress(jchild), weight);
+			} catch (Exception e) {
+			}
+		}
 
 		return pg;
 	}
@@ -295,6 +318,26 @@ public class JsonIO {
 				return (Integer) o;
 			if (o instanceof Long)
 				return (Long) o;
+		}
+
+		return def;
+	}
+
+	static double getDouble(JSONObject json, String key, double def) {
+		if (json.has(key)) {
+			Object o = json.get(key);
+			if (o instanceof Byte)
+				return (Byte) o;
+			if (o instanceof Short)
+				return (Short) o;
+			if (o instanceof Integer)
+				return (Integer) o;
+			if (o instanceof Long)
+				return (Long) o;
+			if (o instanceof Float)
+				return (Float) o;
+			if (o instanceof Double)
+				return (Double) o;
 		}
 
 		return def;

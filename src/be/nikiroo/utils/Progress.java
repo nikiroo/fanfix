@@ -108,7 +108,7 @@ public class Progress {
 	/**
 	 * The name of this {@link Progress} step.
 	 * 
-	 * @return the name
+	 * @return the name, can be NULL
 	 */
 	public String getName() {
 		return name;
@@ -241,8 +241,8 @@ public class Progress {
 
 			relativeLocalProgress = ((double) progress) / (max - min);
 
-			setRelativeProgress(this, name, relativeLocalProgress
-					+ childrenProgress);
+			setRelativeProgress(this, name,
+					relativeLocalProgress + childrenProgress);
 		}
 	}
 
@@ -259,9 +259,23 @@ public class Progress {
 	/**
 	 * Set the total progress value (including the optional children
 	 * {@link Progress}), on a 0 to 1 scale.
+	 * <p>
+	 * Will generate a changed event from this very {@link Progress}.
+	 * 
+	 * @param relativeProgress
+	 *            the progress to set
+	 */
+	public void setRelativeProgress(double relativeProgress) {
+		setRelativeProgress(this, name, relativeProgress);
+	}
+
+	/**
+	 * Set the total progress value (including the optional children
+	 * {@link Progress}), on a 0 to 1 scale.
 	 * 
 	 * @param pg
-	 *            the {@link Progress} to report as the progression emitter
+	 *            the {@link Progress} to report as the progression emitter (can
+	 *            be NULL, will then be considered the same as <tt>this</tt>)
 	 * @param name
 	 *            the current name (if it is NULL, the first non-null name in
 	 *            the hierarchy will overwrite it) of the {@link Progress} who
@@ -325,12 +339,28 @@ public class Progress {
 
 	/**
 	 * Return the list of direct children of this {@link Progress}.
+	 * <p>
+	 * Can return an empty list, but never NULL.
 	 * 
 	 * @return the children (Who will think of the children??)
 	 */
 	public List<Progress> getChildren() {
 		synchronized (lock) {
 			return new ArrayList<Progress>(children.keySet());
+		}
+	}
+
+	/**
+	 * The weight of this children if it is actually a child of this.
+	 * 
+	 * @param child
+	 *            the child to get the weight of
+	 * 
+	 * @return NULL if this is not a child of this
+	 */
+	public Double getWeight(Progress child) {
+		synchronized (lock) {
+			return children.get(child);
 		}
 	}
 
@@ -416,8 +446,8 @@ public class Progress {
 		if (progress.parent != null) {
 			throw new RuntimeException(String.format(
 					"Progress object %s cannot be added to %s, "
-							+ "as it already has a parent (%s)", progress.name,
-					name, progress.parent.name));
+							+ "as it already has a parent (%s)",
+					progress.name, name, progress.parent.name));
 		}
 
 		ProgressListener progressListener = new ProgressListener() {
@@ -491,5 +521,15 @@ public class Progress {
 	 */
 	public Object get(Object key) {
 		return map.get(key);
+	}
+
+	@Override
+	public String toString() {
+		return "[Progress]" //
+				+ (name == null || name.isEmpty() ? "" : " " + name) //
+				+ ": " + getProgress() + " / " + getMax() //
+				+ (children.isEmpty() ? ""
+						: " (with " + children.size() + " children)") //
+		;
 	}
 }
