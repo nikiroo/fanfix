@@ -288,6 +288,43 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 		return newInputStreamResponse(mimeType, in);
 	}
 
+	// /story/luid/source
+	// /story/luid/title
+	// /story/luid/author
+	@Override
+	protected Response setStoryPart(String uri, String value,
+			WLoginResult login) throws IOException {
+		String[] uriParts = uri.split("/");
+		int off = 2; // "" and "story"
+
+		if (uriParts.length < off + 2) {
+			return NanoHTTPD.newFixedLengthResponse(Status.BAD_REQUEST,
+					NanoHTTPD.MIME_PLAINTEXT, "Invalid story part request");
+		}
+
+		String luid = uriParts[off + 0];
+		String type = uriParts[off + 1];
+
+		if (!Arrays.asList("source", "title", "author").contains(type)) {
+			return NanoHTTPD.newFixedLengthResponse(Status.BAD_REQUEST,
+					NanoHTTPD.MIME_PLAINTEXT,
+					"Invalid SET story part: " + type);
+		}
+
+		if (meta(luid, login) != null) {
+			BasicLibrary lib = Instance.getInstance().getLibrary();
+			if ("source".equals(type)) {
+				lib.changeSource(luid, value, null);
+			} else if ("title".equals(type)) {
+				lib.changeTitle(luid, value, null);
+			} else if ("author".equals(type)) {
+				lib.changeAuthor(luid, value, null);
+			}
+		}
+
+		return newInputStreamResponse(NanoHTTPD.MIME_PLAINTEXT, null);
+	}
+
 	@Override
 	protected Response getCover(String uri, WLoginResult login)
 			throws IOException {

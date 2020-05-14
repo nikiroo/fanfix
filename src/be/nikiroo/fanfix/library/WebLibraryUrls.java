@@ -18,6 +18,14 @@ class WebLibraryUrls {
 			+ "{luid}/cover";
 	static private final String STORY_URL_JSON = STORY_URL_BASE + "{luid}/json";
 
+	// GET/SET ("value" param -> set STA to this value)
+	static private final String STORY_URL_SOURCE = STORY_URL_BASE
+			+ "{luid}/source";
+	static private final String STORY_URL_TITLE = STORY_URL_BASE
+			+ "{luid}/title";
+	static private final String STORY_URL_AUTHOR = STORY_URL_BASE
+			+ "{luid}/author";
+
 	static private final String LIST_URL_BASE = "/list/";
 
 	static public final String LIST_URL_METADATA = LIST_URL_BASE + "metadata";
@@ -54,6 +62,21 @@ class WebLibraryUrls {
 
 	static public String getStoryUrlJson(String luid) {
 		return STORY_URL_JSON //
+				.replace("{luid}", luid);
+	}
+
+	static public String getStoryUrlSource(String luid) {
+		return STORY_URL_SOURCE //
+				.replace("{luid}", luid);
+	}
+
+	static public String getStoryUrlTitle(String luid) {
+		return STORY_URL_TITLE//
+				.replace("{luid}", luid);
+	}
+
+	static public String getStoryUrlAuthor(String luid) {
+		return STORY_URL_AUTHOR //
 				.replace("{luid}", luid);
 	}
 

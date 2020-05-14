@@ -47,6 +47,9 @@ abstract class WebLibraryServerHtml implements Runnable {
 
 	abstract protected Response getStoryPart(String uri, WLoginResult login);
 
+	abstract protected Response setStoryPart(String uri, String value,
+			WLoginResult login) throws IOException;
+
 	abstract protected Response getCover(String uri, WLoginResult login)
 			throws IOException;
 
@@ -178,7 +181,12 @@ abstract class WebLibraryServerHtml implements Runnable {
 							} else if (WebLibraryUrls.isListUrl(uri)) {
 								rep = getList(uri, login);
 							} else if (WebLibraryUrls.isStoryUrl(uri)) {
-								rep = getStoryPart(uri, login);
+								String value = params.get("value");
+								if (value != null) {
+									rep = setStoryPart(uri, value, login);
+								} else {
+									rep = getStoryPart(uri, login);
+								}
 							} else if (WebLibraryUrls.isViewUrl(uri)) {
 								rep = getViewer(cookies, uri, login);
 							} else if (WebLibraryUrls.LOGOUT_URL.equals(uri)) {

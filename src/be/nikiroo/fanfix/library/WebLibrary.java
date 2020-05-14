@@ -263,8 +263,24 @@ public class WebLibrary extends BasicLibrary {
 	protected synchronized void changeSTA(final String luid,
 			final String newSource, final String newTitle,
 			final String newAuthor, Progress pg) throws IOException {
-		// TODO
-		super.changeSTA(luid, newSource, newTitle, newAuthor, pg);
+		MetaData meta = getInfo(luid);
+		if (meta != null) {
+			if (!meta.getSource().equals(newSource)) {
+				Map<String, String> post = new HashMap<String, String>();
+				post.put("value", newSource);
+				post(WebLibraryUrls.getStoryUrlSource(luid), post).close();
+			}
+			if (!meta.getTitle().equals(newTitle)) {
+				Map<String, String> post = new HashMap<String, String>();
+				post.put("value", newTitle);
+				post(WebLibraryUrls.getStoryUrlTitle(luid), post).close();
+			}
+			if (!meta.getAuthor().equals(newAuthor)) {
+				Map<String, String> post = new HashMap<String, String>();
+				post.put("value", newAuthor);
+				post(WebLibraryUrls.getStoryUrlAuthor(luid), post).close();
+			}
+		}
 	}
 
 	@Override
