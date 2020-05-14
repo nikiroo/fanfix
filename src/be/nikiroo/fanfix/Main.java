@@ -643,11 +643,25 @@ public class Main {
 				break;
 			case STOP_SERVER:
 				// Can be given via "--remote XX XX XX"
-				if (key == null)
-					key = Instance.getInstance().getConfig().getString(Config.SERVER_KEY);
-				if (port == null)
+				if (key == null) {
+					key = Instance.getInstance().getConfig()
+							.getString(Config.SERVER_KEY);
+					
+					// If a subkey in RW mode exists, use it
+					for (String subkey : Instance.getInstance().getConfig()
+							.getList(Config.SERVER_ALLOWED_SUBKEYS,
+									new ArrayList<String>())) {
+						if ((subkey + "|").contains("|rw|")) {
+							key = key + "|" + subkey;
+							break;
+						}
+					}
+				}
+				
+				if (port == null) {
 					port = Instance.getInstance().getConfig().getInteger(Config.SERVER_PORT);
-
+				}
+				
 				if (host == null) {
 					String mode = Instance.getInstance().getConfig()
 							.getString(Config.SERVER_MODE, "fanfix");
