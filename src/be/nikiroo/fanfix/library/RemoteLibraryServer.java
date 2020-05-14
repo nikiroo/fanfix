@@ -3,6 +3,7 @@ package be.nikiroo.fanfix.library;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -578,12 +579,16 @@ public class RemoteLibraryServer extends ServerObject {
 
 	private boolean isAllowed(MetaData meta, List<String> whitelist,
 			List<String> blacklist) {
-		if (!whitelist.isEmpty() && !whitelist.contains(meta.getSource())) {
-			return false;
+		MetaResultList one = new MetaResultList(Arrays.asList(meta));
+		if (!whitelist.isEmpty()) {
+			if (one.filter(whitelist, null, null).isEmpty()) {
+				return false;
+			}
 		}
-
-		if (blacklist.contains(meta.getSource())) {
-			return false;
+		if (!blacklist.isEmpty()) {
+			if (!one.filter(blacklist, null, null).isEmpty()) {
+				return false;
+			}
 		}
 
 		return true;

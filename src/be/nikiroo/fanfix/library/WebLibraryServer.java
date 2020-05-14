@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -359,12 +360,16 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 	}
 
 	private boolean isAllowed(MetaData meta, WLoginResult login) {
-		if (login.isWl() && !whitelist.isEmpty()
-				&& !whitelist.contains(meta.getSource())) {
-			return false;
+		MetaResultList one = new MetaResultList(Arrays.asList(meta));
+		if (login.isWl() && !whitelist.isEmpty()) {
+			if (one.filter(whitelist, null, null).isEmpty()) {
+				return false;
+			}
 		}
-		if (login.isBl() && blacklist.contains(meta.getSource())) {
-			return false;
+		if (login.isBl() && !blacklist.isEmpty()) {
+			if (!one.filter(blacklist, null, null).isEmpty()) {
+				return false;
+			}
 		}
 
 		return true;
