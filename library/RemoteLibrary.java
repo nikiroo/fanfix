@@ -446,7 +446,7 @@ public class RemoteLibrary extends BasicLibrary {
 	 * @throws SSLException
 	 *             when the key was not accepted
 	 */
-	public void exit() throws IOException, SSLException {
+	public void stop() throws IOException, SSLException {
 		connectRemoteAction(new RemoteAction() {
 			@Override
 			public void action(ConnectActionClientObject action)

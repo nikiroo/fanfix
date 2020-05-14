@@ -7,6 +7,8 @@ class WebLibraryUrls {
 
 	static public final String LOGOUT_URL = "/logout";
 
+	static public final String EXIT_URL = "/exit";
+
 	static private final String VIEWER_URL_BASE = "/view/story/";
 	static private final String VIEWER_URL = VIEWER_URL_BASE
 			+ "{luid}/{chap}/{para}";
@@ -103,9 +105,9 @@ class WebLibraryUrls {
 
 	static public boolean isSupportedUrl(String url) {
 		return INDEX_URL.equals(url) || VERSION_URL.equals(url)
-				|| LOGOUT_URL.equals(url) || isViewUrl(url) || isStoryUrl(url)
-				|| isListUrl(url) || isCoverUrl(url) || isImprtUrl(url)
-				|| isDeleteUrl(url);
+				|| LOGOUT_URL.equals(url) || EXIT_URL.equals(url)
+				|| isViewUrl(url) || isStoryUrl(url) || isListUrl(url)
+				|| isCoverUrl(url) || isImprtUrl(url) || isDeleteUrl(url);
 	}
 
 	static public String getCoverUrlStory(String luid) {

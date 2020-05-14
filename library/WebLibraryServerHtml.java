@@ -70,6 +70,13 @@ abstract class WebLibraryServerHtml implements Runnable {
 	protected abstract Response delete(String uri, WLoginResult login)
 			throws IOException;
 
+	/**
+	 * Wait until all operations are done and stop the server.
+	 * <p>
+	 * All the new R/W operations will be refused after a call to stop.
+	 */
+	protected abstract Response stop(WLoginResult login);
+
 	public WebLibraryServerHtml(boolean secure) throws IOException {
 		Integer port = Instance.getInstance().getConfig()
 				.getInteger(Config.SERVER_PORT);
@@ -210,6 +217,8 @@ abstract class WebLibraryServerHtml implements Runnable {
 								}
 							} else if (WebLibraryUrls.isDeleteUrl(uri)) {
 								rep = delete(uri, login);
+							} else if (WebLibraryUrls.EXIT_URL.equals(uri)) {
+								rep = WebLibraryServerHtml.this.stop(login);
 							} else {
 								getTraceHandler().error(
 										"Supported URL was not processed: "
@@ -270,6 +279,10 @@ abstract class WebLibraryServerHtml implements Runnable {
 		} catch (IOException e) {
 			tracer.error(new IOException("Cannot start the web server", e));
 		}
+	}
+
+	protected void doStop() {
+		server.stop();
 	}
 
 	/**
