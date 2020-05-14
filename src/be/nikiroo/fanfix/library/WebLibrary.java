@@ -110,7 +110,7 @@ public class WebLibrary extends BasicLibrary {
 
 	public Version getVersion() {
 		try {
-			InputStream in = download(WebLibraryUrls.VERSION_URL);
+			InputStream in = post(WebLibraryUrls.VERSION_URL);
 			try {
 				return new Version(IOUtils.readSmallStream(in));
 			} finally {
@@ -125,10 +125,10 @@ public class WebLibrary extends BasicLibrary {
 	@Override
 	public Status getStatus() {
 		try {
-			download(WebLibraryUrls.INDEX_URL).close();
+			post(WebLibraryUrls.INDEX_URL).close();
 		} catch (IOException e) {
 			try {
-				download("/style.css").close();
+				post("/style.css").close();
 				return Status.UNAUTHORIZED;
 			} catch (IOException ioe) {
 				return Status.UNAVAILABLE;
@@ -146,7 +146,7 @@ public class WebLibrary extends BasicLibrary {
 
 	@Override
 	public Image getCover(String luid) throws IOException {
-		InputStream in = download(WebLibraryUrls.getStoryUrlCover(luid));
+		InputStream in = post(WebLibraryUrls.getStoryUrlCover(luid));
 		try {
 			return new Image(in);
 		} finally {
@@ -156,7 +156,7 @@ public class WebLibrary extends BasicLibrary {
 
 	@Override
 	public Image getCustomSourceCover(String source) throws IOException {
-		InputStream in = download(WebLibraryUrls.getCoverUrlSource(source));
+		InputStream in = post(WebLibraryUrls.getCoverUrlSource(source));
 		try {
 			return new Image(in);
 		} finally {
@@ -166,7 +166,7 @@ public class WebLibrary extends BasicLibrary {
 
 	@Override
 	public Image getCustomAuthorCover(String author) throws IOException {
-		InputStream in = download(WebLibraryUrls.getCoverUrlAuthor(author));
+		InputStream in = post(WebLibraryUrls.getCoverUrlAuthor(author));
 		try {
 			return new Image(in);
 		} finally {
@@ -176,14 +176,16 @@ public class WebLibrary extends BasicLibrary {
 
 	@Override
 	public void setSourceCover(String source, String luid) throws IOException {
-		// TODO Auto-generated method stub
-		throw new IOException("Not implemented yet");
+		Map<String, String> post = new HashMap<String, String>();
+		post.put("luid", luid);
+		post(WebLibraryUrls.getCoverUrlSource(source), post).close();
 	}
 
 	@Override
 	public void setAuthorCover(String author, String luid) throws IOException {
-		// TODO Auto-generated method stub
-		throw new IOException("Not implemented yet");
+		Map<String, String> post = new HashMap<String, String>();
+		post.put("luid", luid);
+		post(WebLibraryUrls.getCoverUrlAuthor(author), post).close();
 	}
 
 	@Override
@@ -193,7 +195,7 @@ public class WebLibrary extends BasicLibrary {
 		// TODO: pg
 
 		Story story;
-		InputStream in = download(WebLibraryUrls.getStoryUrlJson(luid));
+		InputStream in = post(WebLibraryUrls.getStoryUrlJson(luid));
 		try {
 			JSONObject json = new JSONObject(IOUtils.readSmallStream(in));
 			story = JsonIO.toStory(json);
@@ -207,7 +209,7 @@ public class WebLibrary extends BasicLibrary {
 			int number = 1;
 			for (Paragraph para : chap) {
 				if (para.getType() == ParagraphType.IMAGE) {
-					InputStream subin = download(
+					InputStream subin = post(
 							WebLibraryUrls.getStoryUrl(luid, chapNum, number));
 					try {
 						para.setContentImage(new Image(subin));
@@ -228,7 +230,7 @@ public class WebLibrary extends BasicLibrary {
 	@Override
 	protected List<MetaData> getMetas(Progress pg) throws IOException {
 		List<MetaData> metas = new ArrayList<MetaData>();
-		InputStream in = download(WebLibraryUrls.LIST_URL_METADATA);
+		InputStream in = post(WebLibraryUrls.LIST_URL_METADATA);
 		JSONArray jsonArr = new JSONArray(IOUtils.readSmallStream(in));
 		for (int i = 0; i < jsonArr.length(); i++) {
 			JSONObject json = jsonArr.getJSONObject(i);
@@ -301,10 +303,18 @@ public class WebLibrary extends BasicLibrary {
 	}
 
 	// starts with "/", never NULL
-	private InputStream download(String path) throws IOException {
+	private InputStream post(String path) throws IOException {
+		return post(path, null);
+	}
+
+	// starts with "/", never NULL
+	private InputStream post(String path, Map<String, String> post)
+			throws IOException {
 		URL url = new URL(host + ":" + port + path);
 
-		Map<String, String> post = new HashMap<String, String>();
+		if (post == null) {
+			post = new HashMap<String, String>();
+		}
 		post.put("login", subkey);
 		post.put("password", key);
 

@@ -50,6 +50,9 @@ abstract class WebLibraryServerHtml implements Runnable {
 	abstract protected Response getCover(String uri, WLoginResult login)
 			throws IOException;
 
+	abstract protected Response setCover(String uri, String luid,
+			WLoginResult login) throws IOException;
+
 	abstract protected List<MetaData> metas(WLoginResult login)
 			throws IOException;
 
@@ -166,7 +169,12 @@ abstract class WebLibraryServerHtml implements Runnable {
 										MIME_PLAINTEXT,
 										Version.getCurrentVersion().toString());
 							} else if (WebLibraryUrls.isCoverUrl(uri)) {
-								rep = getCover(uri, login);
+								String luid = params.get("luid");
+								if (luid != null) {
+									rep = setCover(uri, luid, login);
+								} else {
+									rep = getCover(uri, login);
+								}
 							} else if (WebLibraryUrls.isListUrl(uri)) {
 								rep = getList(uri, login);
 							} else if (WebLibraryUrls.isStoryUrl(uri)) {

@@ -22,7 +22,8 @@ class WebLibraryUrls {
 
 	static public final String LIST_URL_METADATA = LIST_URL_BASE + "metadata";
 
-	// GET/POST
+	// GET/SET ("luid" param -> set cover to the cover of this story -- not ok
+	// for /cover/story/)
 	static private final String COVER_URL_BASE = "/cover/";
 	static private final String COVER_URL_STORY = COVER_URL_BASE
 			+ "story/{luid}";

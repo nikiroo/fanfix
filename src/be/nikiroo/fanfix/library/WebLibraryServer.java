@@ -304,13 +304,8 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 
 		InputStream in = null;
 
-		if ("cover".equals(type)) {
+		if ("story".equals(type)) {
 			Image img = storyCover(id, login);
-			if (img != null) {
-				in = img.newInputStream();
-			}
-		} else if ("author".equals(type)) {
-			Image img = authorCover(id, login);
 			if (img != null) {
 				in = img.newInputStream();
 			}
@@ -319,13 +314,46 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 			if (img != null) {
 				in = img.newInputStream();
 			}
+		} else if ("author".equals(type)) {
+			Image img = authorCover(id, login);
+			if (img != null) {
+				in = img.newInputStream();
+			}
 		} else {
 			return NanoHTTPD.newFixedLengthResponse(Status.BAD_REQUEST,
-					NanoHTTPD.MIME_PLAINTEXT, "Invalid cover type: " + type);
+					NanoHTTPD.MIME_PLAINTEXT,
+					"Invalid GET cover type: " + type);
 		}
 
 		// TODO: get correct image type
 		return newInputStreamResponse("image/png", in);
+	}
+
+	@Override
+	protected Response setCover(String uri, String luid, WLoginResult login)
+			throws IOException {
+		String[] uriParts = uri.split("/");
+		int off = 2; // "" and "cover"
+
+		if (uriParts.length < off + 2) {
+			return NanoHTTPD.newFixedLengthResponse(Status.BAD_REQUEST,
+					NanoHTTPD.MIME_PLAINTEXT, "Invalid cover request");
+		}
+
+		String type = uriParts[off + 0];
+		String id = uriParts[off + 1];
+
+		if ("source".equals(type)) {
+			sourceCover(id, login, luid);
+		} else if ("author".equals(type)) {
+			authorCover(id, login, luid);
+		} else {
+			return NanoHTTPD.newFixedLengthResponse(Status.BAD_REQUEST,
+					NanoHTTPD.MIME_PLAINTEXT,
+					"Invalid SET cover type: " + type);
+		}
+
+		return newInputStreamResponse(NanoHTTPD.MIME_PLAINTEXT, null);
 	}
 
 	@Override
@@ -417,6 +445,18 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 
 	}
 
+	private void authorCover(String author, WLoginResult login, String luid)
+			throws IOException {
+		if (meta(luid, login) != null) {
+			List<MetaData> metas = new MetaResultList(metas(login)).filter(null,
+					author, null);
+			if (metas.size() > 0) {
+				BasicLibrary lib = Instance.getInstance().getLibrary();
+				lib.setAuthorCover(author, luid);
+			}
+		}
+	}
+
 	private Image sourceCover(String source, WLoginResult login)
 			throws IOException {
 		Image img = null;
@@ -431,6 +471,18 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 		}
 
 		return img;
+	}
+
+	private void sourceCover(String source, WLoginResult login, String luid)
+			throws IOException {
+		if (meta(luid, login) != null) {
+			List<MetaData> metas = new MetaResultList(metas(login))
+					.filter(source, null, null);
+			if (metas.size() > 0) {
+				BasicLibrary lib = Instance.getInstance().getLibrary();
+				lib.setSourceCover(source, luid);
+			}
+		}
 	}
 
 	private boolean isAllowed(MetaData meta, WLoginResult login) {
