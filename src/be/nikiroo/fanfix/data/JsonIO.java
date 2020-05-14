@@ -201,14 +201,27 @@ public class JsonIO {
 		return para;
 	}
 
+	// only supported option: a MetaData called "meta"
 	static public JSONObject toJson(Progress pg) {
 		return toJson(pg, null);
 	}
 
+	// only supported option: a MetaData called "meta"
 	static private JSONObject toJson(Progress pg, Double weight) {
 		if (pg == null) {
 			return null;
 		}
+
+		// Supported keys: meta (only keep the key on the main parent, where
+		// weight is NULL)
+		MetaData meta = null;
+		if (weight == null) {
+			Object ometa = pg.get("meta");
+			if (ometa instanceof MetaData) {
+				meta = getMetaLight((MetaData) ometa);
+			}
+		}
+		//
 
 		JSONObject json = new JSONObject();
 
@@ -218,6 +231,7 @@ public class JsonIO {
 		put(json, "max", pg.getMax());
 		put(json, "progress", pg.getRelativeProgress());
 		put(json, "weight", weight);
+		put(json, "meta", meta);
 
 		List<JSONObject> children = new ArrayList<JSONObject>();
 		for (Progress child : pg.getChildren()) {
@@ -228,6 +242,7 @@ public class JsonIO {
 		return json;
 	}
 
+	// only supported option: a MetaData called "meta"
 	static public Progress toProgress(JSONObject json) {
 		if (json == null) {
 			return null;
@@ -240,6 +255,11 @@ public class JsonIO {
 		);
 
 		pg.setRelativeProgress(getDouble(json, "progress", 0));
+
+		Object meta = getObject(json, "meta");
+		if (meta != null) {
+			pg.put("meta", meta);
+		}
 
 		JSONArray jchildren = getJsonArr(json, "children");
 		for (int i = 0; i < jchildren.length(); i++) {
@@ -279,7 +299,7 @@ public class JsonIO {
 		return null;
 	}
 
-	private static List<Chapter> toListChapter(JSONArray array) {
+	static private List<Chapter> toListChapter(JSONArray array) {
 		if (array != null) {
 			List<Chapter> values = new ArrayList<Chapter>();
 			for (int i = 0; i < array.length(); i++) {
@@ -296,103 +316,116 @@ public class JsonIO {
 		json.put(key, o == null ? JSONObject.NULL : o);
 	}
 
-	static String getString(JSONObject json, String key) {
+	static private Object getObject(JSONObject json, String key) {
 		if (json.has(key)) {
-			Object o = json.get(key);
-			if (o instanceof String) {
-				return (String) o;
+			try {
+				return json.get(key);
+			} catch (Exception e) {
+				// Can fail if content was NULL!
 			}
 		}
 
 		return null;
 	}
 
-	static long getLong(JSONObject json, String key, long def) {
-		if (json.has(key)) {
-			Object o = json.get(key);
-			if (o instanceof Byte)
-				return (Byte) o;
-			if (o instanceof Short)
-				return (Short) o;
-			if (o instanceof Integer)
-				return (Integer) o;
-			if (o instanceof Long)
-				return (Long) o;
+	static private String getString(JSONObject json, String key) {
+		Object o = getObject(json, key);
+		if (o instanceof String)
+			return (String) o;
+
+		return null;
+	}
+
+	static private long getLong(JSONObject json, String key, long def) {
+		Object o = getObject(json, key);
+		if (o instanceof Byte)
+			return (Byte) o;
+		if (o instanceof Short)
+			return (Short) o;
+		if (o instanceof Integer)
+			return (Integer) o;
+		if (o instanceof Long)
+			return (Long) o;
+
+		return def;
+	}
+
+	static private double getDouble(JSONObject json, String key, double def) {
+		Object o = getObject(json, key);
+		if (o instanceof Byte)
+			return (Byte) o;
+		if (o instanceof Short)
+			return (Short) o;
+		if (o instanceof Integer)
+			return (Integer) o;
+		if (o instanceof Long)
+			return (Long) o;
+		if (o instanceof Float)
+			return (Float) o;
+		if (o instanceof Double)
+			return (Double) o;
+
+		return def;
+	}
+
+	static private boolean getBoolean(JSONObject json, String key,
+			boolean def) {
+		Object o = getObject(json, key);
+		if (o instanceof Boolean) {
+			return (Boolean) o;
 		}
 
 		return def;
 	}
 
-	static double getDouble(JSONObject json, String key, double def) {
-		if (json.has(key)) {
-			Object o = json.get(key);
-			if (o instanceof Byte)
-				return (Byte) o;
-			if (o instanceof Short)
-				return (Short) o;
-			if (o instanceof Integer)
-				return (Integer) o;
-			if (o instanceof Long)
-				return (Long) o;
-			if (o instanceof Float)
-				return (Float) o;
-			if (o instanceof Double)
-				return (Double) o;
-		}
-
-		return def;
-	}
-
-	static boolean getBoolean(JSONObject json, String key, boolean def) {
-		if (json.has(key)) {
-			Object o = json.get(key);
-			if (o instanceof Boolean) {
-				return (Boolean) o;
+	static private int getInt(JSONObject json, String key, int def) {
+		Object o = getObject(json, key);
+		if (o instanceof Byte)
+			return (Byte) o;
+		if (o instanceof Short)
+			return (Short) o;
+		if (o instanceof Integer)
+			return (Integer) o;
+		if (o instanceof Long) {
+			try {
+				return (int) (long) ((Long) o);
+			} catch (Exception e) {
 			}
 		}
 
 		return def;
 	}
 
-	static int getInt(JSONObject json, String key, int def) {
-		if (json.has(key)) {
-			Object o = json.get(key);
-			if (o instanceof Byte)
-				return (Byte) o;
-			if (o instanceof Short)
-				return (Short) o;
-			if (o instanceof Integer)
-				return (Integer) o;
-			if (o instanceof Long) {
-				try {
-					return (int) (long) ((Long) o);
-				} catch (Exception e) {
-				}
-			}
-		}
-
-		return def;
-	}
-
-	static JSONObject getJson(JSONObject json, String key) {
-		if (json.has(key)) {
-			Object o = json.get(key);
-			if (o instanceof JSONObject) {
-				return (JSONObject) o;
-			}
+	static private JSONObject getJson(JSONObject json, String key) {
+		Object o = getObject(json, key);
+		if (o instanceof JSONObject) {
+			return (JSONObject) o;
 		}
 
 		return null;
 	}
 
-	static JSONArray getJsonArr(JSONObject json, String key) {
-		if (json.has(key)) {
-			Object o = json.get(key);
-			if (o instanceof JSONArray) {
-				return (JSONArray) o;
-			}
+	static private JSONArray getJsonArr(JSONObject json, String key) {
+		Object o = getObject(json, key);
+		if (o instanceof JSONArray) {
+			return (JSONArray) o;
 		}
 
 		return null;
+	}
+
+	// null -> null
+	static private MetaData getMetaLight(MetaData meta) {
+		MetaData light = null;
+		if (meta != null) {
+			if (meta.getCover() == null) {
+				light = meta;
+			} else {
+				light = meta.clone();
+				light.setCover(null);
+			}
+		}
+
+		return light;
 	}
 }
