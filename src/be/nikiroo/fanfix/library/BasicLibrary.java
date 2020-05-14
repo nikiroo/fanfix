@@ -595,6 +595,28 @@ abstract public class BasicLibrary {
 	 *             in case of I/O error
 	 */
 	public MetaData imprt(URL url, Progress pg) throws IOException {
+		return imprt(url, null, pg);
+	}
+
+	/**
+	 * Import the {@link Story} at the given {@link URL} into the
+	 * {@link BasicLibrary}.
+	 * 
+	 * @param url
+	 *            the {@link URL} to import
+	 * @param luid
+	 *            the LUID to use
+	 * @param pg
+	 *            the optional progress reporter
+	 * 
+	 * @return the imported Story {@link MetaData}
+	 * 
+	 * @throws UnknownHostException
+	 *             if the host is not supported
+	 * @throws IOException
+	 *             in case of I/O error
+	 */
+	MetaData imprt(URL url, String luid, Progress pg) throws IOException {
 		if (pg == null)
 			pg = new Progress();
 
@@ -609,7 +631,7 @@ abstract public class BasicLibrary {
 			throw new UnknownHostException("" + url);
 		}
 
-		Story story = save(support.process(pgProcess), pgSave);
+		Story story = save(support.process(pgProcess), luid, pgSave);
 		pg.done();
 
 		return story.getMeta();
