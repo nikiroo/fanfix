@@ -35,6 +35,12 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	private boolean fakeCover;
 
 	/**
+	 * Create an empty {@link MetaData}.
+	 */
+	public MetaData() {
+	}
+	
+	/**
 	 * The title of the story.
 	 * 
 	 * @return the title
@@ -479,8 +485,9 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 		}
 
 		return String.format(
-				"Meta %s:\n\tTitle: [%s]\n\tAuthor: [%s]\n\tDate: [%s]\n\tTags: [%s]"
-						+ "\n\tResume: [%s]\n\tCover: [%s]", luid, title,
-				getAuthor(), getDate(), tags.toString(), resume, cover);
+				"Meta %s:\n\tTitle: [%s]\n\tAuthor: [%s]\n\tDate: [%s]\n\tTags: [%s]\n\tWord count: [%s]"
+						+ "\n\tResume: [%s]\n\tCover: [%s]",
+				luid, title, getAuthor(), getDate(), tags.toString(),
+				"" + words, resume, cover);
 	}
 }
