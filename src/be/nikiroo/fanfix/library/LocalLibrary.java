@@ -20,10 +20,10 @@ import be.nikiroo.fanfix.output.BasicOutput;
 import be.nikiroo.fanfix.output.BasicOutput.OutputType;
 import be.nikiroo.fanfix.output.InfoCover;
 import be.nikiroo.fanfix.supported.InfoReader;
+import be.nikiroo.utils.HashUtils;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.Progress;
-import be.nikiroo.utils.StringUtils;
 
 /**
  * This {@link BasicLibrary} will store the stories locally on disk.
@@ -168,11 +168,11 @@ public class LocalLibrary extends BasicLibrary {
 	}
 
 	@Override
-	protected int getNextId() {
+	protected String getNextId() {
 		getStories(null); // make sure lastId is set
 
 		synchronized (lock) {
-			return ++lastId;
+			return String.format("%03d", ++lastId);
 		}
 	}
 
@@ -553,7 +553,7 @@ public class LocalLibrary extends BasicLibrary {
 	 */
 	private File getAuthorCoverFile(String author) {
 		File aDir = new File(baseDir, "_AUTHORS");
-		String hash = StringUtils.getMd5Hash(author);
+		String hash = HashUtils.md5(author);
 		String ext = Instance.getInstance().getConfig()
 				.getString(Config.FILE_FORMAT_IMAGE_FORMAT_COVER);
 		return new File(aDir, hash + "." + ext.toLowerCase());

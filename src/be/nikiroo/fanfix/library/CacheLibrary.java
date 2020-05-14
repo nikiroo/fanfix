@@ -419,7 +419,7 @@ public class CacheLibrary extends BasicLibrary {
 	// BasicLibrary:
 
 	@Override
-	protected int getNextId() {
+	protected String getNextId() {
 		throw new java.lang.InternalError("Should not have been called");
 	}
 

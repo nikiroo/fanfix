@@ -3,6 +3,7 @@ package be.nikiroo.fanfix.library;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import be.nikiroo.utils.LoginResult;
 import be.nikiroo.utils.NanoHTTPD;
 import be.nikiroo.utils.NanoHTTPD.Response;
 import be.nikiroo.utils.NanoHTTPD.Response.Status;
+import be.nikiroo.utils.Progress;
 
 public class WebLibraryServer extends WebLibraryServerHtml {
 	class WLoginResult extends LoginResult {
@@ -72,6 +74,8 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 
 	private List<String> whitelist;
 	private List<String> blacklist;
+
+	private Map<String, Progress> imprts = new HashMap<String, Progress>();
 
 	public WebLibraryServer(boolean secure) throws IOException {
 		super(secure);
@@ -388,6 +392,64 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 			return NanoHTTPD.newFixedLengthResponse(Status.BAD_REQUEST,
 					NanoHTTPD.MIME_PLAINTEXT,
 					"Invalid SET cover type: " + type);
+		}
+
+		return newInputStreamResponse(NanoHTTPD.MIME_PLAINTEXT, null);
+	}
+
+	@Override
+	protected Response imprt(String uri, String urlStr, WLoginResult login)
+			throws IOException {
+		final BasicLibrary lib = Instance.getInstance().getLibrary();
+
+		final URL url = new URL(urlStr);
+		final Progress pg = new Progress();
+		final String luid = lib.getNextId();
+
+		synchronized (imprts) {
+			imprts.put(luid, pg);
+		}
+
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					lib.imprt(url, pg);
+				} catch (IOException e) {
+					Instance.getInstance().getTraceHandler().error(e);
+				} finally {
+					synchronized (imprts) {
+						imprts.remove(luid);
+					}
+				}
+			}
+		}, "Import story: " + urlStr).start();
+
+		lib.imprt(url, pg);
+
+		return NanoHTTPD.newFixedLengthResponse(Status.OK,
+				NanoHTTPD.MIME_PLAINTEXT, luid);
+	}
+
+	@Override
+	protected Response imprtProgress(String uri, WLoginResult login) {
+		String[] uriParts = uri.split("/");
+		int off = 2; // "" and "import"
+
+		if (uriParts.length < off + 1) {
+			return NanoHTTPD.newFixedLengthResponse(Status.BAD_REQUEST,
+					NanoHTTPD.MIME_PLAINTEXT, "Invalid cover request");
+		}
+
+		String luid = uriParts[off + 0];
+
+		Progress pg = null;
+		synchronized (imprts) {
+			pg = imprts.get(luid);
+		}
+		if (pg != null) {
+			return NanoHTTPD.newFixedLengthResponse(Status.OK,
+					"application/json", JsonIO.toJson(pg).toString());
 		}
 
 		return newInputStreamResponse(NanoHTTPD.MIME_PLAINTEXT, null);

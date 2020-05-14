@@ -103,11 +103,15 @@ public class WebLibrary extends BasicLibrary {
 
 		this.host = host;
 		this.port = port;
-
-		// TODO: not supported yet
-		this.rw = false;
 	}
 
+	/**
+	 * Return the version of the program running server-side.
+	 * <p>
+	 * Never returns NULL.
+	 * 
+	 * @return the version or an empty {@link Version} if not known
+	 */
 	public Version getVersion() {
 		try {
 			InputStream in = post(WebLibraryUrls.VERSION_URL);
@@ -191,8 +195,9 @@ public class WebLibrary extends BasicLibrary {
 	@Override
 	public synchronized Story getStory(final String luid, Progress pg)
 			throws IOException {
-
-		// TODO: pg
+		if (pg == null) {
+			pg = new Progress();
+		}
 
 		Story story;
 		InputStream in = post(WebLibraryUrls.getStoryUrlJson(luid));
@@ -202,6 +207,12 @@ public class WebLibrary extends BasicLibrary {
 		} finally {
 			in.close();
 		}
+
+		int max = 0;
+		for (Chapter chap : story) {
+			max += chap.getParagraphs().size();
+		}
+		pg.setMinMax(0, max);
 
 		story.getMeta().setCover(getCover(luid));
 		int chapNum = 1;
@@ -218,12 +229,14 @@ public class WebLibrary extends BasicLibrary {
 					}
 				}
 
+				pg.add(1);
 				number++;
 			}
 
 			chapNum++;
 		}
 
+		pg.done();
 		return story;
 	}
 
@@ -243,8 +256,9 @@ public class WebLibrary extends BasicLibrary {
 	@Override
 	// Could work (more slowly) without it
 	public MetaData imprt(final URL url, Progress pg) throws IOException {
-		if (true)
-			throw new IOException("Not implemented yet");
+		if (pg == null) {
+			pg = new Progress();
+		}
 
 		// Import the file locally if it is actually a file
 
@@ -254,8 +268,44 @@ public class WebLibrary extends BasicLibrary {
 
 		// Import it remotely if it is an URL
 
-		// TODO
-		return super.imprt(url, pg);
+		try {
+			String luid = null;
+
+			Map<String, String> post = new HashMap<String, String>();
+			post.put("url", url.toString());
+			InputStream in = post(WebLibraryUrls.IMPRT_URL_IMPORT, post);
+			try {
+				luid = IOUtils.readSmallStream(in);
+			} finally {
+				in.close();
+			}
+
+			Progress subPg = null;
+			do {
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+				}
+
+				in = post(WebLibraryUrls.getImprtProgressUrl(luid));
+				try {
+					subPg = JsonIO.toProgress(
+							new JSONObject(IOUtils.readSmallStream(in)));
+				} finally {
+					in.close();
+				}
+			} while (subPg != null);
+
+			in = post(WebLibraryUrls.getStoryUrlMetadata(luid));
+			try {
+				return JsonIO.toMetaData(
+						new JSONObject(IOUtils.readSmallStream(in)));
+			} finally {
+				in.close();
+			}
+		} finally {
+			pg.done();
+		}
 	}
 
 	@Override
@@ -296,7 +346,7 @@ public class WebLibrary extends BasicLibrary {
 	// The following methods are only used by Save and Delete in BasicLibrary:
 
 	@Override
-	protected int getNextId() {
+	protected String getNextId() {
 		throw new java.lang.InternalError("Should not have been called");
 	}
 

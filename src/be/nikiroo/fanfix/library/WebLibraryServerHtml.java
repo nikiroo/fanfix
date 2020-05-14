@@ -62,6 +62,11 @@ abstract class WebLibraryServerHtml implements Runnable {
 	abstract protected Story story(String luid, WLoginResult login)
 			throws IOException;
 
+	protected abstract Response imprt(String uri, String url,
+			WLoginResult login) throws IOException;
+
+	protected abstract Response imprtProgress(String uri, WLoginResult login);
+
 	public WebLibraryServerHtml(boolean secure) throws IOException {
 		Integer port = Instance.getInstance().getConfig()
 				.getInteger(Config.SERVER_PORT);
@@ -193,6 +198,13 @@ abstract class WebLibraryServerHtml implements Runnable {
 								session.getCookies().delete("cookie");
 								cookies.remove("cookie");
 								rep = loginPage(login(false, false), uri);
+							} else if (WebLibraryUrls.isImprtUrl(uri)) {
+								String url = params.get("url");
+								if (url != null) {
+									rep = imprt(uri, url, login);
+								} else {
+									rep = imprtProgress(uri, login);
+								}
 							} else {
 								getTraceHandler().error(
 										"Supported URL was not processed: "

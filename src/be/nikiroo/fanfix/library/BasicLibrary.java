@@ -311,7 +311,7 @@ abstract public class BasicLibrary {
 	 * 
 	 * @return the next luid
 	 */
-	protected abstract int getNextId();
+	protected abstract String getNextId();
 
 	/**
 	 * Delete the target {@link Story}.
@@ -741,7 +741,7 @@ abstract public class BasicLibrary {
 		pg.setName("Saving story");
 
 		if (luid == null || luid.isEmpty()) {
-			meta.setLuid(String.format("%03d", getNextId()));
+			meta.setLuid(getNextId());
 		} else {
 			meta.setLuid(luid);
 		}

@@ -8,6 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
+import be.nikiroo.utils.Progress;
 
 public class JsonIO {
 	static public JSONObject toJson(MetaData meta) {
@@ -198,6 +199,36 @@ public class JsonIO {
 				getString(json, "content"), getLong(json, "words", 0));
 
 		return para;
+	}
+
+	// no children included
+	static public JSONObject toJson(Progress pg) {
+		if (pg == null) {
+			return null;
+		}
+
+		JSONObject json = new JSONObject();
+
+		put(json, "", Progress.class.getName());
+		put(json, "name", pg.getName());
+		put(json, "min", pg.getMin());
+		put(json, "max", pg.getMax());
+		put(json, "progress", pg.getProgress());
+
+		return json;
+	}
+
+	// no children included
+	static public Progress toProgress(JSONObject json) {
+		if (json == null) {
+			return null;
+		}
+
+		Progress pg = new Progress(getString(json, "name"),
+				getInt(json, "min", 0), getInt(json, "max", 100));
+		pg.setProgress(getInt(json, "progress", 0));
+
+		return pg;
 	}
 
 	static public List<String> toListString(JSONArray array) {
