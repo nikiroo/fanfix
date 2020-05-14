@@ -103,14 +103,18 @@ public class WebLibrary extends BasicLibrary {
 
 		this.host = host;
 		this.port = port;
-
-		// TODO: not supported yet
-		this.rw = false;
 	}
 
+	/**
+	 * Return the version of the program running server-side.
+	 * <p>
+	 * Never returns NULL.
+	 * 
+	 * @return the version or an empty {@link Version} if not known
+	 */
 	public Version getVersion() {
 		try {
-			InputStream in = download(WebLibraryUrls.VERSION_URL);
+			InputStream in = post(WebLibraryUrls.VERSION_URL);
 			try {
 				return new Version(IOUtils.readSmallStream(in));
 			} finally {
@@ -125,10 +129,10 @@ public class WebLibrary extends BasicLibrary {
 	@Override
 	public Status getStatus() {
 		try {
-			download(WebLibraryUrls.INDEX_URL).close();
+			post(WebLibraryUrls.INDEX_URL).close();
 		} catch (IOException e) {
 			try {
-				download(WebLibraryUrls.VERSION_URL).close();
+				post("/style.css").close();
 				return Status.UNAUTHORIZED;
 			} catch (IOException ioe) {
 				return Status.UNAVAILABLE;
@@ -146,7 +150,7 @@ public class WebLibrary extends BasicLibrary {
 
 	@Override
 	public Image getCover(String luid) throws IOException {
-		InputStream in = download(WebLibraryUrls.getStoryUrlCover(luid));
+		InputStream in = post(WebLibraryUrls.getStoryUrlCover(luid));
 		try {
 			return new Image(in);
 		} finally {
@@ -155,37 +159,48 @@ public class WebLibrary extends BasicLibrary {
 	}
 
 	@Override
-	public Image getCustomSourceCover(final String source) throws IOException {
-		// TODO maybe global system in BasicLib ?
-		return null;
+	public Image getCustomSourceCover(String source) throws IOException {
+		InputStream in = post(WebLibraryUrls.getCoverUrlSource(source));
+		try {
+			return new Image(in);
+		} finally {
+			in.close();
+		}
 	}
 
 	@Override
-	public Image getCustomAuthorCover(final String author) throws IOException {
-		// TODO maybe global system in BasicLib ?
-		return null;
+	public Image getCustomAuthorCover(String author) throws IOException {
+		InputStream in = post(WebLibraryUrls.getCoverUrlAuthor(author));
+		try {
+			return new Image(in);
+		} finally {
+			in.close();
+		}
 	}
 
 	@Override
 	public void setSourceCover(String source, String luid) throws IOException {
-		// TODO Auto-generated method stub
-		throw new IOException("Not implemented yet");
+		Map<String, String> post = new HashMap<String, String>();
+		post.put("luid", luid);
+		post(WebLibraryUrls.getCoverUrlSource(source), post).close();
 	}
 
 	@Override
 	public void setAuthorCover(String author, String luid) throws IOException {
-		// TODO Auto-generated method stub
-		throw new IOException("Not implemented yet");
+		Map<String, String> post = new HashMap<String, String>();
+		post.put("luid", luid);
+		post(WebLibraryUrls.getCoverUrlAuthor(author), post).close();
 	}
 
 	@Override
 	public synchronized Story getStory(final String luid, Progress pg)
 			throws IOException {
-
-		// TODO: pg
+		if (pg == null) {
+			pg = new Progress();
+		}
 
 		Story story;
-		InputStream in = download(WebLibraryUrls.getStoryUrlJson(luid));
+		InputStream in = post(WebLibraryUrls.getStoryUrlJson(luid));
 		try {
 			JSONObject json = new JSONObject(IOUtils.readSmallStream(in));
 			story = JsonIO.toStory(json);
@@ -193,13 +208,19 @@ public class WebLibrary extends BasicLibrary {
 			in.close();
 		}
 
+		int max = 0;
+		for (Chapter chap : story) {
+			max += chap.getParagraphs().size();
+		}
+		pg.setMinMax(0, max);
+
 		story.getMeta().setCover(getCover(luid));
 		int chapNum = 1;
 		for (Chapter chap : story) {
 			int number = 1;
 			for (Paragraph para : chap) {
 				if (para.getType() == ParagraphType.IMAGE) {
-					InputStream subin = download(
+					InputStream subin = post(
 							WebLibraryUrls.getStoryUrl(luid, chapNum, number));
 					try {
 						para.setContentImage(new Image(subin));
@@ -208,19 +229,21 @@ public class WebLibrary extends BasicLibrary {
 					}
 				}
 
+				pg.add(1);
 				number++;
 			}
 
 			chapNum++;
 		}
 
+		pg.done();
 		return story;
 	}
 
 	@Override
 	protected List<MetaData> getMetas(Progress pg) throws IOException {
 		List<MetaData> metas = new ArrayList<MetaData>();
-		InputStream in = download(WebLibraryUrls.LIST_URL_METADATA);
+		InputStream in = post(WebLibraryUrls.LIST_URL_METADATA);
 		JSONArray jsonArr = new JSONArray(IOUtils.readSmallStream(in));
 		for (int i = 0; i < jsonArr.length(); i++) {
 			JSONObject json = jsonArr.getJSONObject(i);
@@ -233,8 +256,9 @@ public class WebLibrary extends BasicLibrary {
 	@Override
 	// Could work (more slowly) without it
 	public MetaData imprt(final URL url, Progress pg) throws IOException {
-		if (true)
-			throw new IOException("Not implemented yet");
+		if (pg == null) {
+			pg = new Progress();
+		}
 
 		// Import the file locally if it is actually a file
 
@@ -244,8 +268,44 @@ public class WebLibrary extends BasicLibrary {
 
 		// Import it remotely if it is an URL
 
-		// TODO
-		return super.imprt(url, pg);
+		try {
+			String luid = null;
+
+			Map<String, String> post = new HashMap<String, String>();
+			post.put("url", url.toString());
+			InputStream in = post(WebLibraryUrls.IMPRT_URL_IMPORT, post);
+			try {
+				luid = IOUtils.readSmallStream(in);
+			} finally {
+				in.close();
+			}
+
+			Progress subPg = null;
+			do {
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+				}
+
+				in = post(WebLibraryUrls.getImprtProgressUrl(luid));
+				try {
+					subPg = JsonIO.toProgress(
+							new JSONObject(IOUtils.readSmallStream(in)));
+				} finally {
+					in.close();
+				}
+			} while (subPg != null);
+
+			in = post(WebLibraryUrls.getStoryUrlMetadata(luid));
+			try {
+				return JsonIO.toMetaData(
+						new JSONObject(IOUtils.readSmallStream(in)));
+			} finally {
+				in.close();
+			}
+		} finally {
+			pg.done();
+		}
 	}
 
 	@Override
@@ -253,8 +313,24 @@ public class WebLibrary extends BasicLibrary {
 	protected synchronized void changeSTA(final String luid,
 			final String newSource, final String newTitle,
 			final String newAuthor, Progress pg) throws IOException {
-		// TODO
-		super.changeSTA(luid, newSource, newTitle, newAuthor, pg);
+		MetaData meta = getInfo(luid);
+		if (meta != null) {
+			if (!meta.getSource().equals(newSource)) {
+				Map<String, String> post = new HashMap<String, String>();
+				post.put("value", newSource);
+				post(WebLibraryUrls.getStoryUrlSource(luid), post).close();
+			}
+			if (!meta.getTitle().equals(newTitle)) {
+				Map<String, String> post = new HashMap<String, String>();
+				post.put("value", newTitle);
+				post(WebLibraryUrls.getStoryUrlTitle(luid), post).close();
+			}
+			if (!meta.getAuthor().equals(newAuthor)) {
+				Map<String, String> post = new HashMap<String, String>();
+				post.put("value", newAuthor);
+				post(WebLibraryUrls.getStoryUrlAuthor(luid), post).close();
+			}
+		}
 	}
 
 	@Override
@@ -270,7 +346,7 @@ public class WebLibrary extends BasicLibrary {
 	// The following methods are only used by Save and Delete in BasicLibrary:
 
 	@Override
-	protected int getNextId() {
+	protected String getNextId() {
 		throw new java.lang.InternalError("Should not have been called");
 	}
 
@@ -293,10 +369,18 @@ public class WebLibrary extends BasicLibrary {
 	}
 
 	// starts with "/", never NULL
-	private InputStream download(String path) throws IOException {
+	private InputStream post(String path) throws IOException {
+		return post(path, null);
+	}
+
+	// starts with "/", never NULL
+	private InputStream post(String path, Map<String, String> post)
+			throws IOException {
 		URL url = new URL(host + ":" + port + path);
 
-		Map<String, String> post = new HashMap<String, String>();
+		if (post == null) {
+			post = new HashMap<String, String>();
+		}
 		post.put("login", subkey);
 		post.put("password", key);
 

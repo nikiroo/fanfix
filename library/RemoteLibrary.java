@@ -485,7 +485,7 @@ public class RemoteLibrary extends BasicLibrary {
 	// The following methods are only used by Save and Delete in BasicLibrary:
 
 	@Override
-	protected int getNextId() {
+	protected String getNextId() {
 		throw new java.lang.InternalError("Should not have been called");
 	}
 

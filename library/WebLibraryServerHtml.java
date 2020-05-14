@@ -47,11 +47,25 @@ abstract class WebLibraryServerHtml implements Runnable {
 
 	abstract protected Response getStoryPart(String uri, WLoginResult login);
 
+	abstract protected Response setStoryPart(String uri, String value,
+			WLoginResult login) throws IOException;
+
+	abstract protected Response getCover(String uri, WLoginResult login)
+			throws IOException;
+
+	abstract protected Response setCover(String uri, String luid,
+			WLoginResult login) throws IOException;
+
 	abstract protected List<MetaData> metas(WLoginResult login)
 			throws IOException;
 
 	abstract protected Story story(String luid, WLoginResult login)
 			throws IOException;
+
+	protected abstract Response imprt(String uri, String url,
+			WLoginResult login) throws IOException;
+
+	protected abstract Response imprtProgress(String uri, WLoginResult login);
 
 	public WebLibraryServerHtml(boolean secure) throws IOException {
 		Integer port = Instance.getInstance().getConfig()
@@ -162,16 +176,35 @@ abstract class WebLibraryServerHtml implements Runnable {
 								rep = newFixedLengthResponse(Status.OK,
 										MIME_PLAINTEXT,
 										Version.getCurrentVersion().toString());
+							} else if (WebLibraryUrls.isCoverUrl(uri)) {
+								String luid = params.get("luid");
+								if (luid != null) {
+									rep = setCover(uri, luid, login);
+								} else {
+									rep = getCover(uri, login);
+								}
 							} else if (WebLibraryUrls.isListUrl(uri)) {
 								rep = getList(uri, login);
 							} else if (WebLibraryUrls.isStoryUrl(uri)) {
-								rep = getStoryPart(uri, login);
+								String value = params.get("value");
+								if (value != null) {
+									rep = setStoryPart(uri, value, login);
+								} else {
+									rep = getStoryPart(uri, login);
+								}
 							} else if (WebLibraryUrls.isViewUrl(uri)) {
 								rep = getViewer(cookies, uri, login);
 							} else if (WebLibraryUrls.LOGOUT_URL.equals(uri)) {
 								session.getCookies().delete("cookie");
 								cookies.remove("cookie");
 								rep = loginPage(login(false, false), uri);
+							} else if (WebLibraryUrls.isImprtUrl(uri)) {
+								String url = params.get("url");
+								if (url != null) {
+									rep = imprt(uri, url, login);
+								} else {
+									rep = imprtProgress(uri, login);
+								}
 							} else {
 								getTraceHandler().error(
 										"Supported URL was not processed: "
@@ -218,7 +251,9 @@ abstract class WebLibraryServerHtml implements Runnable {
 			}
 		};
 
-		if (ssf != null) {
+		if (ssf != null)
+
+		{
 			getTraceHandler().trace("Install SSL on the web server...");
 			server.makeSecure(ssf, null);
 			getTraceHandler().trace("Done.");
