@@ -104,7 +104,8 @@ class WebLibraryUrls {
 	static public boolean isSupportedUrl(String url) {
 		return INDEX_URL.equals(url) || VERSION_URL.equals(url)
 				|| LOGOUT_URL.equals(url) || isViewUrl(url) || isStoryUrl(url)
-				|| isListUrl(url) || isCoverUrl(url) || isImprtUrl(url);
+				|| isListUrl(url) || isCoverUrl(url) || isImprtUrl(url)
+				|| isDeleteUrl(url);
 	}
 
 	static public String getCoverUrlStory(String luid) {

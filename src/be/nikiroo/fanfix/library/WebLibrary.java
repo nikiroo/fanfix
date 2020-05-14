@@ -309,6 +309,9 @@ public class WebLibrary extends BasicLibrary {
 				try {
 					subPg = JsonIO.toProgress(
 							new JSONObject(IOUtils.readSmallStream(in)));
+					pg.setName(subPg.getName());
+					pg.setMinMax(subPg.getMin(), subPg.getMax());
+					pg.setProgress(subPg.getProgress());
 				} catch (Exception e) {
 					subPg = null;
 				} finally {
