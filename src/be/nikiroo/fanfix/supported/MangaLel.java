@@ -138,11 +138,17 @@ class MangaLel extends BasicSupport {
 			if (img != null) {
 				String coverUrl = img.absUrl("src");
 
-				InputStream coverIn;
 				try {
-					coverIn = Instance.getInstance().getCache().open(new URL(coverUrl), this, true);
+					InputStream coverIn = Instance.getInstance().getCache()
+							.open(new URL(coverUrl), this, true);
 					try {
-						return new Image(coverIn);
+						Image ii = new Image(coverIn);
+						if (ii.getSize() == 0) {
+							ii.close();
+							throw new IOException("Empty image not accepted");
+						}
+						
+						return ii;
 					} finally {
 						coverIn.close();
 					}

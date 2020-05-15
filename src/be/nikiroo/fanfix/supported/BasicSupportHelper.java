@@ -85,7 +85,13 @@ public class BasicSupportHelper {
 			InputStream in = null;
 			try {
 				in = Instance.getInstance().getCache().open(url, support, true);
-				return new Image(in);
+				Image img = new Image(in);
+				if (img.getSize() == 0) {
+					img.close();
+					throw new IOException(
+							"Empty image not accepted");
+				}
+				return img;
 			} catch (IOException e) {
 			} finally {
 				if (in != null) {

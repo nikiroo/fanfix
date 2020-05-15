@@ -174,6 +174,7 @@ public class WebLibrary extends BasicLibrary {
 		try {
 			Image img = new Image(in);
 			if (img.getSize() > 0) {
+				img.close();
 				return img;
 			}
 
@@ -189,6 +190,7 @@ public class WebLibrary extends BasicLibrary {
 		try {
 			Image img = new Image(in);
 			if (img.getSize() > 0) {
+				img.close();
 				return img;
 			}
 
@@ -204,6 +206,7 @@ public class WebLibrary extends BasicLibrary {
 		try {
 			Image img = new Image(in);
 			if (img.getSize() > 0) {
+				img.close();
 				return img;
 			}
 

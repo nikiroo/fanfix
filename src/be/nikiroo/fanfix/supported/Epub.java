@@ -128,7 +128,13 @@ class Epub extends InfoText {
 						// Cover
 						if (getCover() && cover == null) {
 							try {
-								cover = new Image(zipIn);
+								Image img = new Image(zipIn);
+								if (img.getSize() == 0) {
+									img.close();
+									throw new IOException(
+											"Empty image not accepted");
+								}
+								cover = img;
 							} catch (Exception e) {
 								Instance.getInstance().getTraceHandler()
 										.error(e);

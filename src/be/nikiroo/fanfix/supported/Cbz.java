@@ -97,7 +97,13 @@ class Cbz extends Epub {
 					if (imageEntry) {
 						String uuid = meta.getUuid() + "_" + entry.getName();
 						try {
-							images.put(uuid, new Image(zipIn));
+							Image img = new Image(zipIn);
+							if (img.getSize() == 0) {
+								img.close();
+								throw new IOException(
+										"Empty image not accepted");
+							}
+							images.put(uuid, img);
 						} catch (Exception e) {
 							Instance.getInstance().getTraceHandler().error(e);
 						}

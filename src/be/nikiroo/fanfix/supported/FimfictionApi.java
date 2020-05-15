@@ -147,7 +147,13 @@ class FimfictionApi extends BasicSupport {
 			try {
 				InputStream in = Instance.getInstance().getCache().open(coverImageUrl, null, true);
 				try {
-					meta.setCover(new Image(in));
+					Image img = new Image(in);
+					if (img.getSize() == 0) {
+						img.close();
+						throw new IOException(
+								"Empty image not accepted");
+					}
+					meta.setCover(img);
 				} finally {
 					in.close();
 				}

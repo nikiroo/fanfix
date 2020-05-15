@@ -140,7 +140,13 @@ class MangaLel extends BasicSearchable {
 							InputStream in = Instance.getInstance().getCache().open(new URL(coverUrl), getSupport(),
 									true);
 							try {
-								meta.setCover(new Image(in));
+								Image ii = new Image(in);
+								if (ii.getSize() == 0) {
+									ii.close();
+									throw new IOException(
+											"Empty image not accepted");
+								}
+								meta.setCover(ii);
 							} finally {
 								in.close();
 							}
