@@ -173,13 +173,14 @@ abstract class WebLibraryServerHtml implements Runnable {
 				}
 
 				Response rep = null;
-				if (!login.isSuccess() && WebLibraryUrls.isSupportedUrl(uri)) {
+				if (!login.isSuccess()
+						&& WebLibraryUrls.isSupportedUrl(uri, true)) {
 					rep = loginPage(login, uri);
 				}
 
 				if (rep == null) {
 					try {
-						if (WebLibraryUrls.isSupportedUrl(uri)) {
+						if (WebLibraryUrls.isSupportedUrl(uri, false)) {
 							if (WebLibraryUrls.INDEX_URL.equals(uri)) {
 								rep = root(session, cookies, login);
 							} else if (WebLibraryUrls.VERSION_URL.equals(uri)) {

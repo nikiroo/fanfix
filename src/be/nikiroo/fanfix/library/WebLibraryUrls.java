@@ -103,11 +103,16 @@ class WebLibraryUrls {
 				.replace("{luid}", luid);
 	}
 
-	static public boolean isSupportedUrl(String url) {
-		return INDEX_URL.equals(url) || VERSION_URL.equals(url)
-				|| LOGOUT_URL.equals(url) || EXIT_URL.equals(url)
-				|| isViewUrl(url) || isStoryUrl(url) || isListUrl(url)
-				|| isCoverUrl(url) || isImprtUrl(url) || isDeleteUrl(url);
+	static public boolean isSupportedUrl(String url,
+			boolean requiresLoginOnly) {
+		if (requiresLoginOnly) {
+			return INDEX_URL.equals(url) || LOGOUT_URL.equals(url)
+					|| EXIT_URL.equals(url) || isViewUrl(url) || isStoryUrl(url)
+					|| isListUrl(url) || isCoverUrl(url) || isImprtUrl(url)
+					|| isDeleteUrl(url);
+		}
+
+		return isSupportedUrl(url, true) || VERSION_URL.equals(url);
 	}
 
 	static public String getCoverUrlStory(String luid) {
