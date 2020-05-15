@@ -371,45 +371,53 @@ abstract class WebLibraryServerHtml implements Runnable {
 
 		// TODO: javascript in realtime, using visible=false + hide [submit]
 
-		builder.append("\t\t<form class='browser'>\n");
-		builder.append("\t\t\t<div class='breadcrumbs'>\n");
+		StringBuilder selects = new StringBuilder();
+		boolean sourcesSel = false;
+		boolean authorsSel = false;
+		boolean tagsSel = false;
 
-		builder.append("\t\t\t\t<select name='browser'>\n");
-		appendOption(builder, 5, "", "", browser);
-		appendOption(builder, 5, "Sources", "sources", browser);
-		appendOption(builder, 5, "Authors", "authors", browser);
-		appendOption(builder, 5, "Tags", "tags", browser);
-		builder.append("\t\t\t\t</select>\n");
+		String selectTemplate = getTemplate("browser.select");
 
 		if (!browser.isEmpty()) {
-			builder.append("\t\t\t\t<select name='browser2'>\n");
+			StringBuilder options = new StringBuilder();
+
 			if (browser.equals("sources")) {
+				sourcesSel = true;
 				filterSource = browser2.isEmpty() ? filterSource : browser2;
+
 				// TODO: if 1 group -> no group
-				appendOption(builder, 5, "", "", browser2);
 				Map<String, List<String>> sources = result.getSourcesGrouped();
 				for (String source : sources.keySet()) {
-					appendOption(builder, 5, source, source, browser2);
+					appendOption(options, 5, source, source, browser2);
 				}
 			} else if (browser.equals("authors")) {
+				authorsSel = true;
 				filterAuthor = browser2.isEmpty() ? filterAuthor : browser2;
+
 				// TODO: if 1 group -> no group
-				appendOption(builder, 5, "", "", browser2);
 				Map<String, List<String>> authors = result.getAuthorsGrouped();
 				for (String author : authors.keySet()) {
-					appendOption(builder, 5, author, author, browser2);
+					appendOption(options, 5, author, author, browser2);
 				}
 			} else if (browser.equals("tags")) {
+				tagsSel = true;
 				filterTag = browser2.isEmpty() ? filterTag : browser2;
-				appendOption(builder, 5, "", "", browser2);
+
 				for (String tag : result.getTags()) {
-					appendOption(builder, 5, tag, tag, browser2);
+					appendOption(options, 5, tag, tag, browser2);
 				}
 			}
-			builder.append("\t\t\t\t</select>\n");
+
+			selects.append(selectTemplate //
+					.replace("${name}", "browser2") //
+					.replace("${value}", browser2) //
+					.replace("${options}", options.toString()) //
+			);
 		}
 
 		if (!browser2.isEmpty()) {
+			StringBuilder options = new StringBuilder();
+
 			if (browser.equals("sources")) {
 				filterSource = browser3.isEmpty() ? filterSource : browser3;
 				Map<String, List<String>> sourcesGrouped = result
@@ -417,12 +425,9 @@ abstract class WebLibraryServerHtml implements Runnable {
 				List<String> sources = sourcesGrouped.get(browser2);
 				if (sources != null && !sources.isEmpty()) {
 					// TODO: single empty value
-					builder.append("\t\t\t\t<select name='browser3'>\n");
-					appendOption(builder, 5, "", "", browser3);
 					for (String source : sources) {
-						appendOption(builder, 5, source, source, browser3);
+						appendOption(options, 5, source, source, browser3);
 					}
-					builder.append("\t\t\t\t</select>\n");
 				}
 			} else if (browser.equals("authors")) {
 				filterAuthor = browser3.isEmpty() ? filterAuthor : browser3;
@@ -431,32 +436,27 @@ abstract class WebLibraryServerHtml implements Runnable {
 				List<String> authors = authorsGrouped.get(browser2);
 				if (authors != null && !authors.isEmpty()) {
 					// TODO: single empty value
-					builder.append("\t\t\t\t<select name='browser3'>\n");
-					appendOption(builder, 5, "", "", browser3);
 					for (String author : authors) {
-						appendOption(builder, 5, author, author, browser3);
+						appendOption(options, 5, author, author, browser3);
 					}
-					builder.append("\t\t\t\t</select>\n");
 				}
 			}
+
+			selects.append(selectTemplate //
+					.replace("${name}", "browser3") //
+					.replace("${value}", browser3) //
+					.replace("${options}", options.toString()) //
+			);
 		}
 
-		builder.append("\t\t\t\t<input type='submit' value='Select'/>\n");
-		builder.append("\t\t\t</div>\n");
-
-		// TODO: javascript in realtime, using visible=false + hide [submit]
-		builder.append("\t\t\t<div class='filter'>\n");
-		builder.append("\t\t\t\t<span class='label'>Filter: </span>\n");
-		builder.append(
-				"\t\t\t\t<input name='optionName' type='hidden' value='filter' />\n");
-		builder.append("\t\t\t\t<input name='optionValue' type='text' value='"
-				+ filter + "' place-holder='...' />\n");
-		builder.append(
-				"\t\t\t\t<input name='optionNo' type='submit' value='x' />\n");
-		builder.append(
-				"\t\t\t\t<input name='submit' type='submit' value='Filter' />\n");
-		builder.append("\t\t\t</div>\n");
-		builder.append("\t\t</form>\n");
+		String sel = "selected='selected'";
+		builder.append(getTemplate("browser") //
+				.replace("${sourcesSelected}", sourcesSel ? sel : "") //
+				.replace("${authorsSelected}", authorsSel ? sel : "") //
+				.replace("${tagsSelected}", tagsSel ? sel : "") //
+				.replace("${filter}", filter) //
+				.replace("${selects}", selects.toString()) //
+		);
 
 		builder.append("\t\t<div class='books'>\n");
 		for (MetaData meta : result.getMetas()) {
@@ -481,34 +481,28 @@ abstract class WebLibraryServerHtml implements Runnable {
 				continue;
 			}
 
-			builder.append("\t\t\t<div class='book_line'>");
-			builder.append("<a href='");
-			builder.append(
-					WebLibraryUrls.getViewUrl(meta.getLuid(), null, null));
-			builder.append("'");
-			builder.append(" class='link'>");
-
-			if (lib.isCached(meta.getLuid())) {
-				// ◉ = &#9673;
-				builder.append(
-						"<span class='cache_icon cached'>&#9673;</span>");
-			} else {
-				// ○ = &#9675;
-				builder.append(
-						"<span class='cache_icon uncached'>&#9675;</span>");
-			}
-			builder.append("<span class='luid'>");
-			builder.append(meta.getLuid());
-			builder.append("</span>");
-			builder.append("<span class='title'>");
-			builder.append(meta.getTitle());
-			builder.append("</span>");
-			builder.append("<span class='author'>");
+			String author = "";
 			if (meta.getAuthor() != null && !meta.getAuthor().isEmpty()) {
-				builder.append("(").append(meta.getAuthor()).append(")");
+				author = "(" + meta.getAuthor() + ")";
 			}
-			builder.append("</span>");
-			builder.append("</a></div>\n");
+
+			String cachedClass = "cached";
+			String cached = "&#9673;";
+			if (!lib.isCached(meta.getLuid())) {
+				cachedClass = "uncached";
+				cached = "&#9675;";
+			}
+
+			builder.append(getTemplate("bookline") //
+					.replace("${href}",
+							WebLibraryUrls.getViewUrl(meta.getLuid(), null,
+									null)) //
+					.replace("${luid}", meta.getLuid()) //
+					.replace("${title}", meta.getTitle()) //
+					.replace("${author}", author) //
+					.replace("${cachedClass}", cachedClass) //
+					.replace("${cached}", cached) //
+			);
 		}
 		builder.append("\t\t</div>\n");
 
@@ -899,5 +893,15 @@ abstract class WebLibraryServerHtml implements Runnable {
 		builder.append("'>");
 		builder.append(name);
 		builder.append("</a>\n");
+	}
+
+	private String getTemplate(String template) throws IOException {
+		InputStream in = IOUtils.openResource(WebLibraryServerIndex.class,
+				template + ".html");
+		try {
+			return IOUtils.readSmallStream(in);
+		} finally {
+			in.close();
+		}
 	}
 }
