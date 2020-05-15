@@ -287,7 +287,13 @@ class Fanfiction extends BasicSearchable {
 					try {
 						InputStream in = Instance.getInstance().getCache().open(new URL(coverUrl), getSupport(), true);
 						try {
-							meta.setCover(new Image(in));
+							Image img = new Image(in);
+							if (img.getSize() == 0) {
+								img.close();
+								throw new IOException(
+										"Empty image not accepted");
+							}
+							meta.setCover(img);
 						} finally {
 							in.close();
 						}

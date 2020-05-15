@@ -133,7 +133,17 @@ public class WebLibrary extends BasicLibrary {
 	 *             in case of I/O errors
 	 */
 	public void stop() throws IOException {
-		post(WebLibraryUrls.EXIT_URL, null).close();
+		try {
+			post(WebLibraryUrls.EXIT_URL, null).close();
+		} catch (Exception e) {
+			try {
+				Thread.sleep(200);
+			} catch (InterruptedException e1) {
+			}
+			if (getStatus() != Status.UNAVAILABLE) {
+				throw new IOException("Cannot exit the library", e);
+			}
+		}
 	}
 
 	@Override
@@ -164,6 +174,7 @@ public class WebLibrary extends BasicLibrary {
 		try {
 			Image img = new Image(in);
 			if (img.getSize() > 0) {
+				img.close();
 				return img;
 			}
 
@@ -179,6 +190,7 @@ public class WebLibrary extends BasicLibrary {
 		try {
 			Image img = new Image(in);
 			if (img.getSize() > 0) {
+				img.close();
 				return img;
 			}
 
@@ -194,6 +206,7 @@ public class WebLibrary extends BasicLibrary {
 		try {
 			Image img = new Image(in);
 			if (img.getSize() > 0) {
+				img.close();
 				return img;
 			}
 

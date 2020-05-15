@@ -643,10 +643,36 @@ public class Main {
 				break;
 			case STOP_SERVER:
 				// Can be given via "--remote XX XX XX"
-				if (key == null)
-					key = Instance.getInstance().getConfig().getString(Config.SERVER_KEY);
-				if (port == null)
+				if (key == null) {
+					key = Instance.getInstance().getConfig()
+							.getString(Config.SERVER_KEY);
+					
+					// If a subkey in RW mode exists, use it
+					for (String subkey : Instance.getInstance().getConfig()
+							.getList(Config.SERVER_ALLOWED_SUBKEYS,
+									new ArrayList<String>())) {
+						if ((subkey + "|").contains("|rw|")) {
+							key = key + "|" + subkey;
+							break;
+						}
+					}
+				}
+				
+				if (port == null) {
 					port = Instance.getInstance().getConfig().getInteger(Config.SERVER_PORT);
+				}
+				
+				if (host == null) {
+					String mode = Instance.getInstance().getConfig()
+							.getString(Config.SERVER_MODE, "fanfix");
+					if ("http".equals(mode)) {
+						host = "http://localhost";
+					} else if ("https".equals(mode)) {
+						host = "https://localhost";
+					} else if ("fanfix".equals(mode)) {
+						host = "fanfix://localhost";
+					}
+				}
 
 				if (port == null) {
 					System.err.println("No port given nor configured in the config file");
@@ -1069,7 +1095,7 @@ public class Main {
 	 * @param key
 	 *            the key to contact the Fanfix server
 	 * @param host
-	 *            the host on which it runs (NULL means localhost)
+	 *            the host on which it runs
 	 * @param port
 	 *            the port on which it runs
 	 *            
@@ -1078,7 +1104,7 @@ public class Main {
 	 * @throws SSLException
 	 *             when the key was not accepted
 	 */
-	private void stopServer(String key, String host, Integer port)
+	private void stopServer(String key, String host, int port)
 			throws IOException, SSLException {
 		if (host.startsWith("http://") || host.startsWith("https://")) {
 			new WebLibrary(key, host, port).stop();
