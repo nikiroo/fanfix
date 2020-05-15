@@ -315,23 +315,25 @@ abstract class WebLibraryServerHtml implements Runnable {
 		appendPreHtml(builder, true);
 
 		if (login.isBadLogin()) {
-			builder.append("<div class='error'>Bad login or password</div>");
+			builder.append(
+					"\t\t<div class='error'>Bad login or password</div>");
 		} else if (login.isBadCookie()) {
-			builder.append("<div class='error'>Your session timed out</div>");
+			builder.append(
+					"\t\t<div class='error'>Your session timed out</div>");
 		}
 
 		if (WebLibraryUrls.LOGOUT_URL.equals(uri)) {
 			uri = WebLibraryUrls.INDEX_URL;
 		}
 
+		builder.append("\t\t<form method='POST' action='" + uri
+				+ "' class='login'>\n");
 		builder.append(
-				"<form method='POST' action='" + uri + "' class='login'>\n");
-		builder.append(
-				"<p>You must be logged into the system to see the stories.</p>");
-		builder.append("\t<input type='text' name='login' />\n");
-		builder.append("\t<input type='password' name='password' />\n");
-		builder.append("\t<input type='submit' value='Login' />\n");
-		builder.append("</form>\n");
+				"\t\t\t<p>You must be logged into the system to see the stories.</p>");
+		builder.append("\t\t\t<input type='text' name='login' />\n");
+		builder.append("\t\t\t<input type='password' name='password' />\n");
+		builder.append("\t\t\t<input type='submit' value='Login' />\n");
+		builder.append("\t\t</form>\n");
 
 		appendPostHtml(builder);
 
@@ -369,42 +371,42 @@ abstract class WebLibraryServerHtml implements Runnable {
 
 		// TODO: javascript in realtime, using visible=false + hide [submit]
 
-		builder.append("<form class='browser'>\n");
-		builder.append("<div class='breadcrumbs'>\n");
+		builder.append("\t\t<form class='browser'>\n");
+		builder.append("\t\t\t<div class='breadcrumbs'>\n");
 
-		builder.append("\t<select name='browser'>");
-		appendOption(builder, 2, "", "", browser);
-		appendOption(builder, 2, "Sources", "sources", browser);
-		appendOption(builder, 2, "Authors", "authors", browser);
-		appendOption(builder, 2, "Tags", "tags", browser);
-		builder.append("\t</select>\n");
+		builder.append("\t\t\t\t<select name='browser'>\n");
+		appendOption(builder, 5, "", "", browser);
+		appendOption(builder, 5, "Sources", "sources", browser);
+		appendOption(builder, 5, "Authors", "authors", browser);
+		appendOption(builder, 5, "Tags", "tags", browser);
+		builder.append("\t\t\t\t</select>\n");
 
 		if (!browser.isEmpty()) {
-			builder.append("\t<select name='browser2'>");
+			builder.append("\t\t\t\t<select name='browser2'>\n");
 			if (browser.equals("sources")) {
 				filterSource = browser2.isEmpty() ? filterSource : browser2;
 				// TODO: if 1 group -> no group
-				appendOption(builder, 2, "", "", browser2);
+				appendOption(builder, 5, "", "", browser2);
 				Map<String, List<String>> sources = result.getSourcesGrouped();
 				for (String source : sources.keySet()) {
-					appendOption(builder, 2, source, source, browser2);
+					appendOption(builder, 5, source, source, browser2);
 				}
 			} else if (browser.equals("authors")) {
 				filterAuthor = browser2.isEmpty() ? filterAuthor : browser2;
 				// TODO: if 1 group -> no group
-				appendOption(builder, 2, "", "", browser2);
+				appendOption(builder, 5, "", "", browser2);
 				Map<String, List<String>> authors = result.getAuthorsGrouped();
 				for (String author : authors.keySet()) {
-					appendOption(builder, 2, author, author, browser2);
+					appendOption(builder, 5, author, author, browser2);
 				}
 			} else if (browser.equals("tags")) {
 				filterTag = browser2.isEmpty() ? filterTag : browser2;
-				appendOption(builder, 2, "", "", browser2);
+				appendOption(builder, 5, "", "", browser2);
 				for (String tag : result.getTags()) {
-					appendOption(builder, 2, tag, tag, browser2);
+					appendOption(builder, 5, tag, tag, browser2);
 				}
 			}
-			builder.append("\t</select>\n");
+			builder.append("\t\t\t\t</select>\n");
 		}
 
 		if (!browser2.isEmpty()) {
@@ -415,12 +417,12 @@ abstract class WebLibraryServerHtml implements Runnable {
 				List<String> sources = sourcesGrouped.get(browser2);
 				if (sources != null && !sources.isEmpty()) {
 					// TODO: single empty value
-					builder.append("\t<select name='browser3'>");
-					appendOption(builder, 2, "", "", browser3);
+					builder.append("\t\t\t\t<select name='browser3'>\n");
+					appendOption(builder, 5, "", "", browser3);
 					for (String source : sources) {
-						appendOption(builder, 2, source, source, browser3);
+						appendOption(builder, 5, source, source, browser3);
 					}
-					builder.append("\t</select>\n");
+					builder.append("\t\t\t\t</select>\n");
 				}
 			} else if (browser.equals("authors")) {
 				filterAuthor = browser3.isEmpty() ? filterAuthor : browser3;
@@ -429,33 +431,34 @@ abstract class WebLibraryServerHtml implements Runnable {
 				List<String> authors = authorsGrouped.get(browser2);
 				if (authors != null && !authors.isEmpty()) {
 					// TODO: single empty value
-					builder.append("\t<select name='browser3'>");
-					appendOption(builder, 2, "", "", browser3);
+					builder.append("\t\t\t\t<select name='browser3'>\n");
+					appendOption(builder, 5, "", "", browser3);
 					for (String author : authors) {
-						appendOption(builder, 2, author, author, browser3);
+						appendOption(builder, 5, author, author, browser3);
 					}
-					builder.append("\t</select>\n");
+					builder.append("\t\t\t\t</select>\n");
 				}
 			}
 		}
 
-		builder.append("\t<input type='submit' value='Select'/>\n");
-		builder.append("</div>\n");
+		builder.append("\t\t\t\t<input type='submit' value='Select'/>\n");
+		builder.append("\t\t\t</div>\n");
 
 		// TODO: javascript in realtime, using visible=false + hide [submit]
-		builder.append("<div class='filter'>\n");
-		builder.append("\t<span class='label'>Filter: </span>\n");
+		builder.append("\t\t\t<div class='filter'>\n");
+		builder.append("\t\t\t\t<span class='label'>Filter: </span>\n");
 		builder.append(
-				"\t<input name='optionName'  type='hidden' value='filter' />\n");
-		builder.append("\t<input name='optionValue' type='text'   value='"
+				"\t\t\t\t<input name='optionName' type='hidden' value='filter' />\n");
+		builder.append("\t\t\t\t<input name='optionValue' type='text' value='"
 				+ filter + "' place-holder='...' />\n");
-		builder.append("\t<input name='optionNo'  type='submit' value='x' />");
 		builder.append(
-				"\t<input name='submit' type='submit' value='Filter' />\n");
-		builder.append("</div>\n");
-		builder.append("</form>\n");
+				"\t\t\t\t<input name='optionNo' type='submit' value='x' />\n");
+		builder.append(
+				"\t\t\t\t<input name='submit' type='submit' value='Filter' />\n");
+		builder.append("\t\t\t</div>\n");
+		builder.append("\t\t</form>\n");
 
-		builder.append("\t<div class='books'>");
+		builder.append("\t\t<div class='books'>\n");
 		for (MetaData meta : result.getMetas()) {
 			if (!filter.isEmpty() && !meta.getTitle().toLowerCase()
 					.contains(filter.toLowerCase())) {
@@ -478,7 +481,7 @@ abstract class WebLibraryServerHtml implements Runnable {
 				continue;
 			}
 
-			builder.append("<div class='book_line'>");
+			builder.append("\t\t\t<div class='book_line'>");
 			builder.append("<a href='");
 			builder.append(
 					WebLibraryUrls.getViewUrl(meta.getLuid(), null, null));
@@ -507,7 +510,7 @@ abstract class WebLibraryServerHtml implements Runnable {
 			builder.append("</span>");
 			builder.append("</a></div>\n");
 		}
-		builder.append("</div>");
+		builder.append("\t\t</div>\n");
 
 		appendPostHtml(builder);
 		return NanoHTTPD.newFixedLengthResponse(builder.toString());
@@ -607,32 +610,38 @@ abstract class WebLibraryServerHtml implements Runnable {
 				StringBuilder desc = new StringBuilder();
 
 				if (chapter <= 0) {
-					desc.append("<h1 class='title'>");
-					desc.append(story.getMeta().getTitle());
-					desc.append("</h1>\n");
-					desc.append("<div class='desc'>\n");
-					desc.append("\t<a href='" + next + "' class='cover'>\n");
-					desc.append("\t\t<img src='/story/" + luid + "/cover'/>\n");
-					desc.append("\t</a>\n");
-					desc.append("\t<table class='details'>\n");
+					desc.append("\t\t\t<h1 class='title'>")
+							.append(story.getMeta().getTitle())
+							.append("</h1>\n");
+					desc.append("\t\t\t<div class='desc'>\n");
+					desc.append(
+							"\t\t\t\t<a href='" + next + "' class='cover'>\n");
+					desc.append("\t\t\t\t\t<img src='/story/" + luid
+							+ "/cover'/>\n");
+					desc.append("\t\t\t\t</a>\n");
+					desc.append("\t\t\t\t<table class='details'>\n");
 					Map<String, String> details = BasicLibrary
 							.getMetaDesc(story.getMeta());
 					for (String key : details.keySet()) {
-						appendTableRow(desc, 2, key, details.get(key));
+						appendTableRow(desc, 5, key, details.get(key));
 					}
-					desc.append("\t</table>\n");
-					desc.append("</div>\n");
-					desc.append("<h1 class='title'>Description</h1>\n");
+					desc.append("\t\t\t\t</table>\n");
+					desc.append("\t\t\t</div>\n");
+					desc.append("\t\t\t<h1 class='title'>Description</h1>\n");
 				}
 
-				content.append("<div class='viewer text'>\n");
+				content.append("\t\t<div class='viewer text'>\n");
 				content.append(desc);
-				String description = new TextOutput(false).convert(chap,
-						chapter > 0);
-				content.append(chap.getParagraphs().size() <= 0
-						? "No content provided."
-						: description);
-				content.append("</div>\n");
+				if (chap.getParagraphs().size() <= 0) {
+					content.append("\t\t\tNo content provided.\n");
+				} else {
+					content.append(
+							"\t\t\t<!-- The text is in HTML 3.2, so it can also work in Java Swing: -->\n"); //
+					content.append("\t\t\t").append(
+							new TextOutput(false).convert(chap, chapter > 0))
+							.append("\n");
+				}
+				content.append("\t\t</div>\n");
 
 				if (chapter <= 0)
 					disabledLeft = " disabled='disbaled'";
@@ -691,9 +700,9 @@ abstract class WebLibraryServerHtml implements Runnable {
 
 					String javascript = "document.getElementById(\"previous\").click(); return false;";
 					content.append(String.format("" //
-							+ "<a class='viewer link' oncontextmenu='%s' href='%s'>"
-							+ "<img class='viewer img' style='%s' src='%s'/>"
-							+ "</a>", //
+							+ "\t\t<a class='viewer link' oncontextmenu='%s' href='%s'>\n"
+							+ "\t\t\t<img class='viewer img' style='%s' src='%s'/>\n"
+							+ "\t\t</a>\n", //
 							javascript, //
 							next, //
 							zoomStyle, //
@@ -701,18 +710,20 @@ abstract class WebLibraryServerHtml implements Runnable {
 									paragraph)));
 				} else {
 					content.append(String.format("" //
-							+ "<div class='viewer text'>%s</div>", //
+							+ "\t\t<div class='viewer text'>" //
+							+ "\t\t\t%s\n" //
+							+ "\t\t</div>\n", //
 							para.getContent()));
 				}
 			}
 
 			builder.append(String.format("" //
-					+ "<div class='bar navbar'>\n" //
-					+ "\t<a%s class='button first' href='%s'>&lt;&lt;</a>\n"//
-					+ "\t<a%s id='previous' class='button previous' href='%s'>&lt;</a>\n" //
-					+ "\t<div class='gotobox itemsbox'>\n" //
-					+ "\t\t<div class='button goto'>%d</div>\n" //
-					+ "\t\t<div class='items goto'>\n", //
+					+ "\t\t<div class='bar navbar'>\n" //
+					+ "\t\t\t<a%s class='button first' href='%s'>&lt;&lt;</a>\n"//
+					+ "\t\t\t<a%s id='previous' class='button previous' href='%s'>&lt;</a>\n" //
+					+ "\t\t\t<div class='gotobox itemsbox'>\n" //
+					+ "\t\t\t\t<div class='button goto'>%d</div>\n" //
+					+ "\t\t\t\t<div class='items goto'>\n", //
 					disabledLeft, first, //
 					disabledLeft, previous, //
 					paragraph > 0 ? paragraph : chapter //
@@ -720,11 +731,11 @@ abstract class WebLibraryServerHtml implements Runnable {
 
 			// List of chap/para links
 
-			appendItemA(builder, 3, WebLibraryUrls.getViewUrl(luid, 0, null),
+			appendItemA(builder, 5, WebLibraryUrls.getViewUrl(luid, 0, null),
 					"Description", paragraph == 0 && chapter == 0);
 			if (paragraph > 0) {
 				for (int i = 1; i <= chap.getParagraphs().size(); i++) {
-					appendItemA(builder, 3,
+					appendItemA(builder, 5,
 							WebLibraryUrls.getViewUrl(luid, chapter, i),
 							"Image " + i, paragraph == i);
 				}
@@ -736,7 +747,7 @@ abstract class WebLibraryServerHtml implements Runnable {
 						chapName += ": " + c.getName();
 					}
 
-					appendItemA(builder, 3,
+					appendItemA(builder, 5,
 							WebLibraryUrls.getViewUrl(luid, i, null), chapName,
 							chapter == i);
 
@@ -745,32 +756,31 @@ abstract class WebLibraryServerHtml implements Runnable {
 			}
 
 			builder.append(String.format("" //
-					+ "\t\t</div>\n" //
-					+ "\t</div>\n" //
-					+ "\t<a%s class='button next' href='%s'>&gt;</a>\n" //
-					+ "\t<a%s class='button last' href='%s'>&gt;&gt;</a>\n"//
-					+ "</div>\n", //
+					+ "\t\t\t\t</div>\n" //
+					+ "\t\t\t</div>\n" //
+					+ "\t\t\t<a%s class='button next' href='%s'>&gt;</a>\n" //
+					+ "\t\t\t<a%s class='button last' href='%s'>&gt;&gt;</a>\n"//
+					+ "\t\t</div>\n", //
 					disabledRight, next, //
 					disabledRight, last //
 			));
 
 			builder.append(content);
 
-			builder.append("<div class='bar optionbar ");
+			builder.append("\t\t<div class='bar optionbar");
 			if (paragraph > 0) {
-				builder.append("s4");
+				builder.append(" s4");
 			} else {
-				builder.append("s1");
+				builder.append(" s1");
 			}
 			builder.append("'>\n");
-			builder.append("	<a class='button back' href='/'>BACK</a>\n");
+			builder.append("\t\t\t<a class='button back' href='/'>BACK</a>\n");
 
 			if (paragraph > 0) {
 				builder.append(String.format("" //
-						+ "\t<a%s class='button zoomreal'   href='%s'>REAL</a>\n"//
-						+ "\t<a%s class='button zoomwidth'  href='%s'>WIDTH</a>\n"//
-						+ "\t<a%s class='button zoomheight' href='%s'>HEIGHT</a>\n"//
-						+ "</div>\n", //
+						+ "\t\t\t<a%s class='button zoomreal'   href='%s'>REAL</a>\n"//
+						+ "\t\t\t<a%s class='button zoomwidth'  href='%s'>WIDTH</a>\n"//
+						+ "\t\t\t<a%s class='button zoomheight' href='%s'>HEIGHT</a>\n", //
 						disabledZoomReal,
 						uri + "?optionName=zoom&optionValue=real", //
 						disabledZoomWidth,
@@ -779,6 +789,8 @@ abstract class WebLibraryServerHtml implements Runnable {
 						uri + "?optionName=zoom&optionValue=height" //
 				));
 			}
+
+			builder.append("\t\t</div>\n");
 
 			appendPostHtml(builder);
 			return NanoHTTPD.newFixedLengthResponse(Status.OK,
@@ -826,15 +838,15 @@ abstract class WebLibraryServerHtml implements Runnable {
 				getContentOf("index.pre.html").replace("favicon.ico", favicon));
 
 		if (banner) {
-			builder.append("<div class='banner'>\n");
-			builder.append("\t<img class='ico' src='/") //
+			builder.append("\t\t<div class='banner'>\n");
+			builder.append("\t\t\t<img class='ico' src='/") //
 					.append(favicon) //
 					.append("'/>\n");
-			builder.append("\t<h1>Fanfix</h1>\n");
-			builder.append("\t<h2>") //
+			builder.append("\t\t\t<h1>Fanfix</h1>\n");
+			builder.append("\t\t\t<h2>") //
 					.append(Version.getCurrentVersion()) //
 					.append("</h2>\n");
-			builder.append("</div>\n");
+			builder.append("\t\t</div>\n");
 		}
 	}
 
