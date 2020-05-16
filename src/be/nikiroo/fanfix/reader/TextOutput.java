@@ -145,4 +145,18 @@ public class TextOutput {
 		}
 		return builder.toString();
 	}
+
+	/**
+	 * Convert the paragraph into HTML3 code.
+	 * 
+	 * @param para
+	 *            the {@link Paragraph} to convert
+	 * 
+	 * @return HTML3 code tested with Java Swing
+	 */
+	public String convert(Paragraph para) {
+		Chapter fakeChapter = new Chapter(0, "");
+		fakeChapter.setParagraphs(Arrays.asList(para));
+		return convert(fakeChapter, false);
+	}
 }
