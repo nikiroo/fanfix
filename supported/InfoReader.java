@@ -11,27 +11,30 @@ import java.util.Scanner;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
+import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
+import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.streams.MarkableFileInputStream;
 
-// not complete: no "description" tag
 public class InfoReader {
 	static protected BasicSupportHelper bsHelper = new BasicSupportHelper();
-	// static protected BasicSupportImages bsImages = new BasicSupportImages();
-	// static protected BasicSupportPara bsPara = new BasicSupportPara(new
-	// BasicSupportHelper(), new BasicSupportImages());
+	static protected BasicSupportImages bsImages = new BasicSupportImages();
+	static protected BasicSupportPara bsPara = new BasicSupportPara(
+			new BasicSupportHelper(), new BasicSupportImages());
 
 	public static MetaData readMeta(File infoFile, boolean withCover)
 			throws IOException {
 		if (infoFile == null) {
 			throw new IOException("File is null");
 		}
+		
+		MetaData meta = null;
 
 		if (infoFile.exists()) {
 			InputStream in = new MarkableFileInputStream(infoFile);
 			try {
-				MetaData meta = createMeta(infoFile.toURI().toURL(), in,
+				meta = createMeta(infoFile.toURI().toURL(), in,
 						withCover);
 
 				// Some old .info files were using UUID for URL...
@@ -46,8 +49,6 @@ public class InfoReader {
 				// formats have a copy of the original text file)
 				if (!hasIt(meta.getTitle(), meta.getAuthor(), meta.getDate(),
 						meta.getUrl())) {
-
-					// TODO: not nice, would be better to do it properly...
 					String base = infoFile.getPath();
 					if (base.endsWith(".info")) {
 						base = base.substring(0,
@@ -62,13 +63,32 @@ public class InfoReader {
 					}
 
 					completeMeta(textFile, meta);
-					//
 				}
 
-				return meta;
+				
 			} finally {
 				in.close();
 			}
+		}
+
+		if (meta != null) {
+			try {
+				File summaryFile = new File(infoFile.getAbsolutePath()
+						.replaceFirst("\\.info$", ".summary"));
+				InputStream in = new MarkableFileInputStream(summaryFile);
+				try {
+					String content = IOUtils.readSmallStream(in);
+					Chapter desc = bsPara.makeChapter(null, null, 0,
+							"Description", content, false, null);
+					meta.setResume(desc);
+				} finally {
+					in.close();
+				}
+			} catch (IOException e) {
+				// ignore absent or bad summary
+			}
+			
+			return meta;
 		}
 
 		throw new FileNotFoundException(
@@ -90,6 +110,7 @@ public class InfoReader {
 	 */
 	static public void completeMeta(File textFile,
 			MetaData meta)	throws IOException {
+		// TODO: not nice, would be better to do it properly...
 		if (textFile != null && textFile.exists()) {
 			final URL source = textFile.toURI().toURL();
 			final MetaData[] superMetaA = new MetaData[1];

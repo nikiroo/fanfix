@@ -299,27 +299,21 @@ public abstract class BasicOutput {
 		return "";
 	}
 
-	@SuppressWarnings("unused")
 	protected void writeStoryHeader(Story story) throws IOException {
 	}
 
-	@SuppressWarnings("unused")
 	protected void writeChapterHeader(Chapter chap) throws IOException {
 	}
 
-	@SuppressWarnings("unused")
 	protected void writeParagraphHeader(Paragraph para) throws IOException {
 	}
 
-	@SuppressWarnings("unused")
 	protected void writeStoryFooter(Story story) throws IOException {
 	}
 
-	@SuppressWarnings("unused")
 	protected void writeChapterFooter(Chapter chap) throws IOException {
 	}
 
-	@SuppressWarnings("unused")
 	protected void writeParagraphFooter(Paragraph para) throws IOException {
 	}
 

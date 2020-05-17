@@ -22,6 +22,7 @@ import be.nikiroo.fanfix.data.Paragraph.ParagraphType;
 import be.nikiroo.fanfix.data.Story;
 import be.nikiroo.fanfix.library.WebLibraryServer.WLoginResult;
 import be.nikiroo.fanfix.library.web.WebLibraryServerIndex;
+import be.nikiroo.fanfix.library.web.templates.WebLibraryServerTemplates;
 import be.nikiroo.fanfix.reader.TextOutput;
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.NanoHTTPD;
@@ -173,13 +174,13 @@ abstract class WebLibraryServerHtml implements Runnable {
 				}
 
 				Response rep = null;
-				if (!login.isSuccess()
-						&& WebLibraryUrls.isSupportedUrl(uri, true)) {
-					rep = loginPage(login, uri);
-				}
+				try {
+					if (!login.isSuccess()
+							&& WebLibraryUrls.isSupportedUrl(uri, true)) {
+						rep = loginPage(login, uri);
+					}
 
-				if (rep == null) {
-					try {
+					if (rep == null) {
 						if (WebLibraryUrls.isSupportedUrl(uri, false)) {
 							if (WebLibraryUrls.INDEX_URL.equals(uri)) {
 								rep = root(session, cookies, login);
@@ -253,13 +254,12 @@ abstract class WebLibraryServerHtml implements Runnable {
 										NanoHTTPD.MIME_PLAINTEXT, "Not Found");
 							}
 						}
-					} catch (Exception e) {
-						Instance.getInstance().getTraceHandler().error(
-								new IOException("Cannot process web request",
-										e));
-						rep = newFixedLengthResponse(Status.INTERNAL_ERROR,
-								NanoHTTPD.MIME_PLAINTEXT, "An error occured");
 					}
+				} catch (Exception e) {
+					Instance.getInstance().getTraceHandler().error(
+							new IOException("Cannot process web request", e));
+					rep = newFixedLengthResponse(Status.INTERNAL_ERROR,
+							NanoHTTPD.MIME_PLAINTEXT, "An error occured");
 				}
 
 				return rep;
@@ -309,31 +309,34 @@ abstract class WebLibraryServerHtml implements Runnable {
 		this.tracer = tracer;
 	}
 
-	private Response loginPage(WLoginResult login, String uri) {
+	private Response loginPage(WLoginResult login, String uri)
+			throws IOException {
 		StringBuilder builder = new StringBuilder();
 
-		appendPreHtml(builder, true);
+		builder.append(getTemplateIndexPreBanner(true));
 
 		if (login.isBadLogin()) {
-			builder.append("<div class='error'>Bad login or password</div>");
+			builder.append(
+					"\t\t<div class='error'>Bad login or password</div>");
 		} else if (login.isBadCookie()) {
-			builder.append("<div class='error'>Your session timed out</div>");
+			builder.append(
+					"\t\t<div class='error'>Your session timed out</div>");
 		}
 
 		if (WebLibraryUrls.LOGOUT_URL.equals(uri)) {
 			uri = WebLibraryUrls.INDEX_URL;
 		}
 
+		builder.append("\t\t<form method='POST' action='" + uri
+				+ "' class='login'>\n");
 		builder.append(
-				"<form method='POST' action='" + uri + "' class='login'>\n");
-		builder.append(
-				"<p>You must be logged into the system to see the stories.</p>");
-		builder.append("\t<input type='text' name='login' />\n");
-		builder.append("\t<input type='password' name='password' />\n");
-		builder.append("\t<input type='submit' value='Login' />\n");
-		builder.append("</form>\n");
+				"\t\t\t<p>You must be logged into the system to see the stories.</p>");
+		builder.append("\t\t\t<input type='text' name='login' />\n");
+		builder.append("\t\t\t<input type='password' name='password' />\n");
+		builder.append("\t\t\t<input type='submit' value='Login' />\n");
+		builder.append("\t\t</form>\n");
 
-		appendPostHtml(builder);
+		builder.append(getTemplate("index.post"));
 
 		return NanoHTTPD.newFixedLengthResponse(Status.FORBIDDEN,
 				NanoHTTPD.MIME_HTML, builder.toString());
@@ -345,7 +348,7 @@ abstract class WebLibraryServerHtml implements Runnable {
 		MetaResultList result = new MetaResultList(metas(login));
 		StringBuilder builder = new StringBuilder();
 
-		appendPreHtml(builder, true);
+		builder.append(getTemplateIndexPreBanner(true));
 
 		Map<String, String> params = session.getParms();
 
@@ -369,45 +372,56 @@ abstract class WebLibraryServerHtml implements Runnable {
 
 		// TODO: javascript in realtime, using visible=false + hide [submit]
 
-		builder.append("<form class='browser'>\n");
-		builder.append("<div class='breadcrumbs'>\n");
+		StringBuilder selects = new StringBuilder();
+		boolean sourcesSel = false;
+		boolean authorsSel = false;
+		boolean tagsSel = false;
 
-		builder.append("\t<select name='browser'>");
-		appendOption(builder, 2, "", "", browser);
-		appendOption(builder, 2, "Sources", "sources", browser);
-		appendOption(builder, 2, "Authors", "authors", browser);
-		appendOption(builder, 2, "Tags", "tags", browser);
-		builder.append("\t</select>\n");
+		String selectTemplate = getTemplate("browser.select");
 
 		if (!browser.isEmpty()) {
-			builder.append("\t<select name='browser2'>");
+			StringBuilder options = new StringBuilder();
+
 			if (browser.equals("sources")) {
+				sourcesSel = true;
 				filterSource = browser2.isEmpty() ? filterSource : browser2;
+
 				// TODO: if 1 group -> no group
-				appendOption(builder, 2, "", "", browser2);
 				Map<String, List<String>> sources = result.getSourcesGrouped();
 				for (String source : sources.keySet()) {
-					appendOption(builder, 2, source, source, browser2);
+					options.append(
+							getTemplateBrowserOption(source, source, browser2));
 				}
 			} else if (browser.equals("authors")) {
+				authorsSel = true;
 				filterAuthor = browser2.isEmpty() ? filterAuthor : browser2;
+
 				// TODO: if 1 group -> no group
-				appendOption(builder, 2, "", "", browser2);
 				Map<String, List<String>> authors = result.getAuthorsGrouped();
 				for (String author : authors.keySet()) {
-					appendOption(builder, 2, author, author, browser2);
+					options.append(
+							getTemplateBrowserOption(author, author, browser2));
 				}
 			} else if (browser.equals("tags")) {
+				tagsSel = true;
 				filterTag = browser2.isEmpty() ? filterTag : browser2;
-				appendOption(builder, 2, "", "", browser2);
+
 				for (String tag : result.getTags()) {
-					appendOption(builder, 2, tag, tag, browser2);
+					options.append(
+							getTemplateBrowserOption(tag, tag, browser2));
 				}
 			}
-			builder.append("\t</select>\n");
+
+			selects.append(selectTemplate //
+					.replace("${name}", "browser2") //
+					.replace("${value}", browser2) //
+					.replace("${options}", options.toString()) //
+			);
 		}
 
 		if (!browser2.isEmpty()) {
+			StringBuilder options = new StringBuilder();
+
 			if (browser.equals("sources")) {
 				filterSource = browser3.isEmpty() ? filterSource : browser3;
 				Map<String, List<String>> sourcesGrouped = result
@@ -415,12 +429,10 @@ abstract class WebLibraryServerHtml implements Runnable {
 				List<String> sources = sourcesGrouped.get(browser2);
 				if (sources != null && !sources.isEmpty()) {
 					// TODO: single empty value
-					builder.append("\t<select name='browser3'>");
-					appendOption(builder, 2, "", "", browser3);
 					for (String source : sources) {
-						appendOption(builder, 2, source, source, browser3);
+						options.append(getTemplateBrowserOption(source, source,
+								browser3));
 					}
-					builder.append("\t</select>\n");
 				}
 			} else if (browser.equals("authors")) {
 				filterAuthor = browser3.isEmpty() ? filterAuthor : browser3;
@@ -429,33 +441,30 @@ abstract class WebLibraryServerHtml implements Runnable {
 				List<String> authors = authorsGrouped.get(browser2);
 				if (authors != null && !authors.isEmpty()) {
 					// TODO: single empty value
-					builder.append("\t<select name='browser3'>");
-					appendOption(builder, 2, "", "", browser3);
 					for (String author : authors) {
-						appendOption(builder, 2, author, author, browser3);
+						options.append(getTemplateBrowserOption(author, author,
+								browser3));
 					}
-					builder.append("\t</select>\n");
 				}
 			}
+
+			selects.append(selectTemplate //
+					.replace("${name}", "browser3") //
+					.replace("${value}", browser3) //
+					.replace("${options}", options.toString()) //
+			);
 		}
 
-		builder.append("\t<input type='submit' value='Select'/>\n");
-		builder.append("</div>\n");
+		String sel = "selected='selected'";
+		builder.append(getTemplate("browser") //
+				.replace("${sourcesSelected}", sourcesSel ? sel : "") //
+				.replace("${authorsSelected}", authorsSel ? sel : "") //
+				.replace("${tagsSelected}", tagsSel ? sel : "") //
+				.replace("${filter}", filter) //
+				.replace("${selects}", selects.toString()) //
+		);
 
-		// TODO: javascript in realtime, using visible=false + hide [submit]
-		builder.append("<div class='filter'>\n");
-		builder.append("\t<span class='label'>Filter: </span>\n");
-		builder.append(
-				"\t<input name='optionName'  type='hidden' value='filter' />\n");
-		builder.append("\t<input name='optionValue' type='text'   value='"
-				+ filter + "' place-holder='...' />\n");
-		builder.append("\t<input name='optionNo'  type='submit' value='x' />");
-		builder.append(
-				"\t<input name='submit' type='submit' value='Filter' />\n");
-		builder.append("</div>\n");
-		builder.append("</form>\n");
-
-		builder.append("\t<div class='books'>");
+		builder.append("\t\t<div class='books'>\n");
 		for (MetaData meta : result.getMetas()) {
 			if (!filter.isEmpty() && !meta.getTitle().toLowerCase()
 					.contains(filter.toLowerCase())) {
@@ -478,38 +487,33 @@ abstract class WebLibraryServerHtml implements Runnable {
 				continue;
 			}
 
-			builder.append("<div class='book_line'>");
-			builder.append("<a href='");
-			builder.append(
-					WebLibraryUrls.getViewUrl(meta.getLuid(), null, null));
-			builder.append("'");
-			builder.append(" class='link'>");
-
-			if (lib.isCached(meta.getLuid())) {
-				// ◉ = &#9673;
-				builder.append(
-						"<span class='cache_icon cached'>&#9673;</span>");
-			} else {
-				// ○ = &#9675;
-				builder.append(
-						"<span class='cache_icon uncached'>&#9675;</span>");
-			}
-			builder.append("<span class='luid'>");
-			builder.append(meta.getLuid());
-			builder.append("</span>");
-			builder.append("<span class='title'>");
-			builder.append(meta.getTitle());
-			builder.append("</span>");
-			builder.append("<span class='author'>");
+			String author = "";
 			if (meta.getAuthor() != null && !meta.getAuthor().isEmpty()) {
-				builder.append("(").append(meta.getAuthor()).append(")");
+				author = "(" + meta.getAuthor() + ")";
 			}
-			builder.append("</span>");
-			builder.append("</a></div>\n");
-		}
-		builder.append("</div>");
 
-		appendPostHtml(builder);
+			String cachedClass = "cached";
+			String cached = "&#9673;";
+			if (!lib.isCached(meta.getLuid())) {
+				cachedClass = "uncached";
+				cached = "&#9675;";
+			}
+
+			builder.append(getTemplate("bookline") //
+					.replace("${href}",
+							WebLibraryUrls.getViewUrl(meta.getLuid(), null,
+									null)) //
+					.replace("${luid}", meta.getLuid()) //
+					.replace("${title}", meta.getTitle()) //
+					.replace("${author}", author) //
+					.replace("${cachedClass}", cachedClass) //
+					.replace("${cached}", cached) //
+			);
+		}
+		builder.append("\t\t</div>\n");
+
+		builder.append(getTemplate("index.post"));
+
 		return NanoHTTPD.newFixedLengthResponse(builder.toString());
 	}
 
@@ -563,9 +567,6 @@ abstract class WebLibraryServerHtml implements Runnable {
 						NanoHTTPD.MIME_PLAINTEXT, "Story not found");
 			}
 
-			StringBuilder builder = new StringBuilder();
-			appendPreHtml(builder, false);
-
 			// For images documents, always go to the images if not chap 0 desc
 			if (story.getMeta().isImageDocument()) {
 				if (chapter > 0 && paragraph <= 0)
@@ -586,7 +587,7 @@ abstract class WebLibraryServerHtml implements Runnable {
 
 			String first, previous, next, last;
 
-			StringBuilder content = new StringBuilder();
+			String viewer = "";
 
 			String disabledLeft = "";
 			String disabledRight = "";
@@ -604,35 +605,37 @@ abstract class WebLibraryServerHtml implements Runnable {
 				last = WebLibraryUrls.getViewUrl(luid,
 						story.getChapters().size(), null);
 
-				StringBuilder desc = new StringBuilder();
-
+				String desc = "";
 				if (chapter <= 0) {
-					desc.append("<h1 class='title'>");
-					desc.append(story.getMeta().getTitle());
-					desc.append("</h1>\n");
-					desc.append("<div class='desc'>\n");
-					desc.append("\t<a href='" + next + "' class='cover'>\n");
-					desc.append("\t\t<img src='/story/" + luid + "/cover'/>\n");
-					desc.append("\t</a>\n");
-					desc.append("\t<table class='details'>\n");
+					StringBuilder desclines = new StringBuilder();
 					Map<String, String> details = BasicLibrary
 							.getMetaDesc(story.getMeta());
 					for (String key : details.keySet()) {
-						appendTableRow(desc, 2, key, details.get(key));
+						desclines.append(getTemplate("viewer.descline") //
+								.replace("${key}", key) //
+								.replace("${value}", details.get(key)) //
+						);
 					}
-					desc.append("\t</table>\n");
-					desc.append("</div>\n");
-					desc.append("<h1 class='title'>Description</h1>\n");
+
+					desc = getTemplate("viewer.desc") //
+							.replace("${title}", story.getMeta().getTitle()) //
+							.replace("${href}", next) //
+							.replace("${cover}",
+									WebLibraryUrls.getStoryUrlCover(luid)) //
+							.replace("${details}", desclines.toString()) //
+					;
 				}
 
-				content.append("<div class='viewer text'>\n");
-				content.append(desc);
-				String description = new TextOutput(false).convert(chap,
-						chapter > 0);
-				content.append(chap.getParagraphs().size() <= 0
-						? "No content provided."
-						: description);
-				content.append("</div>\n");
+				viewer = getTemplate("viewer.text") //
+						.replace("${desc}", desc) //
+				;
+				if (chap.getParagraphs().size() <= 0) {
+					viewer = viewer.replace("${content}",
+							"No content provided.");
+				} else {
+					viewer = viewer.replace("${content}",
+							new TextOutput(false).convert(chap, chapter > 0));
+				}
 
 				if (chapter <= 0)
 					disabledLeft = " disabled='disbaled'";
@@ -689,44 +692,39 @@ abstract class WebLibraryServerHtml implements Runnable {
 						}
 					}
 
-					String javascript = "document.getElementById(\"previous\").click(); return false;";
-					content.append(String.format("" //
-							+ "<a class='viewer link' oncontextmenu='%s' href='%s'>"
-							+ "<img class='viewer img' style='%s' src='%s'/>"
-							+ "</a>", //
-							javascript, //
-							next, //
-							zoomStyle, //
-							WebLibraryUrls.getStoryUrl(luid, chapter,
-									paragraph)));
+					viewer = getTemplate("viewer.image") //
+							.replace("${href}", next) //
+							.replace("${zoomStyle}", zoomStyle) //
+							.replace("${src}", WebLibraryUrls.getStoryUrl(luid,
+									chapter, paragraph)) //
+					;
 				} else {
-					content.append(String.format("" //
-							+ "<div class='viewer text'>%s</div>", //
-							para.getContent()));
+					viewer = getTemplate("viewer.text") //
+							.replace("${desc}", "") //
+							.replace("${content}",
+									new TextOutput(false).convert(para)) //
+					;
 				}
 			}
 
-			builder.append(String.format("" //
-					+ "<div class='bar navbar'>\n" //
-					+ "\t<a%s class='button first' href='%s'>&lt;&lt;</a>\n"//
-					+ "\t<a%s id='previous' class='button previous' href='%s'>&lt;</a>\n" //
-					+ "\t<div class='gotobox itemsbox'>\n" //
-					+ "\t\t<div class='button goto'>%d</div>\n" //
-					+ "\t\t<div class='items goto'>\n", //
-					disabledLeft, first, //
-					disabledLeft, previous, //
-					paragraph > 0 ? paragraph : chapter //
-			));
-
 			// List of chap/para links
-
-			appendItemA(builder, 3, WebLibraryUrls.getViewUrl(luid, 0, null),
-					"Description", paragraph == 0 && chapter == 0);
+			StringBuilder links = new StringBuilder();
+			links.append(getTemplate("viewer.link") //
+					.replace("${link}",
+							WebLibraryUrls.getViewUrl(luid, 0, null)) //
+					.replace("${class}",
+							paragraph == 0 && chapter == 0 ? "selected" : "") //
+					.replace("${name}", "Description") //
+			);
 			if (paragraph > 0) {
 				for (int i = 1; i <= chap.getParagraphs().size(); i++) {
-					appendItemA(builder, 3,
-							WebLibraryUrls.getViewUrl(luid, chapter, i),
-							"Image " + i, paragraph == i);
+					links.append(getTemplate("viewer.link") //
+							.replace("${link}",
+									WebLibraryUrls.getViewUrl(luid, chapter, i)) //
+							.replace("${class}",
+									paragraph == i ? "selected" : "") //
+							.replace("${name}", "Image " + i) //
+					);
 				}
 			} else {
 				int i = 1;
@@ -736,51 +734,79 @@ abstract class WebLibraryServerHtml implements Runnable {
 						chapName += ": " + c.getName();
 					}
 
-					appendItemA(builder, 3,
-							WebLibraryUrls.getViewUrl(luid, i, null), chapName,
-							chapter == i);
+					links.append(getTemplate("viewer.link") //
+							.replace("${link}",
+									WebLibraryUrls.getViewUrl(luid, i, null)) //
+							.replace("${class}", chapter == i ? "selected" : "") //
+							.replace("${name}", chapName) //
+					);
 
 					i++;
 				}
 			}
 
-			builder.append(String.format("" //
-					+ "\t\t</div>\n" //
-					+ "\t</div>\n" //
-					+ "\t<a%s class='button next' href='%s'>&gt;</a>\n" //
-					+ "\t<a%s class='button last' href='%s'>&gt;&gt;</a>\n"//
-					+ "</div>\n", //
-					disabledRight, next, //
-					disabledRight, last //
-			));
+			// Buttons on the optionbar
 
-			builder.append(content);
-
-			builder.append("<div class='bar optionbar ");
+			StringBuilder buttons = new StringBuilder();
+			buttons.append(getTemplate("viewer.optionbar.button") //
+					.replace("${disabled}", "") //
+					.replace("${class}", "back") //
+					.replace("${href}", "/") //
+					.replace("${value}", "Back") //
+			);
 			if (paragraph > 0) {
-				builder.append("s4");
-			} else {
-				builder.append("s1");
-			}
-			builder.append("'>\n");
-			builder.append("	<a class='button back' href='/'>BACK</a>\n");
-
-			if (paragraph > 0) {
-				builder.append(String.format("" //
-						+ "\t<a%s class='button zoomreal'   href='%s'>REAL</a>\n"//
-						+ "\t<a%s class='button zoomwidth'  href='%s'>WIDTH</a>\n"//
-						+ "\t<a%s class='button zoomheight' href='%s'>HEIGHT</a>\n"//
-						+ "</div>\n", //
-						disabledZoomReal,
-						uri + "?optionName=zoom&optionValue=real", //
-						disabledZoomWidth,
-						uri + "?optionName=zoom&optionValue=width", //
-						disabledZoomHeight,
-						uri + "?optionName=zoom&optionValue=height" //
-				));
+				buttons.append(getTemplate("viewer.optionbar.button") //
+						.replace("${disabled}", disabledZoomReal) //
+						.replace("${class}", "zoomreal") //
+						.replace("${href}",
+								uri + "?optionName=zoom&optionValue=real") //
+						.replace("${value}", "1:1") //
+				);
+				buttons.append(getTemplate("viewer.optionbar.button") //
+						.replace("${disabled}", disabledZoomWidth) //
+						.replace("${class}", "zoomwidth") //
+						.replace("${href}",
+								uri + "?optionName=zoom&optionValue=width") //
+						.replace("${value}", "Width") //
+				);
+				buttons.append(getTemplate("viewer.optionbar.button") //
+						.replace("${disabled}", disabledZoomHeight) //
+						.replace("${class}", "zoomheight") //
+						.replace("${href}",
+								uri + "?optionName=zoom&optionValue=height") //
+						.replace("${value}", "Height") //
+				);
 			}
 
-			appendPostHtml(builder);
+			// Full content
+
+			StringBuilder builder = new StringBuilder();
+
+			builder.append(getTemplateIndexPreBanner(false));
+
+			builder.append(getTemplate("viewer.navbar") //
+					.replace("${disabledFirst}", disabledLeft) //
+					.replace("${disabledPrevious}", disabledLeft) //
+					.replace("${disabledNext}", disabledRight) //
+					.replace("${disabledLast}", disabledRight) //
+					.replace("${hrefFirst}", first) //
+					.replace("${hrefPrevious}", previous) //
+					.replace("${hrefNext}", next) //
+					.replace("${hrefLast}", last) //
+					.replace("${current}",
+							"" + (paragraph > 0 ? paragraph : chapter)) //
+					.replace("${links}", links.toString()) //
+			);
+
+			builder.append(viewer);
+
+			builder.append(getTemplate("viewer.optionbar") //
+					.replace("${classSize}", (paragraph > 0 ? "s4" : "s1")) //
+					.replace("${buttons}", buttons.toString()) //
+			);
+
+			builder.append(getTemplate("index.post"));
+
 			return NanoHTTPD.newFixedLengthResponse(Status.OK,
 					NanoHTTPD.MIME_HTML, builder.toString());
 		} catch (IOException e) {
@@ -799,22 +825,8 @@ abstract class WebLibraryServerHtml implements Runnable {
 		return NanoHTTPD.newChunkedResponse(Status.OK, mimeType, in);
 	}
 
-	private String getContentOf(String file) {
-		InputStream in = IOUtils.openResource(WebLibraryServerIndex.class,
-				file);
-		if (in != null) {
-			try {
-				return IOUtils.readSmallStream(in);
-			} catch (IOException e) {
-				Instance.getInstance().getTraceHandler().error(
-						new IOException("Cannot get file: index.pre.html", e));
-			}
-		}
-
-		return "";
-	}
-
-	private void appendPreHtml(StringBuilder builder, boolean banner) {
+	private String getTemplateIndexPreBanner(boolean banner)
+			throws IOException {
 		String favicon = "favicon.ico";
 		String icon = Instance.getInstance().getUiConfig()
 				.getString(UiConfig.PROGRAM_ICON);
@@ -822,70 +834,44 @@ abstract class WebLibraryServerHtml implements Runnable {
 			favicon = "icon_" + icon.replace("-", "_") + ".png";
 		}
 
-		builder.append(
-				getContentOf("index.pre.html").replace("favicon.ico", favicon));
+		String html = getTemplate("index.pre") //
+				.replace("${title}", "Fanfix") //
+				.replace("${favicon}", favicon) //
+		;
 
 		if (banner) {
-			builder.append("<div class='banner'>\n");
-			builder.append("\t<img class='ico' src='/") //
-					.append(favicon) //
-					.append("'/>\n");
-			builder.append("\t<h1>Fanfix</h1>\n");
-			builder.append("\t<h2>") //
-					.append(Version.getCurrentVersion()) //
-					.append("</h2>\n");
-			builder.append("</div>\n");
+			html += getTemplate("index.banner") //
+					.replace("${favicon}", favicon) //
+					.replace("${version}",
+							Version.getCurrentVersion().toString()) //
+			;
 		}
+
+		return html;
 	}
 
-	private void appendPostHtml(StringBuilder builder) {
-		builder.append(getContentOf("index.post.html"));
-	}
-
-	private void appendOption(StringBuilder builder, int depth, String name,
-			String value, String selected) {
-		for (int i = 0; i < depth; i++) {
-			builder.append("\t");
-		}
-		builder.append("<option value='").append(value).append("'");
+	private String getTemplateBrowserOption(String name, String value,
+			String selected) throws IOException {
+		String selectedAttribute = "";
 		if (value.equals(selected)) {
-			builder.append(" selected='selected'");
+			selectedAttribute = " selected='selected'";
 		}
-		builder.append(">").append(name).append("</option>\n");
+
+		return getTemplate("browser.option" //
+				.replace("${value}", value) //
+				.replace("${selected}", selectedAttribute) //
+				.replace("${name}", name) //
+		);
 	}
 
-	private void appendTableRow(StringBuilder builder, int depth,
-			String... tds) {
-		for (int i = 0; i < depth; i++) {
-			builder.append("\t");
+	private String getTemplate(String template) throws IOException {
+		// TODO: check if it is "slow" -> map cache
+		InputStream in = IOUtils.openResource(WebLibraryServerTemplates.class,
+				template + ".html");
+		try {
+			return IOUtils.readSmallStream(in);
+		} finally {
+			in.close();
 		}
-
-		int col = 1;
-		builder.append("<tr>");
-		for (String td : tds) {
-			builder.append("<td class='col");
-			builder.append(col++);
-			builder.append("'>");
-			builder.append(td);
-			builder.append("</td>");
-		}
-		builder.append("</tr>\n");
-	}
-
-	private void appendItemA(StringBuilder builder, int depth, String link,
-			String name, boolean selected) {
-		for (int i = 0; i < depth; i++) {
-			builder.append("\t");
-		}
-
-		builder.append("<a href='");
-		builder.append(link);
-		builder.append("' class='item goto");
-		if (selected) {
-			builder.append(" selected");
-		}
-		builder.append("'>");
-		builder.append(name);
-		builder.append("</a>\n");
 	}
 }

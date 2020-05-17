@@ -310,13 +310,13 @@ a.viewer.link:hover {
 	display: block;
 }
 
-.desc .details .col1 {
+.desc .details .col.key {
 	font-weight: bold;
 	padding-left: 5px;
 	padding-right: 5px; 
 }
 
-.desc .details .col2 {
+.desc .details .col.value {
 	color: #AAA391;
 }
 
