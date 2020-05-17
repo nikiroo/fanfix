@@ -65,7 +65,8 @@ echo "TEST = be/nikiroo/fanfix/test/Test" >> Makefile
 echo "TEST_PARAMS = $cols $ok $ko" >> Makefile
 echo "NAME = fanfix" >> Makefile
 echo "PREFIX = $PREFIX" >> Makefile
-echo "JAR_FLAGS += -C bin/ org -C bin/ be -C ./ LICENSE -C ./ VERSION -C libs/ licenses" >> Makefile
+echo "JAR_FLAGS += -C ./ src/ -C bin/ org -C bin/ be -C ./ LICENSE -C ./ VERSION -C libs/ licenses" >> Makefile
+echo "SJAR_FLAGS += -C src/ org -C src/ be" >> Makefile
 
 cat Makefile.base >> Makefile
 
