@@ -15,9 +15,7 @@ import org.jsoup.nodes.Document;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
-import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
-import be.nikiroo.fanfix.data.Paragraph;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.ImageUtils;
 import be.nikiroo.utils.Progress;
@@ -172,20 +170,7 @@ class Text extends BasicSupport {
 
 	@Override
 	protected String getDesc() throws IOException {
-		String content = getChapterContent(null, 0, null).trim();
-		if (!content.isEmpty()) {
-			Chapter desc = bsPara.makeChapter(this, null, 0, "Description",
-					content, isHtml(), null);
-			StringBuilder builder = new StringBuilder();
-			for (Paragraph para : desc) {
-				if (builder.length() > 0) {
-					builder.append("\n");
-				}
-				builder.append(para.getContent());
-			}
-		}
-
-		return content;
+		return getChapterContent(null, 0, null).trim();
 	}
 
 	protected Image getCover(File sourceFile) {

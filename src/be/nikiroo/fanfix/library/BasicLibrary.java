@@ -475,6 +475,8 @@ abstract public class BasicLibrary {
 
 	/**
 	 * Retrieve a specific {@link Story}.
+	 * <p>
+	 * Note that it will update both the cover and the resume in <tt>meta</tt>.
 	 * 
 	 * @param luid
 	 *            the Library UID of the story
@@ -513,6 +515,8 @@ abstract public class BasicLibrary {
 
 	/**
 	 * Retrieve a specific {@link Story}.
+	 * <p>
+	 * Note that it will update both the cover and the resume in <tt>meta</tt>.
 	 * 
 	 * @param luid
 	 *            the LUID of the story

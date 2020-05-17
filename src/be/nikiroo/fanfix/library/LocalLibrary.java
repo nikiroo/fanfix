@@ -625,6 +625,18 @@ public class LocalLibrary extends BasicLibrary {
 			files.add(coverFile);
 		}
 
+		String summaryExt = ".summary";
+		File summaryFile = new File(path + summaryExt);
+		if (!summaryFile.exists()) {
+			summaryFile = new File(
+					path.substring(0, path.length() - fileExt.length())
+							+ summaryExt);
+		}
+
+		if (summaryFile.exists()) {
+			files.add(summaryFile);
+		}
+
 		return files;
 	}
 

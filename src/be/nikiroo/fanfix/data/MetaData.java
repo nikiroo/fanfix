@@ -9,6 +9,12 @@ import be.nikiroo.utils.StringUtils;
 
 /**
  * The meta data associated to a {@link Story} object.
+ * <p>
+ * Note that some earlier version of the program did not save the resume as an
+ * external file; for those stories, the resume is not fetched until the story
+ * is.
+ * <p>
+ * The cover is never fetched until the story is.
  * 
  * @author niki
  */
@@ -120,6 +126,10 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	 * The story resume (a.k.a. description).
 	 * <p>
 	 * This can be NULL if we don't have a resume for this {@link Story}.
+	 * <p>
+	 * Note that some earlier version of the program did not save the resume as
+	 * an external file; for those stories, the resume is not fetched until the
+	 * story is.
 	 * 
 	 * @return the resume
 	 */
@@ -129,6 +139,10 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 
 	/**
 	 * The story resume (a.k.a. description).
+	 * <p>
+	 * Note that some earlier version of the program did not save the resume as
+	 * an external file; for those stories, the resume is not fetched until the
+	 * story is.
 	 * 
 	 * @param resume
 	 *            the resume to set
@@ -139,6 +153,8 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 
 	/**
 	 * The cover image of the story if any (can be NULL).
+	 * <p>
+	 * The cover is not fetched until the story is.
 	 * 
 	 * @return the cover
 	 */
@@ -148,6 +164,8 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 
 	/**
 	 * The cover image of the story if any (can be NULL).
+	 * <p>
+	 * The cover is not fetched until the story is.
 	 * 
 	 * @param cover
 	 *            the cover to set

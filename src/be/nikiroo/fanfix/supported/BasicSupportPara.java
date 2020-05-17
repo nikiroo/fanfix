@@ -35,6 +35,17 @@ public class BasicSupportPara {
 	BasicSupportHelper bsHelper;
 	BasicSupportImages bsImages;
 	
+	/**
+	 * Create a new {@link BasicSupportPara}.
+	 * <p>
+	 * Note that you need an instance of both {@link BasicSupportHelper} and
+	 * {@link BasicSupportImages} for it to work.
+	 * 
+	 * @param bsHelper
+	 *            the required {@link BasicSupportHelper}
+	 * @param bsImages
+	 *            the required {@link BasicSupportImages}
+	 */
 	public BasicSupportPara(BasicSupportHelper bsHelper, BasicSupportImages bsImages) {
 		this.bsHelper = bsHelper;
 		this.bsImages = bsImages;
@@ -45,7 +56,7 @@ public class BasicSupportPara {
 	 * the content as it should be.
 	 * 
 	 * @param support
-	 *            the linked {@link BasicSupport}
+	 *            the linked {@link BasicSupport} (can be NULL)
 	 * @param source
 	 *            the source of the story (for image lookup in the same path if
 	 *            the source is a file, can be NULL)
