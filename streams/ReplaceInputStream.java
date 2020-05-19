@@ -114,7 +114,8 @@ public class ReplaceInputStream extends BufferedInputStream {
 		}
 
 		// We need at least maxFromSize so we can iterate and replace
-		source = new byte[Math.max(2 * maxFromSize, MIN_BUFFER_SIZE)];
+		source = new byte[Math.max(2 * Math.max(maxToSize, maxFromSize),
+				MIN_BUFFER_SIZE)];
 		spos = 0;
 		slen = 0;
 	}
