@@ -1,7 +1,6 @@
 package be.nikiroo.utils.test_code;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 
 import be.nikiroo.utils.IOUtils;
 import be.nikiroo.utils.streams.NextableInputStream;
@@ -177,12 +176,10 @@ public class NextableInputStreamTest extends TestLauncher {
 								11 }));
 
 				// too big
-				try {
-					in.startsWith(new byte[] { 42, 12, 0, 127, 12, 51, 11, 12,
-							0 });
-					fail("Searching a prefix bigger than the array should throw an IOException");
-				} catch (IOException e) {
-				}
+				assertEquals(
+						"A search term bigger than the whole data cannot be found in the data",
+						false, in.startsWith(new byte[] { 42, 12, 0, 127, 12,
+								51, 11, 12, 0 }));
 
 				in.close();
 			}
@@ -209,13 +206,11 @@ public class NextableInputStreamTest extends TestLauncher {
 						in.startsWith("Toto"));
 				assertEquals("It actually does not start with that", false,
 						in.startsWith("Fanfan et Toto vont à la mee"));
-
+				
 				// too big
-				try {
-					in.startsWith("Fanfan et Toto vont à la mer.");
-					fail("Searching a prefix bigger than the array should throw an IOException");
-				} catch (IOException e) {
-				}
+				assertEquals(
+						"A search term bigger than the whole data cannot be found in the data",
+						false, in.startsWith("Fanfan et Toto vont à la mer."));
 
 				in.close();
 			}
