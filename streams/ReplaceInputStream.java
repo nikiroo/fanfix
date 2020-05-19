@@ -141,11 +141,11 @@ public class ReplaceInputStream extends BufferedInputStream {
 				if (froms[i] != null && froms[i].length > 0
 						&& StreamUtils.startsWith(froms[i], source, spos, slen)) {
 					if (tos[i] != null && tos[i].length > 0) {
-						System.arraycopy(tos[i], 0, buffer, off + spos,
+						System.arraycopy(tos[i], 0, buffer, off + count,
 								tos[i].length);
 						count += tos[i].length;
 					}
-
+					
 					spos += froms[i].length;
 					replaced = true;
 					break;

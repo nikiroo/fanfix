@@ -48,7 +48,7 @@ class ReplaceInputStreamTest extends TestLauncher {
 			}
 		});
 
-		addTest(new TestCase("Lnger replace") {
+		addTest(new TestCase("Longer replace") {
 			@Override
 			public void test() throws Exception {
 				byte[] data = new byte[] { 42, 12, 0, 127 };
@@ -79,15 +79,30 @@ class ReplaceInputStreamTest extends TestLauncher {
 				byte[] data = "I like red".getBytes("UTF-8");
 				ReplaceInputStream in = new ReplaceInputStream(
 						new ByteArrayInputStream(data),
-						"red".getBytes("UTF-8"), "blue".getBytes("UTF-8"));
+						"red", "blue");
 
 				checkArrays(this, "FIRST", in, "I like blue".getBytes("UTF-8"));
 
 				data = "I like blue".getBytes("UTF-8");
 				in = new ReplaceInputStream(new ByteArrayInputStream(data),
-						"blue".getBytes("UTF-8"), "red".getBytes("UTF-8"));
+						"blue", "red");
 
 				checkArrays(this, "FIRST", in, "I like red".getBytes("UTF-8"));
+			}
+		});
+		
+		addTest(new TestCase("Multiple replaces") {
+			@Override
+			public void test() throws Exception {
+				byte[] data = "I like red".getBytes("UTF-8");
+				ReplaceInputStream in = new ReplaceInputStream(
+						new ByteArrayInputStream(data), //
+						new String[] {"like", "red"}, //
+						new String[] {"dislike", "green"} //
+				);
+
+				String result = new String(IOUtils.toByteArray(in), "UTF-8");
+				assertEquals("I dislike green", result);
 			}
 		});
 	}
