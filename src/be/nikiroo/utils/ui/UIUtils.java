@@ -22,7 +22,6 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
-import be.nikiroo.fanfix.Instance;
 import be.nikiroo.utils.Version;
 import be.nikiroo.utils.VersionCheck;
 
@@ -306,9 +305,9 @@ public class UIUtils {
 					try {
 						Desktop.getDesktop().browse(e.getURL().toURI());
 					} catch (IOException ee) {
-						Instance.getInstance().getTraceHandler().error(ee);
+						ee.printStackTrace();
 					} catch (URISyntaxException ee) {
-						Instance.getInstance().getTraceHandler().error(ee);
+						ee.printStackTrace();
 					}
 			}
 		});
