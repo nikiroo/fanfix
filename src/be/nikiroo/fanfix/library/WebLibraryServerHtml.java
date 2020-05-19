@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +37,9 @@ import be.nikiroo.utils.Version;
 abstract class WebLibraryServerHtml implements Runnable {
 	private NanoHTTPD server;
 	protected TraceHandler tracer = new TraceHandler();
+
+	WebLibraryServerTemplates templates = WebLibraryServerTemplates
+			.getInstance();
 
 	abstract protected WLoginResult login(String who, String cookie);
 
@@ -346,9 +351,6 @@ abstract class WebLibraryServerHtml implements Runnable {
 			WLoginResult login) throws IOException {
 		BasicLibrary lib = Instance.getInstance().getLibrary();
 		MetaResultList result = new MetaResultList(metas(login));
-		StringBuilder builder = new StringBuilder();
-
-		builder.append(getTemplateIndexPreBanner(true));
 
 		Map<String, String> params = session.getParms();
 
@@ -372,15 +374,13 @@ abstract class WebLibraryServerHtml implements Runnable {
 
 		// TODO: javascript in realtime, using visible=false + hide [submit]
 
-		StringBuilder selects = new StringBuilder();
+		List<Template> selects = new ArrayList<Template>();
 		boolean sourcesSel = false;
 		boolean authorsSel = false;
 		boolean tagsSel = false;
 
-		String selectTemplate = getTemplate("browser.select");
-
 		if (!browser.isEmpty()) {
-			StringBuilder options = new StringBuilder();
+			List<Template> options = new ArrayList<Template>();
 
 			if (browser.equals("sources")) {
 				sourcesSel = true;
@@ -389,8 +389,8 @@ abstract class WebLibraryServerHtml implements Runnable {
 				// TODO: if 1 group -> no group
 				Map<String, List<String>> sources = result.getSourcesGrouped();
 				for (String source : sources.keySet()) {
-					options.append(
-							getTemplateBrowserOption(source, source, browser2));
+					options.add(
+							templates.browserOption(source, source, browser2));
 				}
 			} else if (browser.equals("authors")) {
 				authorsSel = true;
@@ -399,28 +399,23 @@ abstract class WebLibraryServerHtml implements Runnable {
 				// TODO: if 1 group -> no group
 				Map<String, List<String>> authors = result.getAuthorsGrouped();
 				for (String author : authors.keySet()) {
-					options.append(
-							getTemplateBrowserOption(author, author, browser2));
+					options.add(
+							templates.browserOption(author, author, browser2));
 				}
 			} else if (browser.equals("tags")) {
 				tagsSel = true;
 				filterTag = browser2.isEmpty() ? filterTag : browser2;
 
 				for (String tag : result.getTags()) {
-					options.append(
-							getTemplateBrowserOption(tag, tag, browser2));
+					options.add(templates.browserOption(tag, tag, browser2));
 				}
 			}
 
-			selects.append(selectTemplate //
-					.replace("${name}", "browser2") //
-					.replace("${value}", browser2) //
-					.replace("${options}", options.toString()) //
-			);
+			selects.add(templates.browserSelect("browser2", browser2, options));
 		}
 
 		if (!browser2.isEmpty()) {
-			StringBuilder options = new StringBuilder();
+			List<Template> options = new ArrayList<Template>();
 
 			if (browser.equals("sources")) {
 				filterSource = browser3.isEmpty() ? filterSource : browser3;
@@ -430,7 +425,7 @@ abstract class WebLibraryServerHtml implements Runnable {
 				if (sources != null && !sources.isEmpty()) {
 					// TODO: single empty value
 					for (String source : sources) {
-						options.append(getTemplateBrowserOption(source, source,
+						options.add(templates.browserOption(source, source,
 								browser3));
 					}
 				}
@@ -442,29 +437,16 @@ abstract class WebLibraryServerHtml implements Runnable {
 				if (authors != null && !authors.isEmpty()) {
 					// TODO: single empty value
 					for (String author : authors) {
-						options.append(getTemplateBrowserOption(author, author,
+						options.add(templates.browserOption(author, author,
 								browser3));
 					}
 				}
 			}
 
-			selects.append(selectTemplate //
-					.replace("${name}", "browser3") //
-					.replace("${value}", browser3) //
-					.replace("${options}", options.toString()) //
-			);
+			selects.add(templates.browserSelect("browser3", browser3, options));
 		}
 
-		String sel = "selected='selected'";
-		builder.append(getTemplate("browser") //
-				.replace("${sourcesSelected}", sourcesSel ? sel : "") //
-				.replace("${authorsSelected}", authorsSel ? sel : "") //
-				.replace("${tagsSelected}", tagsSel ? sel : "") //
-				.replace("${filter}", filter) //
-				.replace("${selects}", selects.toString()) //
-		);
-
-		builder.append("\t\t<div class='books'>\n");
+		List<Template> booklines = new ArrayList<Template>();
 		for (MetaData meta : result.getMetas()) {
 			if (!filter.isEmpty() && !meta.getTitle().toLowerCase()
 					.contains(filter.toLowerCase())) {
@@ -492,29 +474,20 @@ abstract class WebLibraryServerHtml implements Runnable {
 				author = "(" + meta.getAuthor() + ")";
 			}
 
-			String cachedClass = "cached";
-			String cached = "&#9673;";
-			if (!lib.isCached(meta.getLuid())) {
-				cachedClass = "uncached";
-				cached = "&#9675;";
-			}
-
-			builder.append(getTemplate("bookline") //
-					.replace("${href}",
-							WebLibraryUrls.getViewUrl(meta.getLuid(), null,
-									null)) //
-					.replace("${luid}", meta.getLuid()) //
-					.replace("${title}", meta.getTitle()) //
-					.replace("${author}", author) //
-					.replace("${cachedClass}", cachedClass) //
-					.replace("${cached}", cached) //
-			);
+			booklines.add(templates.bookline( //
+					meta.getLuid(), //
+					WebLibraryUrls.getViewUrl(meta.getLuid(), null, null), //
+					meta.getTitle(), //
+					author, //
+					lib.isCached(meta.getLuid()) //
+			));
 		}
-		builder.append("\t\t</div>\n");
 
-		builder.append(getTemplate("index.post"));
-
-		return NanoHTTPD.newFixedLengthResponse(builder.toString());
+		// Add the browser in front of the booklines
+		booklines.add(0, templates.browser(browser, filter, selects));
+		
+		return newInputStreamResponse(NanoHTTPD.MIME_HTML,
+				templates.index(true, booklines).read());
 	}
 
 	private Response getViewer(Map<String, String> cookies, String uri,
@@ -848,20 +821,6 @@ abstract class WebLibraryServerHtml implements Runnable {
 		}
 
 		return html;
-	}
-
-	private String getTemplateBrowserOption(String name, String value,
-			String selected) throws IOException {
-		String selectedAttribute = "";
-		if (value.equals(selected)) {
-			selectedAttribute = " selected='selected'";
-		}
-
-		return getTemplate("browser.option" //
-				.replace("${value}", value) //
-				.replace("${selected}", selectedAttribute) //
-				.replace("${name}", name) //
-		);
 	}
 
 	private String getTemplate(String template) throws IOException {
