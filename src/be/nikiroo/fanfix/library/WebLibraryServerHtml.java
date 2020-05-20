@@ -247,6 +247,12 @@ abstract class WebLibraryServerHtml implements Runnable {
 									mimeType = "text/html";
 								} else if (uri.endsWith(".js")) {
 									mimeType = "text/javascript";
+								} else if (uri.endsWith(".png")) {
+									mimeType = "image/png";
+								} else if (uri.endsWith(".ico")) {
+									mimeType = "image/x-icon";
+								} else if (uri.endsWith(".java")) {
+									mimeType = "text/plain";
 								}
 								rep = newChunkedResponse(Status.OK, mimeType,
 										in);
