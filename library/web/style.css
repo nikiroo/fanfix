@@ -47,13 +47,9 @@ html, body, .main {
 	margin: 10px;
 }
 
-.error {
+.message.error {
 	background-color: #ffdddd;
 	border: 1px solid #dd8888;
-	clear: left;
-	border-radius: 5px;
-	padding: 5px;
-	margin: 10px;
 }
 
 /* all links and clickable should show a pointer cursor */

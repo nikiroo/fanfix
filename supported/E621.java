@@ -62,14 +62,11 @@ class E621 extends BasicSupport {
 		meta.setAuthor(getAuthor());
 		meta.setDate(bsHelper.formatDate(getDate()));
 		meta.setTags(getTags());
-		meta.setSource(getType().getSourceName());
 		meta.setUrl(getSource().toString());
-		meta.setPublisher(getType().getSourceName());
 		meta.setUuid(getSource().toString());
 		meta.setLuid("");
 		meta.setLang("en");
 		meta.setSubject("Furry");
-		meta.setType(getType().toString());
 		meta.setImageDocument(true);
 		meta.setCover(getCover());
 		meta.setFakeCover(true);
@@ -81,15 +78,20 @@ class E621 extends BasicSupport {
 	protected String getDesc() throws IOException {
 		if (isSearchOrSet(getSource())) {
 			StringBuilder builder = new StringBuilder();
+			builder.append("<div>");
 			builder.append("A collection of images from ")
-					.append(getSource().getHost()).append("\n") //
-					.append("\tTime of creation: "
+					.append(getSource().getHost()) //
+					.append("<br/>\n") //
+					.append("&nbsp;&nbsp;&nbsp;&nbsp;Time of creation: "
 							+ StringUtils.fromTime(new Date().getTime()))
-					.append("\n") //
-					.append("\tTags: ");//
+					.append("<br/>\n") //
+					.append("&nbsp;&nbsp;&nbsp;&nbsp;tTags: ");//
 			for (String tag : getTags()) {
-				builder.append("\t\t").append(tag);
+				builder.append(
+						"\n<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
+						.append(tag);
 			}
+			builder.append("\n</div>");
 
 			return builder.toString();
 		}
@@ -97,7 +99,7 @@ class E621 extends BasicSupport {
 		if (isPool(getSource())) {
 			Element el = getSourceNode().getElementById("description");
 			if (el != null) {
-				return el.text();
+				return el.html();
 			}
 		}
 

@@ -203,7 +203,12 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 			pg.setProgress(30);
 
 			Story story = new Story();
+			
 			MetaData meta = getMeta(url, getInput());
+			meta.setType(getType().toString());
+			meta.setSource(getType().getSourceName());
+			meta.setPublisher(getType().getSourceName());
+			
 			if (meta.getCreationDate() == null
 					|| meta.getCreationDate().trim().isEmpty()) {
 				meta.setCreationDate(bsHelper.formatDate(

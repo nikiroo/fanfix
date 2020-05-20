@@ -34,14 +34,11 @@ class YiffStar extends BasicSupport_Deprecated {
 		meta.setAuthor(getAuthor(reset(in)));
 		meta.setDate("");
 		meta.setTags(getTags(reset(in)));
-		meta.setSource(getType().getSourceName());
 		meta.setUrl(source.toString());
-		meta.setPublisher(getType().getSourceName());
 		meta.setUuid(source.toString());
 		meta.setLuid("");
 		meta.setLang("en");
 		meta.setSubject("Furry");
-		meta.setType(getType().toString());
 		meta.setImageDocument(false);
 		meta.setCover(getCover(source, reset(in)));
 
