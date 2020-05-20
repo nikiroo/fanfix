@@ -41,6 +41,7 @@ public class BufferedInputStream extends InputStream {
 	private boolean closed;
 	private InputStream in;
 	private int openCounter;
+	private byte[] singleByteReader = new byte[1];
 
 	/** array + offset of pushed-back buffers */
 	private List<Entry<byte[], Integer>> backBuffers;
@@ -48,7 +49,7 @@ public class BufferedInputStream extends InputStream {
 	private long bytesRead;
 
 	/**
-	 * Create a new {@link BufferedInputStream2} that wraps the given
+	 * Create a new {@link BufferedInputStream} that wraps the given
 	 * {@link InputStream}.
 	 * 
 	 * @param in
@@ -64,8 +65,8 @@ public class BufferedInputStream extends InputStream {
 	}
 
 	/**
-	 * Create a new {@link BufferedInputStream2} that wraps the given bytes
-	 * array as a data source.
+	 * Create a new {@link BufferedInputStream} that wraps the given bytes array
+	 * as a data source.
 	 * 
 	 * @param in
 	 *            the array to wrap, cannot be NULL
@@ -75,8 +76,8 @@ public class BufferedInputStream extends InputStream {
 	}
 
 	/**
-	 * Create a new {@link BufferedInputStream2} that wraps the given bytes
-	 * array as a data source.
+	 * Create a new {@link BufferedInputStream} that wraps the given bytes array
+	 * as a data source.
 	 * 
 	 * @param in
 	 *            the array to wrap, cannot be NULL
@@ -107,9 +108,9 @@ public class BufferedInputStream extends InputStream {
 	}
 
 	/**
-	 * Return this very same {@link BufferedInputStream2}, but keep a counter of
+	 * Return this very same {@link BufferedInputStream}, but keep a counter of
 	 * how many streams were open this way. When calling
-	 * {@link BufferedInputStream2#close()}, decrease this counter if it is not
+	 * {@link BufferedInputStream#close()}, decrease this counter if it is not
 	 * already zero instead of actually closing the stream.
 	 * <p>
 	 * You are now responsible for it &mdash; you <b>must</b> close it.
@@ -281,14 +282,11 @@ public class BufferedInputStream extends InputStream {
 
 	@Override
 	public int read() throws IOException {
-		checkClose();
-
-		preRead();
-		if (eof) {
+		if (read(singleByteReader) < 0) {
 			return -1;
 		}
 
-		return buffer[start++];
+		return singleByteReader[0];
 	}
 
 	@Override
@@ -309,6 +307,10 @@ public class BufferedInputStream extends InputStream {
 		}
 
 		// Read from the pushed-back buffers if any
+		if (backBuffers.isEmpty()) {
+			preRead(); // an implementation could pushback in preRead()
+		}
+		
 		if (!backBuffers.isEmpty()) {
 			int read = 0;
 
@@ -317,7 +319,7 @@ public class BufferedInputStream extends InputStream {
 			byte[] bbBuffer = bb.getKey();
 			int bbOffset = bb.getValue();
 			int bbSize = bbBuffer.length - bbOffset;
-
+			
 			if (bbSize > blen) {
 				read = blen;
 				System.arraycopy(bbBuffer, bbOffset, b, boff, read);
@@ -402,11 +404,11 @@ public class BufferedInputStream extends InputStream {
 	 * <p>
 	 * Including the under-laying {@link InputStream}.
 	 * <p>
-	 * <b>Note:</b> if you called the {@link BufferedInputStream2#open()} method
+	 * <b>Note:</b> if you called the {@link BufferedInputStream#open()} method
 	 * prior to this one, it will just decrease the internal count of how many
 	 * open streams it held and do nothing else. The stream will actually be
-	 * closed when you have called {@link BufferedInputStream2#close()} once
-	 * more than {@link BufferedInputStream2#open()}.
+	 * closed when you have called {@link BufferedInputStream#close()} once more
+	 * than {@link BufferedInputStream#open()}.
 	 * 
 	 * @exception IOException
 	 *                in case of I/O error
@@ -426,11 +428,11 @@ public class BufferedInputStream extends InputStream {
 	 * You can call this method multiple times, it will not cause an
 	 * {@link IOException} for subsequent calls.
 	 * <p>
-	 * <b>Note:</b> if you called the {@link BufferedInputStream2#open()} method
+	 * <b>Note:</b> if you called the {@link BufferedInputStream#open()} method
 	 * prior to this one, it will just decrease the internal count of how many
 	 * open streams it held and do nothing else. The stream will actually be
-	 * closed when you have called {@link BufferedInputStream2#close()} once
-	 * more than {@link BufferedInputStream2#open()}.
+	 * closed when you have called {@link BufferedInputStream#close()} once more
+	 * than {@link BufferedInputStream#open()}.
 	 * 
 	 * @param includingSubStream
 	 *            also close the under-laying stream
@@ -511,7 +513,7 @@ public class BufferedInputStream extends InputStream {
 		boolean hasRead = false;
 		if (in != null && !eof && start >= stop) {
 			start = 0;
-			stop = read(in, buffer, 0, buffer.length);
+			stop = read(in, buffer);
 			if (stop > 0) {
 				bytesRead += stop;
 			}
@@ -540,25 +542,42 @@ public class BufferedInputStream extends InputStream {
 	}
 
 	/**
+	 * Push back some data that will be read again at the next read call.
+	 * 
+	 * @param buffer
+	 *            the buffer to push back
+	 * @param offset
+	 *            the offset at which to start reading in the buffer
+	 * @param len
+	 *            the length to copy
+	 */
+	protected void pushback(byte[] buffer, int offset, int len) {
+		// TODO: not efficient!
+		if (buffer.length != len) {
+			byte[] lenNotSupportedYet = new byte[len];
+			System.arraycopy(buffer, offset, lenNotSupportedYet, 0, len);
+			buffer = lenNotSupportedYet;
+			offset = 0;
+		}
+
+		pushback(buffer, offset);
+	}
+
+	/**
 	 * Read the under-laying stream into the given local buffer.
 	 * 
 	 * @param in
 	 *            the under-laying {@link InputStream}
 	 * @param buffer
-	 *            the buffer we use in this {@link BufferedInputStream2}
-	 * @param off
-	 *            the offset
-	 * @param len
-	 *            the length in bytes
+	 *            the buffer we use in this {@link BufferedInputStream}
 	 * 
 	 * @return the number of bytes read
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	protected int read(InputStream in, byte[] buffer, int off, int len)
-			throws IOException {
-		return in.read(buffer, off, len);
+	protected int read(InputStream in, byte[] buffer) throws IOException {
+		return in.read(buffer, 0, buffer.length);
 	}
 
 	/**
