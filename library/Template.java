@@ -70,7 +70,7 @@ public class Template {
 	}
 
 	public synchronized Template set(String key, String value) {
-		values.put(key, value == null ? "" : key);
+		values.put(key, value == null ? "" : value);
 		valuesTemplate.remove(key);
 		valuesTemplateList.remove(key);
 		return this;
