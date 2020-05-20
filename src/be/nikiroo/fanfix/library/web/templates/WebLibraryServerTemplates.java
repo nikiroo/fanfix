@@ -34,6 +34,45 @@ public class WebLibraryServerTemplates {
 		;
 	}
 
+	public Template index(boolean banner, List<Template> content) {
+		String favicon = "favicon.ico";
+		String icon = Instance.getInstance().getUiConfig()
+				.getString(UiConfig.PROGRAM_ICON);
+		if (icon != null) {
+			favicon = "icon_" + icon.replace("-", "_") + ".png";
+		}
+
+		Template index = new Template(getClass(), "index.html") //
+				.set("title", "Fanfix") //
+				.set("favicon", favicon) //
+				.set("content", content) //
+		;
+
+		if (banner) {
+			index.set("banner", new Template(getClass(), "index.banner.html") //
+					.set("favicon", favicon) //
+					.set("version", Version.getCurrentVersion().toString()) //
+			);
+		} else {
+			index.set("banner", "");
+		}
+
+		return index;
+	}
+
+	public Template login(String url) {
+		return new Template(getClass(), "login.html") //
+				.set("url", url) //
+		;
+	}
+
+	public Template message(String message, boolean error) {
+		return new Template(getClass(), "message.html") //
+				.set("class", error ? "message error" : "message") //
+				.set("message", message) //
+		;
+	}
+
 	public Template browser(String selectedValue, String filter,
 			List<Template> selects) {
 		return new Template(getClass(), "browser.html") //
@@ -69,32 +108,6 @@ public class WebLibraryServerTemplates {
 				.set("value", value) //
 				.set("options", options) //
 		;
-	}
-
-	public Template index(boolean banner, List<Template> content) {
-		String favicon = "favicon.ico";
-		String icon = Instance.getInstance().getUiConfig()
-				.getString(UiConfig.PROGRAM_ICON);
-		if (icon != null) {
-			favicon = "icon_" + icon.replace("-", "_") + ".png";
-		}
-
-		Template index = new Template(getClass(), "index.html") //
-				.set("title", "Fanfix") //
-				.set("favicon", favicon) //
-				.set("content", content) //
-		;
-
-		if (banner) {
-			index.set("banner", new Template(getClass(), "index.banner.html") //
-					.set("favicon", favicon) //
-					.set("version", Version.getCurrentVersion().toString()) //
-			);
-		} else {
-			index.set("banner", "");
-		}
-
-		return index;
 	}
 
 	public Template viewer(Template browser, List<Template> booklines) {

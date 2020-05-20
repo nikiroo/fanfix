@@ -1,6 +1,5 @@
 package be.nikiroo.fanfix.library;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -8,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import be.nikiroo.utils.IOUtils;
-import be.nikiroo.utils.StringUtils;
 import be.nikiroo.utils.streams.ReplaceInputStream;
 
 public class Template {
@@ -60,26 +58,24 @@ public class Template {
 					valueOne.close();
 				}
 			}
+
 			from[i] = "${" + key + "}";
 			to[i] = value.toString();
 
 			i++;
 		}
-
+		
 		InputStream in = IOUtils.openResource(location, name);
 		
-		//TODO: pending fix in replace stream
-		String data = IOUtils.readSmallStream(in);
-		in.close();
-		for(i = 0 ; i < from.length;i++) {
-			data=data.replace(from[i], to[i]);
-		}
+		InputStream stream;
 		
-		//in = new ReplaceInputStream(in, from, to);
-		in = new ByteArrayInputStream(StringUtils.getBytes(data));
-		// END TODO
+		stream = IOUtils.openResource(location, name);
+		System.out.println("SOURCE = (("  + IOUtils.readSmallStream(stream) + "))");
+		stream=new ReplaceInputStream(IOUtils.openResource(location, name), from, to);
+		System.out.println("RESULT = (("  + IOUtils.readSmallStream(stream) + "))");
 		
-		return in;
+		
+		return new ReplaceInputStream(in, from, to);
 	}
 
 	public synchronized Template set(String key, String value) {

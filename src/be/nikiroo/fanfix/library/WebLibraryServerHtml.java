@@ -316,35 +316,18 @@ abstract class WebLibraryServerHtml implements Runnable {
 
 	private Response loginPage(WLoginResult login, String uri)
 			throws IOException {
-		StringBuilder builder = new StringBuilder();
-
-		builder.append(getTemplateIndexPreBanner(true));
+		List<Template> content = new ArrayList<Template>();
 
 		if (login.isBadLogin()) {
-			builder.append(
-					"\t\t<div class='error'>Bad login or password</div>");
+			content.add(templates.message("Bad login or password", true));
 		} else if (login.isBadCookie()) {
-			builder.append(
-					"\t\t<div class='error'>Your session timed out</div>");
+			content.add(templates.message("Your session timed out", true));
 		}
 
-		if (WebLibraryUrls.LOGOUT_URL.equals(uri)) {
-			uri = WebLibraryUrls.INDEX_URL;
-		}
+		content.add(templates.login(uri));
 
-		builder.append("\t\t<form method='POST' action='" + uri
-				+ "' class='login'>\n");
-		builder.append(
-				"\t\t\t<p>You must be logged into the system to see the stories.</p>");
-		builder.append("\t\t\t<input type='text' name='login' />\n");
-		builder.append("\t\t\t<input type='password' name='password' />\n");
-		builder.append("\t\t\t<input type='submit' value='Login' />\n");
-		builder.append("\t\t</form>\n");
-
-		builder.append(getTemplate("index.post"));
-
-		return NanoHTTPD.newFixedLengthResponse(Status.FORBIDDEN,
-				NanoHTTPD.MIME_HTML, builder.toString());
+		return NanoHTTPD.newChunkedResponse(Status.FORBIDDEN,
+				NanoHTTPD.MIME_HTML, templates.index(true, content).read());
 	}
 
 	private Response root(IHTTPSession session, Map<String, String> cookies,
@@ -485,7 +468,7 @@ abstract class WebLibraryServerHtml implements Runnable {
 
 		// Add the browser in front of the booklines
 		booklines.add(0, templates.browser(browser, filter, selects));
-		
+
 		return newInputStreamResponse(NanoHTTPD.MIME_HTML,
 				templates.index(true, booklines).read());
 	}
