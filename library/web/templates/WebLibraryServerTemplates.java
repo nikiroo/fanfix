@@ -7,9 +7,19 @@ import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.library.Template;
 import be.nikiroo.utils.Version;
 
+/**
+ * Utility class to retrieve and fill HTML templates for Fanfix web server.
+ * 
+ * @author niki
+ */
 public class WebLibraryServerTemplates {
 	static private WebLibraryServerTemplates instance = new WebLibraryServerTemplates();
 
+	/**
+	 * Get the (unique) instance of this {@link WebLibraryServerTemplates}.
+	 * 
+	 * @return the (unique) instance
+	 */
 	static public WebLibraryServerTemplates getInstance() {
 		return instance;
 	}
@@ -110,9 +120,21 @@ public class WebLibraryServerTemplates {
 		;
 	}
 
-	public Template viewer(Template browser, List<Template> booklines) {
-		// TODO
-		return null;
+	public Template viewerDesc(String title, String href, String cover,
+			List<Template> desclines) {
+		return new Template(getClass(), "viewer.desc.html") //
+				.set("title", title) //
+				.set("href", href) //
+				.set("cover", cover) //
+				.set("details", desclines) //
+		;
+	}
+
+	public Template viewerDescline(String key, String value) {
+		return new Template(getClass(), "viewer.descline.html") //
+				.set("key", key) //
+				.set("value", value) //
+		;
 	}
 
 	public Template viewerImage(String src, String href, String zoomStyle) {
@@ -123,17 +145,17 @@ public class WebLibraryServerTemplates {
 		;
 	}
 
-	public Template viewerText(List<Template> desc, List<Template> content) {
+	public Template viewerText(Template desc, String content) {
 		return new Template(getClass(), "viewer.text.html") //
 				.set("desc", desc) //
 				.set("content", content) //
 		;
 	}
 
-	public Template viewerLink(String name, String link, String className) {
+	public Template viewerLink(String name, String link, boolean selected) {
 		return new Template(getClass(), "viewer.link.html") //
 				.set("link", link) //
-				.set("class", className) //
+				.set("class", selected ? "selected" : "") //
 				.set("name", name) //
 		;
 	}
@@ -158,7 +180,7 @@ public class WebLibraryServerTemplates {
 		;
 	}
 
-	// numberOfButtons = 4 or 1 or the moment
+	// supported numberOfButtons = 4 or 1 or the moment
 	public Template viewerOptionbar(int numberOfButtons,
 			List<Template> buttons) {
 		return new Template(getClass(), "viewer.optionbar.html") //

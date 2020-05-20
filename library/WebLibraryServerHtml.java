@@ -16,7 +16,6 @@ import javax.net.ssl.SSLServerSocketFactory;
 
 import be.nikiroo.fanfix.Instance;
 import be.nikiroo.fanfix.bundles.Config;
-import be.nikiroo.fanfix.bundles.UiConfig;
 import be.nikiroo.fanfix.data.Chapter;
 import be.nikiroo.fanfix.data.MetaData;
 import be.nikiroo.fanfix.data.Paragraph;
@@ -543,14 +542,13 @@ abstract class WebLibraryServerHtml implements Runnable {
 
 			String first, previous, next, last;
 
-			String viewer = "";
+			boolean disabledLeft = false;
+			boolean disabledRight = false;
+			boolean disabledZoomReal = false;
+			boolean disabledZoomWidth = false;
+			boolean disabledZoomHeight = false;
 
-			String disabledLeft = "";
-			String disabledRight = "";
-			String disabledZoomReal = "";
-			String disabledZoomWidth = "";
-			String disabledZoomHeight = "";
-
+			Template viewerItem = null;
 			if (paragraph <= 0) {
 				first = WebLibraryUrls.getViewUrl(luid, 0, null);
 				previous = WebLibraryUrls.getViewUrl(luid,
@@ -561,42 +559,37 @@ abstract class WebLibraryServerHtml implements Runnable {
 				last = WebLibraryUrls.getViewUrl(luid,
 						story.getChapters().size(), null);
 
-				String desc = "";
+				Template desc = null;
 				if (chapter <= 0) {
-					StringBuilder desclines = new StringBuilder();
+					List<Template> desclines = new ArrayList<Template>();
 					Map<String, String> details = BasicLibrary
 							.getMetaDesc(story.getMeta());
 					for (String key : details.keySet()) {
-						desclines.append(getTemplate("viewer.descline") //
-								.replace("${key}", key) //
-								.replace("${value}", details.get(key)) //
-						);
+						desclines.add(templates.viewerDescline(key,
+								details.get(key)));
 					}
 
-					desc = getTemplate("viewer.desc") //
-							.replace("${title}", story.getMeta().getTitle()) //
-							.replace("${href}", next) //
-							.replace("${cover}",
-									WebLibraryUrls.getStoryUrlCover(luid)) //
-							.replace("${details}", desclines.toString()) //
-					;
+					desc = templates.viewerDesc( //
+							story.getMeta().getTitle(), //
+							next, //
+							WebLibraryUrls.getStoryUrlCover(luid), //
+							desclines //
+					);
 				}
 
-				viewer = getTemplate("viewer.text") //
-						.replace("${desc}", desc) //
-				;
+				String content;
 				if (chap.getParagraphs().size() <= 0) {
-					viewer = viewer.replace("${content}",
-							"No content provided.");
+					content = "No content provided.";
 				} else {
-					viewer = viewer.replace("${content}",
-							new TextOutput(false).convert(chap, chapter > 0));
+					content = new TextOutput(false).convert(chap, chapter > 0);
 				}
+
+				viewerItem = templates.viewerText(desc, content);
 
 				if (chapter <= 0)
-					disabledLeft = " disabled='disbaled'";
+					disabledLeft = true;
 				if (chapter >= story.getChapters().size())
-					disabledRight = " disabled='disbaled'";
+					disabledRight = true;
 			} else {
 				first = WebLibraryUrls.getViewUrl(luid, chapter, 1);
 				previous = WebLibraryUrls.getViewUrl(luid, chapter,
@@ -607,13 +600,13 @@ abstract class WebLibraryServerHtml implements Runnable {
 						chap.getParagraphs().size());
 
 				if (paragraph <= 1)
-					disabledLeft = " disabled='disbaled'";
+					disabledLeft = true;
 				if (paragraph >= chap.getParagraphs().size())
-					disabledRight = " disabled='disbaled'";
+					disabledRight = true;
 
 				// First -> previous *chapter*
 				if (chapter > 0)
-					disabledLeft = "";
+					disabledLeft = false;
 				first = WebLibraryUrls.getViewUrl(luid,
 						(Math.max(chapter - 1, 0)), null);
 				if (paragraph <= 1) {
@@ -631,56 +624,47 @@ abstract class WebLibraryServerHtml implements Runnable {
 
 				if (para.getType() == ParagraphType.IMAGE) {
 					String zoomStyle = "max-width: 100%;";
-					disabledZoomWidth = " disabled='disabled'";
+					disabledZoomWidth = true;
 					String zoomOption = cookies.get("zoom");
 					if (zoomOption != null && !zoomOption.isEmpty()) {
 						if (zoomOption.equals("real")) {
 							zoomStyle = "";
-							disabledZoomWidth = "";
-							disabledZoomReal = " disabled='disabled'";
+							disabledZoomWidth = false;
+							disabledZoomReal = true;
 						} else if (zoomOption.equals("width")) {
 							zoomStyle = "max-width: 100%;";
 						} else if (zoomOption.equals("height")) {
 							// see height of navbar + optionbar
 							zoomStyle = "max-height: calc(100% - 128px);";
-							disabledZoomWidth = "";
-							disabledZoomHeight = " disabled='disabled'";
+							disabledZoomWidth = false;
+							disabledZoomHeight = true;
 						}
 					}
 
-					viewer = getTemplate("viewer.image") //
-							.replace("${href}", next) //
-							.replace("${zoomStyle}", zoomStyle) //
-							.replace("${src}", WebLibraryUrls.getStoryUrl(luid,
-									chapter, paragraph)) //
-					;
+					viewerItem = templates.viewerImage(WebLibraryUrls
+							.getStoryUrl(luid, chapter, paragraph), next,
+							zoomStyle);
 				} else {
-					viewer = getTemplate("viewer.text") //
-							.replace("${desc}", "") //
-							.replace("${content}",
-									new TextOutput(false).convert(para)) //
-					;
+					viewerItem = templates.viewerText(null,
+							new TextOutput(false).convert(para));
 				}
 			}
 
-			// List of chap/para links
-			StringBuilder links = new StringBuilder();
-			links.append(getTemplate("viewer.link") //
-					.replace("${link}",
-							WebLibraryUrls.getViewUrl(luid, 0, null)) //
-					.replace("${class}",
-							paragraph == 0 && chapter == 0 ? "selected" : "") //
-					.replace("${name}", "Description") //
-			);
+			// List of chap/para links for navbar
+
+			List<Template> links = new ArrayList<Template>();
+			links.add(templates.viewerLink( //
+					"Description", //
+					WebLibraryUrls.getViewUrl(luid, 0, null), //
+					paragraph == 0 && chapter == 0 //
+			));
 			if (paragraph > 0) {
 				for (int i = 1; i <= chap.getParagraphs().size(); i++) {
-					links.append(getTemplate("viewer.link") //
-							.replace("${link}",
-									WebLibraryUrls.getViewUrl(luid, chapter, i)) //
-							.replace("${class}",
-									paragraph == i ? "selected" : "") //
-							.replace("${name}", "Image " + i) //
-					);
+					links.add(templates.viewerLink( //
+							"Image " + i, //
+							WebLibraryUrls.getViewUrl(luid, chapter, i), //
+							paragraph == i //
+					));
 				}
 			} else {
 				int i = 1;
@@ -690,81 +674,63 @@ abstract class WebLibraryServerHtml implements Runnable {
 						chapName += ": " + c.getName();
 					}
 
-					links.append(getTemplate("viewer.link") //
-							.replace("${link}",
-									WebLibraryUrls.getViewUrl(luid, i, null)) //
-							.replace("${class}", chapter == i ? "selected" : "") //
-							.replace("${name}", chapName) //
-					);
+					links.add(templates.viewerLink( //
+							chapName, //
+							WebLibraryUrls.getViewUrl(luid, i, null), //
+							chapter == i //
+					));
 
 					i++;
 				}
 			}
 
+			// Navbar
+
+			Template navbar = templates.viewerNavbar( //
+					paragraph > 0 ? paragraph : chapter, //
+					links, //
+					first, //
+					previous, //
+					next, //
+					last, //
+					disabledLeft, //
+					disabledLeft, //
+					disabledRight, //
+					disabledRight //
+			);
+
 			// Buttons on the optionbar
 
-			StringBuilder buttons = new StringBuilder();
-			buttons.append(getTemplate("viewer.optionbar.button") //
-					.replace("${disabled}", "") //
-					.replace("${class}", "back") //
-					.replace("${href}", "/") //
-					.replace("${value}", "Back") //
-			);
+			List<Template> buttons = new ArrayList<Template>();
+			buttons.add(templates.viewerOptionbarButton( //
+					"Back", "/", "back", false));
 			if (paragraph > 0) {
-				buttons.append(getTemplate("viewer.optionbar.button") //
-						.replace("${disabled}", disabledZoomReal) //
-						.replace("${class}", "zoomreal") //
-						.replace("${href}",
-								uri + "?optionName=zoom&optionValue=real") //
-						.replace("${value}", "1:1") //
-				);
-				buttons.append(getTemplate("viewer.optionbar.button") //
-						.replace("${disabled}", disabledZoomWidth) //
-						.replace("${class}", "zoomwidth") //
-						.replace("${href}",
-								uri + "?optionName=zoom&optionValue=width") //
-						.replace("${value}", "Width") //
-				);
-				buttons.append(getTemplate("viewer.optionbar.button") //
-						.replace("${disabled}", disabledZoomHeight) //
-						.replace("${class}", "zoomheight") //
-						.replace("${href}",
-								uri + "?optionName=zoom&optionValue=height") //
-						.replace("${value}", "Height") //
-				);
+				buttons.add(templates.viewerOptionbarButton( //
+						"1:1", uri + "?optionName=zoom&optionValue=real",
+						"zoomreal", disabledZoomReal));
+				buttons.add(templates.viewerOptionbarButton( //
+						"Width", uri + "?optionName=zoom&optionValue=width",
+						"zoomwidth", disabledZoomWidth));
+				buttons.add(templates.viewerOptionbarButton( //
+						"Height", uri + "?optionName=zoom&optionValue=height",
+						"zoomHeight", disabledZoomHeight));
 			}
+
+			// Optionbar
+
+			Template optionbar = templates.viewerOptionbar( //
+					(paragraph > 0) ? 4 : 1, //
+					buttons //
+			);
 
 			// Full content
 
-			StringBuilder builder = new StringBuilder();
-
-			builder.append(getTemplateIndexPreBanner(false));
-
-			builder.append(getTemplate("viewer.navbar") //
-					.replace("${disabledFirst}", disabledLeft) //
-					.replace("${disabledPrevious}", disabledLeft) //
-					.replace("${disabledNext}", disabledRight) //
-					.replace("${disabledLast}", disabledRight) //
-					.replace("${hrefFirst}", first) //
-					.replace("${hrefPrevious}", previous) //
-					.replace("${hrefNext}", next) //
-					.replace("${hrefLast}", last) //
-					.replace("${current}",
-							"" + (paragraph > 0 ? paragraph : chapter)) //
-					.replace("${links}", links.toString()) //
-			);
-
-			builder.append(viewer);
-
-			builder.append(getTemplate("viewer.optionbar") //
-					.replace("${classSize}", (paragraph > 0 ? "s4" : "s1")) //
-					.replace("${buttons}", buttons.toString()) //
-			);
-
-			builder.append(getTemplate("index.post"));
-
-			return NanoHTTPD.newFixedLengthResponse(Status.OK,
-					NanoHTTPD.MIME_HTML, builder.toString());
+			return newInputStreamResponse(NanoHTTPD.MIME_HTML, //
+					templates.index(false, Arrays.asList( //
+							navbar, //
+							viewerItem, //
+							optionbar //
+					)).read());
 		} catch (IOException e) {
 			Instance.getInstance().getTraceHandler()
 					.error(new IOException("Cannot get image: " + uri, e));
@@ -779,41 +745,5 @@ abstract class WebLibraryServerHtml implements Runnable {
 					null);
 		}
 		return NanoHTTPD.newChunkedResponse(Status.OK, mimeType, in);
-	}
-
-	private String getTemplateIndexPreBanner(boolean banner)
-			throws IOException {
-		String favicon = "favicon.ico";
-		String icon = Instance.getInstance().getUiConfig()
-				.getString(UiConfig.PROGRAM_ICON);
-		if (icon != null) {
-			favicon = "icon_" + icon.replace("-", "_") + ".png";
-		}
-
-		String html = getTemplate("index.pre") //
-				.replace("${title}", "Fanfix") //
-				.replace("${favicon}", favicon) //
-		;
-
-		if (banner) {
-			html += getTemplate("index.banner") //
-					.replace("${favicon}", favicon) //
-					.replace("${version}",
-							Version.getCurrentVersion().toString()) //
-			;
-		}
-
-		return html;
-	}
-
-	private String getTemplate(String template) throws IOException {
-		// TODO: check if it is "slow" -> map cache
-		InputStream in = IOUtils.openResource(WebLibraryServerTemplates.class,
-				template + ".html");
-		try {
-			return IOUtils.readSmallStream(in);
-		} finally {
-			in.close();
-		}
 	}
 }

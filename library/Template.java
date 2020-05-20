@@ -64,22 +64,27 @@ public class Template {
 
 			i++;
 		}
-		
+
 		InputStream in = IOUtils.openResource(location, name);
 		return new ReplaceInputStream(in, from, to);
 	}
 
 	public synchronized Template set(String key, String value) {
-		values.put(key, value);
+		values.put(key, value == null ? "" : key);
 		valuesTemplate.remove(key);
 		valuesTemplateList.remove(key);
 		return this;
 	}
 
 	public synchronized Template set(String key, Template value) {
+		if (value == null) {
+			return set(key, "");
+		}
+
 		values.remove(key);
 		valuesTemplate.put(key, value);
 		valuesTemplateList.remove(key);
+
 		return this;
 	}
 
