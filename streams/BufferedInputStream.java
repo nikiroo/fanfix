@@ -2,7 +2,10 @@ package be.nikiroo.utils.streams;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 
 import be.nikiroo.utils.StringUtils;
 
@@ -18,10 +21,11 @@ import be.nikiroo.utils.StringUtils;
 public class BufferedInputStream extends InputStream {
 	/**
 	 * The size of the internal buffer (can be different if you pass your own
-	 * buffer, of course).
+	 * buffer, of course, and can also expand to search for longer "startsWith"
+	 * data).
 	 * <p>
-	 * A second buffer of twice the size can sometimes be created as needed for
-	 * the {@link BufferedInputStream#startsWith(byte[])} search operation.
+	 * Note that special "push-back" buffers can also be created during the life
+	 * of this stream.
 	 */
 	static private final int BUFFER_SIZE = 4096;
 
@@ -37,12 +41,10 @@ public class BufferedInputStream extends InputStream {
 	private boolean closed;
 	private InputStream in;
 	private int openCounter;
+	private byte[] singleByteReader = new byte[1];
 
-	// special use, prefetched next buffer
-	private byte[] buffer2;
-	private int pos2;
-	private int len2;
-	private byte[] originalBuffer;
+	/** array + offset of pushed-back buffers */
+	private List<Entry<byte[], Integer>> backBuffers;
 
 	private long bytesRead;
 
@@ -57,9 +59,9 @@ public class BufferedInputStream extends InputStream {
 		this.in = in;
 
 		this.buffer = new byte[BUFFER_SIZE];
-		this.originalBuffer = this.buffer;
 		this.start = 0;
 		this.stop = 0;
+		this.backBuffers = new ArrayList<Entry<byte[], Integer>>();
 	}
 
 	/**
@@ -100,18 +102,9 @@ public class BufferedInputStream extends InputStream {
 		this.in = null;
 
 		this.buffer = in;
-		this.originalBuffer = this.buffer;
 		this.start = offset;
 		this.stop = length;
-	}
-
-	/**
-	 * The internal buffer size (can be useful to know for search methods).
-	 * 
-	 * @return the size of the internal buffer, in bytes.
-	 */
-	public int getInternalBufferSize() {
-		return originalBuffer.length;
+		this.backBuffers = new ArrayList<Entry<byte[], Integer>>();
 	}
 
 	/**
@@ -174,7 +167,7 @@ public class BufferedInputStream extends InputStream {
 	 */
 	public boolean is(byte[] search) throws IOException {
 		if (startsWith(search)) {
-			return (stop - start) == search.length;
+			return available() == search.length;
 		}
 
 		return false;
@@ -220,40 +213,27 @@ public class BufferedInputStream extends InputStream {
 	 *             greater than the internal buffer
 	 */
 	public boolean startsWith(byte[] search) throws IOException {
-		if (search.length > originalBuffer.length) {
-			throw new IOException(
-					"This stream does not support searching for more than "
-							+ buffer.length + " bytes");
-		}
-
 		checkClose();
 
-		if (available() < search.length) {
+		while (consolidatePushBack(search.length) < search.length) {
 			preRead();
-		}
-
-		if (available() >= search.length) {
-			// Easy path
-			return StreamUtils.startsWith(search, buffer, start, stop);
-		} else if (in != null && !eof) {
-			// Harder path
-			if (buffer2 == null && buffer.length == originalBuffer.length) {
-				buffer2 = Arrays.copyOf(buffer, buffer.length * 2);
-
-				pos2 = buffer.length;
-				len2 = read(in, buffer2, pos2, buffer.length);
-				if (len2 > 0) {
-					bytesRead += len2;
-				}
-
-				// Note: here, len/len2 = INDEX of last good byte
-				len2 += pos2;
+			if (start >= stop) {
+				// Not enough data left to start with that
+				return false;
 			}
 
-			return StreamUtils.startsWith(search, buffer2, pos2, len2);
+			byte[] newBuffer = new byte[stop - start];
+			System.arraycopy(buffer, start, newBuffer, 0, stop - start);
+			pushback(newBuffer, 0);
+			start = stop;
 		}
 
-		return false;
+		Entry<byte[], Integer> bb = backBuffers.get(backBuffers.size() - 1);
+		byte[] bbBuffer = bb.getKey();
+		int bbOffset = bb.getValue();
+
+		return StreamUtils.startsWith(search, bbBuffer, bbOffset,
+				bbBuffer.length);
 	}
 
 	/**
@@ -266,8 +246,7 @@ public class BufferedInputStream extends InputStream {
 	}
 
 	/**
-	 * Check if this stream is spent (no more data to read or to
-	 * process).
+	 * Check if this stream is spent (no more data to read or to process).
 	 * 
 	 * @return TRUE if it is
 	 * 
@@ -303,14 +282,11 @@ public class BufferedInputStream extends InputStream {
 
 	@Override
 	public int read() throws IOException {
-		checkClose();
-
-		preRead();
-		if (eof) {
+		if (read(singleByteReader) < 0) {
 			return -1;
 		}
 
-		return buffer[start++];
+		return singleByteReader[0];
 	}
 
 	@Override
@@ -328,6 +304,32 @@ public class BufferedInputStream extends InputStream {
 			throw new IndexOutOfBoundsException();
 		} else if (blen == 0) {
 			return 0;
+		}
+
+		// Read from the pushed-back buffers if any
+		if (backBuffers.isEmpty()) {
+			preRead(); // an implementation could pushback in preRead()
+		}
+		
+		if (!backBuffers.isEmpty()) {
+			int read = 0;
+
+			Entry<byte[], Integer> bb = backBuffers
+					.remove(backBuffers.size() - 1);
+			byte[] bbBuffer = bb.getKey();
+			int bbOffset = bb.getValue();
+			int bbSize = bbBuffer.length - bbOffset;
+			
+			if (bbSize > blen) {
+				read = blen;
+				System.arraycopy(bbBuffer, bbOffset, b, boff, read);
+				pushback(bbBuffer, bbOffset + read);
+			} else {
+				read = bbSize;
+				System.arraycopy(bbBuffer, bbOffset, b, boff, read);
+			}
+
+			return read;
 		}
 
 		int done = 0;
@@ -353,6 +355,23 @@ public class BufferedInputStream extends InputStream {
 		}
 
 		long skipped = 0;
+		while (!backBuffers.isEmpty() && n > 0) {
+			Entry<byte[], Integer> bb = backBuffers
+					.remove(backBuffers.size() - 1);
+			byte[] bbBuffer = bb.getKey();
+			int bbOffset = bb.getValue();
+			int bbSize = bbBuffer.length - bbOffset;
+
+			int localSkip = 0;
+			localSkip = (int) Math.min(n, bbSize);
+
+			n -= localSkip;
+			bbSize -= localSkip;
+
+			if (bbSize > 0) {
+				pushback(bbBuffer, bbOffset + localSkip);
+			}
+		}
 		while (hasMoreData() && n > 0) {
 			preRead();
 
@@ -371,7 +390,12 @@ public class BufferedInputStream extends InputStream {
 			return 0;
 		}
 
-		return Math.max(0, stop - start);
+		int avail = 0;
+		for (Entry<byte[], Integer> entry : backBuffers) {
+			avail += entry.getKey().length - entry.getValue();
+		}
+
+		return avail + Math.max(0, stop - start);
 	}
 
 	/**
@@ -431,6 +455,52 @@ public class BufferedInputStream extends InputStream {
 	}
 
 	/**
+	 * Consolidate the push-back buffers so the last one is at least the given
+	 * size, if possible.
+	 * <p>
+	 * If there is not enough data in the push-back buffers, they will all be
+	 * consolidated.
+	 * 
+	 * @param size
+	 *            the minimum size of the consolidated buffer, or -1 to force
+	 *            the consolidation of all push-back buffers
+	 * 
+	 * @return the size of the last, consolidated buffer; can be less than the
+	 *         requested size if not enough data
+	 */
+	protected int consolidatePushBack(int size) {
+		int bbIndex = -1;
+		int bbUpToSize = 0;
+		for (Entry<byte[], Integer> entry : backBuffers) {
+			bbIndex++;
+			bbUpToSize += entry.getKey().length - entry.getValue();
+
+			if (size >= 0 && bbUpToSize >= size) {
+				break;
+			}
+		}
+
+		// Index 0 means "the last buffer is already big enough"
+		if (bbIndex > 0) {
+			byte[] consolidatedBuffer = new byte[bbUpToSize];
+			int consolidatedPos = 0;
+			for (int i = 0; i <= bbIndex; i++) {
+				Entry<byte[], Integer> bb = backBuffers
+						.remove(backBuffers.size() - 1);
+				byte[] bbBuffer = bb.getKey();
+				int bbOffset = bb.getValue();
+				int bbSize = bbBuffer.length - bbOffset;
+				System.arraycopy(bbBuffer, bbOffset, consolidatedBuffer,
+						consolidatedPos, bbSize);
+			}
+
+			pushback(consolidatedBuffer, 0);
+		}
+
+		return bbUpToSize;
+	}
+
+	/**
 	 * Check if we still have some data in the buffer and, if not, fetch some.
 	 * 
 	 * @return TRUE if we fetched some data, FALSE if there are still some in
@@ -443,21 +513,9 @@ public class BufferedInputStream extends InputStream {
 		boolean hasRead = false;
 		if (in != null && !eof && start >= stop) {
 			start = 0;
-			if (buffer2 != null) {
-				buffer = buffer2;
-				start = pos2;
-				stop = len2;
-
-				buffer2 = null;
-				pos2 = 0;
-				len2 = 0;
-			} else {
-				buffer = originalBuffer;
-
-				stop = read(in, buffer, 0, buffer.length);
-				if (stop > 0) {
-					bytesRead += stop;
-				}
+			stop = read(in, buffer);
+			if (stop > 0) {
+				bytesRead += stop;
 			}
 
 			hasRead = true;
@@ -471,25 +529,55 @@ public class BufferedInputStream extends InputStream {
 	}
 
 	/**
-	 * Read the under-laying stream into the local buffer.
+	 * Push back some data that will be read again at the next read call.
+	 * 
+	 * @param buffer
+	 *            the buffer to push back
+	 * @param offset
+	 *            the offset at which to start reading in the buffer
+	 */
+	protected void pushback(byte[] buffer, int offset) {
+		backBuffers.add(
+				new AbstractMap.SimpleEntry<byte[], Integer>(buffer, offset));
+	}
+
+	/**
+	 * Push back some data that will be read again at the next read call.
+	 * 
+	 * @param buffer
+	 *            the buffer to push back
+	 * @param offset
+	 *            the offset at which to start reading in the buffer
+	 * @param len
+	 *            the length to copy
+	 */
+	protected void pushback(byte[] buffer, int offset, int len) {
+		// TODO: not efficient!
+		if (buffer.length != len) {
+			byte[] lenNotSupportedYet = new byte[len];
+			System.arraycopy(buffer, offset, lenNotSupportedYet, 0, len);
+			buffer = lenNotSupportedYet;
+			offset = 0;
+		}
+
+		pushback(buffer, offset);
+	}
+
+	/**
+	 * Read the under-laying stream into the given local buffer.
 	 * 
 	 * @param in
 	 *            the under-laying {@link InputStream}
 	 * @param buffer
 	 *            the buffer we use in this {@link BufferedInputStream}
-	 * @param off
-	 *            the offset
-	 * @param len
-	 *            the length in bytes
 	 * 
 	 * @return the number of bytes read
 	 * 
 	 * @throws IOException
 	 *             in case of I/O error
 	 */
-	protected int read(InputStream in, byte[] buffer, int off, int len)
-			throws IOException {
-		return in.read(buffer, off, len);
+	protected int read(InputStream in, byte[] buffer) throws IOException {
+		return in.read(buffer, 0, buffer.length);
 	}
 
 	/**
@@ -503,7 +591,7 @@ public class BufferedInputStream extends InputStream {
 			return false;
 		}
 
-		return (start < stop) || !eof;
+		return !backBuffers.isEmpty() || (start < stop) || !eof;
 	}
 
 	/**

@@ -2,6 +2,8 @@ package be.nikiroo.utils.streams;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import be.nikiroo.utils.StringUtils;
 
@@ -23,12 +25,8 @@ public class ReplaceInputStream extends BufferedInputStream {
 
 	private byte[][] froms;
 	private byte[][] tos;
+	private int bufferSize;
 	private int maxFromSize;
-	private int maxToSize;
-
-	private byte[] source;
-	private int spos;
-	private int slen;
 
 	/**
 	 * Create a {@link ReplaceInputStream} that will replace <tt>from</tt> with
@@ -108,55 +106,112 @@ public class ReplaceInputStream extends BufferedInputStream {
 			maxFromSize = Math.max(maxFromSize, froms[i].length);
 		}
 
-		maxToSize = 0;
+		int maxToSize = 0;
 		for (int i = 0; i < tos.length; i++) {
 			maxToSize = Math.max(maxToSize, tos[i].length);
 		}
 
 		// We need at least maxFromSize so we can iterate and replace
-		source = new byte[Math.max(2 * maxFromSize, MIN_BUFFER_SIZE)];
-		spos = 0;
-		slen = 0;
+		bufferSize = Math.max(4 * Math.max(maxToSize, maxFromSize),
+				MIN_BUFFER_SIZE);
 	}
 
 	@Override
-	protected int read(InputStream in, byte[] buffer, int off, int len)
-			throws IOException {
-		if (len < maxToSize || source.length < maxToSize * 2) {
-			throw new IOException(
-					"An underlaying buffer is too small for these replace values");
+	protected boolean preRead() throws IOException {
+		boolean rep = super.preRead();
+		start = stop;
+		return rep;
+	}
+
+	@Override
+	protected int read(InputStream in, byte[] buffer) throws IOException {
+		buffer = null; // do not use the buffer.
+
+		byte[] newBuffer = new byte[bufferSize];
+		int read = 0;
+		while (read < bufferSize / 2) {
+			int thisTime = in.read(newBuffer, read, bufferSize / 2 - read);
+			if (thisTime <= 0) {
+				break;
+			}
+			read += thisTime;
 		}
 
-		// We need at least one byte of data to process
-		if (available() < Math.max(maxFromSize, 1) && !eof) {
-			spos = 0;
-			slen = in.read(source);
-		}
+		List<byte[]> bbBuffers = new ArrayList<byte[]>();
+		List<Integer> bbOffsets = new ArrayList<Integer>();
+		List<Integer> bbLengths = new ArrayList<Integer>();
 
-		// Note: very simple, not efficient implementation; sorry.
-		int count = 0;
-		while (spos < slen && count < len - maxToSize) {
-			boolean replaced = false;
-			for (int i = 0; i < froms.length; i++) {
-				if (froms[i] != null && froms[i].length > 0
-						&& StreamUtils.startsWith(froms[i], source, spos, slen)) {
-					if (tos[i] != null && tos[i].length > 0) {
-						System.arraycopy(tos[i], 0, buffer, off + spos,
-								tos[i].length);
-						count += tos[i].length;
+		int offset = 0;
+		for (int i = 0; i < read; i++) {
+			for (int fromIndex = 0; fromIndex < froms.length; fromIndex++) {
+				byte[] from = froms[fromIndex];
+				byte[] to = tos[fromIndex];
+
+				if (from.length > 0
+						&& StreamUtils.startsWith(from, newBuffer, i, read)) {
+					if (i - offset > 0) {
+						bbBuffers.add(newBuffer);
+						bbOffsets.add(offset);
+						bbLengths.add(i - offset);
 					}
 
-					spos += froms[i].length;
-					replaced = true;
-					break;
-				}
-			}
+					if (to.length > 0) {
+						bbBuffers.add(to);
+						bbOffsets.add(0);
+						bbLengths.add(to.length);
+					}
 
-			if (!replaced) {
-				buffer[off + count++] = source[spos++];
+					i += from.length;
+					offset = i;
+				}
 			}
 		}
 
-		return count;
+		if (offset < read) {
+			bbBuffers.add(newBuffer);
+			bbOffsets.add(offset);
+			bbLengths.add(read - offset);
+		}
+
+		for (int i = bbBuffers.size() - 1; i >= 0; i--) {
+			// DEBUG("pushback", bbBuffers.get(i), bbOffsets.get(i),
+			// bbLengths.get(i));
+			pushback(bbBuffers.get(i), bbOffsets.get(i), bbLengths.get(i));
+		}
+
+		return read;
+	}
+
+	// static public void DEBUG(String title, byte[] b, int off, int len) {
+	// String str = new String(b,off,len);
+	// if(str.length()>20) {
+	// str=str.substring(0,10)+" ...
+	// "+str.substring(str.length()-10,str.length());
+	// }
+	// }
+
+	@Override
+	public String toString() {
+		StringBuilder rep = new StringBuilder();
+		rep.append(getClass().getSimpleName()).append("\n");
+
+		for (int i = 0; i < froms.length; i++) {
+			byte[] from = froms[i];
+			byte[] to = tos[i];
+
+			rep.append("\t");
+			rep.append("bytes[").append(from.length).append("]");
+			if (from.length <= 20) {
+				rep.append(" (").append(new String(from)).append(")");
+			}
+			rep.append(" -> ");
+			rep.append("bytes[").append(to.length).append("]");
+			if (to.length <= 20) {
+				rep.append(" (").append(new String(to)).append(")");
+			}
+			rep.append("\n");
+		}
+
+		return "[" + rep + "]";
 	}
 }
