@@ -66,15 +66,6 @@ public class Template {
 		}
 		
 		InputStream in = IOUtils.openResource(location, name);
-		
-		InputStream stream;
-		
-		stream = IOUtils.openResource(location, name);
-		System.out.println("SOURCE = (("  + IOUtils.readSmallStream(stream) + "))");
-		stream=new ReplaceInputStream(IOUtils.openResource(location, name), from, to);
-		System.out.println("RESULT = (("  + IOUtils.readSmallStream(stream) + "))");
-		
-		
 		return new ReplaceInputStream(in, from, to);
 	}
 

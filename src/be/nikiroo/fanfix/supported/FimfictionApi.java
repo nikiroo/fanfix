@@ -127,14 +127,11 @@ class FimfictionApi extends BasicSupport {
 		meta.setDate(bsHelper.formatDate(
 				getKeyJson(json, 0, "type", "story", "date_published")));
 		meta.setTags(getTags());
-		meta.setSource(getType().getSourceName());
 		meta.setUrl(getSource().toString());
-		meta.setPublisher(getType().getSourceName());
 		meta.setUuid(getSource().toString());
 		meta.setLuid("");
 		meta.setLang("en");
 		meta.setSubject("MLP");
-		meta.setType(getType().toString());
 		meta.setImageDocument(false);
 
 		String coverImageLink = getKeyJson(json, 0, "type", "story",

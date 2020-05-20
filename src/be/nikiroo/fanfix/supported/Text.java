@@ -85,14 +85,11 @@ class Text extends BasicSupport {
 		meta.setAuthor(getAuthor());
 		meta.setDate(bsHelper.formatDate(getDate()));
 		meta.setTags(new ArrayList<String>());
-		meta.setSource(getType().getSourceName());
 		meta.setUrl(getSourceFile().toURI().toURL().toString());
-		meta.setPublisher("");
 		meta.setUuid(getSourceFile().toString());
 		meta.setLuid("");
 		meta.setLang(getLang()); // default is EN
 		meta.setSubject(getSourceFile().getParentFile().getName());
-		meta.setType(getType().toString());
 		meta.setImageDocument(false);
 		meta.setCover(getCover(getSourceFile()));
 		

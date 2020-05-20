@@ -38,14 +38,11 @@ class Fimfiction extends BasicSupport_Deprecated {
 		meta.setAuthor(getAuthor(reset(in)));
 		meta.setDate(getDate(reset(in)));
 		meta.setTags(getTags(reset(in)));
-		meta.setSource(getType().getSourceName());
 		meta.setUrl(source.toString());
-		meta.setPublisher(getType().getSourceName());
 		meta.setUuid(source.toString());
 		meta.setLuid("");
 		meta.setLang("en");
 		meta.setSubject("MLP");
-		meta.setType(getType().toString());
 		meta.setImageDocument(false);
 		meta.setCover(getCover(reset(in)));
 

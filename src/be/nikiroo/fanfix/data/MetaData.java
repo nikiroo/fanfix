@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import be.nikiroo.fanfix.supported.SupportType;
 import be.nikiroo.utils.Image;
 import be.nikiroo.utils.StringUtils;
 
@@ -85,7 +86,7 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	}
 
 	/**
-	 * The story publication date.
+	 * The story publication date, we try to use "YYYY-mm-dd" when possible.
 	 * 
 	 * @return the date
 	 */
@@ -94,7 +95,7 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	}
 
 	/**
-	 * The story publication date.
+	 * The story publication date, we try to use "YYYY-mm-dd" when possible.
 	 * 
 	 * @param date
 	 *            the date to set
@@ -152,7 +153,7 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	}
 
 	/**
-	 * The cover image of the story if any (can be NULL).
+	 * The cover image of the story, if any (can be NULL).
 	 * <p>
 	 * The cover is not fetched until the story is.
 	 * 
@@ -163,7 +164,7 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	}
 
 	/**
-	 * The cover image of the story if any (can be NULL).
+	 * The cover image of the story, if any (can be NULL).
 	 * <p>
 	 * The cover is not fetched until the story is.
 	 * 
@@ -175,7 +176,7 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	}
 
 	/**
-	 * The subject of the story (or instance, if it is a fanfiction, what is the
+	 * The subject of the story (for instance, if it is a fanfiction, what is the
 	 * original work; if it is a technical text, what is the technical
 	 * subject...).
 	 * 
@@ -198,7 +199,11 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	}
 
 	/**
-	 * The source of this story (which online library it was downloaded from).
+	 * The source of this story -- a very user-visible piece of data.
+	 * <p>
+	 * It is initialised with the same value as {@link MetaData#getPublisher()},
+	 * but the user is allowed to change it into any value -- this is a sort of
+	 * 'category'.
 	 * 
 	 * @return the source
 	 */
@@ -207,7 +212,11 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	}
 
 	/**
-	 * The source of this story (which online library it was downloaded from).
+	 * The source of this story -- a very user-visible piece of data.
+	 * <p>
+	 * It is initialised with the same value as {@link MetaData#getPublisher()},
+	 * but the user is allowed to change it into any value -- this is a sort of
+	 * 'category'.
 	 * 
 	 * @param source
 	 *            the source to set
@@ -255,7 +264,14 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	}
 
 	/**
-	 * A unique value representing the story in the local library.
+	 * A unique value representing the story in the local library (usually a
+	 * numerical value 0-padded with a minimum size of 3; but this is subject to
+	 * change and you can also obviously have more than 1000 stories --
+	 * <strong>a luid may potentially be anything else, including non-numeric
+	 * characters</strong>).
+	 * <p>
+	 * A NULL or empty luid represents an incomplete, corrupted or fake
+	 * {@link Story}.
 	 * 
 	 * @return the luid
 	 */
@@ -264,7 +280,14 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	}
 
 	/**
-	 * A unique value representing the story in the local library.
+	 * A unique value representing the story in the local library (usually a
+	 * numerical value 0-padded with a minimum size of 3; but this is subject to
+	 * change and you can also obviously have more than 1000 stories --
+	 * <strong>a luid may potentially be anything else, including non-numeric
+	 * characters</strong>).
+	 * <p>
+	 * A NULL or empty luid represents an incomplete, corrupted or fake
+	 * {@link Story}.
 	 * 
 	 * @param luid
 	 *            the luid to set
@@ -293,7 +316,15 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	}
 
 	/**
-	 * The story publisher (other the same as the source).
+	 * The story publisher -- which is also the user representation of the
+	 * output type this {@link Story} is in (see {@link SupportType}).
+	 * <p>
+	 * It allows you to know where the {@link Story} comes from, and is not
+	 * supposed to change.
+	 * <p>
+	 * It's the user representation of the enum
+	 * ({@link SupportType#getSourceName()}, not
+	 * {@link SupportType#toString()}).
 	 * 
 	 * @return the publisher
 	 */
@@ -302,7 +333,15 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	}
 
 	/**
-	 * The story publisher (other the same as the source).
+	 * The story publisher -- which is also the user representation of the
+	 * output type this {@link Story} is in (see {@link SupportType}).
+	 * <p>
+	 * It allows you to know where the {@link Story} comes from, and is not
+	 * supposed to change.
+	 * <p>
+	 * It's the user representation of the enum
+	 * ({@link SupportType#getSourceName()}, not
+	 * {@link SupportType#toString()}).
 	 * 
 	 * @param publisher
 	 *            the publisher to set
@@ -312,7 +351,14 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	}
 
 	/**
-	 * The output type this {@link Story} is in.
+	 * The output type this {@link Story} is in (see {@link SupportType}).
+	 * <p>
+	 * It allows you to know where the {@link Story} comes from, and is not
+	 * supposed to change.
+	 * <p>
+	 * It's the direct representation of the enum
+	 * ({@link SupportType#toString()}, not
+	 * {@link SupportType#getSourceName()}).
 	 * 
 	 * @return the type the type
 	 */
@@ -321,7 +367,14 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	}
 
 	/**
-	 * The output type this {@link Story} is in.
+	 * The output type this {@link Story} is in (see {@link SupportType}).
+	 * <p>
+	 * It allows you to know where the {@link Story} comes from, and is not
+	 * supposed to change.
+	 * <p>
+	 * It's the direct representation of the enum
+	 * ({@link SupportType#toString()}, not
+	 * {@link SupportType#getSourceName()}).
 	 * 
 	 * @param type
 	 *            the new type to set
@@ -332,6 +385,10 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 
 	/**
 	 * Document catering mostly to image files.
+	 * <p>
+	 * I.E., this is a comics or a manga, not a textual story with actual words.
+	 * <p>
+	 * In image documents, all the paragraphs are supposed to be images.
 	 * 
 	 * @return the imageDocument state
 	 */
@@ -341,6 +398,10 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 
 	/**
 	 * Document catering mostly to image files.
+	 * <p>
+	 * I.E., this is a comics or a manga, not a textual story with actual words.
+	 * <p>
+	 * In image documents, all the paragraphs are supposed to be images.
 	 * 
 	 * @param imageDocument
 	 *            the imageDocument state to set
@@ -350,45 +411,49 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	}
 
 	/**
-	 * The number of words in the related {@link Story}.
+	 * The number of words (or images if this is an image document -- see
+	 * {@link MetaData#isImageDocument()}) in the related {@link Story}.
 	 * 
-	 * @return the number of words
+	 * @return the number of words/images
 	 */
 	public long getWords() {
 		return words;
 	}
 
 	/**
-	 * The number of words in the related {@link Story}.
+	 * The number of words (or images if this is an image document -- see
+	 * {@link MetaData#isImageDocument()}) in the related {@link Story}.
 	 * 
 	 * @param words
-	 *            the number of words to set
+	 *            the number of words/images to set
 	 */
 	public void setWords(long words) {
 		this.words = words;
 	}
 
 	/**
-	 * The (Fanfix) {@link Story} creation date.
+	 * The (Fanfix) {@link Story} creation date, i.e., when the {@link Story}
+	 * was fetched via Fanfix.
 	 * 
-	 * @return the creationDate
+	 * @return the creation date
 	 */
 	public String getCreationDate() {
 		return creationDate;
 	}
 
 	/**
-	 * The (Fanfix) {@link Story} creation date.
+	 * The (Fanfix) {@link Story} creation date, i.e., when the {@link Story}
+	 * was fetched via Fanfix.
 	 * 
 	 * @param creationDate
-	 *            the creationDate to set
+	 *            the creation date to set
 	 */
 	public void setCreationDate(String creationDate) {
 		this.creationDate = creationDate;
 	}
 
 	/**
-	 * The cover in this {@link MetaData} object is "fake", in the sens that it
+	 * The cover in this {@link MetaData} object is "fake", in the sense that it
 	 * comes from the actual content images.
 	 * 
 	 * @return TRUE for a fake cover
@@ -398,7 +463,7 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	}
 
 	/**
-	 * The cover in this {@link MetaData} object is "fake", in the sens that it
+	 * The cover in this {@link MetaData} object is "fake", in the sense that it
 	 * comes from the actual content images
 	 * 
 	 * @param fakeCover

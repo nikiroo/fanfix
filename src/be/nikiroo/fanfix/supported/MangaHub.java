@@ -39,14 +39,11 @@ class MangaHub extends BasicSupport {
 		meta.setDate("");
 		meta.setAuthor(getAuthor());
 		meta.setTags(getTags());
-		meta.setSource(getType().getSourceName());
 		meta.setUrl(getSource().toString());
-		meta.setPublisher(getType().getSourceName());
 		meta.setUuid(getSource().toString());
 		meta.setLuid("");
 		meta.setLang("en");
 		meta.setSubject("manga");
-		meta.setType(getType().toString());
 		meta.setImageDocument(true);
 		meta.setCover(getCover());
 

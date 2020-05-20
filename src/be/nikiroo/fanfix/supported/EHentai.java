@@ -34,14 +34,11 @@ class EHentai extends BasicSupport_Deprecated {
 		meta.setAuthor(getAuthor(reset(in)));
 		meta.setDate(getDate(reset(in)));
 		meta.setTags(getTags(reset(in)));
-		meta.setSource(getType().getSourceName());
 		meta.setUrl(source.toString());
-		meta.setPublisher(getType().getSourceName());
 		meta.setUuid(source.toString());
 		meta.setLuid("");
 		meta.setLang(getLang(reset(in)));
 		meta.setSubject("Hentai");
-		meta.setType(getType().toString());
 		meta.setImageDocument(true);
 		meta.setCover(getCover(source, reset(in)));
 		meta.setFakeCover(true);

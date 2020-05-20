@@ -62,14 +62,11 @@ class E621 extends BasicSupport {
 		meta.setAuthor(getAuthor());
 		meta.setDate(bsHelper.formatDate(getDate()));
 		meta.setTags(getTags());
-		meta.setSource(getType().getSourceName());
 		meta.setUrl(getSource().toString());
-		meta.setPublisher(getType().getSourceName());
 		meta.setUuid(getSource().toString());
 		meta.setLuid("");
 		meta.setLang("en");
 		meta.setSubject("Furry");
-		meta.setType(getType().toString());
 		meta.setImageDocument(true);
 		meta.setCover(getCover());
 		meta.setFakeCover(true);
