@@ -759,7 +759,7 @@ abstract class WebLibraryServerHtml implements Runnable {
 					NanoHTTPD.MIME_PLAINTEXT, "Error when processing request");
 		}
 	}
-
+	
 	protected Response newInputStreamResponse(String mimeType, InputStream in) {
 		if (in == null) {
 			return NanoHTTPD.newFixedLengthResponse(Status.NO_CONTENT, "",

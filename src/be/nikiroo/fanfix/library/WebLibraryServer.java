@@ -217,9 +217,8 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 				jsons.add(JsonIO.toJson(meta));
 			}
 
-			return newInputStreamResponse("application/json",
-					new ByteArrayInputStream(
-							new JSONArray(jsons).toString().getBytes()));
+			return NanoHTTPD.newFixedLengthResponse(Status.OK,
+					"application/json", new JSONArray(jsons).toString());
 		}
 
 		return NanoHTTPD.newFixedLengthResponse(Status.BAD_REQUEST,
