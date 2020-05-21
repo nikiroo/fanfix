@@ -276,8 +276,10 @@ public abstract class BasicSupport {
 		MetaData meta = getMeta();
 		meta.setType(getType().toString());
 		meta.setSource(getType().getSourceName());
-		meta.setPublisher(getType().getSourceName());
-		
+		if (meta.getPublisher() == null) {
+			meta.setPublisher(getType().getSourceName());
+		}
+
 		if (meta.getCreationDate() == null
 				|| meta.getCreationDate().trim().isEmpty()) {
 			meta.setCreationDate(bsHelper

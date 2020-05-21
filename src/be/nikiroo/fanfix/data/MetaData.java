@@ -320,7 +320,7 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	 * output type this {@link Story} is in (see {@link SupportType}).
 	 * <p>
 	 * It allows you to know where the {@link Story} comes from, and is not
-	 * supposed to change.
+	 * supposed to change, even when re-imported.
 	 * <p>
 	 * It's the user representation of the enum
 	 * ({@link SupportType#getSourceName()}, not
@@ -337,7 +337,7 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	 * output type this {@link Story} is in (see {@link SupportType}).
 	 * <p>
 	 * It allows you to know where the {@link Story} comes from, and is not
-	 * supposed to change.
+	 * supposed to change, even when re-imported.
 	 * <p>
 	 * It's the user representation of the enum
 	 * ({@link SupportType#getSourceName()}, not
@@ -353,8 +353,8 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	/**
 	 * The output type this {@link Story} is in (see {@link SupportType}).
 	 * <p>
-	 * It allows you to know where the {@link Story} comes from, and is not
-	 * supposed to change.
+	 * It allows you to know where the {@link Story} comes from, and is supposed
+	 * to only change when it is imported anew.
 	 * <p>
 	 * It's the direct representation of the enum
 	 * ({@link SupportType#toString()}, not
@@ -369,8 +369,8 @@ public class MetaData implements Cloneable, Comparable<MetaData>, Serializable {
 	/**
 	 * The output type this {@link Story} is in (see {@link SupportType}).
 	 * <p>
-	 * It allows you to know where the {@link Story} comes from, and is not
-	 * supposed to change.
+	 * It allows you to know where the {@link Story} comes from, and is supposed
+	 * to only change when it is imported anew.
 	 * <p>
 	 * It's the direct representation of the enum
 	 * ({@link SupportType#toString()}, not
