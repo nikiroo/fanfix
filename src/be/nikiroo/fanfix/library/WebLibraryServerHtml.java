@@ -648,8 +648,10 @@ abstract class WebLibraryServerHtml implements Runnable {
 					}
 
 					viewerItem = templates.viewerImage(WebLibraryUrls
-							.getStoryUrl(luid, chapter, paragraph), next,
-							zoomStyle);
+							.getStoryUrl(luid, chapter, paragraph), //
+							disabledRight ? null : next, //
+							zoomStyle //
+							);
 				} else {
 					viewerItem = templates.viewerText(null,
 							new TextOutput(false).convert(para));

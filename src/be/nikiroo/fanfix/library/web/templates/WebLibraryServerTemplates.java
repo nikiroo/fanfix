@@ -137,11 +137,13 @@ public class WebLibraryServerTemplates {
 		;
 	}
 
+	// href NULL means no forward link
 	public Template viewerImage(String src, String href, String zoomStyle) {
-		return new Template(getClass(), "viewer.image.html") //
-				.set("src", src) //
-				.set("href", href) //
-				.set("zoomStyle", zoomStyle) //
+		return new Template(getClass(),
+				href == null ? "viewer.image.nolink.html" : "viewer.image.html") //
+						.set("src", src) //
+						.set("href", href) //
+						.set("zoomStyle", zoomStyle) //
 		;
 	}
 
