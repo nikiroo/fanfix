@@ -644,7 +644,7 @@ abstract class WebLibraryServerHtml implements Runnable {
 						} else if (zoomOption.equals("widthlimited")) {
 							// default
 						} else if (zoomOption.equals("width")) {
-							zoomStyle = "width: 100%;";
+							zoomStyle = "max-width: 100%;";
 							disabledZoomWidthLimited = false;
 							disabledZoomWidth = true;
 						} else if (zoomOption.equals("height")) {
