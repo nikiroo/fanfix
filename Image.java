@@ -116,7 +116,13 @@ public class Image implements Closeable, Serializable {
 	 *             in case of I/O error
 	 */
 	public InputStream newInputStream() throws IOException {
-		return new MarkableFileInputStream(data);
+		synchronized (instanceLock) {
+			if (data == null) {
+				throw new IOException("Image was close()d");
+			}
+			
+			return new MarkableFileInputStream(data);	
+		}
 	}
 
 	/**
@@ -175,6 +181,7 @@ public class Image implements Closeable, Serializable {
 	@Override
 	public void close() throws IOException {
 		synchronized (instanceLock) {
+			new Exception().printStackTrace();
 			if (size >= 0) {
 				size = -1;
 				data.delete();
