@@ -247,6 +247,12 @@ abstract class WebLibraryServerHtml implements Runnable {
 									mimeType = "text/html";
 								} else if (uri.endsWith(".js")) {
 									mimeType = "text/javascript";
+								} else if (uri.endsWith(".png")) {
+									mimeType = "image/png";
+								} else if (uri.endsWith(".ico")) {
+									mimeType = "image/x-icon";
+								} else if (uri.endsWith(".java")) {
+									mimeType = "text/plain";
 								}
 								rep = newChunkedResponse(Status.OK, mimeType,
 										in);
@@ -326,7 +332,8 @@ abstract class WebLibraryServerHtml implements Runnable {
 		content.add(templates.login(uri));
 
 		return NanoHTTPD.newChunkedResponse(Status.FORBIDDEN,
-				NanoHTTPD.MIME_HTML, templates.index(true, content).read());
+				NanoHTTPD.MIME_HTML,
+				templates.index(true, false, content).read());
 	}
 
 	private Response root(IHTTPSession session, Map<String, String> cookies,
@@ -469,7 +476,7 @@ abstract class WebLibraryServerHtml implements Runnable {
 		booklines.add(0, templates.browser(browser, filter, selects));
 
 		return newInputStreamResponse(NanoHTTPD.MIME_HTML,
-				templates.index(true, booklines).read());
+				templates.index(true, false, booklines).read());
 	}
 
 	private Response getViewer(Map<String, String> cookies, String uri,
@@ -546,6 +553,7 @@ abstract class WebLibraryServerHtml implements Runnable {
 			boolean disabledRight = false;
 			boolean disabledZoomReal = false;
 			boolean disabledZoomWidth = false;
+			boolean disabledZoomWidthLimited = false;
 			boolean disabledZoomHeight = false;
 
 			Template viewerItem = null;
@@ -623,27 +631,36 @@ abstract class WebLibraryServerHtml implements Runnable {
 				}
 
 				if (para.getType() == ParagraphType.IMAGE) {
-					String zoomStyle = "max-width: 100%;";
-					disabledZoomWidth = true;
+					// default values:
+					String zoomStyle = "max-width: 800px;";
+					disabledZoomWidthLimited = true;
+
 					String zoomOption = cookies.get("zoom");
 					if (zoomOption != null && !zoomOption.isEmpty()) {
 						if (zoomOption.equals("real")) {
 							zoomStyle = "";
-							disabledZoomWidth = false;
+							disabledZoomWidthLimited = false;
 							disabledZoomReal = true;
+						} else if (zoomOption.equals("widthlimited")) {
+							// default
 						} else if (zoomOption.equals("width")) {
 							zoomStyle = "max-width: 100%;";
+							disabledZoomWidthLimited = false;
+							disabledZoomWidth = true;
 						} else if (zoomOption.equals("height")) {
 							// see height of navbar + optionbar
 							zoomStyle = "max-height: calc(100% - 128px);";
-							disabledZoomWidth = false;
+							disabledZoomWidthLimited = false;
 							disabledZoomHeight = true;
 						}
 					}
 
-					viewerItem = templates.viewerImage(WebLibraryUrls
-							.getStoryUrl(luid, chapter, paragraph), next,
-							zoomStyle);
+					viewerItem = templates.viewerImage(
+							WebLibraryUrls.getStoryUrl(luid, chapter,
+									paragraph), //
+							disabledRight ? null : next, //
+							zoomStyle //
+					);
 				} else {
 					viewerItem = templates.viewerText(null,
 							new TextOutput(false).convert(para));
@@ -709,24 +726,28 @@ abstract class WebLibraryServerHtml implements Runnable {
 						"1:1", uri + "?optionName=zoom&optionValue=real",
 						"zoomreal", disabledZoomReal));
 				buttons.add(templates.viewerOptionbarButton( //
+						"]width[",
+						uri + "?optionName=zoom&optionValue=widthlimited",
+						"zoomwidthlimited", disabledZoomWidthLimited));
+				buttons.add(templates.viewerOptionbarButton( //
 						"Width", uri + "?optionName=zoom&optionValue=width",
 						"zoomwidth", disabledZoomWidth));
 				buttons.add(templates.viewerOptionbarButton( //
 						"Height", uri + "?optionName=zoom&optionValue=height",
-						"zoomHeight", disabledZoomHeight));
+						"zoomheight", disabledZoomHeight));
 			}
 
 			// Optionbar
 
 			Template optionbar = templates.viewerOptionbar( //
-					(paragraph > 0) ? 4 : 1, //
+					(paragraph > 0) ? 5 : 1, //
 					buttons //
 			);
 
 			// Full content
 
 			return newInputStreamResponse(NanoHTTPD.MIME_HTML, //
-					templates.index(false, Arrays.asList( //
+					templates.index(false, (paragraph > 0), Arrays.asList( //
 							navbar, //
 							viewerItem, //
 							optionbar //
@@ -738,7 +759,7 @@ abstract class WebLibraryServerHtml implements Runnable {
 					NanoHTTPD.MIME_PLAINTEXT, "Error when processing request");
 		}
 	}
-
+	
 	protected Response newInputStreamResponse(String mimeType, InputStream in) {
 		if (in == null) {
 			return NanoHTTPD.newFixedLengthResponse(Status.NO_CONTENT, "",

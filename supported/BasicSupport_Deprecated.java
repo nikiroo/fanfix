@@ -207,7 +207,9 @@ public abstract class BasicSupport_Deprecated extends BasicSupport {
 			MetaData meta = getMeta(url, getInput());
 			meta.setType(getType().toString());
 			meta.setSource(getType().getSourceName());
-			meta.setPublisher(getType().getSourceName());
+			if (meta.getPublisher() == null) {
+				meta.setPublisher(getType().getSourceName());
+			}
 			
 			if (meta.getCreationDate() == null
 					|| meta.getCreationDate().trim().isEmpty()) {

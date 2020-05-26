@@ -173,12 +173,12 @@ public class WebLibrary extends BasicLibrary {
 		InputStream in = post(WebLibraryUrls.getStoryUrlCover(luid));
 		try {
 			Image img = new Image(in);
-			if (img.getSize() > 0) {
+			if (img.getSize() == 0) {
 				img.close();
-				return img;
+				img = null;
 			}
 
-			return null;
+			return img;
 		} finally {
 			in.close();
 		}
@@ -189,12 +189,12 @@ public class WebLibrary extends BasicLibrary {
 		InputStream in = post(WebLibraryUrls.getCoverUrlSource(source));
 		try {
 			Image img = new Image(in);
-			if (img.getSize() > 0) {
+			if (img.getSize() == 0) {
 				img.close();
-				return img;
+				img = null;
 			}
 
-			return null;
+			return img;
 		} finally {
 			in.close();
 		}
@@ -205,12 +205,12 @@ public class WebLibrary extends BasicLibrary {
 		InputStream in = post(WebLibraryUrls.getCoverUrlAuthor(author));
 		try {
 			Image img = new Image(in);
-			if (img.getSize() > 0) {
+			if (img.getSize() == 0) {
 				img.close();
-				return img;
+				img = null;
 			}
 
-			return null;
+			return img;
 		} finally {
 			in.close();
 		}

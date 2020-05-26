@@ -44,7 +44,8 @@ public class WebLibraryServerTemplates {
 		;
 	}
 
-	public Template index(boolean banner, List<Template> content) {
+	public Template index(boolean banner, boolean fullscreen,
+			List<Template> content) {
 		String favicon = "favicon.ico";
 		String icon = Instance.getInstance().getUiConfig()
 				.getString(UiConfig.PROGRAM_ICON);
@@ -55,6 +56,7 @@ public class WebLibraryServerTemplates {
 		Template index = new Template(getClass(), "index.html") //
 				.set("title", "Fanfix") //
 				.set("favicon", favicon) //
+				.set("mainClass", fullscreen ? "fullscreen" : "") //
 				.set("content", content) //
 		;
 
@@ -137,11 +139,13 @@ public class WebLibraryServerTemplates {
 		;
 	}
 
+	// href NULL means no forward link
 	public Template viewerImage(String src, String href, String zoomStyle) {
-		return new Template(getClass(), "viewer.image.html") //
-				.set("src", src) //
-				.set("href", href) //
-				.set("zoomStyle", zoomStyle) //
+		return new Template(getClass(),
+				href == null ? "viewer.image.nolink.html" : "viewer.image.html") //
+						.set("src", src) //
+						.set("href", href) //
+						.set("zoomStyle", zoomStyle) //
 		;
 	}
 
@@ -180,7 +184,7 @@ public class WebLibraryServerTemplates {
 		;
 	}
 
-	// supported numberOfButtons = 4 or 1 or the moment
+	// supported numberOfButtons = 5 or 4 or 1 or the moment
 	public Template viewerOptionbar(int numberOfButtons,
 			List<Template> buttons) {
 		return new Template(getClass(), "viewer.optionbar.html") //

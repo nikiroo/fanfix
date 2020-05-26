@@ -227,6 +227,7 @@ h3 {
 
 .bar.optionbar.s1 { padding-left: calc(50% - (1 * (64px + 5px) / 2)); }
 .bar.optionbar.s4 { padding-left: calc(50% - (4 * (64px + 5px) / 2)); }
+.bar.optionbar.s5 { padding-left: calc(50% - (5 * (64px + 5px) / 2)); }
 
 .bar.optionbar {
 	bottom: 0;
@@ -258,10 +259,11 @@ h3 {
 .bar .button.next     { color: transparent; background-image: url('/arrow_right-32x32.png');        }
 .bar .button.last     { color: transparent; background-image: url('/arrow_double_right-32x32.png'); }
 
-.bar .button.back       { color: transparent; background-image: url('/back-32x32.png');          }
-.bar .button.zoomreal   { color: transparent; background-image: url('/actual_size-32x32.png');   }
-.bar .button.zoomwidth  { color: transparent; background-image: url('/fit_to_width-32x32.png');  }
-.bar .button.zoomheight { color: transparent; background-image: url('/fit_to_height-32x32.png'); }
+.bar .button.back             { color: transparent; background-image: url('/back-32x32.png');                 }
+.bar .button.zoomreal         { color: transparent; background-image: url('/actual_size-32x32.png');          }
+.bar .button.zoomwidth        { color: transparent; background-image: url('/fit_to_width-32x32.png');         }
+.bar .button.zoomwidthlimited { color: transparent; background-image: url('/fit_to_width_limited-32x32.png'); }
+.bar .button.zoomheight       { color: transparent; background-image: url('/fit_to_height-32x32.png');        }
 
 .viewer {
 	padding-top: 64px;
@@ -316,18 +318,19 @@ a.viewer.link:hover {
 	color: #AAA391;
 }
 
-@media(min-width: 800px) {
-	 .main {
+@media(min-width: 800px) { 
+	 .main:not(.fullscreen) {
 	 	max-width: 800px;
 	 }
 	 
-	.bar.navbar       { padding-left: calc(400px - (5 * (64px + 5px) / 2)); }
+	.main:not(.fullscreen) .bar.navbar       { padding-left: calc(400px - (5 * (64px + 5px) / 2)); }
 	
-	.bar.optionbar.s1 { padding-left: calc(400px - (1 * (64px + 5px) / 2)); }
-	.bar.optionbar.s4 { padding-left: calc(400px - (4 * (64px + 5px) / 2)); }
+	.main:not(.fullscreen) .bar.optionbar.s1 { padding-left: calc(400px - (1 * (64px + 5px) / 2)); }
+	.main:not(.fullscreen) .bar.optionbar.s4 { padding-left: calc(400px - (4 * (64px + 5px) / 2)); }
+	.main:not(.fullscreen) .bar.optionbar.s5 { padding-left: calc(400px - (5 * (64px + 5px) / 2)); }
 	
-	.desc { flex-direction: row; }
-	.desc .cover img {
+	.main:not(.fullscreen) .desc { flex-direction: row; }
+	.main:not(.fullscreen) .desc .cover img {
 		width: 200px;
 		padding-right: 10px;
 	}
