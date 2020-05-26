@@ -227,9 +227,12 @@ class Text extends BasicSupport {
 		@SuppressWarnings("resource") // cannot close, or we loose getInput()!
 		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
-		scan.next(); // title
-		scan.next(); // author
-		scan.next(); // date or empty
+		if (scan.hasNext())
+			scan.next(); // title
+		if (scan.hasNext())
+			scan.next(); // author
+		if (scan.hasNext())
+			scan.next(); // date or empty
 		Boolean inChap = null;
 		String line = "";
 		while (scan.hasNext()) {
