@@ -1,5 +1,8 @@
 package be.nikiroo.fanfix.library;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 class WebLibraryUrls {
 	static public final String INDEX_URL = "/";
 
@@ -52,7 +55,7 @@ class WebLibraryUrls {
 			+ "author/{author}";
 	static private final String COVER_URL_SOURCE = COVER_URL_BASE
 			+ "source/{source}";
-
+	
 	static public String getViewUrl(String luid, Integer chap, Integer para) {
 		return VIEWER_URL //
 				.replace("{luid}", luid) //
@@ -122,12 +125,12 @@ class WebLibraryUrls {
 
 	static public String getCoverUrlSource(String source) {
 		return COVER_URL_SOURCE //
-				.replace("{source}", source);
+				.replace("{source}", url(source));
 	}
 
 	static public String getCoverUrlAuthor(String author) {
 		return COVER_URL_AUTHOR //
-				.replace("{author}", author);
+				.replace("{author}", url(author));
 	}
 
 	static public String getDeleteUrlStory(String luid) {
@@ -157,5 +160,15 @@ class WebLibraryUrls {
 
 	static public boolean isDeleteUrl(String url) {
 		return url != null && url.startsWith(DELETE_URL_BASE);
+	}
+	
+	static private String url(String value) {
+		try {
+			return URLEncoder.encode(value, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// UTF-8 is always supported
+			e.printStackTrace();
+			return value;
+		}
 	}
 }
