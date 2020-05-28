@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -395,7 +396,7 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 		}
 
 		String type = uriParts[off + 0];
-		String id = uriParts[off + 1];
+		String id = URLDecoder.decode(uriParts[off + 1], "UTF-8");
 
 		InputStream in = null;
 
@@ -446,7 +447,7 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 		}
 
 		String type = uriParts[off + 0];
-		String id = uriParts[off + 1];
+		String id = URLDecoder.decode(uriParts[off + 1], "UTF-8");
 
 		if ("source".equals(type)) {
 			sourceCover(id, login, luid);
