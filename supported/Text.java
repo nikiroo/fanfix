@@ -100,10 +100,12 @@ class Text extends BasicSupport {
 		@SuppressWarnings("resource") // cannot close, or we loose getInput()!
 		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
-		scan.next(); // Title
-		scan.next(); // Author (Date)
-		String chapter0 = scan.next(); // empty or Chapter 0
-		while (chapter0.isEmpty()) {
+		if (scan.hasNext())
+			scan.next(); // Title
+		if (scan.hasNext())
+			scan.next(); // Author (Date)
+		String chapter0 = "";
+		while (scan.hasNext() && chapter0.isEmpty()) {
 			chapter0 = scan.next();
 		}
 
@@ -126,15 +128,20 @@ class Text extends BasicSupport {
 		@SuppressWarnings("resource") // cannot close, or we loose getInput()!
 		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
-		return scan.next();
+		if (scan.hasNext())
+			return scan.next();
+		return "";
 	}
 
 	private String getAuthor() {
 		@SuppressWarnings("resource") // cannot close, or we loose getInput()!
 		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
-		scan.next();
-		String authorDate = scan.next();
+		if (scan.hasNext())
+			scan.next();
+		String authorDate = "";
+		if (scan.hasNext())
+			authorDate = scan.next();
 
 		String author = authorDate;
 		int pos = authorDate.indexOf('(');
@@ -149,8 +156,11 @@ class Text extends BasicSupport {
 		@SuppressWarnings("resource") // cannot close, or we loose getInput()!
 		Scanner scan = new Scanner(getInput(), "UTF-8");
 		scan.useDelimiter("\\n");
-		scan.next();
-		String authorDate = scan.next();
+		if (scan.hasNext())
+			scan.next();
+		String authorDate = "";
+		if (scan.hasNext())
+			authorDate = scan.next();
 
 		String date = "";
 		int pos = authorDate.indexOf('(');

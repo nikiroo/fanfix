@@ -354,6 +354,9 @@ public abstract class BasicSupport {
 			Scanner scan = new Scanner(in);
 			scan.useDelimiter("\0");
 			try {
+				if(!scan.hasNext())
+					throw new IOException("The given input was empty");
+				
 				return new JSONObject(scan.next());
 			} catch (JSONException e) {
 				throw new IOException(e);

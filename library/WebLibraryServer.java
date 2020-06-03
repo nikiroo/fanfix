@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -388,7 +387,11 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 	protected Response getCover(String uri, WLoginResult login)
 			throws IOException {
 		String[] uriParts = uri.split("/");
+		int startAt = 0;
 		int off = 2; // "" and "cover"
+		for (int i = 0; i < off; i++) {
+			startAt += uriParts[i].length() + "/".length();
+		}
 
 		if (uriParts.length < off + 2) {
 			return NanoHTTPD.newFixedLengthResponse(Status.BAD_REQUEST,
@@ -396,7 +399,7 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 		}
 
 		String type = uriParts[off + 0];
-		String id = URLDecoder.decode(uriParts[off + 1], "UTF-8");
+		String id = uri.substring(startAt + type.length() + "/".length());
 
 		InputStream in = null;
 
@@ -430,6 +433,10 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 			throws IOException {
 		String[] uriParts = uri.split("/");
 		int off = 2; // "" and "cover"
+		int startAt = 0;
+		for (int i = 0; i < off; i++) {
+			startAt += uriParts[i].length() + "/".length();
+		}
 
 		if (uriParts.length < off + 2) {
 			return NanoHTTPD.newFixedLengthResponse(Status.BAD_REQUEST,
@@ -447,7 +454,7 @@ public class WebLibraryServer extends WebLibraryServerHtml {
 		}
 
 		String type = uriParts[off + 0];
-		String id = URLDecoder.decode(uriParts[off + 1], "UTF-8");
+		String id = uri.substring(startAt + type.length() + "/".length());
 
 		if ("source".equals(type)) {
 			sourceCover(id, login, luid);
