@@ -137,7 +137,6 @@ Les fichiers de test seront:
 
 Nécessaires :
 
-- ```libs/nikiroo-utils-sources.jar```: quelques utilitaires partagés
 - [```libs/unbescape-sources.jar```](https://github.com/unbescape/unbescape): une librairie sympathique pour convertir du texte depuis/vers beaucoup de formats ; utilisée ici pour la partie HTML
 - [```libs/jsoup-sources.jar```](https://jsoup.org/): une libraririe pour parser du HTML
 - [```libs/JSON-java-20190722-sources.jar```](https://github.com/stleary/JSON-java): une libraririe pour parser du JSON
@@ -146,6 +145,11 @@ Optionnelles :
 
 - [```libs/jexer-sources.jar```](https://github.com/klamonte/jexer): une petite librairie qui offre des widgets en mode TUI
 - [```pandoc```](http://pandoc.org/): pour générer les man pages depuis les fichiers README
+
+Submodules:
+
+- ```src/be/nikiroo/utils```: quelques utilitaires partagés depuis [https://github.com/nikiroo/nikiroo-utils.git](https://github.com/nikiroo/nikiroo-utils.git) -- branche ```subtree```
+- ```src/be/nikiroo/fanfix```: le code principal, sur le même dépôt mais dans la branche ```subtree```
 
 Rien d'autre, si ce n'est Java 1.6+.
 
