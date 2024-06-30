@@ -3,6 +3,8 @@
 # Version WIP
 
 - new: http/https remote library
+- new: Use git submodules instead of a sub branch
+- new: remove configure.sh, use simple Makefile
 
 # Version 3.1.2
 
