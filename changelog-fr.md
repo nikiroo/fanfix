@@ -3,6 +3,8 @@
 # Version WIP
 
 - new: bibliothèque http/https
+- new: utilisation de submodules git
+- new: remplacement du configure.sh par un Makefile
 
 # Version 3.1.2
 
