@@ -5,9 +5,9 @@ PROJECT_NAME           = "Program name"
 PROJECT_BRIEF          = "Small description"
 INPUT                  = src/xxx 
 STRIP_FROM_PATH        = src
-OPTIMIZE_OUTPUT_FOR_C  = YES
-OPTIMIZE_OUTPUT_JAVA   = NO
-FILE_PATTERNS          = *.h
+OPTIMIZE_OUTPUT_FOR_C  = NO
+OPTIMIZE_OUTPUT_JAVA   = YES
+FILE_PATTERNS          = *.java
 
 # This file describes the settings to be used by the documentation system
 # doxygen (www.doxygen.org) for a project.
