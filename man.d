@@ -1,6 +1,6 @@
 # Requires variables: NAME, PREFIX (for install and uninstall only)
 
-.PHONY: man mrpropre mrproper install uninstall
+.PHONY: man clean mrpropre mrproper install uninstall
 
 man: VERSION README.md README*.md
 	@if pandoc -v >/dev/null 2>&1; then \
@@ -40,8 +40,10 @@ man: VERSION README.md README*.md
 		false; \
 	fi; \
 
+clean:
+	# nothing to clean for the manual
 mrproper: mrpropre
-mrpropre:
+mrpropre: clean
 	rm -f man/man1/*.1 man/*/man1/*.1
 	rmdir man/*/man1 man/* man 2>/dev/null || true 
 
