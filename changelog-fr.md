@@ -1,36 +1,36 @@
 # Fanfix
 
-# Version WIP
+## Version WIP
 
 - new: bibliothèque http/https
 - new: utilisation de submodules git
 - new: remplacement du configure.sh par un Makefile
 
-# Version 3.1.2
+## Version 3.1.2
 
 - fix: date de publication/création formatée
 - e621: correction sur l'ordre, encore
 - e621: possibilité d'utiliser un Login/API key pour éviter les blacklists
 - e621: meilleures meta-data
 
-# Version 3.1.1
+## Version 3.1.1
 
 - e621: correction pour les chapitres des pools dans l'ordre inverse
 - fix: trie les histores par nom et plus par date
 - fix: affiche le nom de l'histoire dans les barres de progrès
 
-# Version 3.1.0
+## Version 3.1.0
 
 - MangaHub: un nouvau site de manga (English)
 - MangaFox: retrait du support (site désagréable)
 - e621: correction pour la cover non sauvée
 
-# Version 3.0.1
+## Version 3.0.1
 
 - fix: en cas d'URL non supportée, n'affiche plus un message d'erreur relatif à "file://"
 - e621: update pour e621 (et ce n'est plus un BasicSupport_Deprecated)
 
-# Version 3.0.0
+## Version 3.0.0
 
 - new: maintenant compatible Android (voir [companion project](https://gitlab.com/Rayman22/fanfix-android))
 - new: recherche d'histoires (pas encore toutes les sources)
@@ -53,11 +53,11 @@
 - remote: le log inclus maintenant la date des évènements
 - remote: le mot de passe se configure maintenant dans le fichier de configuration
 
-# Version 2.0.3
+## Version 2.0.3
 
 SoFurry: correction pour les histoires disponibles uniquement aux utilisateurs inscrits sur le site
 
-# Version 2.0.2
+## Version 2.0.2
 
 - i18n: changer la langue dans les options fonctionne aussi quand $LANG existe
 - gui: traduction en français
@@ -65,12 +65,12 @@ SoFurry: correction pour les histoires disponibles uniquement aux utilisateurs i
 - fix: corrections pour le visionneur interne
 - fix: quelques corrections pour les traductions
 
-# Version 2.0.1
+## Version 2.0.1
 
 - core: un changement de titre/source/author n'était pas toujours visible en runtime
 - gui: ne recharger les histoires que quand nécessaire
 
-# Version 2.0.0
+## Version 2.0.0
 
 - new: les sources peuvent contenir "/" (et utiliseront des sous-répertoires en fonction)
 - gui: nouvelle page pour voir les propriétés d'une histoire
@@ -88,7 +88,7 @@ SoFurry: correction pour les histoires disponibles uniquement aux utilisateurs i
 - fix: update de nikiroo-utils, meilleures perfs pour le remote
 - fix: eHentai content warning
 
-# Version 1.8.1
+## Version 1.8.1
 
 - e621: les images étaient rangées à l'envers pour les recherches (/post/)
 - e621: correction pour /post/search/
@@ -97,20 +97,20 @@ SoFurry: correction pour les histoires disponibles uniquement aux utilisateurs i
 - fix: permettre les erreurs I/O pour les CBZ (ignore l'image)
 - fix: corriger le répertoire des covers par défaut
 
-# Version 1.8.0
+## Version 1.8.0
 
 - FimfictionAPI: les noms des chapitres sont maintenant triés correctement
 - e621: supporte aussi les recherches (/post/)
 - remote: la cover est maintenant envoyée au client pour les imports
 - MangaLel: support pour MangaLel
 
-# Version 1.7.1
+## Version 1.7.1
 
 - GUI: fichiers tmp supprimés trop vite en mode GUI
 - fix: une histoire sans cover pouvait planter le programme
 - ePub: erreur d'import pour un EPUB local sans cover
 
-# Version 1.7.0
+## Version 1.7.0
 
 - new: utilisation de jsoup pour parser le HTML (pas encore partout)
 - update: mise à jour de nikiroo-utils
@@ -127,7 +127,7 @@ SoFurry: correction pour les histoires disponibles uniquement aux utilisateurs i
 - doc: man pages (en, fr)
 - doc: SysV init script
 
-# Version 1.6.3
+## Version 1.6.3
 
 - fix: corrections de bugs
 - remote: notification de l'état de progression des actions

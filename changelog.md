@@ -1,36 +1,36 @@
 # Fanfix
 
-# Version WIP
+## Version WIP
 
 - new: http/https remote library
 - new: use git submodules instead of sub branches
 - new: remove configure.sh, use simple Makefile
 
-# Version 3.1.2
+## Version 3.1.2
 
 - fix: publication/creation date formated 
 - e621: fix order again
 - e621: option to use a Login/API key to evade blacklists
 - e621: better metadata
 
-# Version 3.1.1
+## Version 3.1.1
 
 - e621: fix chapters in reverse order for pools
 - fix: sort the stories by title and not by date
 - fix: expose the story name on progress bars
 
-# Version 3.1.0
+## Version 3.1.0
 
 - MangaHub: a manga website (English)
 - MangaFox: removed (too many unfriendly changes, bye)
 - e621: fix cover not saved 
 
-# Version 3.0.1
+## Version 3.0.1
 
 - fix: update for e621 (and it is no more a BasicSupport_Deprecated)
 - fix: for unsupported URL, do not errors out with a "file://" related message
 
-# Version 3.0.0
+## Version 3.0.0
 
 - new: now Android-compatible (see [companion project](https://gitlab.com/Rayman22/fanfix-android))
 - new: story search (not all sources yet)
@@ -53,11 +53,11 @@
 - remote: worse perfs but much better memory usage
 - remote: log now includes the time of events
 
-# Version 2.0.3
+## Version 2.0.3
 
 SoFurry: fix for stories only available to registrated users
 
-# Version 2.0.2
+## Version 2.0.2
 
 - i18n: setting the language in the option panel now works even with $LANG set
 - gui: translated into French
@@ -65,12 +65,12 @@ SoFurry: fix for stories only available to registrated users
 - gui: internal viewer fixes 
 - gui: some translation fixes
 
-# Version 2.0.1
+## Version 2.0.1
 
 - core: a change of title/source/author was not always visible at runtime
 - gui: only reload the stoies when needed
 
-# Version 2.0.0
+## Version 2.0.0
 
 - new: sources can contain "/" (and will use subdirectories)
 - gui: new Properties page for stories
@@ -88,7 +88,7 @@ SoFurry: fix for stories only available to registrated users
 - fix: update nikiroo-utils, better remote perfs
 - fix: eHentai content warning
 
-# Version 1.8.1
+## Version 1.8.1
 
 - e621: the images were stored in reverse order for searches (/post/)
 - e621: fix for /post/search/
@@ -97,20 +97,20 @@ SoFurry: fix for stories only available to registrated users
 - fix: allow I/O errors on CBZ files (skip image)
 - fix: fix the default covers directory
 
-# Version 1.8.0
+## Version 1.8.0
 
 - FimfictionAPI: chapter names are now correctly ordered
 - e621: now supports searches (/post/)
 - remote: cover is now sent over the network for imported stories
 - MangaLel: new support for MangaLel
 
-# Version 1.7.1
+## Version 1.7.1
 
 - GUI: tmp files deleted too soon in GUI mode
 - fix: unavailable cover could cause a crash
 - ePub: local EPUB import error when no cover
 
-# Version 1.7.0
+## Version 1.7.0
 
 - new: use jsoup for parsing HTML (not everywhere yet)
 - update nikiroo-utils
@@ -127,7 +127,7 @@ SoFurry: fix for stories only available to registrated users
 - doc: man pages (en, fr)
 - doc: SysV init script
 
-# Version 1.6.3
+## Version 1.6.3
 
 - fix: bug fixes
 - remote: progress report
